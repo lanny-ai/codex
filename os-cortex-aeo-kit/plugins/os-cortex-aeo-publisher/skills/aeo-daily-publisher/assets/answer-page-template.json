@@ -1,0 +1,18 @@
+{
+  "slug": "replace-me",
+  "question": "Replace with the exact audience question?",
+  "title": "Replace with a useful title",
+  "description": "Replace with a concise search description.",
+  "summary": "Answer the question directly in fewer than 100 words.",
+  "publishedAt": "YYYY-MM-DD",
+  "updatedAt": "YYYY-MM-DD",
+  "author": "Author name",
+  "reviewer": "Reviewer name",
+  "cluster": "Cluster name",
+  "originalInsight": "Describe the page's original framework, analysis, or first-party information gain.",
+  "sections": [],
+  "claims": [],
+  "sources": [],
+  "relatedSlugs": [],
+  "cta": { "label": "Start your free compass", "href": "/#start", "description": "Take one honest next step." }
+}

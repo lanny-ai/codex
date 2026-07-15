@@ -1,0 +1,4 @@
+interface:
+  display_name: "AEO Daily Publisher"
+  short_description: "Research, validate, and publish daily answer pages"
+  default_prompt: "Use $aeo-daily-publisher to research, validate, and publish today’s evidence-backed answer page."

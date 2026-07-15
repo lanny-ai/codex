@@ -1,0 +1,4 @@
+interface:
+  display_name: "AEO Client Onboarding"
+  short_description: "Set up a client-specific AEO authority publisher"
+  default_prompt: "Use $aeo-client-onboarding to configure my brand, authority site, quality gates, credentials, and supervised launch."

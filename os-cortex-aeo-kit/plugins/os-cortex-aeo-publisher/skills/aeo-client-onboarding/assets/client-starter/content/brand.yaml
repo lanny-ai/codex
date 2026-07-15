@@ -1,0 +1,20 @@
+brand: REPLACE_ME
+organization: REPLACE_ME
+canonical_domain: https://REPLACE_ME
+audience: REPLACE_ME
+problems:
+  - REPLACE_ME
+offer: REPLACE_ME
+approved_claims:
+  - REPLACE_ME
+prohibited_claims:
+  - REPLACE_ME
+experts:
+  author: REPLACE_ME
+  reviewer: REPLACE_ME
+cta:
+  label: REPLACE_ME
+  href: REPLACE_ME
+tone: REPLACE_ME
+source_of_truth_urls:
+  - https://REPLACE_ME
