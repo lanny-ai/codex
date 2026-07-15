@@ -1,0 +1,30 @@
+{
+  "name": "os-cortex-aeo-publisher",
+  "version": "0.1.0",
+  "description": "Install, configure, and operate a gated daily answer-engine authority publisher for one client brand.",
+  "author": {
+    "name": "AI Momentum Labs",
+    "email": "hello@aimomentumlabs.com",
+    "url": "https://aimomentumlabs.com"
+  },
+  "homepage": "https://aimomentumlabs.com",
+  "license": "Proprietary",
+  "keywords": ["aeo", "geo", "answer-engine", "content", "sites", "automation"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "OS Cortex AEO Publisher",
+    "shortDescription": "Build and run a gated AEO authority-publishing system.",
+    "longDescription": "Onboard one brand, create its authority hub, research high-value questions, publish evidence-backed answer pages, and measure citations through a fail-closed daily workflow.",
+    "developerName": "AI Momentum Labs",
+    "category": "Productivity",
+    "capabilities": ["Web research", "Website publishing", "Scheduled automation"],
+    "websiteURL": "https://aimomentumlabs.com",
+    "brandColor": "#0B1637",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png",
+    "defaultPrompt": [
+      "Use $aeo-client-onboarding to set up my brand and supervised AEO launch.",
+      "Use $aeo-daily-publisher to run today's gated publication workflow."
+    ]
+  }
+}

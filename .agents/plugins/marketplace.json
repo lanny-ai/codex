@@ -1,0 +1,20 @@
+{
+  "name": "os-cortex-aeo",
+  "interface": {
+    "displayName": "OS Cortex AEO Systems"
+  },
+  "plugins": [
+    {
+      "name": "os-cortex-aeo-publisher",
+      "source": {
+        "source": "local",
+        "path": "./plugins/os-cortex-aeo-publisher"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
