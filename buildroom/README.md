@@ -14,6 +14,8 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `skills/` | Skill sources. Each `references/knowledge-base.md` and `references/prompt-system.md` is a byte-identical copy of the week's original STEP1/STEP2 files. |
 | `build-skills.sh` | Packages every skill into an installable `.skill` (a zip). Refuses to package drafts with unresolved `TODO-REVIEW` markers. |
 | `generate-skill.py` | Scaffolds a new weekly skill from a raw STEP1/STEP2 curriculum pair. |
+| `rollout/` | Member-facing launch assets: Quick Start HTML, member README, facilitator run-of-show. |
+| `build-rollout-bundle.sh` | Packages the complete member install bundle (all skills + guides + blank file). |
 
 ## The skills (v1)
 
@@ -47,7 +49,8 @@ This turns each remaining roadmap week into scaffold-and-review work: the writin
 ## Build
 
 ```bash
-bash build-skills.sh          # emits dist/*.skill
+bash build-skills.sh            # emits dist/*.skill
+bash build-rollout-bundle.sh    # emits dist/BuildRoom_OS_Complete_Install_Bundle.zip (skills + guides + blank file)
 ```
 
 Install each `.skill` in Claude Cowork via **Settings → Skills → Upload Skill**. Members bring their Business File to every session; a member without one gets it created in their first session.
