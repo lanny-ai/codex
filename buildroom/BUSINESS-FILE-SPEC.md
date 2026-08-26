@@ -37,6 +37,8 @@ The Business File moves that discipline into the skills. It is **one markdown do
 | 7 | Lead Capture | Lead Capture | §6 |
 | 8 | Session Log | every session (append-only) | — |
 
+`buildroom-os` (the program navigator) registers no section: it reads everything and writes only §1 and §8, per rule 5 below.
+
 Future months extend the registry by **adding sections** (e.g. §9 Sales Conversations, §10 Content System) — never by restructuring existing ones. A skill built against v1.0 must still parse a v1.x file.
 
 ## Rules for authoring new Build Room skills
