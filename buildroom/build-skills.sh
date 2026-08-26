@@ -8,6 +8,11 @@ mkdir -p "$OUT"
 
 for dir in skills/*/; do
   name="$(basename "$dir")"
+  # Refuse to package unreviewed scaffolds from generate-skill.py.
+  if grep -rq "TODO-REVIEW" "$dir"; then
+    echo "SKIP  $name — unresolved TODO-REVIEW markers (draft scaffold, not packaged)"
+    continue
+  fi
   # Sync the shared protocol and business-file template into the skill,
   # so every installer carries the canonical copies.
   cp shared/business-file-protocol.md "$dir/references/business-file-protocol.md"
