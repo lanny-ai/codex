@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build Room OS — Quick Start</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: #0a0a0f;
+    color: #e8e8f0;
+    line-height: 1.6;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+  .container { max-width: 760px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid #2a2a3a; }
+  .eyebrow { color: #8b8ba0; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+  h1 {
+    font-size: 42px; font-weight: 700; letter-spacing: -1px;
+    background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 12px;
+  }
+  .subtitle { color: #b8b8c8; font-size: 17px; }
+  h2 { font-size: 22px; font-weight: 700; margin: 44px 0 18px; color: #ffffff; }
+  h2 .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 8px; margin-right: 10px;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    color: #fff; font-size: 15px; vertical-align: middle;
+  }
+  .card {
+    background: #15151f; border: 1px solid #2a2a3a; border-radius: 12px;
+    padding: 22px 24px; margin-bottom: 14px;
+  }
+  .card h3 { font-size: 16px; color: #fbbf24; margin-bottom: 6px; }
+  .card p, .card li { color: #b8b8c8; font-size: 15px; }
+  .card ul, .card ol { margin: 8px 0 0 20px; }
+  .card li { margin-bottom: 6px; }
+  .big-idea {
+    background: linear-gradient(135deg, #1a1207 0%, #15151f 70%);
+    border: 1px solid #f9731640; border-radius: 12px; padding: 26px 28px; margin-bottom: 14px;
+  }
+  .big-idea p { color: #e8e8f0; font-size: 17px; }
+  .big-idea strong { color: #fbbf24; }
+  .say {
+    display: inline-block; background: #1e1e2c; border: 1px solid #3a3a4e; border-radius: 8px;
+    padding: 3px 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13.5px; color: #fbbf24; white-space: nowrap;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 4px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #2a2a3a; font-size: 14px; }
+  th { color: #8b8ba0; font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+  td { color: #d8d8e4; }
+  .rules li { margin-bottom: 10px; }
+  .rules strong { color: #ffffff; }
+  .footer { text-align: center; margin-top: 56px; padding-top: 28px; border-top: 1px solid #2a2a3a; color: #8b8ba0; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="eyebrow">Build Room · AI Momentum Labs</div>
+    <h1>The Build Room OS</h1>
+    <div class="subtitle">One file. Every session builds on the last. Set up once, in about ten minutes.</div>
+  </div>
+
+  <h2><span class="num">★</span>The Big Idea</h2>
+  <div class="big-idea">
+    <p>Every Build Room session now reads and updates one document: your <strong>Business File</strong>. It carries your avatar, your offer, your positioning, your funnel — everything you've built.</p>
+    <p style="margin-top:12px;">That means <strong>you never repeat yourself</strong>. Your first session interviews you. Your fourth session already knows your business and just builds. The more sessions you run, the shorter they get and the sharper the output gets.</p>
+  </div>
+  <div class="card">
+    <p>Three rules, that's it:</p>
+    <ul class="rules">
+      <li><strong>Bring the file to every session.</strong> Paste or attach it when asked. Claude reads it and skips every question it already answers.</li>
+      <li><strong>Save the updated copy at the end.</strong> Every session hands the whole file back with a "what changed" summary. Replace your old copy. Done.</li>
+      <li><strong>It's yours.</strong> Edit anything by hand, anytime. Your edits always win.</li>
+    </ul>
+  </div>
+
+  <h2><span class="num">1</span>Install the Skills</h2>
+  <div class="card">
+    <p>In Claude Cowork:</p>
+    <ol>
+      <li>Open <strong>Settings → Skills → Upload Skill</strong>.</li>
+      <li>Upload each <code style="color:#fbbf24;">.skill</code> file from this bundle — all seven. Order doesn't matter.</li>
+      <li>That's the whole install. No configuration. Skills trigger automatically when you talk about the work.</li>
+    </ol>
+  </div>
+
+  <h2><span class="num">2</span>Start With the Navigator</h2>
+  <div class="card">
+    <p>Open a new Cowork session and say:</p>
+    <p style="margin:12px 0;"><span class="say">I'm new to the Build Room — set me up</span></p>
+    <p>The navigator welcomes you, creates your Business File with a five-minute snapshot of your business, and tells you exactly which session to run first. Any time you're unsure what to do next, just ask: <span class="say">What should I work on next?</span></p>
+  </div>
+
+  <h2><span class="num">3</span>Run the Sessions</h2>
+  <div class="card">
+    <p>Each session is a guided build — you answer questions, Claude does the heavy lifting, and you walk out with a finished deliverable <em>and</em> an updated Business File.</p>
+    <table>
+      <tr><th>Session</th><th>You walk out with</th><th>Say this to start</th></tr>
+      <tr><td>Ideal Client Avatar</td><td>Complete ICA + your clients' exact words</td><td><span class="say">Help me build my ideal client avatar</span></td></tr>
+      <tr><td>Signature Offer</td><td>Your offer: deliverables, price, guarantee, pitch</td><td><span class="say">Help me build my signature offer</span></td></tr>
+      <tr><td>Positioning &amp; Messaging</td><td>Your Messaging Bible: position, value prop, tagline</td><td><span class="say">Help me position my business</span></td></tr>
+      <tr><td>Offer Page Copy</td><td>A complete, publication-ready offer page</td><td><span class="say">Write my offer page</span></td></tr>
+      <tr><td>Funnel Map</td><td>Funnel map, written email sequence, build plan</td><td><span class="say">Help me map my funnel</span></td></tr>
+      <tr><td>Lead Capture</td><td>Landing page, lead magnet, delivery automation</td><td><span class="say">Help me build my opt-in page</span></td></tr>
+    </table>
+    <p style="margin-top:10px;">Run them in order the first time — each one feeds the next. The navigator keeps you on track.</p>
+  </div>
+
+  <h2><span class="num">4</span>Where to Keep Your File</h2>
+  <div class="card">
+    <ul>
+      <li>Save <strong>BUILDROOM_BUSINESS_FILE.md</strong> (or the copy your first session creates) somewhere you won't lose it — Documents, Notion, Google Drive, anywhere.</li>
+      <li>It's a plain text file. Open it with any notes app. Read it — it's the clearest picture of your business you'll own.</li>
+      <li>One file per business. Running two businesses? Two files.</li>
+    </ul>
+  </div>
+
+  <div class="footer">Build Room · AI Momentum Labs · buildroom.ai</div>
+
+</div>
+</body>
+</html>
