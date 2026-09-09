@@ -11,6 +11,7 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `BUSINESS-FILE-SPEC.md` | The Business File design: schema authority, statuses, versioning, authoring rules. |
 | `templates/BUILDROOM_BUSINESS_FILE.md` | The blank file members start from. |
 | `shared/business-file-protocol.md` | The behavioral contract every skill embeds (canonical copy). |
+| `curriculum/` | Raw STEP1/STEP2 curriculum pairs authored here, before packaging. |
 | `skills/` | Skill sources. Each `references/knowledge-base.md` and `references/prompt-system.md` is a byte-identical copy of the week's original STEP1/STEP2 files. |
 | `build-skills.sh` | Packages every skill into an installable `.skill` (a zip). Refuses to package drafts with unresolved `TODO-REVIEW` markers. |
 | `generate-skill.py` | Scaffolds a new weekly skill from a raw STEP1/STEP2 curriculum pair. |
@@ -28,6 +29,7 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `buildroom-funnel-map` | Automation & Funnels W1 | §6 | §1 (best with §2 §3) |
 | `buildroom-lead-capture` | Automation & Funnels W3 (retrofit) | §7 | §6 |
 | `buildroom-os` | — (program navigator) | §1, §8 only | — |
+| `buildroom-sop-creator` | Operations & SOPs W1 | §9 | §1 |
 
 `buildroom-lead-capture` is the retrofit of the previously shipped skill: its three original references are byte-identical; only the SKILL.md gained the Business File protocol. `buildroom-os` is the front door — it reads the file, shows progress, and routes the member to exactly one next session. `buildroom-source-watcher` (Obsidian tooling) remains standalone by design and does not touch the file.
 

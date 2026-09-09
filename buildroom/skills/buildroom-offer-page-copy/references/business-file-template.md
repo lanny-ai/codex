@@ -122,6 +122,22 @@ _Built by: Lead Capture session · Requires: §6_
 
 ---
 
+## 9. Operations & SOPs
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: SOP Creator session · Requires: §1_
+
+- **Processes documented** (name · owner · last reviewed):
+  - —
+- **Top undocumented processes** (from triage, by priority):
+- **SOP library location:**
+- **Naming convention:**
+- **Review cadence:**
+- **Maintenance trigger** (the event that forces an update):
+- **Full Operations Pack:** [filename or link]
+
+---
+
 ## 8. Session Log
 
 | Date | Session | Outputs produced | Status | Rating (1–5) | Notes |

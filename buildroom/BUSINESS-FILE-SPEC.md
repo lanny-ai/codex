@@ -35,6 +35,7 @@ The Business File moves that discipline into the skills. It is **one markdown do
 | 5 | Offer Page | Offer Page Copy | §2, §3, §4 |
 | 6 | Funnel & Automation | Funnel Map | §1 (better with §2, §3) |
 | 7 | Lead Capture | Lead Capture | §6 |
+| 9 | Operations & SOPs | SOP Creator | §1 |
 | 8 | Session Log | every session (append-only) | — |
 
 `buildroom-os` (the program navigator) registers no section: it reads everything and writes only §1 and §8, per rule 5 below.

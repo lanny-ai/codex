@@ -23,6 +23,16 @@ Run after the foundation (needs at least §2 and §3 to produce strong output).
 | 6 | Decision Machine (follow-up sequence) | *coming — not yet a Business File skill* | — | §6 |
 | 7 | Lead Capture System | `buildroom-lead-capture` | §7 | §6 |
 
+### Operations sequence — Operations & SOPs
+Run after the foundation. Documents the business so it can be delegated.
+
+| # | Session | Skill | Builds (file §) | Requires |
+|---|---|---|---|---|
+| 1 | SOP Creator System | `buildroom-sop-creator` | §9 | §1 |
+| 2 | Hiring Ad + Interview Kit | *coming — not yet a Business File skill* | — | §9 |
+| 3 | Team Training Doc Builder | *coming* | — | §9 |
+| 4 | Weekly Ops Dashboard | *coming* | — | §9 |
+
 ### Electives
 | Session | Skill | Notes |
 |---|---|---|
@@ -38,6 +48,7 @@ When routing, give the member the exact words to start the session:
 - Offer Page Copy → "Write my offer page"
 - Funnel Map → "Help me map my funnel"
 - Lead Capture → "Help me build my opt-in page"
+- SOP Creator → "Help me document my process"
 
 ## Themes on the 2026 roadmap (sessions arriving through the year)
 
