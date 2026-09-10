@@ -1,29 +1,27 @@
-# Capability menu
+# What do you want it to do?
 
-Pick 3–5 for the first session. Everything else is a later add.
+## The short menu — show THIS, exactly like this
 
-## Communication
-- **Email** — triage, summarize, draft in the operator's voice, send on approval. Gmail/Outlook connector.
-- **Calendar** — read the day, find time, book, reschedule, prep briefs.
-- **Messaging** — Slack/Teams read + post on approval.
+> **What should your Control Center handle for you? Pick up to 3 — just type the numbers.**
+>
+> 1. 📬 **Email** — read it, sort it, write replies for you
+> 2. 📅 **Calendar** — what's today, book things, move things
+> 3. 🔎 **Research** — go find out, come back with a real answer
+> 4. 📁 **Files & documents** — find them, sort them, write them
+> 5. 🌐 **Web pages** — build a page or a simple site and put it online
+> 6. 🤖 **Websites with no app** — log into a portal or CRM and click around for you
+>
+> *(Everything else is easy to add later — pick your top 3.)*
 
-## Knowledge and files
-- **Drive / Dropbox / local disk** — find, read, summarize, file, rename.
-- **Notes and docs** — draft memos, reports, meeting notes.
-- **Spreadsheets** — build and clean data files.
+Rules:
+- If they type more than three, keep the first three, say the rest are one sentence away later.
+- If they say "everything" or "I don't know", choose **1, 2, 3** and say: *"Started you with email, calendar, and research — the three people actually use every day."*
+- Do not explain the menu. Do not add options. Do not mention what's under the hood.
 
-## Web and build
-- **Research** — web search + fetch, cited answers.
-- **Browser automation** — anything with no API: portals, dashboards, form fills, CRM screens.
-- **Web pages / sites** — build and publish landing pages, one-pagers, dashboards.
-- **Code and repos** — GitHub issues, PRs, CI, deploys.
+## The full list (for later, only when they ask for more)
 
-## Business systems
-- **CRM** (GoHighLevel, HubSpot, Close) — leads, pipelines, follow-up.
-- **Payments/invoices** — read-only first, always.
-- **Project tracker** (Asana, Linear, Notion).
-
-## Autonomy
-- **Scheduled routines** — morning brief, inbox sweep, end-of-day recap.
-- **Remote dispatch** — send work from a phone, get results back.
-- **Watchers** — alert on a PR, an inbox label, a form submission.
+Communication: email · calendar · Slack/Teams · text/WhatsApp via a connected tool
+Knowledge: Google Drive / Dropbox / local files · notes and memos · spreadsheets
+Web & build: web research · browser automation · landing pages and sites · code and GitHub
+Business: CRM (GoHighLevel, HubSpot, Close) · invoices and payments (read-only first) · project trackers (Asana, Notion, Linear)
+Autonomy: morning brief · inbox sweep · end-of-day recap · watchers and alerts · phone dispatch

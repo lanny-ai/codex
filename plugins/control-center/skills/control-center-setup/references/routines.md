@@ -1,19 +1,24 @@
-# Scheduled routines
+# Step 6 — One routine, that's it
 
-Start with at most two. More than that and nobody trusts the output.
+Set up **one**. Three routines on day one and they'll stop trusting all three.
 
-## Good first routines
-- **Morning brief** (weekdays, 7:00 local): calendar, top unread email, anything due, one line each.
-- **Inbox sweep** (twice daily): triage, draft replies into Drafts — never auto-send at first.
-- **End-of-day recap**: what shipped, what is blocked, tomorrow's first move.
+## The one: the morning brief
+Ask exactly one question:
+> *"What time should your morning brief land? (most people say 7am)"*
 
-## How
-- Claude Code: use the host's scheduled-trigger/cron facility (Routines), or `cron`/Task Scheduler invoking `claude -p "<prompt>"`.
-- Codex: use the app's scheduled task feature.
-- Always specify the operator's timezone explicitly.
+Then set it and say:
+> *"Done. Every weekday at [time] you'll get your day in five lines. To stop it, just say **pause my control center**."*
+
+## Later additions (only when they ask)
+- Inbox sweep, twice a day — drafts replies, never sends
+- End-of-day recap — what shipped, what's stuck, tomorrow's first move
+- Watchers — tell me when X happens
+
+## How you set it up
+Use the host's own scheduler (Routines in Claude Code, scheduled tasks in Codex), or `cron` / Task Scheduler running `claude -p "<prompt>"`. Always set their timezone explicitly. Never make them touch any of this.
 
 ## Rules
-- The machine must be on for a local schedule. If 24/7 matters, use the cloud path instead and say so.
-- Every routine writes to `logs/` with a timestamp.
-- Every routine has a named pause phrase; put it in the handoff summary.
-- A routine that fails twice in a row disables itself and reports rather than retrying blindly.
+- A local schedule needs the computer on. If they said "no" in Step 2, use the cloud path and tell them plainly: *"This one runs in the cloud, so it works even with your laptop closed."*
+- Every run writes to `logs/`.
+- Anything that sends or publishes stays in ask-me-first mode until they've watched it work three times.
+- A routine that fails twice in a row switches itself off and tells them, instead of failing quietly forever.
