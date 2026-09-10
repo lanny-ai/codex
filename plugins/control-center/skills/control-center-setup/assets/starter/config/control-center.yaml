@@ -1,0 +1,7 @@
+operator: REPLACE_ME
+timezone: REPLACE_ME
+host: REPLACE_ME            # claude-code | codex
+machine_always_on: false
+capabilities: []            # from references/capability-menu.md
+autonomy: supervised        # supervised | approved-actions | unattended
+pause_phrase: "pause my control center"
