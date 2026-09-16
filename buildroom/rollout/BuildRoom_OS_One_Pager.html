@@ -1,0 +1,86 @@
+<title>Build Room OS</title>
+<style>
+:root{--bg:#0a0a0f;--panel:#15151f;--line:#2a2a3a;--text:#e8e8f0;--muted:#9a9ab0;--dim:#6c6c82;--accent:#f97316;--accent2:#fbbf24;--good:#34d399;--input:#1e1e2c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;line-height:1.5;padding-block:36px;padding-inline:20px}
+.wrap{max-width:880px;margin:0 auto}
+.eyebrow{color:var(--muted);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+h1{font-size:clamp(30px,5.5vw,42px);font-weight:700;letter-spacing:-1px;line-height:1.05;text-wrap:balance;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.lede{color:#b8b8c8;font-size:17px;max-width:64ch;margin-bottom:22px}
+.big{background:linear-gradient(135deg,#1a1207,#15151f 70%);border:1px solid #f9731640;border-radius:14px;padding:18px 22px;margin-bottom:26px;font-size:16px}
+.big b{color:var(--accent2)}
+h2{font-size:13px;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);margin:26px 0 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.card h3{font-size:15px;color:#fff;margin-bottom:4px}
+.card p{color:#b8b8c8;font-size:13.5px}
+.tag{display:inline-block;font-size:11px;color:var(--accent2);border:1px solid #fbbf2440;border-radius:99px;padding:1px 8px;margin-left:6px;vertical-align:middle}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+th{text-align:left;color:var(--muted);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;padding:10px 12px;border-bottom:1px solid var(--line)}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td b{color:#fff}
+.sec{color:var(--accent2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.step{background:var(--input);border:1px solid #3a3a4e;border-radius:9px;padding:8px 12px;font-size:13px}
+.arrow{color:var(--dim)}
+ul{margin-left:18px;color:#b8b8c8;font-size:14px}
+li{margin-bottom:5px}
+.foot{text-align:center;color:var(--dim);font-size:12px;margin-top:36px;padding-top:18px;border-top:1px solid var(--line)}
+</style>
+<div class="wrap">
+  <div class="eyebrow">Build Room · AI Momentum Labs</div>
+  <h1>The Build Room OS</h1>
+  <p class="lede">A membership that used to hand out weekly prompt files now runs on one system: a file that remembers your business, ten guided build sessions that read it, and a pipeline that turns new curriculum into installable skills in an afternoon.</p>
+
+  <div class="big">The promise to members: <b>you never re-explain your business to Claude again.</b> Every session opens by reading your Business File, skips every question it already answers, and hands the file back updated. Session one interviews you. Session four already knows your avatar, offer, and positioning — and just builds.</div>
+
+  <h2>The three parts</h2>
+  <div class="grid">
+    <div class="card"><h3>1 · The Business File</h3><p>One member-owned markdown document, eleven sections (avatar, offer, positioning, funnel, SOPs, role, training…). Every section carries a status — <i>not started / provisional / complete</i> — so the system knows what's load-bearing. Member edits always win. Stays under ~2,500 words.</p></div>
+    <div class="card"><h3>2 · Ten skills</h3><p>Guided sessions installed in Claude Cowork. Each reads the file, runs the week's curriculum one question at a time, delivers a finished asset, and writes its section back. A navigator skill tells members exactly what to run next.</p></div>
+    <div class="card"><h3>3 · The production pipeline</h3><p>Author a knowledge base + five-prompt system in the house format, run one command, resolve the review markers, ship. The build refuses to package anything unreviewed. Three September weeks went from blank to installable this way.</p></div>
+  </div>
+
+  <h2>What members can build today</h2>
+  <div class="tw"><table>
+    <tr><th>Session</th><th>You walk out with</th><th>Writes</th></tr>
+    <tr><td><b>Build Room OS</b> <span class="tag">navigator</span></td><td>Where you are, the one session to run next, and the words to start it</td><td class="sec">§1 · §8</td></tr>
+    <tr><td><b>Ideal Client Avatar</b></td><td>Complete ICA, pain stack, buying trigger, language bank, objection bank</td><td class="sec">§2</td></tr>
+    <tr><td><b>Signature Offer</b></td><td>Deliverables, value stack, price, guarantee, 60-second pitch</td><td class="sec">§3</td></tr>
+    <tr><td><b>Positioning &amp; Messaging</b></td><td>Messaging Bible: position, value prop, tagline, for / not-for</td><td class="sec">§4</td></tr>
+    <tr><td><b>Offer Page Copy</b></td><td>Publication-ready page — pre-fills 19 of 21 inputs from the file</td><td class="sec">§5</td></tr>
+    <tr><td><b>Funnel Map</b></td><td>Funnel map, written email sequence, automation trigger map, build plan</td><td class="sec">§6</td></tr>
+    <tr><td><b>Lead Capture</b></td><td>Landing page, lead magnet, thank-you page, GHL delivery automation</td><td class="sec">§7</td></tr>
+    <tr><td><b>SOP Creator</b> <span class="tag">Sept 1</span></td><td>Triaged process inventory, 2–4 SOPs + one-page checklists, delegation pack, SOP library</td><td class="sec">§9</td></tr>
+    <tr><td><b>Hiring Ad + Interview Kit</b> <span class="tag">Sept 2</span></td><td>Scorecard, filter ad, screening script, paid work sample, structured interview, references, offer</td><td class="sec">§10</td></tr>
+    <tr><td><b>Team Training Docs</b> <span class="tag">Sept 3</span></td><td>Training handbook: breakdown sheets, practice modules, checkouts, 30-day calendar, living FAQ</td><td class="sec">§11</td></tr>
+  </table></div>
+
+  <h2>How September compounds</h2>
+  <div class="flow">
+    <span class="step">Rent Calculator finds what your head is charging you</span><span class="arrow">→</span>
+    <span class="step">SOP Creator documents it</span><span class="arrow">→</span>
+    <span class="step">Hiring Kit turns the SOPs into a role</span><span class="arrow">→</span>
+    <span class="step">Training Docs turn them into a checked-out operator</span><span class="arrow">→</span>
+    <span class="step">Ops Dashboard <i>(next)</i> puts it all on one page</span>
+  </div>
+
+  <h2>Also in the kit</h2>
+  <ul>
+    <li><b>The Rent Calculator</b> — one-page tool: score your processes, see hours and dollars locked in your head, copy a §9 block straight into your file.</li>
+    <li><b>Member install bundle</b> — one ZIP: all ten skills, the Quick Start, the calculator, the blank Business File. Install is Settings → Skills → Upload.</li>
+    <li><b>Facilitator run-of-show</b> — a 60-minute launch session built around two live demos, including the moment a session skips the whole interview.</li>
+    <li><b>Test run + findings</b> — the system was run end to end on AI Momentum Labs itself; six ranked findings are documented, the top one being that AI-generated "verbatim" client language needs a provenance flag before it reaches a landing page.</li>
+  </ul>
+
+  <h2>Where it stands</h2>
+  <ul>
+    <li>Ten skills, four September weeks in three sessions, 12 commits — all on one reviewable pull request.</li>
+    <li>Roadmap coverage went from 6 of 36 weeks to 9 of 36; the remaining weeks are now a generator run plus a review pass each.</li>
+    <li>Open decisions: which test-run findings to implement, and whether to reissue the published roadmap to match the real production order.</li>
+  </ul>
+
+  <div class="foot">Build Room · AI Momentum Labs · September 2026</div>
+</div>
