@@ -138,6 +138,24 @@ _Built by: SOP Creator session · Requires: §1_
 
 ---
 
+## 10. Team & Hiring
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: Hiring Ad + Interview Kit session · Requires: §9_
+
+- **Role** (title · hours/wk · contractor/employee · pay range):
+- **Mission (one sentence):**
+- **Outcomes** (measurable, with timeframe):
+  1. —
+- **SOPs this role bundles:**
+- **90-day standard:**
+- **Ad status** (drafted / posted where / closed):
+- **Funnel stage** (screening / work sample / interviews / references / offer / hired):
+- **Hire** (name · start date · trial end):
+- **Full Hiring Kit:** [filename or link]
+
+---
+
 ## 8. Session Log
 
 | Date | Session | Outputs produced | Status | Rating (1–5) | Notes |

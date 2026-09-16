@@ -15,6 +15,8 @@ One file. Every session builds on the last.
 | `buildroom-offer-page-copy.skill` | Session 4 — your complete offer page, written. |
 | `buildroom-funnel-map.skill` | Session 5 — your funnel map + email sequence. |
 | `buildroom-lead-capture.skill` | Session 6 — your landing page + lead magnet + automation. |
+| `buildroom-sop-creator.skill` | September 1 — document your processes so someone else can run them. |
+| `buildroom-hiring-kit.skill` | September 2 — turn those SOPs into a role, an ad, and an interview kit. |
 | `BUILDROOM_BUSINESS_FILE.md` | The blank Business File (your first session can also create it for you). |
 
 ## Install (2 minutes)

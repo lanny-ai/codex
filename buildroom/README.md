@@ -30,6 +30,7 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `buildroom-lead-capture` | Automation & Funnels W3 (retrofit) | §7 | §6 |
 | `buildroom-os` | — (program navigator) | §1, §8 only | — |
 | `buildroom-sop-creator` | Operations & SOPs W1 | §9 | §1 |
+| `buildroom-hiring-kit` | Operations & SOPs W2 | §10 | §9 |
 
 `buildroom-lead-capture` is the retrofit of the previously shipped skill: its three original references are byte-identical; only the SKILL.md gained the Business File protocol. `buildroom-os` is the front door — it reads the file, shows progress, and routes the member to exactly one next session. `buildroom-source-watcher` (Obsidian tooling) remains standalone by design and does not touch the file.
 
