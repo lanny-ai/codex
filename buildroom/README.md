@@ -15,7 +15,7 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `skills/` | Skill sources. Each `references/knowledge-base.md` and `references/prompt-system.md` is a byte-identical copy of the week's original STEP1/STEP2 files. |
 | `build-skills.sh` | Packages every skill into an installable `.skill` (a zip). Refuses to package drafts with unresolved `TODO-REVIEW` markers. |
 | `generate-skill.py` | Scaffolds a new weekly skill from a raw STEP1/STEP2 curriculum pair. |
-| `rollout/` | Member-facing launch assets: Quick Start HTML, member README, facilitator run-of-show. |
+| `rollout/` | Member-facing launch assets: Quick Start HTML, the Rent Calculator (September W1 giveaway; exports a §9 block), member README, facilitator run-of-show. |
 | `build-rollout-bundle.sh` | Packages the complete member install bundle (all skills + guides + blank file). |
 
 ## The skills (v1)

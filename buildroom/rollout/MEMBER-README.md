@@ -7,6 +7,7 @@ One file. Every session builds on the last.
 | File | What it is |
 |---|---|
 | `BuildRoom_OS_Quick_Start.html` | Open in any browser — the visual setup guide. Start here. |
+| `Rent_Calculator.html` | Open in any browser — score your processes, see what your head is charging you in rent, and copy a §9 block straight into your Business File. |
 | `buildroom-os.skill` | The navigator. Tells you what to run next, tracks your progress. |
 | `buildroom-ideal-client-avatar.skill` | Session 1 — your Ideal Client Avatar. |
 | `buildroom-signature-offer.skill` | Session 2 — your Signature Offer. |
