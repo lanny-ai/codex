@@ -39,9 +39,12 @@ The Business File moves that discipline into the skills. It is **one markdown do
 | 10 | Team & Hiring | Hiring Ad + Interview Kit | §9 |
 | 11 | Training & Onboarding | Team Training Doc Builder | §9, §10 |
 | 12 | Weekly Ops | Weekly Ops Dashboard | §9, §11 |
+| 13 | Build Plan | Brainstorm Capture (any session may append) | — |
 | 8 | Session Log | every session (append-only) | — |
 
-`buildroom-os` (the program navigator) registers no section: it reads everything and writes only §1 and §8, per rule 5 below.
+`buildroom-os` (the program navigator) registers no section: it reads everything and writes only §1 and §8, per rule 5 below. It reads §13 to surface captured ideas that have no next step.
+
+§13 is the one section any session may **append** to (never rewrite): when a build session surfaces an idea outside its scope, it adds a `captured` row rather than losing it. Only Brainstorm Capture edits existing rows.
 
 Future months extend the registry by **adding sections** (e.g. §9 Sales Conversations, §10 Content System) — never by restructuring existing ones. A skill built against v1.0 must still parse a v1.x file.
 

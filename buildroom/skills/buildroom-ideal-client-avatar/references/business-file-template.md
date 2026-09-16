@@ -188,6 +188,23 @@ _Built by: Weekly Ops Dashboard session · Requires: §9, §11_
 
 ---
 
+## 13. Build Plan
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: Brainstorm Capture (and any session that produces an idea) · Requires: —_
+
+- **Ideas & builds** (idea · source · status · owner · next step · produced):
+  - —
+  - _Statuses: captured → scheduled → building → shipped · parked_
+- **Parked** (idea · why · revisit date):
+  - —
+- **Open questions carried forward:**
+  - —
+- **Brainstorm log location:**
+- **Last brainstorm** (date · framing question):
+
+---
+
 ## 8. Session Log
 
 | Date | Session | Outputs produced | Status | Rating (1–5) | Notes |

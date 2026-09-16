@@ -26,12 +26,13 @@ None. This skill is always safe to run — it's the front door.
 
 Ask for it (per the protocol), parse the section statuses, then deliver two things:
 
-**1. The progress view** — a compact checklist of §2–§7: ✅ complete · 🟡 provisional · ⬜ not started, one line each, with a one-line "what this means" summary ("Foundation done, funnel not started" — not a lecture).
+**1. The progress view** — a compact checklist of §2–§7 and §9–§12 (plus one line for §13 if it has open rows): ✅ complete · 🟡 provisional · ⬜ not started, one line each, with a one-line "what this means" summary ("Foundation done, funnel not started" — not a lecture).
 
 **2. The one recommendation** — apply the routing principles from `references/roadmap.md`:
 - Walk the sequences in order; the next session is the first gap whose prerequisites are met.
 - `provisional` sections are debt: if the next session would build on one, recommend hardening it first and say why.
 - If §5 or §7 has sat in `draft`, the recommendation may be "publish what you built" rather than a new session — building on unshipped work compounds nothing.
+- §13 `captured` rows older than four weeks get one line: schedule, park, or ship — then move on.
 - End with the exact trigger phrase: "Say **'Help me build my signature offer'** to start."
 
 One recommendation, with reasoning in two or three sentences. Offer the runner-up only if the member pushes back.

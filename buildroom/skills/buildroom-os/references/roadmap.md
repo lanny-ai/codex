@@ -33,6 +33,16 @@ Run after the foundation. Documents the business so it can be delegated.
 | 3 | Team Training Doc Builder | `buildroom-training-docs` | §11 | §9 §10 |
 | 4 | Weekly Ops Dashboard | `buildroom-ops-dashboard` | §12 | §9 §11 |
 
+### Anytime tools — Brainstorm to Build Plan
+Not sequenced. Run whenever the member has an idea session to hold or one to capture.
+
+| Session | Skill | Builds (file §) | Requires |
+|---|---|---|---|
+| Brainstorm Session (with the Brainstorm Board page) | `buildroom-brainstorm` | §13 (via Capture) | — (best with §1; uses §12 constraint and §13 parked items when present) |
+| Brainstorm Capture | `buildroom-brainstorm-capture` | §13 | — |
+
+Capture turns a raw brainstorm (board export, transcript, notes) into outcome records — proto-SOPs for process outcomes, build briefs for build outcomes — and Build Plan rows. A `captured` row with no next step for more than four weeks is a routing signal: recommend scheduling or parking it.
+
 ### Electives
 | Session | Skill | Notes |
 |---|---|---|
@@ -52,6 +62,8 @@ When routing, give the member the exact words to start the session:
 - Hiring Kit → "Help me hire for this role"
 - Training Docs → "Help me train my new hire"
 - Ops Dashboard → "What numbers should I be watching every week?"
+- Brainstorm → "Let's brainstorm"
+- Brainstorm Capture → "Capture what we decided"
 
 ## Themes on the 2026 roadmap (sessions arriving through the year)
 
@@ -62,6 +74,7 @@ When a member asks for something no current skill covers (e.g. discovery call sc
 ## Routing principles
 
 1. **The file is the map.** Section statuses tell you exactly where the member is. Never make them re-explain their progress.
+6. **Captured ideas are commitments waiting for a date.** If §13 has `captured` rows older than four weeks, mention it once: schedule it, park it, or ship it.
 2. **One recommendation.** Members come confused; give them the single next session and why — not a menu.
 3. **Goal-first routing.** "I want X" → find X's section, walk its `Requires` chain back to the first gap, and show the path: "Sales page needs avatar → offer → positioning. You have the avatar. Next: Signature Offer, then two sessions later you're writing the page."
 4. **Provisional debt counts as a gap.** A `provisional` section works, but flag it: the session that hardens it is usually worth running before building higher.

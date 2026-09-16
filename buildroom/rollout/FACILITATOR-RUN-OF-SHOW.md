@@ -26,7 +26,7 @@ Everything in the hour serves that sentence. Don't teach the architecture — sh
 
 ### 00:12 — Install together (8 min)
 - Screen-share `BuildRoom_OS_Quick_Start.html`.
-- Everyone uploads all eleven `.skill` files now (Settings → Skills → Upload Skill). Order doesn't matter.
+- Everyone uploads all thirteen `.skill` files now (Settings → Skills → Upload Skill). Order doesn't matter.
 - Members who had the old Lead Capture skill: the new one replaces it, same install step.
 - While uploads run, preview the session table — what each skill builds and its trigger phrase.
 

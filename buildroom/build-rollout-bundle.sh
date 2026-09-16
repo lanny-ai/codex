@@ -11,6 +11,7 @@ rm -rf "$STAGE"; mkdir -p "$STAGE"
 cp dist/*.skill "$STAGE/"
 cp rollout/BuildRoom_OS_Quick_Start.html "$STAGE/"
 cp rollout/Rent_Calculator.html "$STAGE/"
+cp rollout/Brainstorm_Board.html "$STAGE/"
 cp rollout/MEMBER-README.md "$STAGE/README.md"
 cp templates/BUILDROOM_BUSINESS_FILE.md "$STAGE/"
 
