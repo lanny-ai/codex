@@ -156,6 +156,22 @@ _Built by: Hiring Ad + Interview Kit session · Requires: §9_
 
 ---
 
+## 11. Training & Onboarding
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: Team Training Doc Builder session · Requires: §9, §10_
+
+- **Training Handbook location:**
+- **Modules** (SOP · checkout status · date · observer):
+  - —
+- **Onboarding calendar** (start date · current week):
+- **Sign-off owner:**
+- **FAQ location:**
+- **Maintenance trigger** (the event that forces a handbook update):
+- **Full Training Handbook:** [filename or link]
+
+---
+
 ## 8. Session Log
 
 | Date | Session | Outputs produced | Status | Rating (1–5) | Notes |

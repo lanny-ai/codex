@@ -37,6 +37,7 @@ The Business File moves that discipline into the skills. It is **one markdown do
 | 7 | Lead Capture | Lead Capture | §6 |
 | 9 | Operations & SOPs | SOP Creator | §1 |
 | 10 | Team & Hiring | Hiring Ad + Interview Kit | §9 |
+| 11 | Training & Onboarding | Team Training Doc Builder | §9, §10 |
 | 8 | Session Log | every session (append-only) | — |
 
 `buildroom-os` (the program navigator) registers no section: it reads everything and writes only §1 and §8, per rule 5 below.
