@@ -172,6 +172,22 @@ _Built by: Team Training Doc Builder session · Requires: §9, §10_
 
 ---
 
+## 12. Weekly Ops
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: Weekly Ops Dashboard session · Requires: §9, §11_
+
+- **Metrics** (name · owner · goal · source):
+  - —
+- **Weekly ops meeting** (day · time · attendees):
+- **Dashboard location:**
+- **Routine** (ON/OFF · schedule · delivers to · connectors):
+- **Current constraint** (one line · since):
+- **Decision log location:**
+- **Full Ops Pack:** [filename or link]
+
+---
+
 ## 8. Session Log
 
 | Date | Session | Outputs produced | Status | Rating (1–5) | Notes |

@@ -31,7 +31,7 @@ Run after the foundation. Documents the business so it can be delegated.
 | 1 | SOP Creator System | `buildroom-sop-creator` | §9 | §1 |
 | 2 | Hiring Ad + Interview Kit | `buildroom-hiring-kit` | §10 | §9 |
 | 3 | Team Training Doc Builder | `buildroom-training-docs` | §11 | §9 §10 |
-| 4 | Weekly Ops Dashboard | *coming* | — | §9 §11 |
+| 4 | Weekly Ops Dashboard | `buildroom-ops-dashboard` | §12 | §9 §11 |
 
 ### Electives
 | Session | Skill | Notes |
@@ -51,6 +51,7 @@ When routing, give the member the exact words to start the session:
 - SOP Creator → "Help me document my process"
 - Hiring Kit → "Help me hire for this role"
 - Training Docs → "Help me train my new hire"
+- Ops Dashboard → "What numbers should I be watching every week?"
 
 ## Themes on the 2026 roadmap (sessions arriving through the year)
 

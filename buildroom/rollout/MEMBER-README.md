@@ -18,12 +18,13 @@ One file. Every session builds on the last.
 | `buildroom-sop-creator.skill` | September 1 — document your processes so someone else can run them. |
 | `buildroom-hiring-kit.skill` | September 2 — turn those SOPs into a role, an ad, and an interview kit. |
 | `buildroom-training-docs.skill` | September 3 — turn them into a training handbook with checkouts, so the hire runs the system without you. |
+| `buildroom-ops-dashboard.skill` | September 4 — put the whole operation on one weekly page, with a 30-minute meeting and an optional Monday routine that builds it for you. |
 | `BUILDROOM_BUSINESS_FILE.md` | The blank Business File (your first session can also create it for you). |
 
 ## Install (2 minutes)
 
 1. Open Claude Cowork → **Settings → Skills → Upload Skill**.
-2. Upload all seven `.skill` files. Order doesn't matter.
+2. Upload all eleven `.skill` files. Order doesn't matter.
 3. Open a new session and say: **"I'm new to the Build Room — set me up."**
 
 ## The one habit that makes this work
