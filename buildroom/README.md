@@ -17,6 +17,7 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `generate-skill.py` | Scaffolds a new weekly skill from a raw STEP1/STEP2 curriculum pair. |
 | `rollout/` | Member-facing launch assets: Quick Start HTML, the Rent Calculator (September W1 giveaway; exports a §9 block), the Build Room OS one-pager, member README, facilitator run-of-show. |
 | `build-rollout-bundle.sh` | Packages the complete member install bundle (all skills + guides + blank file). |
+| `build-universal-bundle.sh` | Packages `dist/BuildRoom_OS.zip`: one drag-and-drop folder for Claude Code (`.claude/skills/`), Codex (`.codex/skills/`), and Cowork (`cowork/*.skill`), with `CLAUDE.md`/`AGENTS.md`, optional global installers, the tools, and the Business File. Sources in `rollout/universal/`. |
 
 ## The skills (v1)
 
@@ -58,6 +59,7 @@ This turns each remaining roadmap week into scaffold-and-review work: the writin
 ```bash
 bash build-skills.sh            # emits dist/*.skill
 bash build-rollout-bundle.sh    # emits dist/BuildRoom_OS_Complete_Install_Bundle.zip (skills + guides + blank file)
+bash build-universal-bundle.sh  # emits dist/BuildRoom_OS.zip (Claude Code + Codex + Cowork, one folder)
 ```
 
 Install each `.skill` in Claude Cowork via **Settings → Skills → Upload Skill**. Members bring their Business File to every session; a member without one gets it created in their first session.
