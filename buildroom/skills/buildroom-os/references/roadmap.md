@@ -69,9 +69,9 @@ Capture turns a raw brainstorm (board export, transcript, notes) into outcome re
 ### Electives
 | Session | Skill | Notes |
 |---|---|---|
-| Source Watcher Generator | `buildroom-source-watcher` | Obsidian knowledge-base tooling. Standalone — does not read or write the Business File. |
 | Video Engine | `buildroom-video-engine` | Install and run the automated video pipeline (Claude Code + HeyGen/Hedra + Pexels + fal.ai + FFmpeg + SubMagic). Elective with a money gate (~$100–325/mo); the durable lesson is Claude Code + APIs + a `.env` keys file. Reads §1/§2/§4; writes §1 tools, one §13 row, §8. |
 | C-Suite Boardroom | `buildroom-boardroom` | The founder's C-Suite Boardroom: four executives who genuinely disagree plus a chairperson who forces the call. Reads the whole file as the board pack; writes one §13 row (the decision, with its flip condition as an open question) and §8. Route here for any decision the member is circling. |
+| Source Watcher | `buildroom-source-watcher` | The founder's Watcher Master (Obsidian month, week 3): generates a watcher for any of eight source types with filters derived from the member's goals and hard-coded vault protection; the Video-to-Vault YouTube skills ride along. Standalone, or with a file: pre-fills interests from §1–§4/§12 and writes §1 tools, one §13 row, §8. Route here when the member wants their knowledge base to grow without them. |
 
 ## Trigger phrases to hand the member
 
@@ -94,6 +94,7 @@ When routing, give the member the exact words to start the session:
 - Offer Deep Dive → "Make my offer a no-brainer"
 - Copy Engine → "Write me [the piece]"
 - Video Engine (elective) → "Set up the video engine"
+- Source Watcher (elective) → "Build me a source watcher"
 - C-Suite Boardroom (elective) → "Convene the board"
 - Brainstorm → "Let's brainstorm"
 - Brainstorm Capture → "Capture what we decided"
