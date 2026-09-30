@@ -292,7 +292,7 @@ function render(doc){
   $("log").innerHTML=`<h2>Session Log <span class="hint">· §8</span></h2>`+(doc.log.length?`<div class="tw"><table><tr><th>Date</th><th>Session</th><th>Status</th><th>★</th></tr>${doc.log.slice().reverse().map(c=>`<tr><td>${esc(c[0])}</td><td>${esc(c[1])}<div class="hint">${esc(c[2]||"")}</div></td><td>${esc(c[3]||"")}</td><td>${esc(c[4]||"")}</td></tr>`).join("")}</table></div>`:`<p class="hint">No sessions logged yet.</p>`);
   // extras
   const ex=doc.extras.filter(s=>s.n!==8);
-  $("extras").innerHTML=`<h2>Also in your file</h2>`+(ex.length?ex.map(s=>`<div class="f" style="font-size:13px;color:#d8d8e4;margin:4px 0">§${s.n} ${esc(s.title)} <span class="pill other">${esc(s.statusRaw||"custom")}</span></div>`).join("")+`<p class="hint" style="margin-top:8px">Sections outside the standard sixteen. Skills preserve them untouched.</p>`:`<p class="hint">Nothing outside the standard sixteen sections. Anything you add by hand shows up here.</p>`);
+  $("extras").innerHTML=`<h2>Also in your file</h2>`+(ex.length?ex.map(s=>`<div class="f" style="font-size:13px;color:#d8d8e4;margin:4px 0">§${s.n} ${esc(s.title)} <span class="pill other">${esc(s.statusRaw||"custom")}</span></div>`).join("")+`<p class="hint" style="margin-top:8px">Sections outside the standard seventeen. Skills preserve them untouched.</p>`:`<p class="hint">Nothing outside the standard seventeen sections. Anything you add by hand shows up here.</p>`);
   $("dash").classList.add("on");
   $("dash").scrollIntoView({behavior:"smooth",block:"start"});
 }

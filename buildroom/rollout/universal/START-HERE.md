@@ -59,7 +59,7 @@ In Cowork, paste your Business File into the session when asked and save the upd
 
 | Path | What it is |
 |---|---|
-| `BUILDROOM_BUSINESS_FILE.md` | **Your** Business File. One file, sixteen sections, every session builds on it. Blank until your first session. |
+| `BUILDROOM_BUSINESS_FILE.md` | **Your** Business File. One file, seventeen sections, every session builds on it. Blank until your first session. |
 | `tools/BuildRoom_OS_Quick_Start.html` | Open in a browser: the visual guide to the program and every session's trigger phrase. |
 | `tools/Rent_Calculator.html` | Open in a browser: what your undocumented processes cost you. Copies a §9 block into your file. |
 | `tools/Business_File_Viewer.html` | Open in a browser: paste your Business File, see every section's status, your progress, the one session to run next, and your Build Plan. |
