@@ -1,6 +1,6 @@
 # Build Room Business File — Specification
 
-**Version 1.0 · 2026-08-26**
+**Version 1.1 · 2026-09-30** (1.0 · 2026-08-26)
 
 ## Why this exists
 
@@ -40,7 +40,13 @@ The Business File moves that discipline into the skills. It is **one markdown do
 | 11 | Training & Onboarding | Team Training Doc Builder | §9, §10 |
 | 12 | Weekly Ops | Weekly Ops Dashboard | §9, §11 |
 | 13 | Build Plan | Brainstorm Capture (any session may append) | — |
+| 14 | Lead Generation Engine | Lead Gen Machine (four modules) | §1; best with §2, §3 |
+| 15 | Sales Conversations | Sales Conversations | §3; best with §2, §4 |
 | 8 | Session Log | every session (append-only) | — |
+
+Three skills write into sections owned by other sessions, by design: **Audience Insight** writes §2's sourced language, pains, and objections (with provenance tags); **Offer Deep Dive** hardens §3; the **Copy Engine** writes only §8 and, on confirmation, a page status in §5 or §7. Each asks before replacing anything a member or the owning session wrote.
+
+**Provenance rule (v1.1).** §2 carries two language banks: *Sourced language*, where every line has a `[client]` or `[web: source]` tag, and *Hypothesis language*, tagged `[hypothesis]`. Downstream skills prefer sourced lines and flag any draft that leans on hypotheses. No skill may move a line from hypothesis to sourced without a source.
 
 `buildroom-os` (the program navigator) registers no section: it reads everything and writes only §1 and §8, per rule 5 below. It reads §13 to surface captured ideas that have no next step.
 

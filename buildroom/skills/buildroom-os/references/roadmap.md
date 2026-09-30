@@ -23,6 +23,22 @@ Run after the foundation (needs at least §2 and §3 to produce strong output).
 | 6 | Decision Machine (follow-up sequence) | *coming — not yet a Business File skill* | — | §6 |
 | 7 | Lead Capture System | `buildroom-lead-capture` | §7 | §6 |
 
+### Lead Generation sequence — Lead Generation Engine
+Run after the foundation (needs §1; every message gets sharper with §2 and §3). One skill, four modules, one session each, in order.
+
+| # | Module | Skill | Builds (file §) | Requires |
+|---|---|---|---|---|
+| 1 | Warm Network Activation | `buildroom-leadgen` | §14 (provisional until all four run) | §1 (best with §2 §3) |
+| 2 | The Outreach Machine | `buildroom-leadgen` | §14 | Module 1 |
+| 3 | The Referral System | `buildroom-leadgen` | §14 | Module 1 |
+| 4 | Content Lead Engine + Pipeline | `buildroom-leadgen` | §14 (complete) | Modules 1–3; reads §6 §7 |
+
+### Sales sequence — Sales Conversations
+
+| # | Session | Skill | Builds (file §) | Requires |
+|---|---|---|---|---|
+| 1 | Sales Conversations (script + role-play) | `buildroom-sales-script` | §15 | §3 (best with §2 §4) |
+
 ### Operations sequence — Operations & SOPs
 Run after the foundation. Documents the business so it can be delegated.
 
@@ -43,6 +59,13 @@ Not sequenced. Run whenever the member has an idea session to hold or one to cap
 
 Capture turns a raw brainstorm (board export, transcript, notes) into outcome records — proto-SOPs for process outcomes, build briefs for build outcomes — and Build Plan rows. A `captured` row with no next step for more than four weeks is a routing signal: recommend scheduling or parking it.
 
+### Hardening passes and engines — run when the file says so
+| Session | Skill | Writes | When to route here |
+|---|---|---|---|
+| Audience Insight | `buildroom-audience-insight` | §2 sourced language, pains, objections (with provenance) | §2 holds only `[hypothesis]` language, or the member has real client material they haven't used. Recommend before §5 or §7 ships. |
+| Offer Deep Dive | `buildroom-offer-deep-dive` | §3 (belief, value stack, math, guarantee, urgency) | §3 is complete but sales are slow, price objections dominate, or the member is about to write the offer page. |
+| Copy Engine | `buildroom-copy-engine` | §8 only (and a page status in §5/§7 on confirmation) | Any request to write or improve emails, ads, posts, pages, letters. Not a session; a tool that reads the whole file. |
+
 ### Electives
 | Session | Skill | Notes |
 |---|---|---|
@@ -62,6 +85,11 @@ When routing, give the member the exact words to start the session:
 - Hiring Kit → "Help me hire for this role"
 - Training Docs → "Help me train my new hire"
 - Ops Dashboard → "What numbers should I be watching every week?"
+- Lead Gen Machine → "Help me get more leads" (the skill picks the module from §14)
+- Sales Conversations → "Help me with my sales call"
+- Audience Insight → "Find the words my clients actually use"
+- Offer Deep Dive → "Make my offer a no-brainer"
+- Copy Engine → "Write me [the piece]"
 - Brainstorm → "Let's brainstorm"
 - Brainstorm Capture → "Capture what we decided"
 
@@ -77,5 +105,6 @@ When a member asks for something no current skill covers (e.g. discovery call sc
 6. **Captured ideas are commitments waiting for a date.** If §13 has `captured` rows older than four weeks, mention it once: schedule it, park it, or ship it.
 2. **One recommendation.** Members come confused; give them the single next session and why — not a menu.
 3. **Goal-first routing.** "I want X" → find X's section, walk its `Requires` chain back to the first gap, and show the path: "Sales page needs avatar → offer → positioning. You have the avatar. Next: Signature Offer, then two sessions later you're writing the page."
-4. **Provisional debt counts as a gap.** A `provisional` section works, but flag it: the session that hardens it is usually worth running before building higher.
+4. **Hypothesis language is debt too.** If §2's sourced bank is empty and the member is heading for §5 or §7, route to Audience Insight first: a landing page built on guessed customer words ships guesses to real prospects.
+4b. **Provisional debt counts as a gap.** A `provisional` section works, but flag it: the session that hardens it is usually worth running before building higher.
 5. **Ship-state beats build-state.** If §5 or §7 says `draft` for weeks, the highest-value "next session" may be: publish what's built. Say so.

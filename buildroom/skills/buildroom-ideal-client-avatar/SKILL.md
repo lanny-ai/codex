@@ -47,7 +47,7 @@ Quality bar throughout: specific over general, verbatim over paraphrased, psycho
 
 1. Assemble the **complete ICA Document** (all five outputs, cleanly organized, with the Verbatim Language Bank as its own clearly-marked section). Tell the member to save it as its own document.
 2. Update the Business File per the protocol:
-   - **§2 Ideal Client Avatar** — every field, distilled; language bank limited to the 5–10 strongest verbatims; link to the full ICA Document by filename. Status `complete` (or `provisional` if built on thin, unconfirmed input — say so).
+   - **§2 Ideal Client Avatar** — every field, distilled; language split into **Sourced language** (only phrases from real client material the member provided, each tagged `[client]`) and **Hypothesis language** (everything generated in this session, each tagged `[hypothesis]`), 5–10 lines each at most; never write a generated phrase into the sourced bank; link to the full ICA Document by filename. Status `complete` (or `provisional` if built on thin, unconfirmed input — say so).
    - **§1 Business Snapshot** — fill any fields that surfaced during intake.
    - **§8 Session Log** — append the row; ask for the 1–5 rating.
 3. Emit the entire updated file in one code block with the "what changed" summary, per the protocol.

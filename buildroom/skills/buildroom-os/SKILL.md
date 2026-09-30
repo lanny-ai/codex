@@ -26,7 +26,7 @@ None. This skill is always safe to run — it's the front door.
 
 Ask for it (per the protocol), parse the section statuses, then deliver two things:
 
-**1. The progress view** — a compact checklist of §2–§7 and §9–§12 (plus one line for §13 if it has open rows): ✅ complete · 🟡 provisional · ⬜ not started, one line each, with a one-line "what this means" summary ("Foundation done, funnel not started" — not a lecture).
+**1. The progress view** — a compact checklist of §2–§7, §9–§12, §14, and §15 (plus one line for §13 if it has open rows): ✅ complete · 🟡 provisional · ⬜ not started, one line each, with a one-line "what this means" summary ("Foundation done, funnel not started" — not a lecture).
 
 **2. The one recommendation** — apply the routing principles from `references/roadmap.md`:
 - Walk the sequences in order; the next session is the first gap whose prerequisites are met.

@@ -39,8 +39,11 @@ _Built by: Ideal Client Avatar session_
 - **Buying trigger (what makes them act now):**
 - **Top objections** — spoken: — · unspoken: —
 - **Negative avatar (who I refuse to serve, and why):**
-- **Verbatim language bank** (5–10 exact phrases clients actually said):
+- **Sourced language** (exact phrases with provenance: `[client]` or `[web: source]`):
   1. —
+- **Hypothesis language** (generated or guessed, `[hypothesis]` — never quote as a client's words):
+  1. —
+- **Audience Playbook:** [filename or link]
 - **Full ICA document:** [filename or link]
 
 ---
@@ -59,7 +62,10 @@ _Built by: Signature Offer session · Requires: §2_
 - **Value stack total:** $ — · **Investment:** $ —
 - **Guarantee (full wording):**
 - **60-second pitch:**
+- **The one belief (16-word):**
+- **Urgency (why now, real):**
 - **Full offer document:** [filename or link]
+- **Offer Deep Dive document:** [filename or link]
 
 ---
 
@@ -202,6 +208,41 @@ _Built by: Brainstorm Capture (and any session that produces an idea) · Require
   - —
 - **Brainstorm log location:**
 - **Last brainstorm** (date · framing question):
+
+---
+
+## 14. Lead Generation Engine
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: Lead Gen Machine (four modules, one session each) · Requires: §1; best with §2, §3_
+
+- **Modules run** (module · date · status):
+  - 1 Warm Network: — · 2 Outreach Machine: — · 3 Referral System: — · 4 Content + Pipeline: —
+- **Warm network** (contacts audited · tier-A count · scorecard location):
+- **Outreach** (channel · list source · message doc · 5-touch sequence doc):
+- **Referral system** (trigger moments · ask-script doc · partners):
+- **Content** (platform · cadence · content type · calendar location):
+- **Pipeline tracker** (location · stages):
+- **Weekly habit** (day · time · minutes):
+- **30-day targets** (conversations · discovery calls · deals):
+- **Results to date** (conversations · calls · clients · best channel):
+- **Full Lead Gen Pack:** [filename or link]
+
+---
+
+## 15. Sales Conversations
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: Sales Conversations session · Requires: §3; best with §2, §4_
+
+- **Scenario** (inbound / outbound / referral / appointment-set):
+- **Script location:**
+- **Weak stage + what changed:**
+- **Top objections + one-line response:**
+  1. —
+- **Role-play dates:**
+- **Call metrics** (booked · held · closed, weekly):
+- **Full Sales Script:** [filename or link]
 
 ---
 

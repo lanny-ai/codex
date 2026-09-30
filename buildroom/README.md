@@ -35,6 +35,11 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `buildroom-training-docs` | Operations & SOPs W3 | §11 | §9 §10 |
 | `buildroom-ops-dashboard` | Operations & SOPs W4 | §12 | §9 §11 |
 | *(tool)* `rollout/Business_File_Viewer.html` | Anytime tool | reads the whole file, writes nothing | — |
+| `buildroom-leadgen` | Lead Generation Engine (4 modules, retrofit of the Lead Gen Machine) | §14 | §1 (best §2 §3) |
+| `buildroom-sales-script` | Sales Conversations (retrofit of the Sales Coach) | §15 | §3 (best §2 §4) |
+| `buildroom-audience-insight` | Hardening pass (retrofit of the Audience Insight Playbook) | §2 sourced language, with provenance | §1 |
+| `buildroom-offer-deep-dive` | Hardening pass (retrofit of the Million-Dollar Offer Maker) | §3 | best §3 §2 |
+| `buildroom-copy-engine` | Copy tool (Kern + Halbert) | §8 only | best §2 §3 |
 | `buildroom-brainstorm` | Anytime tool (with `rollout/Brainstorm_Board.html`) | §8, §13 last-brainstorm line | — |
 | `buildroom-brainstorm-capture` | Anytime tool | §13 | — |
 
