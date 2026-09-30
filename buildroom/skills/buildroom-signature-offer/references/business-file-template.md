@@ -140,6 +140,8 @@ _Built by: SOP Creator session · Requires: §1_
 - **Naming convention:**
 - **Review cadence:**
 - **Maintenance trigger** (the event that forces an update):
+- **Automation candidates** (process · go / no-go / partial · stage: mapped / evals / shadow / approve-each / autonomous):
+  - —
 - **Full Operations Pack:** [filename or link]
 
 ---
