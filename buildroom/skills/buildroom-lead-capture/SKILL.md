@@ -286,7 +286,7 @@ Before closing, follow the protocol's session-end steps:
 ## What This Skill Does NOT Do
 
 - It does not build the funnel structure (that's Week 1 — funnel mapping skill)
-- It does not build the follow-up email sequences inside the funnel (that's Week 2 — Decision Machine skill)
+- It does not build the follow-up email sequences inside the funnel (that's Week 2 — the `buildroom-decision-machine` skill, which writes §16)
 - It does not run Facebook ads, set up tracking pixels, or handle traffic generation
 - It connects to the Decision Machine but does not build the Decision Machine itself
 

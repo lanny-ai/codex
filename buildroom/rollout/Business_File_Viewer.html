@@ -174,17 +174,18 @@ const REG={
   13:{t:"Build Plan",skill:"Brainstorm Session",say:"Let's brainstorm",req:[]},
   14:{t:"Lead Generation Engine",skill:"Lead Gen Machine",say:"Help me get more leads",req:[1],soft:[2,3]},
   15:{t:"Sales Conversations",skill:"Sales Conversations",say:"Help me with my sales call",req:[3],soft:[2,4]},
+  16:{t:"Follow-Up Engine",skill:"Decision Machine",say:"Build my follow-up system",req:[3,6],soft:[2,7]},
   8:{t:"Session Log",skill:"",say:"",req:[]}
 };
 const SEQ=[
   {name:"Foundation · Offer Clarity",secs:[2,3,4,5]},
-  {name:"Funnel · Automation",secs:[6,7]},
+  {name:"Funnel · Automation",secs:[6,16,7]},
   {name:"Lead Generation",secs:[14]},
   {name:"Sales",secs:[15]},
   {name:"Operations · SOPs",secs:[9,10,11,12]},
   {name:"Anytime",secs:[1,13]}
 ];
-const GOALS={"5":"a sales page","14":"more leads","15":"a sales call script","7":"an opt-in page","6":"a funnel","9":"to delegate a process","11":"a trained hire","12":"my numbers on one page"};
+const GOALS={"5":"a sales page","14":"more leads","15":"a sales call script","7":"an opt-in page","16":"automated follow-up","6":"a funnel","9":"to delegate a process","11":"a trained hire","12":"my numbers on one page"};
 
 /* ---- parser ---- */
 const PLACEHOLDER=/^(—|-|–|\[.*\]|n\/a|tbd|todo|\$\s*—|)$/i;
@@ -259,7 +260,7 @@ function render(doc){
   $("biz").textContent=doc.business&&!/\[.*\]/.test(doc.business)?doc.business:"(business name not set)";
   $("own").textContent=doc.owner&&!/\[.*\]/.test(doc.owner)?doc.owner:"";
   $("upd").textContent=doc.updated&&!/\[.*\]/.test(doc.updated)?"Last updated "+doc.updated:"";
-  const build=[1,2,3,4,5,6,7,9,10,11,12,13,14,15];
+  const build=[1,2,3,4,5,6,7,9,10,11,12,13,14,15,16];
   const c=build.filter(n=>status(doc,n)==="complete").length,p=build.filter(n=>status(doc,n)==="provisional").length;
   $("prog").innerHTML=`<div class="c" style="width:${c/build.length*100}%"></div><div class="p" style="width:${p/build.length*100}%"></div>`;
   $("legend").innerHTML=`<span><i class="dot c"></i><b>${c}</b> complete</span><span><i class="dot p"></i><b>${p}</b> provisional</span><span><i class="dot n"></i><b>${build.length-c-p}</b> not started</span><span>· ${build.length} sections · ${doc.log.length} session${doc.log.length===1?"":"s"} logged</span>`;
@@ -290,7 +291,7 @@ function render(doc){
   $("log").innerHTML=`<h2>Session Log <span class="hint">· §8</span></h2>`+(doc.log.length?`<div class="tw"><table><tr><th>Date</th><th>Session</th><th>Status</th><th>★</th></tr>${doc.log.slice().reverse().map(c=>`<tr><td>${esc(c[0])}</td><td>${esc(c[1])}<div class="hint">${esc(c[2]||"")}</div></td><td>${esc(c[3]||"")}</td><td>${esc(c[4]||"")}</td></tr>`).join("")}</table></div>`:`<p class="hint">No sessions logged yet.</p>`);
   // extras
   const ex=doc.extras.filter(s=>s.n!==8);
-  $("extras").innerHTML=`<h2>Also in your file</h2>`+(ex.length?ex.map(s=>`<div class="f" style="font-size:13px;color:#d8d8e4;margin:4px 0">§${s.n} ${esc(s.title)} <span class="pill other">${esc(s.statusRaw||"custom")}</span></div>`).join("")+`<p class="hint" style="margin-top:8px">Sections outside the standard fifteen. Skills preserve them untouched.</p>`:`<p class="hint">Nothing outside the standard fifteen sections. Anything you add by hand shows up here.</p>`);
+  $("extras").innerHTML=`<h2>Also in your file</h2>`+(ex.length?ex.map(s=>`<div class="f" style="font-size:13px;color:#d8d8e4;margin:4px 0">§${s.n} ${esc(s.title)} <span class="pill other">${esc(s.statusRaw||"custom")}</span></div>`).join("")+`<p class="hint" style="margin-top:8px">Sections outside the standard sixteen. Skills preserve them untouched.</p>`:`<p class="hint">Nothing outside the standard sixteen sections. Anything you add by hand shows up here.</p>`);
   $("dash").classList.add("on");
   $("dash").scrollIntoView({behavior:"smooth",block:"start"});
 }

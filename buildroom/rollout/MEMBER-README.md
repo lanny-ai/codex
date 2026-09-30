@@ -19,6 +19,7 @@ One file. Every session builds on the last.
 | `buildroom-hiring-kit.skill` | September 2 — turn those SOPs into a role, an ad, and an interview kit. |
 | `buildroom-training-docs.skill` | September 3 — turn them into a training handbook with checkouts, so the hire runs the system without you. |
 | `buildroom-ops-dashboard.skill` | September 4 — put the whole operation on one weekly page, with a 30-minute meeting and an optional Monday routine that builds it for you. |
+| `buildroom-decision-machine.skill` | Decision Machine — a follow-up campaign on every yes/no in your funnel, one belief per message, built and verified in your CRM. Say "Build my follow-up system." |
 | `buildroom-leadgen.skill` | Lead Gen Machine — four modules: warm network, cold outreach, referrals, content + pipeline. Say "Help me get more leads." |
 | `buildroom-sales-script.skill` | Sales Conversations — your seven-stage call script, objections, and live role-play. Say "Help me with my sales call." |
 | `buildroom-audience-insight.skill` | Audience Insight — real customer language with sources, into your file. Say "Find the words my clients actually use." |
@@ -33,7 +34,7 @@ One file. Every session builds on the last.
 ## Install (2 minutes)
 
 1. Open Claude Cowork → **Settings → Skills → Upload Skill**.
-2. Upload all eighteen `.skill` files. Order doesn't matter.
+2. Upload all nineteen `.skill` files. Order doesn't matter.
 3. Open a new session and say: **"I'm new to the Build Room — set me up."**
 
 ## The one habit that makes this work

@@ -20,7 +20,7 @@ Run after the foundation (needs at least §2 and §3 to produce strong output).
 | # | Session | Skill | Builds (file §) | Requires |
 |---|---|---|---|---|
 | 5 | Funnel Map & First Automation | `buildroom-funnel-map` | §6 | §1 (best with §2 §3) |
-| 6 | Decision Machine (follow-up sequence) | *coming — not yet a Business File skill* | — | §6 |
+| 6 | Decision Machine (follow-up engine) | `buildroom-decision-machine` | §16 | §3 §6 (best with §2 §7) |
 | 7 | Lead Capture System | `buildroom-lead-capture` | §7 | §6 |
 
 ### Lead Generation sequence — Lead Generation Engine
@@ -81,6 +81,7 @@ When routing, give the member the exact words to start the session:
 - Offer Page Copy → "Write my offer page"
 - Funnel Map → "Help me map my funnel"
 - Lead Capture → "Help me build my opt-in page"
+- Decision Machine → "Build my follow-up system"
 - SOP Creator → "Help me document my process"
 - Hiring Kit → "Help me hire for this role"
 - Training Docs → "Help me train my new hire"

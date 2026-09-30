@@ -246,6 +246,26 @@ _Built by: Sales Conversations session · Requires: §3; best with §2, §4_
 
 ---
 
+## 16. Follow-Up Engine
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: Decision Machine session · Requires: §3, §6; best with §2, §7_
+
+- **Core belief (one sentence):**
+- **The five beliefs** (surface · identity · reframe · proof · anticipation):
+  1. —
+- **Campaign map** (campaign · entry tag · exit tag · belief · awareness level · status):
+  - —
+- **Tag architecture doc:** · **tag count:**
+- **Build status** (tags · fields · workflows · messages — built / verified):
+- **Engagement tracker:** on/off · **Stagger:** on/off (list size)
+- **Reactivation** (list size · verified · sunset sent):
+- **Deliverability** (SPF/DKIM/DMARC checked · unsubscribe · complaint rate):
+- **Metrics to watch** (open · reply · booked · per campaign):
+- **Full Decision Machine Pack:** [filename or link]
+
+---
+
 ## 8. Session Log
 
 | Date | Session | Outputs produced | Status | Rating (1–5) | Notes |
