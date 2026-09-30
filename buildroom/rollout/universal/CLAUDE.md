@@ -1,6 +1,6 @@
 # Build Room OS
 
-This folder is a Build Room member's workspace. The Build Room (AI Momentum Labs) is a program of guided weekly builds for service businesses, coaches, consultants, and agencies. Twenty skills live in this folder; every one of them reads and updates the member's **Business File**.
+This folder is a Build Room member's workspace. The Build Room (AI Momentum Labs) is a program of guided weekly builds for service businesses, coaches, consultants, and agencies. Twenty-one skills live in this folder; every one of them reads and updates the member's **Business File**.
 
 ## The Business File
 
