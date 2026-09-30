@@ -24,9 +24,10 @@ At the start of every session, read these reference files:
 
 2. **`references/kern-framework.md`** — Frank Kern's 8-step persuasion-first copywriting framework. Read this when entering any copywriting phase (Prompts 2, 3, and 5).
 
-3. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly. (A blank file lives at `references/business-file-template.md`.)
+3. **`references/deploy-pages.md`** — publishing a page to the member's own domain without a page builder (Cloudflare Pages via the Build Room Pages zip, token in `.env`, branded subdomain), and the one open decision for opt-in pages: GoHighLevel cannot receive pages, so a self-hosted landing page must embed a GHL form or the opt-in page stays in GHL. Read it before Phase 4 when the member wants the page on their own domain.
+4. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly. (A blank file lives at `references/business-file-template.md`.)
 
-Load all three before any other work happens.
+Load all four before any other work happens.
 
 ## Prerequisites
 
