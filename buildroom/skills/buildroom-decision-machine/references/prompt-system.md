@@ -102,6 +102,10 @@ What exists already: [tags · workflows · sequences — rough count,
 or "nothing"]
 Who will build it: [me by hand / an agent in Claude Code, Codex,
 or Cowork with the browser extension]
+CRM API key created? [yes / no] (in GoHighLevel: a private
+integration key; the agent creates tags and fields in one batch
+through it — through the browser it is one tag at a time and it
+burns the session)
 
 MY LIST:
 Size: [number] · How many are dormant (no engagement 90+ days):
@@ -235,9 +239,12 @@ model tier it needs.
 
 ━━ THE TAG ARCHITECTURE ━━
 
-Every tag the machine needs, by family, with a naming convention
-I can read at a glance (e.g., `src-`, `status-`, `age-`, `eng-`,
-`cmp-[name]-entry / -active / -done / -exited`):
+Every tag the machine needs, by family, with ONE naming convention
+I can read at a glance: lowercase kebab-case with a family prefix
+(`src-bootcamp`, `status-new-lead`, `age-`, `eng-`,
+`cmp-[name]-entry / -active / -done / -exited`). Never mix styles
+(`Status: New Lead` next to `status-new-lead` is how a real build
+ended up with two conventions):
 
    SOURCE TAGS — one per lead source in §1/§6/§7
    STATUS TAGS — the chain of yeses as states
@@ -251,10 +258,16 @@ map mine onto these and tell me which to keep, rename, or retire.
 
 ━━ THE MASTER CONTROLLER ━━
 
-The switching station, as a numbered workflow: trigger, the
-decision diamond per campaign in priority order (checks the
-campaign's `done` tag), the enroll action, the return-to-start.
+The switching station, as a numbered workflow: trigger (the
+`decision-machine-start` tag), the decision diamond per campaign in
+priority order (checks the campaign's `done` tag), the enroll
+action, the return-to-start (re-apply the start tag on exit).
 State it so an agent could build it and so I could draw it.
+
+If this is my first build, say so and offer the stand-in: one
+linear sequence on the first conversion point with one entry tag
+and one exit tag ("the sequence is the Decision Machine for now").
+The controller is the target; the stand-in is a legitimate v1.
 
 ━━ THE ENGAGEMENT TRACKER ━━
 
@@ -347,7 +360,8 @@ execute in one pass and I could follow by hand:
    4. MESSAGES — load each written message into its step
    5. SMART LISTS / SEGMENTS — engaged, dormant, sunset-pending
 State where my CRM's API stops and the agent must use the UI, and
-what to save as it goes. If an agent is building it, give me the
+what to save as it goes. One workflow per instruction: a whole
+system in one prompt fails. If an agent is building it, give me the
 exact instruction to hand it, including "no creative in this pass."
 
 ━━ THE VERIFICATION CHECKLIST ━━
@@ -362,6 +376,10 @@ The pass I run before anything goes live, as checkboxes:
    [ ] links resolve; the invite points at the offer link
    [ ] SPF / DKIM / DMARC verified · one-click unsubscribe on
    [ ] test contact walked end to end; test contact sunset
+   [ ] launch test: my own email submitted → delivery email lands
+       within 2 minutes → sequence queued → test booking → the
+       exit tag removes me from the sequence → every page checked
+       at phone width
    [ ] send ledger or log exists; a recovery plan for a bad send
 "Don't trust, verify" — I check the tags myself.
 
