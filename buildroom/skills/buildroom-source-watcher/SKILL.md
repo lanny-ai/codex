@@ -145,7 +145,7 @@ Ask:
 > A) Paste your Compass or Blueprint — I'll extract everything automatically
 > B) Walk me through 4 quick questions about your interests"
 
-With a Business File, skip the question: draft the interests profile from §1–§4, §12 and §13 (what they're building, topics they care about, people and frameworks they follow, what to never capture), show it, and ask only for corrections. The Compass adds voice and values the file doesn't carry; take it if offered.
+With a Business File, skip the question: draft the interests profile from §1–§4, §12 and §13 (what they're building, topics they care about, people and frameworks they follow, what to never capture), show it, and ask only for corrections. §17 Founder Compass, when filled, supplies the values and the drain zone (what to never capture); a pasted Compass adds detail if offered.
 
 If A: extract their interests, priorities, and topics-to-avoid from the Compass/Blueprint.
 If B: ask 4 questions one at a time:

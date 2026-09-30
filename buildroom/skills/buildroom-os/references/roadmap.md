@@ -73,6 +73,7 @@ Capture turns a raw brainstorm (board export, transcript, notes) into outcome re
 | C-Suite Boardroom | `buildroom-boardroom` | The founder's C-Suite Boardroom: four executives who genuinely disagree plus a chairperson who forces the call. Reads the whole file as the board pack; writes one §13 row (the decision, with its flip condition as an open question) and §8. Route here for any decision the member is circling. |
 | Source Watcher | `buildroom-source-watcher` | The founder's Watcher Master (Obsidian month, week 3): generates a watcher for any of eight source types with filters derived from the member's goals and hard-coded vault protection; the Video-to-Vault YouTube skills ride along. Standalone, or with a file: pre-fills interests from §1–§4/§12 and writes §1 tools, one §13 row, §8. Route here when the member wants their knowledge base to grow without them. |
 | Second Brain | `buildroom-obsidian` | The Obsidian + Claude Code second brain (June month, weeks 1, 2 and 4): install, CLAUDE.md and templates, a gated first fill, routines and expert hats; the Business File moves into the vault root. Writes §1 tools, one §13 row, §8. Route here when a member says Claude keeps forgetting their business, or before any heavy knowledge work. |
+| Compass | `buildroom-compass` (anytime, writes §17) | The founder's Compass: a one-question-at-a-time interview producing the personal clarity document (values, energy map, personality, zone of genius, blind spots, Compass Statement) into §17 Founder Compass. Requires nothing; redo when circumstances change. Route here first when a member says they feel misaligned, or before any copy session when §17 is empty. |
 
 ## Trigger phrases to hand the member
 
@@ -95,6 +96,7 @@ When routing, give the member the exact words to start the session:
 - Offer Deep Dive → "Make my offer a no-brainer"
 - Copy Engine → "Write me [the piece]"
 - Video Engine (elective) → "Set up the video engine"
+- Compass (anytime) → "Build my compass"
 - Second Brain (elective) → "Set up my second brain"
 - Source Watcher (elective) → "Build me a source watcher"
 - C-Suite Boardroom (elective) → "Convene the board"

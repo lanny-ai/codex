@@ -175,6 +175,7 @@ const REG={
   14:{t:"Lead Generation Engine",skill:"Lead Gen Machine",say:"Help me get more leads",req:[1],soft:[2,3]},
   15:{t:"Sales Conversations",skill:"Sales Conversations",say:"Help me with my sales call",req:[3],soft:[2,4]},
   16:{t:"Follow-Up Engine",skill:"Decision Machine",say:"Build my follow-up system",req:[3,6],soft:[2,7]},
+  17:{t:"Founder Compass",skill:"Compass",say:"Build my compass",req:[]},
   8:{t:"Session Log",skill:"",say:"",req:[]}
 };
 const SEQ=[
@@ -183,7 +184,7 @@ const SEQ=[
   {name:"Lead Generation",secs:[14]},
   {name:"Sales",secs:[15]},
   {name:"Operations · SOPs",secs:[9,10,11,12]},
-  {name:"Anytime",secs:[1,13]}
+  {name:"Anytime",secs:[1,13,17]}
 ];
 const GOALS={"5":"a sales page","14":"more leads","15":"a sales call script","7":"an opt-in page","16":"automated follow-up","6":"a funnel","9":"to delegate a process","11":"a trained hire","12":"my numbers on one page"};
 
@@ -260,7 +261,7 @@ function render(doc){
   $("biz").textContent=doc.business&&!/\[.*\]/.test(doc.business)?doc.business:"(business name not set)";
   $("own").textContent=doc.owner&&!/\[.*\]/.test(doc.owner)?doc.owner:"";
   $("upd").textContent=doc.updated&&!/\[.*\]/.test(doc.updated)?"Last updated "+doc.updated:"";
-  const build=[1,2,3,4,5,6,7,9,10,11,12,13,14,15,16];
+  const build=[1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17];
   const c=build.filter(n=>status(doc,n)==="complete").length,p=build.filter(n=>status(doc,n)==="provisional").length;
   $("prog").innerHTML=`<div class="c" style="width:${c/build.length*100}%"></div><div class="p" style="width:${p/build.length*100}%"></div>`;
   $("legend").innerHTML=`<span><i class="dot c"></i><b>${c}</b> complete</span><span><i class="dot p"></i><b>${p}</b> provisional</span><span><i class="dot n"></i><b>${build.length-c-p}</b> not started</span><span>· ${build.length} sections · ${doc.log.length} session${doc.log.length===1?"":"s"} logged</span>`;

@@ -51,7 +51,7 @@ The session has 6 sequential prompts. Run them in order. Do not skip ahead. Each
 
 First, follow the Business File protocol: ask for the member's **Build Room Business File**. It pre-fills most of the extraction — business profile and tools (§1, §6), the full ICA profile and verbatim language (§2), and the offer profile (§3).
 
-Then, if the member has a **Magic Wand Compass and/or Blueprint**, ask them to paste it too — the Compass carries the voice intelligence (values, zones, communication style) the Business File doesn't hold.
+The voice intelligence (values, zones, communication style) comes from **§17 Founder Compass** when it is filled. If §17 is empty and the member has a **Compass and/or Blueprint** document, ask them to paste it; otherwise recommend the **Compass** session after this one.
 
 If they have neither, ask the manual inputs at the bottom of `references/prompt-system.md`.
 

@@ -268,6 +268,25 @@ _Built by: Decision Machine session · Requires: §3, §6; best with §2, §7_
 
 ---
 
+## 17. Founder Compass
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: Compass session · Requires: —_
+
+- **Compass statement:**
+- **Top values (3):**
+- **Life philosophy (one sentence):**
+- **Personality pattern (plain words):**
+- **Zone of genius:**
+- **Spark zone:**
+- **Drain zone:**
+- **Blind spots:**
+- **Unique truth:**
+- **Communication style (how I sound at my best):**
+- **Full Compass document:** [filename or link]
+
+---
+
 ## 8. Session Log
 
 | Date | Session | Outputs produced | Status | Rating (1–5) | Notes |

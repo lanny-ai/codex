@@ -43,6 +43,7 @@ The Business File moves that discipline into the skills. It is **one markdown do
 | 14 | Lead Generation Engine | Lead Gen Machine (four modules) | §1; best with §2, §3 |
 | 15 | Sales Conversations | Sales Conversations | §3; best with §2, §4 |
 | 16 | Follow-Up Engine | Decision Machine | §3, §6; best with §2, §7 |
+| 17 | Founder Compass | Compass (anytime; redo when circumstances change) | — |
 | 8 | Session Log | every session (append-only) | — |
 
 Three skills write into sections owned by other sessions, by design: **Audience Insight** writes §2's sourced language, pains, and objections (with provenance tags); **Offer Deep Dive** hardens §3; the **Copy Engine** writes only §8 and, on confirmation, a page status in §5 or §7. Each asks before replacing anything a member or the owning session wrote.
