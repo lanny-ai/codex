@@ -30,6 +30,7 @@ One file. Every session builds on the last.
 | `buildroom-source-watcher.skill` | Source Watcher (elective) — generate a watcher for any source (podcasts, YouTube, newsletters, RSS, Reddit) that files high-signal notes into your Obsidian vault without touching your own notes. Say "Build me a source watcher." |
 | `buildroom-obsidian.skill` | Second Brain (elective) — an Obsidian vault on your own machine with Claude Code working inside it: install, standing instructions, first fill with quality gates, morning briefing and weekly synthesis; your Business File moves in. Say "Set up my second brain." |
 | `buildroom-compass.skill` | Compass (anytime) — who you are at a deep level, in a page and a half that ends in a Compass Statement; every other session then sounds like you and stays out of your drain zone. Say "Build my compass." |
+| `buildroom-agent-forge.skill` | Agent Forge (elective) — an agent definition from the founder's thirteen elements (outcome, identity, knowledge, tools, workflow, boundaries, escalation, verification, metrics, review), from scratch, a template, a plain description, or a scrubbed rebuild of something you downloaded. Say "Make me an agent." |
 | `Business_File_Viewer.html` | Open in any browser — paste your Business File and see your whole business on one screen: every section's status, your progress, the one session to run next, and your Build Plan. |
 | `Brainstorm_Board.html` | Open in any browser — frame a question, diverge on a timer, cluster, dot-vote, decide, and copy the whole board into Claude. |
 | `buildroom-brainstorm.skill` | Anytime — Claude facilitates the brainstorm alongside the board (or in chat) and ends it on an owner and a first step. |
@@ -39,7 +40,7 @@ One file. Every session builds on the last.
 ## Install (2 minutes)
 
 1. Open Claude Cowork → **Settings → Skills → Upload Skill**.
-2. Upload all twenty-four `.skill` files. Order doesn't matter.
+2. Upload all twenty-five `.skill` files. Order doesn't matter.
 3. Open a new session and say: **"I'm new to the Build Room — set me up."**
 
 ## The one habit that makes this work

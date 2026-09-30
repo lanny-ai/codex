@@ -46,6 +46,7 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `buildroom-source-watcher` | Elective (the founder's Watcher Master generator, rebuilt from the Jun 17 session; generator skill and references byte-identical; Video-to-Vault skills included) | §1 tools, §13 row, §8 | — |
 | `buildroom-obsidian` | Elective (the Obsidian + Claude Code month, rebuilt from the Jun 3/10/24 sessions and office hours) | §1 tools, §13 row, §8 | — |
 | `buildroom-compass` | Anytime (the founder's Compass interview, rebuilt from the Jul 22 live test and the sessions that explain it) | §17, §13 row, §8 | — |
+| `buildroom-agent-forge` | Elective (the founder's thirteen-element agent builder, rebuilt from the Jul 29 preview and bootcamp) | §13 row, §8 | — |
 | `buildroom-brainstorm` | Anytime tool (with `rollout/Brainstorm_Board.html`) | §8, §13 last-brainstorm line | — |
 | `buildroom-brainstorm-capture` | Anytime tool | §13 | — |
 

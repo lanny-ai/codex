@@ -15,7 +15,7 @@ cd BuildRoom_OS
 claude
 ```
 
-The twenty-four skills are picked up automatically from `.claude/skills/`. Say:
+The twenty-five skills are picked up automatically from `.claude/skills/`. Say:
 
 > I'm new to the Build Room — set me up.
 
@@ -48,7 +48,7 @@ For every project: run the same installer as above. It also fills `~/.codex/skil
 ## Claude Cowork / claude.ai
 
 1. Settings → **Skills** → **Upload Skill**.
-2. Upload every file in the `cowork/` folder (twenty-four `.skill` files, any order).
+2. Upload every file in the `cowork/` folder (twenty-five `.skill` files, any order).
 3. Open a new session and say: **"I'm new to the Build Room — set me up."**
 
 In Cowork, paste your Business File into the session when asked and save the updated copy it hands back. In Claude Code and Codex this happens automatically: the skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder.
@@ -64,7 +64,7 @@ In Cowork, paste your Business File into the session when asked and save the upd
 | `tools/Rent_Calculator.html` | Open in a browser: what your undocumented processes cost you. Copies a §9 block into your file. |
 | `tools/Business_File_Viewer.html` | Open in a browser: paste your Business File, see every section's status, your progress, the one session to run next, and your Build Plan. |
 | `tools/Brainstorm_Board.html` | Open in a browser: frame, diverge, cluster, dot-vote, decide, then "Copy for Claude." |
-| `skills/` | The twenty-four skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
+| `skills/` | The twenty-five skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
 | `cowork/` | The same skills packaged for Cowork upload. |
 | `CLAUDE.md`, `AGENTS.md` | Tell Claude Code and Codex what this folder is. Don't delete them. |
 
@@ -93,6 +93,7 @@ In Cowork, paste your Business File into the session when asked and save the upd
 | "Set up the video engine" | The automated video pipeline installed in Claude Code (elective, costs money; it tells you how much first) |
 | "Build me a source watcher" | A watcher for any source, filing filtered notes into your Obsidian vault (elective; some sources need a paid key, it says which) |
 | "Set up my second brain" | An Obsidian vault with Claude Code inside it, your data on your own machine (elective; free app, subscription only) |
+| "Make me an agent" | An agent definition from the founder's thirteen elements, installable as a skill or handed to a build (elective) |
 | "Build my compass" | Who you are at a deep level, in a page and a half that ends in a Compass Statement; every session then sounds like you |
 | "Convene the board" | Four executives who genuinely disagree and a chairperson who forces the call, about your business |
 | "Where do I start?" | The navigator: where you are and the one thing to run next |

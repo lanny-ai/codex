@@ -75,6 +75,13 @@ Capture turns a raw brainstorm (board export, transcript, notes) into outcome re
 | Second Brain | `buildroom-obsidian` | The Obsidian + Claude Code second brain (June month, weeks 1, 2 and 4): install, CLAUDE.md and templates, a gated first fill, routines and expert hats; the Business File moves into the vault root. Writes §1 tools, one §13 row, §8. Route here when a member says Claude keeps forgetting their business, or before any heavy knowledge work. |
 | Compass | `buildroom-compass` (anytime, writes §17) | The founder's Compass: a one-question-at-a-time interview producing the personal clarity document (values, energy map, personality, zone of genius, blind spots, Compass Statement) into §17 Founder Compass. Requires nothing; redo when circumstances change. Route here first when a member says they feel misaligned, or before any copy session when §17 is empty. |
 
+### Sessions kept as notes, not skills
+| Session | Why not a skill | Where it lives |
+|---|---|---|
+| Buzz (2026-08-12) | A third-party open-source desktop app where humans and agents share channels, shown as a demo. The founder called it "just an operation layer" over the second brain, told members not to let it distract from money-making, and by 08-26 was off the stock app and onto a custom build. No Build Room artifact, unstable vendor onboarding, no member follow-through. If a member asks: the vault is still the brain; the Second Brain and Source Watcher electives are the durable parts. | This note. |
+| Agent Forge app (2026-07-29) | The hosted builder never reached members (workspace-gated publish). The thirteen elements it encoded are the `buildroom-agent-forge` elective. | `buildroom-agent-forge` |
+| Agent Forge | `buildroom-agent-forge` | The founder's Agent Forge as a skill: the thirteen elements applied one question at a time with defaults from the file, templates for the common agents, a plain-language proposal path, and a scrub-and-rebuild path for downloaded skills. Reads §1, §9, §12, §13; writes one §13 row and §8. Route here when a §9 candidate is Go or Partial, or when the member says make me an agent. |
+
 ## Trigger phrases to hand the member
 
 When routing, give the member the exact words to start the session:
@@ -96,6 +103,7 @@ When routing, give the member the exact words to start the session:
 - Offer Deep Dive → "Make my offer a no-brainer"
 - Copy Engine → "Write me [the piece]"
 - Video Engine (elective) → "Set up the video engine"
+- Agent Forge (elective) → "Make me an agent"
 - Compass (anytime) → "Build my compass"
 - Second Brain (elective) → "Set up my second brain"
 - Source Watcher (elective) → "Build me a source watcher"
