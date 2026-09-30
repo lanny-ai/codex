@@ -44,6 +44,7 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `buildroom-video-engine` | Elective (rebuilt from the May 20 session) | §1 tools, §13 row, §8 | — |
 | `buildroom-boardroom` | Elective (the founder's C-Suite Boardroom plugin, rebuilt from the Jul 1 session; five persona files byte-identical) | §13 row, §8 | — |
 | `buildroom-source-watcher` | Elective (the founder's Watcher Master generator, rebuilt from the Jun 17 session; generator skill and references byte-identical; Video-to-Vault skills included) | §1 tools, §13 row, §8 | — |
+| `buildroom-obsidian` | Elective (the Obsidian + Claude Code month, rebuilt from the Jun 3/10/24 sessions and office hours) | §1 tools, §13 row, §8 | — |
 | `buildroom-brainstorm` | Anytime tool (with `rollout/Brainstorm_Board.html`) | §8, §13 last-brainstorm line | — |
 | `buildroom-brainstorm-capture` | Anytime tool | §13 | — |
 
