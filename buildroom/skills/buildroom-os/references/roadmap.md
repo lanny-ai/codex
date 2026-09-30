@@ -70,6 +70,7 @@ Capture turns a raw brainstorm (board export, transcript, notes) into outcome re
 | Session | Skill | Notes |
 |---|---|---|
 | Source Watcher Generator | `buildroom-source-watcher` | Obsidian knowledge-base tooling. Standalone — does not read or write the Business File. |
+| Video Engine | `buildroom-video-engine` | Install and run the automated video pipeline (Claude Code + HeyGen/Hedra + Pexels + fal.ai + FFmpeg + SubMagic). Elective with a money gate (~$100–325/mo); the durable lesson is Claude Code + APIs + a `.env` keys file. Reads §1/§2/§4; writes §1 tools, one §13 row, §8. |
 
 ## Trigger phrases to hand the member
 
@@ -91,6 +92,7 @@ When routing, give the member the exact words to start the session:
 - Audience Insight → "Find the words my clients actually use"
 - Offer Deep Dive → "Make my offer a no-brainer"
 - Copy Engine → "Write me [the piece]"
+- Video Engine (elective) → "Set up the video engine"
 - Brainstorm → "Let's brainstorm"
 - Brainstorm Capture → "Capture what we decided"
 

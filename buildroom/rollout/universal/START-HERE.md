@@ -15,7 +15,7 @@ cd BuildRoom_OS
 claude
 ```
 
-The nineteen skills are picked up automatically from `.claude/skills/`. Say:
+The twenty skills are picked up automatically from `.claude/skills/`. Say:
 
 > I'm new to the Build Room — set me up.
 
@@ -48,7 +48,7 @@ For every project: run the same installer as above. It also fills `~/.codex/skil
 ## Claude Cowork / claude.ai
 
 1. Settings → **Skills** → **Upload Skill**.
-2. Upload every file in the `cowork/` folder (nineteen `.skill` files, any order).
+2. Upload every file in the `cowork/` folder (twenty `.skill` files, any order).
 3. Open a new session and say: **"I'm new to the Build Room — set me up."**
 
 In Cowork, paste your Business File into the session when asked and save the updated copy it hands back. In Claude Code and Codex this happens automatically: the skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder.
@@ -64,7 +64,7 @@ In Cowork, paste your Business File into the session when asked and save the upd
 | `tools/Rent_Calculator.html` | Open in a browser: what your undocumented processes cost you. Copies a §9 block into your file. |
 | `tools/Business_File_Viewer.html` | Open in a browser: paste your Business File, see every section's status, your progress, the one session to run next, and your Build Plan. |
 | `tools/Brainstorm_Board.html` | Open in a browser: frame, diverge, cluster, dot-vote, decide, then "Copy for Claude." |
-| `skills/` | The nineteen skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
+| `skills/` | The twenty skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
 | `cowork/` | The same skills packaged for Cowork upload. |
 | `CLAUDE.md`, `AGENTS.md` | Tell Claude Code and Codex what this folder is. Don't delete them. |
 
@@ -90,6 +90,7 @@ In Cowork, paste your Business File into the session when asked and save the upd
 | "What numbers should I be watching every week?" | One-page dashboard, 30-minute weekly meeting, optional Monday routine |
 | "Let's brainstorm" | A framed question, a voted board, outcomes with owners |
 | "Capture what we decided" | Decision records, proto-SOPs, build briefs, Build Plan rows |
+| "Set up the video engine" | The automated video pipeline installed in Claude Code (elective, costs money; it tells you how much first) |
 | "Where do I start?" | The navigator: where you are and the one thing to run next |
 
 Run the first six in order the first time. The navigator keeps you on track.

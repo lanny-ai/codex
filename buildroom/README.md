@@ -41,6 +41,7 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `buildroom-audience-insight` | Hardening pass (retrofit of the Audience Insight Playbook) | §2 sourced language, with provenance | §1 |
 | `buildroom-offer-deep-dive` | Hardening pass (retrofit of the Million-Dollar Offer Maker) | §3 | best §3 §2 |
 | `buildroom-copy-engine` | Copy tool (Kern + Halbert) | §8 only | best §2 §3 |
+| `buildroom-video-engine` | Elective (rebuilt from the May 20 session) | §1 tools, §13 row, §8 | — |
 | `buildroom-brainstorm` | Anytime tool (with `rollout/Brainstorm_Board.html`) | §8, §13 last-brainstorm line | — |
 | `buildroom-brainstorm-capture` | Anytime tool | §13 | — |
 

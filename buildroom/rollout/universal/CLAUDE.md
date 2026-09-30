@@ -1,6 +1,6 @@
 # Build Room OS
 
-This folder is a Build Room member's workspace. The Build Room (AI Momentum Labs) is a program of guided weekly builds for service businesses, coaches, consultants, and agencies. Nineteen skills live in this folder; every one of them reads and updates the member's **Business File**.
+This folder is a Build Room member's workspace. The Build Room (AI Momentum Labs) is a program of guided weekly builds for service businesses, coaches, consultants, and agencies. Twenty skills live in this folder; every one of them reads and updates the member's **Business File**.
 
 ## The Business File
 
@@ -16,7 +16,7 @@ A member who says "set me up," "where do I start," or anything about the Build R
 
 ## Skills in this folder
 
-`buildroom-os` (navigator) · `buildroom-ideal-client-avatar` (§2) · `buildroom-signature-offer` (§3) · `buildroom-positioning-messaging` (§4) · `buildroom-offer-page-copy` (§5) · `buildroom-funnel-map` (§6) · `buildroom-lead-capture` (§7) · `buildroom-sop-creator` (§9) · `buildroom-hiring-kit` (§10) · `buildroom-training-docs` (§11) · `buildroom-ops-dashboard` (§12) · `buildroom-decision-machine` (§16) · `buildroom-leadgen` (§14) · `buildroom-sales-script` (§15) · `buildroom-audience-insight` (§2 sourced language) · `buildroom-offer-deep-dive` (§3) · `buildroom-copy-engine` (§8 only) · `buildroom-brainstorm` (§8, §13) · `buildroom-brainstorm-capture` (§13)
+`buildroom-os` (navigator) · `buildroom-ideal-client-avatar` (§2) · `buildroom-signature-offer` (§3) · `buildroom-positioning-messaging` (§4) · `buildroom-offer-page-copy` (§5) · `buildroom-funnel-map` (§6) · `buildroom-lead-capture` (§7) · `buildroom-sop-creator` (§9) · `buildroom-hiring-kit` (§10) · `buildroom-training-docs` (§11) · `buildroom-ops-dashboard` (§12) · `buildroom-decision-machine` (§16) · `buildroom-leadgen` (§14) · `buildroom-sales-script` (§15) · `buildroom-audience-insight` (§2 sourced language) · `buildroom-offer-deep-dive` (§3) · `buildroom-copy-engine` (§8 only) · `buildroom-brainstorm` (§8, §13) · `buildroom-brainstorm-capture` (§13) · `buildroom-video-engine` (elective: §1 tools, §13 row, §8)
 
 Each skill's `SKILL.md` is the orchestrator; its `references/` hold the curriculum (knowledge base, prompt system), the protocol, and the blank template. Follow the SKILL.md; it says which references to read first.
 

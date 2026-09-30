@@ -25,6 +25,7 @@ One file. Every session builds on the last.
 | `buildroom-audience-insight.skill` | Audience Insight — real customer language with sources, into your file. Say "Find the words my clients actually use." |
 | `buildroom-offer-deep-dive.skill` | Offer Deep Dive — twelve questions that make your offer a no-brainer. Say "Make my offer a no-brainer." |
 | `buildroom-copy-engine.skill` | Copy Engine — any email, ad, page, or letter, written from your file. Say "Write me…" |
+| `buildroom-video-engine.skill` | Video Engine (elective) — install and run the automated video pipeline in Claude Code. Costs money; the skill says how much before you start. Say "Set up the video engine." |
 | `Business_File_Viewer.html` | Open in any browser — paste your Business File and see your whole business on one screen: every section's status, your progress, the one session to run next, and your Build Plan. |
 | `Brainstorm_Board.html` | Open in any browser — frame a question, diverge on a timer, cluster, dot-vote, decide, and copy the whole board into Claude. |
 | `buildroom-brainstorm.skill` | Anytime — Claude facilitates the brainstorm alongside the board (or in chat) and ends it on an owner and a first step. |
@@ -34,7 +35,7 @@ One file. Every session builds on the last.
 ## Install (2 minutes)
 
 1. Open Claude Cowork → **Settings → Skills → Upload Skill**.
-2. Upload all nineteen `.skill` files. Order doesn't matter.
+2. Upload all twenty `.skill` files. Order doesn't matter.
 3. Open a new session and say: **"I'm new to the Build Room — set me up."**
 
 ## The one habit that makes this work
