@@ -16,7 +16,8 @@ Read these reference files, in order, before any member-facing work:
 
 1. **`references/knowledge-base.md`** — the research foundation: Schwartz's awareness stages, the 12-section PAS→AIDA page architecture, Ogilvy's 80% headline principle, Caples' headline structures, Sugarman's slippery slide, Hopkins' reason-why, the five proof types, Kahneman's loss framing, Halbert's write-to-one-person rule, and the operating principles you will apply.
 2. **`references/prompt-system.md`** — the session's engine. Adopt its SYSTEM PROMPT as your operating identity and its standards as non-negotiable: publication-ready output, every vague claim made specific or cut, emotion creates the decision and logic gives permission. (Ignore its manual load/paste instructions — this skill replaces that mechanic.)
-3. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly.
+3. **`references/deploy-pages.md`** — how the finished page gets onto the member's own domain without a page builder: the Build Room Pages zip in Claude Code, a Cloudflare Pages project, an "Edit Cloudflare Workers" token kept in `.env`, a branded subdomain, and the security rules. Read it when the member asks how to publish.
+4. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly.
 
 ## Prerequisites
 
@@ -49,7 +50,7 @@ Quality bar: written to one person (the ICA, by name, private conversation), eve
    - **§5 Offer Page** — chosen headline, page status (draft), proof assets used with composite labels noted, credibility anchor, link to the copy document. Status per the inheritance rule.
    - **§8 Session Log** — append the row; ask for the 1–5 rating.
 3. Emit the entire updated file in one code block with the "what changed" summary.
-4. Close with the ship nudge: "This page is done when it's *live*. Publish it, put the URL in §5, and the next natural session is **Funnel Map** — turning this page into a system."
+4. Close with the ship nudge: "This page is done when it's *live*. Publish it, put the URL in §5, and the next natural session is **Funnel Map** — turning this page into a system." If the member asks how to publish, follow `references/deploy-pages.md`: a branded subdomain on their own domain, never a tool's URL. If they are in Claude Code with the pages skill installed, offer to publish the page now and record the URL in §5.
 
 ## Voice & Style Rules
 
