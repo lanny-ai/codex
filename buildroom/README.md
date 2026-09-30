@@ -34,6 +34,7 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `buildroom-hiring-kit` | Operations & SOPs W2 | §10 | §9 |
 | `buildroom-training-docs` | Operations & SOPs W3 | §11 | §9 §10 |
 | `buildroom-ops-dashboard` | Operations & SOPs W4 | §12 | §9 §11 |
+| *(tool)* `rollout/Business_File_Viewer.html` | Anytime tool | reads the whole file, writes nothing | — |
 | `buildroom-brainstorm` | Anytime tool (with `rollout/Brainstorm_Board.html`) | §8, §13 last-brainstorm line | — |
 | `buildroom-brainstorm-capture` | Anytime tool | §13 | — |
 

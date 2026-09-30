@@ -19,6 +19,7 @@ One file. Every session builds on the last.
 | `buildroom-hiring-kit.skill` | September 2 — turn those SOPs into a role, an ad, and an interview kit. |
 | `buildroom-training-docs.skill` | September 3 — turn them into a training handbook with checkouts, so the hire runs the system without you. |
 | `buildroom-ops-dashboard.skill` | September 4 — put the whole operation on one weekly page, with a 30-minute meeting and an optional Monday routine that builds it for you. |
+| `Business_File_Viewer.html` | Open in any browser — paste your Business File and see your whole business on one screen: every section's status, your progress, the one session to run next, and your Build Plan. |
 | `Brainstorm_Board.html` | Open in any browser — frame a question, diverge on a timer, cluster, dot-vote, decide, and copy the whole board into Claude. |
 | `buildroom-brainstorm.skill` | Anytime — Claude facilitates the brainstorm alongside the board (or in chat) and ends it on an owner and a first step. |
 | `buildroom-brainstorm-capture.skill` | Anytime — turns any brainstorm, transcript, or notes into decision records, proto-SOPs, build briefs, and Build Plan rows in your Business File. |

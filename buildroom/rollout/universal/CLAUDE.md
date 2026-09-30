@@ -22,7 +22,7 @@ Each skill's `SKILL.md` is the orchestrator; its `references/` hold the curricul
 
 ## Tools
 
-`tools/Rent_Calculator.html`, `tools/Brainstorm_Board.html`, and `tools/BuildRoom_OS_Quick_Start.html` are browser pages for the member, not for you. If a member pastes a "BRAINSTORM BOARD EXPORT" block, that is input for `buildroom-brainstorm-capture`. If they paste a "## 9. Operations & SOPs" block from the Rent Calculator, merge it into the file as a provisional §9.
+`tools/Rent_Calculator.html`, `tools/Brainstorm_Board.html`, `tools/Business_File_Viewer.html`, and `tools/BuildRoom_OS_Quick_Start.html` are browser pages for the member, not for you. If a member pastes a "BRAINSTORM BOARD EXPORT" block, that is input for `buildroom-brainstorm-capture`. If they paste a "## 9. Operations & SOPs" block from the Rent Calculator, merge it into the file as a provisional §9.
 
 ## Rules for this folder
 

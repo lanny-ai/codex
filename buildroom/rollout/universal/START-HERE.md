@@ -62,6 +62,7 @@ In Cowork, paste your Business File into the session when asked and save the upd
 | `BUILDROOM_BUSINESS_FILE.md` | **Your** Business File. One file, thirteen sections, every session builds on it. Blank until your first session. |
 | `tools/BuildRoom_OS_Quick_Start.html` | Open in a browser: the visual guide to the program and every session's trigger phrase. |
 | `tools/Rent_Calculator.html` | Open in a browser: what your undocumented processes cost you. Copies a §9 block into your file. |
+| `tools/Business_File_Viewer.html` | Open in a browser: paste your Business File, see every section's status, your progress, the one session to run next, and your Build Plan. |
 | `tools/Brainstorm_Board.html` | Open in a browser: frame, diverge, cluster, dot-vote, decide, then "Copy for Claude." |
 | `skills/` | The thirteen skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
 | `cowork/` | The same skills packaged for Cowork upload. |
