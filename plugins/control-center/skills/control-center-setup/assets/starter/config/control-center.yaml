@@ -1,0 +1,11 @@
+# Your Control Center settings. You never need to open this — it's here so
+# your assistant remembers how you like things.
+operator: REPLACE_ME
+timezone: REPLACE_ME
+host: REPLACE_ME              # claude-code | codex
+computer_stays_on: false      # answered in Step 2
+what_it_handles: []           # picked in Step 1
+mode: ask-me-first            # ask-me-first | ask-before-sending | runs-on-its-own
+pause_phrase: "pause my control center"
+resume_phrase: "finish my control center"
+setup_progress: 0             # which of the 7 steps is done

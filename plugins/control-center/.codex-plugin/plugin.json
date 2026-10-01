@@ -1,0 +1,28 @@
+{
+  "name": "control-center",
+  "version": "0.1.0",
+  "description": "Onboard and operate a personal Control Center: credentials, MCP connectors, browser automation, and remote dispatch so one operator can command their computer from anywhere.",
+  "author": {
+    "name": "AI Momentum Labs",
+    "email": "hello@aimomentumlabs.com",
+    "url": "https://aimomentumlabs.com"
+  },
+  "homepage": "https://aimomentumlabs.com",
+  "license": "Proprietary",
+  "keywords": ["control-center", "mcp", "automation", "remote", "browser", "email"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Control Center",
+    "shortDescription": "Set up and run a remote-controllable command center for your computer.",
+    "longDescription": "A guided onboarding that installs connectors, stores credentials safely, enables browser automation, and turns on remote dispatch, plus an operating skill that executes broad everyday work on command: email, calendar, research, documents, web pages, and scheduled routines.",
+    "developerName": "AI Momentum Labs",
+    "category": "Productivity",
+    "capabilities": ["Connector setup", "Browser automation", "Remote dispatch", "Scheduled automation"],
+    "websiteURL": "https://aimomentumlabs.com",
+    "brandColor": "#0B1637",
+    "defaultPrompt": [
+      "Use $control-center-setup to build my command center.",
+      "Use $control-center-command to run today's work."
+    ]
+  }
+}
