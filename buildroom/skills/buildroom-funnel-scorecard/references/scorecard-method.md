@@ -9,6 +9,8 @@ One row per failure point, in funnel order, read from the §6 funnel map. The co
 | # | Stage (failure point) | Gate (what the person must do) | Entered | Converted to next | Rate | Prior window | Change | Source |
 |---|---|---|---|---|---|---|---|---|
 
+A stage is wherever the count can be read: a CRM pipeline stage, a tag, a calendar status (booked, showed, no-show), a sequence membership, or a payment event. Name the source per stage; a funnel whose stages live in three places is normal. One scorecard per CRM location or sub-account; a business with two accounts gets two scorecards unless both feed one pipeline.
+
 Rules: a number that cannot be read from a source stays blank and is marked `UNREAD`; never estimated. Entered and converted are counts for the window; the rate is converted divided by entered. "Prior window" is the same window one period earlier. The source column names where the number came from (pipeline stage name, report, field) so the routine can read it next time.
 
 If stages don't exist in the CRM yet, the first deliverable is the **pipeline to create**: one stage per failure point with the exact name, in order, and the tag or trigger that moves a contact into it. Nothing else can be measured until that exists.

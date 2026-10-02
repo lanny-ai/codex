@@ -28,7 +28,7 @@ Read these reference files before any member-facing work:
 
 ### Phase 0 — Intake
 
-Follow the protocol. From the file note: the funnel map, conversion event, drop-off hypothesis and baseline metrics (§6); the investment (§3); the landing page and delivery automation (§7); the campaign map (§16); existing metrics and routine (§12); open rows (§13); the CRM and payment tool (§1). Ask one at a time only what the file can't answer: where stage counts live today (CRM pipeline stages, an app database, a spreadsheet, nowhere); where revenue is recorded; the window to analyse (default: last 7 days); the cadence they can live with (default: weekly; "the only reason I'm doing every 4 hours is because there's 600,000 emails going out every day"); who approves fixes.
+Follow the protocol. From the file note: the funnel map, conversion event, drop-off hypothesis and baseline metrics (§6); the investment (§3); the landing page and delivery automation (§7); the campaign map (§16); existing metrics and routine (§12); open rows (§13); the CRM and payment tool (§1). Ask one at a time only what the file can't answer: which CRM location or sub-account this scorecard covers (one per scorecard); where stage counts live today (CRM pipeline stages, tags, calendar statuses, an app database, a spreadsheet, nowhere); where revenue is recorded; the window to analyse (default: last 7 days); the cadence they can live with (default: weekly; "the only reason I'm doing every 4 hours is because there's 600,000 emails going out every day"); who approves fixes.
 
 ### Phase 1 — Stages as failure points
 
