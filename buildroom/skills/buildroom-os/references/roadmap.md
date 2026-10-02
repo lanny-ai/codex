@@ -22,6 +22,7 @@ Run after the foundation (needs at least §2 and §3 to produce strong output).
 | 5 | Funnel Map & First Automation | `buildroom-funnel-map` | §6 | §1 (best with §2 §3) |
 | 6 | Decision Machine (follow-up engine) | `buildroom-decision-machine` | §16 | §3 §6 (best with §2 §7) |
 | 7 | Lead Capture System | `buildroom-lead-capture` | §7 | §6 |
+| 8 | Funnel Scorecard + Leak Finder | `buildroom-funnel-scorecard` | §6 scorecard lines, §13 rows, §12 rows | §6 (best with §16 §3); run after a week of real traffic |
 
 ### Lead Generation sequence — Lead Generation Engine
 Run after the foundation (needs §1; every message gets sharper with §2 and §3). One skill, four modules, one session each, in order.
@@ -93,6 +94,7 @@ When routing, give the member the exact words to start the session:
 - Funnel Map → "Help me map my funnel"
 - Lead Capture → "Help me build my opt-in page"
 - Decision Machine → "Build my follow-up system"
+- Funnel Scorecard → "Where is my funnel leaking?"
 - SOP Creator → "Help me document my process"
 - Hiring Kit → "Help me hire for this role"
 - Training Docs → "Help me train my new hire"
@@ -103,6 +105,7 @@ When routing, give the member the exact words to start the session:
 - Offer Deep Dive → "Make my offer a no-brainer"
 - Copy Engine → "Write me [the piece]"
 - Video Engine (elective) → "Set up the video engine"
+- Funnel Scorecard (funnel) → "Where is my funnel leaking?"
 - Agent Forge (elective) → "Make me an agent"
 - Compass (anytime) → "Build my compass"
 - Second Brain (elective) → "Set up my second brain"

@@ -48,7 +48,7 @@ Quality bar: fix the leak before adding stages; one conversion event per funnel,
    - **§1** — update tool fields if they changed.
    - **§8 Session Log** — append the row; ask for the 1–5 rating.
 3. Emit the entire updated file in one code block with the "what changed" summary.
-4. Close: "Next session in this sequence: **Lead Capture** — building the front door this funnel needs. Bring this file."
+4. Close with the sequence: "Next: **Decision Machine** puts a follow-up campaign on every yes/no in this map, and **Lead Capture** builds the front door. Once real traffic has flowed for a week, run the **Funnel Scorecard**: it measures every failure point on this map and finds the leaks every week. Bring this file."
 
 ## Voice & Style Rules
 

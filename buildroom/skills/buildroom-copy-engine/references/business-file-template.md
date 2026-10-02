@@ -114,6 +114,8 @@ _Built by: Funnel Map session · Requires: §1; better with §2, §3_
 - **Automation trigger map (compact):**
 - **First build priority:**
 - **Metrics** — opt-in rate: — · show-up rate: — · close rate: —
+- **Funnel scorecard** (location · cadence · last run · top leak):
+- **Leak finder routine** (ON/OFF · cadence · delivers to):
 
 ---
 
