@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brainstorm Board</title>
+<meta name="description" content="Build Room brainstorm board: frame the question, diverge fast, cluster, dot-vote, decide, and export a capture block for Claude.">
+<style>
+:root{--bg:#0a0a0f;--panel:#15151f;--line:#2a2a3a;--text:#e8e8f0;--muted:#9a9ab0;--dim:#6c6c82;--accent:#f97316;--accent2:#fbbf24;--good:#34d399;--warn:#fbbf24;--bad:#f87171;--input:#1e1e2c;--blue:#60a5fa;--purple:#c084fc}
+*{box-sizing:border-box;margin:0;padding:0}
+html{color-scheme:dark}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;line-height:1.55;padding-block:28px;padding-inline:16px;min-height:100vh}
+.wrap{max-width:900px;margin:0 auto}
+.eyebrow{color:var(--muted);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+h1{font-size:clamp(28px,6vw,42px);font-weight:700;letter-spacing:-1px;line-height:1.05;text-wrap:balance;background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.sub{color:#b8b8c8;font-size:15px;max-width:64ch}
+h2{font-size:17px;margin:0 0 4px;color:#fff}
+.hint{color:var(--muted);font-size:13px;margin-bottom:12px}
+input[type=text],input[type=number],textarea,select{background:var(--input);border:1px solid #3a3a4e;border-radius:8px;color:var(--text);padding:9px 11px;font:inherit;font-size:14px;width:100%}
+textarea{min-height:64px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+label{display:block;color:var(--muted);font-size:12px;letter-spacing:1.2px;text-transform:uppercase;margin:12px 0 5px}
+button{font:inherit;cursor:pointer}
+.btn{background:linear-gradient(135deg,var(--accent),#ea580c);border:0;color:#fff;font-weight:600;padding:10px 16px;border-radius:9px}
+.btn:focus-visible,.ghost:focus-visible,.step:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.ghost{background:transparent;border:1px solid #3a3a4e;color:var(--muted);padding:9px 14px;border-radius:9px}
+.ghost:hover{color:#fff;border-color:var(--accent)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ok{color:var(--good);font-size:13px}
+/* stepper */
+.steps{display:flex;gap:6px;margin:22px 0 18px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.steps::-webkit-scrollbar{display:none}
+.step{flex:0 0 auto;background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:99px;padding:7px 14px;font-size:13px;white-space:nowrap}
+.step.on{background:linear-gradient(135deg,var(--accent),#ea580c);border-color:transparent;color:#fff;font-weight:600}
+.step .k{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#ffffff22;font-size:11px;margin-right:6px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 18px 20px}
+.phase{display:none}.phase.on{display:block}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:18px}
+/* ideas */
+.capture{display:flex;gap:8px;margin-top:8px}
+.capture input{flex:1}
+.timer{display:flex;align-items:center;gap:10px;background:var(--input);border:1px solid #3a3a4e;border-radius:10px;padding:8px 12px;margin-top:12px}
+.timer .t{font-variant-numeric:tabular-nums;font-size:24px;font-weight:700;color:#fff;min-width:74px}
+.timer.done .t{color:var(--accent2)}
+.timer small{color:var(--muted);font-size:12px}
+.ideas{display:grid;gap:8px;margin-top:14px}
+.idea{background:var(--input);border:1px solid #3a3a4e;border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
+.idea .tx{color:#fff;font-size:14px;overflow-wrap:anywhere}
+.idea .by{color:var(--dim);font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-top:3px}
+.del{background:none;border:0;color:var(--dim);font-size:18px;line-height:1}
+.del:hover{color:var(--bad)}
+.count{color:var(--muted);font-size:13px;margin-top:10px}
+.nudge{margin-top:12px;background:linear-gradient(135deg,#1a1207 0%,#15151f 70%);border:1px solid #f9731640;border-radius:10px;padding:12px 14px;color:#fde68a;font-size:14px}
+.nudge b{color:var(--accent2)}
+/* clusters */
+.clusters{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:12px}
+.cl{background:var(--input);border:1px dashed #3a3a4e;border-radius:12px;padding:10px;min-height:120px}
+.cl.over{border-color:var(--accent);border-style:solid;background:#1f1a14}
+.cl h3{font-size:13px;color:var(--accent2);letter-spacing:1px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.cl h3 input{font-size:13px;padding:4px 6px;text-transform:none;letter-spacing:0;background:transparent;border:1px solid transparent}
+.cl h3 input:hover,.cl h3 input:focus{border-color:#3a3a4e;background:var(--panel)}
+.cl.un{border-color:#3a3a4e}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px;color:#fff;margin-bottom:6px;cursor:grab;display:flex;justify-content:space-between;gap:6px;overflow-wrap:anywhere}
+.chip.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.chip .mv{color:var(--dim);font-size:11px;white-space:nowrap}
+.chip:active{cursor:grabbing}
+/* votes */
+.voters{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.voter{background:var(--input);border:1px solid #3a3a4e;border-radius:99px;padding:6px 12px;font-size:13px;color:var(--muted)}
+.voter.on{border-color:var(--accent);color:#fff}
+.voter .left{color:var(--accent2);font-weight:600}
+.vlist{display:grid;gap:8px;margin-top:8px}
+.vrow{background:var(--input);border:1px solid #3a3a4e;border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.vrow .tx{color:#fff;font-size:14px;overflow-wrap:anywhere}
+.vrow .cn{color:var(--dim);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+.dots{display:flex;gap:4px;align-items:center}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--accent)}
+.dot.o{background:#3a3a4e}
+.vbtn{background:var(--panel);border:1px solid #3a3a4e;color:#fff;border-radius:8px;padding:6px 10px;font-size:13px;min-width:44px}
+.vbtn.on{border-color:var(--accent);background:#2a1a0e}
+.vbtn:disabled{opacity:.4;cursor:not-allowed}
+/* decide */
+.oc{background:var(--input);border:1px solid #3a3a4e;border-radius:12px;padding:12px 14px;margin-top:10px}
+.oc.top{border-color:#f9731680}
+.oc .head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.oc .head .tx{color:#fff;font-weight:600;font-size:15px;overflow-wrap:anywhere}
+.oc .head .v{color:var(--accent2);font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.type{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.type button{background:var(--panel);border:1px solid #3a3a4e;color:var(--muted);border-radius:99px;padding:5px 11px;font-size:12px}
+.type button.on{color:#fff;border-color:currentColor}
+.type .decision.on{color:var(--blue)}.type .process.on{color:var(--good)}.type .build.on{color:var(--accent2)}.type .experiment.on{color:var(--purple)}.type .parked.on{color:var(--dim)}
+.tip{font-size:12px;color:var(--dim);margin-top:4px}
+.oq{display:grid;gap:6px;margin-top:8px}
+.oq .idea{grid-template-columns:1fr auto}
+/* export */
+pre{background:var(--input);border:1px solid #3a3a4e;border-radius:10px;padding:14px;font-size:12px;line-height:1.5;color:#d8d8e4;white-space:pre-wrap;overflow-x:auto;max-height:420px;overflow-y:auto;margin-top:12px;font-family:ui-monospace,Menlo,Consolas,monospace}
+.say{display:inline-block;background:var(--input);border:1px solid #3a3a4e;border-radius:8px;padding:3px 10px;font-family:ui-monospace,Menlo,monospace;font-size:13px;color:var(--accent2)}
+.cta{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.cta h3{color:var(--accent2);font-size:15px;margin-bottom:6px}
+.cta p{color:#b8b8c8;font-size:14px}
+.warnbox{margin-top:10px;color:var(--warn);font-size:13px}
+.foot{text-align:center;color:var(--dim);font-size:12px;margin-top:36px;padding-top:18px;border-top:1px solid var(--line)}
+.foot button{background:none;border:0;color:var(--dim);text-decoration:underline;font-size:12px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}.capture{flex-direction:column}.nav{flex-direction:column}.nav .btn,.nav .ghost{width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Build Room · Anytime tool</div>
+  <h1>Brainstorm Board</h1>
+  <p class="sub">Frame one question. Get every idea out fast. Cluster, vote, decide — then copy the whole thing into Claude and say <span class="say">Capture what we decided</span>. Nothing leaves this page until you copy it.</p>
+
+  <div class="steps" id="steps" role="tablist"></div>
+
+  <!-- 1 FRAME -->
+  <section class="panel phase" data-p="0">
+    <h2>1 · Frame it</h2>
+    <p class="hint">A brainstorm with no question produces a list. Write the one question this session answers.</p>
+    <label for="q">The framing question</label>
+    <input type="text" id="q" placeholder="e.g. What do we give away at Tuesday's session that people would actually use?">
+    <div class="grid2">
+      <div>
+        <label for="people">Who's in the room (comma-separated)</label>
+        <input type="text" id="people" placeholder="Lanny, Haley">
+      </div>
+      <div>
+        <label for="mins">Diverge time box (minutes)</label>
+        <input type="number" id="mins" min="2" max="60" value="10">
+      </div>
+    </div>
+    <label for="carry">Carried forward (paste open questions or parked items from §13, one per line — optional)</label>
+    <textarea id="carry" placeholder="Pricing for the new tier?&#10;Parked: Tuesday webinar — revisit Oct"></textarea>
+    <div class="nav"><span></span><button class="btn" data-go="1">Start diverging →</button></div>
+  </section>
+
+  <!-- 2 DIVERGE -->
+  <section class="panel phase" data-p="1">
+    <h2>2 · Diverge</h2>
+    <p class="hint">Quantity. No judging, no discussing. Type an idea, press Enter, keep going. Change who's talking with the dropdown.</p>
+    <div class="timer" id="timer"><span class="t" id="tdisp">10:00</span><button class="ghost" id="tstart">Start</button><button class="ghost" id="treset">Reset</button><small>Stop when it hits zero — the last two minutes are the good ones.</small></div>
+    <div class="capture">
+      <select id="who" aria-label="Who is saying this"></select>
+      <input type="text" id="newidea" placeholder="One idea per line. Enter to add." autocomplete="off">
+      <button class="btn" id="addidea">Add</button>
+    </div>
+    <div class="row" style="margin-top:10px"><button class="ghost" id="nudgeBtn">Nudge me</button><span class="count" id="icount">0 ideas</span></div>
+    <div class="nudge" id="nudge" hidden></div>
+    <div class="ideas" id="ideas"></div>
+    <div class="nav"><button class="ghost" data-go="0">← Frame</button><button class="btn" data-go="2">Cluster →</button></div>
+  </section>
+
+  <!-- 3 CLUSTER -->
+  <section class="panel phase" data-p="2">
+    <h2>3 · Cluster</h2>
+    <p class="hint">Drag ideas into groups (or tap an idea, then tap a group). Name each group by the job it does, not the feature. Three to six groups is normal.</p>
+    <div class="row"><input type="text" id="newcl" placeholder="New group name" style="max-width:280px"><button class="btn" id="addcl">Add group</button></div>
+    <div class="clusters" id="clusters"></div>
+    <div class="nav"><button class="ghost" data-go="1">← Diverge</button><button class="btn" data-go="3">Vote →</button></div>
+  </section>
+
+  <!-- 4 VOTE -->
+  <section class="panel phase" data-p="3">
+    <h2>4 · Dot-vote</h2>
+    <p class="hint">Everyone gets the same number of dots. Pick your name, tap ideas. You can stack dots on one idea. Vote alone first, then talk.</p>
+    <div class="row"><label for="dots" style="margin:0">Dots each</label><input type="number" id="dots" min="1" max="10" value="3" style="width:80px"></div>
+    <div class="voters" id="voters"></div>
+    <div class="vlist" id="vlist"></div>
+    <div class="nav"><button class="ghost" data-go="2">← Cluster</button><button class="btn" data-go="4">Decide →</button></div>
+  </section>
+
+  <!-- 5 DECIDE -->
+  <section class="panel phase" data-p="4">
+    <h2>5 · Decide</h2>
+    <p class="hint">Top ideas by votes. For each: what kind of thing is it, who owns it, and the first step. "We" is not an owner. If it isn't decided, leave the type blank and add the question below.</p>
+    <div class="row"><label for="topn" style="margin:0">Show top</label><input type="number" id="topn" min="1" max="20" value="5" style="width:80px"><span class="tip">Anything with votes can be decided; anything without goes to the log as floated.</span></div>
+    <div id="outcomes"></div>
+    <h2 style="margin-top:22px">Open questions</h2>
+    <p class="hint">What got raised and not answered. These open the next brainstorm.</p>
+    <div class="capture"><input type="text" id="newoq" placeholder="e.g. Pricing for the new tier?"><button class="btn" id="addoq">Add</button></div>
+    <div class="oq" id="oqs"></div>
+    <div class="nav"><button class="ghost" data-go="3">← Vote</button><button class="btn" data-go="5">Export →</button></div>
+  </section>
+
+  <!-- 6 EXPORT -->
+  <section class="panel phase" data-p="5">
+    <h2>6 · Export to Claude</h2>
+    <p class="hint">This block is what the Brainstorm Capture skill reads. Copy it, open Claude Cowork, and say the trigger phrase with the block pasted underneath.</p>
+    <div class="row"><button class="btn" id="copy">Copy for Claude</button><button class="ghost" id="dl">Download .md</button><span class="ok" id="copied" hidden>Copied — paste it into Claude.</span></div>
+    <div class="warnbox" id="warn" hidden></div>
+    <pre id="out"></pre>
+    <div class="cta">
+      <h3>Then, in Claude Cowork</h3>
+      <p>Say <span class="say">Capture what we decided</span> and paste the block. Claude extracts every outcome, types it, asks you one question at a time for what's missing, and writes the Build Plan rows into your Business File.</p>
+    </div>
+    <div class="nav"><button class="ghost" data-go="4">← Decide</button><button class="ghost" id="newboard">Start a new board</button></div>
+  </section>
+
+  <div class="foot">Build Room · AI Momentum Labs · Everything stays in this browser until you copy it. <button id="clearall">Clear saved board</button></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const KEY="buildroom.brainstorm.v1";
+const TYPES=["decision","process","build","experiment","parked"];
+const TIPS={decision:"A choice about direction. Record what it beat.",process:"Has a trigger and repeats (\"every\", \"whenever\"). Becomes an SOP.",build:"Something to make: a page, a tool, a doc, an automation.",experiment:"A test with a metric and an end date.",parked:"Real, not now. Say why and when to revisit."};
+const NUDGES=["What if it had to be <b>free</b>?","What if it had to be done in <b>26 minutes</b>?","What would a <b>client</b> say is the real problem here?","What if <b>someone else</b> had to run it without you?","What if you <b>removed</b> a step instead of adding one?","What's the version that's <b>embarrassingly small</b>?","What's the opposite of what you'd normally do?","What already exists that you could <b>copy</b> shamelessly?","What would you do if you had <b>10x the leads</b> tomorrow?","What would make this <b>unnecessary</b>?","Which idea on the board would your <b>best client</b> pick?","What did you decide <b>last time</b> and never build?"];
+
+let S=load()||fresh();
+function fresh(){return{q:"",people:"",mins:10,carry:"",ideas:[],clusters:[],dots:3,votes:{},outcomes:{},oqs:[],topn:5,phase:0,timerLeft:null,timerRunning:false}}
+function load(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const $=id=>document.getElementById(id);
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const people=()=>S.people.split(",").map(s=>s.trim()).filter(Boolean);
+const voteCount=id=>Object.values(S.votes).reduce((n,m)=>n+(m[id]||0),0);
+
+/* stepper */
+const NAMES=["Frame","Diverge","Cluster","Vote","Decide","Export"];
+function renderSteps(){$("steps").innerHTML=NAMES.map((n,i)=>`<button class="step${S.phase===i?" on":""}" role="tab" data-go="${i}"><span class="k">${i+1}</span>${n}</button>`).join("")}
+function go(i){S.phase=i;save();document.querySelectorAll(".phase").forEach(p=>p.classList.toggle("on",+p.dataset.p===i));renderSteps();renderPhase(i);window.scrollTo({top:0,behavior:"smooth"})}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-go]");if(b){go(+b.dataset.go)}});
+
+/* frame */
+$("q").value=S.q;$("people").value=S.people;$("mins").value=S.mins;$("carry").value=S.carry;
+$("q").addEventListener("input",e=>{S.q=e.target.value;save()});
+$("people").addEventListener("input",e=>{S.people=e.target.value;save()});
+$("mins").addEventListener("input",e=>{S.mins=Math.max(1,+e.target.value||10);if(!S.timerRunning){S.timerLeft=S.mins*60;tdisp()}save()});
+$("carry").addEventListener("input",e=>{S.carry=e.target.value;save()});
+
+/* diverge */
+function renderWho(){const p=people();$("who").innerHTML=(p.length?p:["Me"]).map(n=>`<option>${esc(n)}</option>`).join("")}
+function addIdea(){const v=$("newidea").value.trim();if(!v)return;S.ideas.push({id:uid(),tx:v,by:$("who").value||"Me",cl:null});$("newidea").value="";save();renderIdeas();$("newidea").focus()}
+$("addidea").addEventListener("click",addIdea);
+$("newidea").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addIdea()}});
+function renderIdeas(){$("icount").textContent=S.ideas.length+(S.ideas.length===1?" idea":" ideas");$("ideas").innerHTML=S.ideas.slice().reverse().map(i=>`<div class="idea"><div><div class="tx">${esc(i.tx)}</div><div class="by">${esc(i.by)}</div></div><button class="del" data-del="${i.id}" aria-label="Delete idea">×</button></div>`).join("")}
+$("ideas").addEventListener("click",e=>{const b=e.target.closest("[data-del]");if(!b)return;S.ideas=S.ideas.filter(i=>i.id!==b.dataset.del);Object.values(S.votes).forEach(m=>delete m[b.dataset.del]);delete S.outcomes[b.dataset.del];save();renderIdeas()});
+let ni=0;$("nudgeBtn").addEventListener("click",()=>{const n=$("nudge");n.hidden=false;n.innerHTML=NUDGES[ni++%NUDGES.length]});
+/* timer */
+let tick=null;
+if(S.timerLeft==null)S.timerLeft=S.mins*60;
+function tdisp(){const t=Math.max(0,S.timerLeft);$("tdisp").textContent=String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0");$("timer").classList.toggle("done",t===0);$("tstart").textContent=S.timerRunning?"Pause":(t===0?"Done":"Start")}
+function startTimer(){if(S.timerLeft<=0)return;S.timerRunning=true;tick=setInterval(()=>{S.timerLeft--;if(S.timerLeft<=0){S.timerLeft=0;stopTimer();try{navigator.vibrate&&navigator.vibrate(200)}catch(e){}}tdisp();save()},1000);tdisp()}
+function stopTimer(){S.timerRunning=false;clearInterval(tick);tick=null;tdisp();save()}
+$("tstart").addEventListener("click",()=>S.timerRunning?stopTimer():startTimer());
+$("treset").addEventListener("click",()=>{stopTimer();S.timerLeft=S.mins*60;tdisp();save()});
+S.timerRunning=false;tdisp();
+
+/* cluster */
+let selChip=null;
+function addCluster(){const v=$("newcl").value.trim();if(!v)return;S.clusters.push({id:uid(),name:v});$("newcl").value="";save();renderClusters()}
+$("addcl").addEventListener("click",addCluster);
+$("newcl").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addCluster()}});
+function chip(i){return`<div class="chip${selChip===i.id?" sel":""}" draggable="true" data-chip="${i.id}"><span>${esc(i.tx)}</span><span class="mv">${i.cl?"":"tap → group"}</span></div>`}
+function renderClusters(){
+  const un=S.ideas.filter(i=>!i.cl||!S.clusters.find(c=>c.id===i.cl));
+  let h=`<div class="cl un" data-cl=""><h3><span>Unsorted</span><span>${un.length}</span></h3>${un.map(chip).join("")}</div>`;
+  h+=S.clusters.map(c=>{const its=S.ideas.filter(i=>i.cl===c.id);return`<div class="cl" data-cl="${c.id}"><h3><input type="text" value="${esc(c.name)}" data-rn="${c.id}" aria-label="Group name"><button class="del" data-rmcl="${c.id}" aria-label="Remove group">×</button></h3>${its.map(chip).join("")}</div>`}).join("");
+  $("clusters").innerHTML=h;
+}
+const cw=$("clusters");
+cw.addEventListener("dragstart",e=>{const c=e.target.closest("[data-chip]");if(!c)return;e.dataTransfer.setData("text/plain",c.dataset.chip);e.dataTransfer.effectAllowed="move"});
+cw.addEventListener("dragover",e=>{const z=e.target.closest("[data-cl]");if(!z)return;e.preventDefault();cw.querySelectorAll(".cl").forEach(x=>x.classList.toggle("over",x===z))});
+cw.addEventListener("dragleave",e=>{const z=e.target.closest("[data-cl]");if(z&&!z.contains(e.relatedTarget))z.classList.remove("over")});
+cw.addEventListener("drop",e=>{const z=e.target.closest("[data-cl]");if(!z)return;e.preventDefault();move(e.dataTransfer.getData("text/plain"),z.dataset.cl||null)});
+function move(id,cl){const i=S.ideas.find(x=>x.id===id);if(!i)return;i.cl=cl;selChip=null;save();renderClusters()}
+cw.addEventListener("click",e=>{
+  const rm=e.target.closest("[data-rmcl]");if(rm){S.ideas.forEach(i=>{if(i.cl===rm.dataset.rmcl)i.cl=null});S.clusters=S.clusters.filter(c=>c.id!==rm.dataset.rmcl);save();renderClusters();return}
+  const c=e.target.closest("[data-chip]");if(c){selChip=selChip===c.dataset.chip?null:c.dataset.chip;renderClusters();return}
+  const z=e.target.closest("[data-cl]");if(z&&selChip&&!e.target.closest("input")){move(selChip,z.dataset.cl||null)}
+});
+cw.addEventListener("input",e=>{const r=e.target.closest("[data-rn]");if(!r)return;const c=S.clusters.find(x=>x.id===r.dataset.rn);if(c){c.name=r.value;save()}});
+
+/* vote */
+let voter=null;
+$("dots").value=S.dots;
+$("dots").addEventListener("input",e=>{S.dots=Math.max(1,+e.target.value||3);save();renderVote()});
+function used(n){return Object.values(S.votes[n]||{}).reduce((a,b)=>a+b,0)}
+function renderVote(){
+  const p=people();if(!p.length)p.push("Me");
+  if(!voter||!p.includes(voter))voter=p[0];
+  $("voters").innerHTML=p.map(n=>`<button class="voter${n===voter?" on":""}" data-voter="${esc(n)}">${esc(n)} · <span class="left">${Math.max(0,S.dots-used(n))}</span> left</button>`).join("");
+  const left=S.dots-used(voter);
+  const groups=[{id:null,name:"Unsorted"},...S.clusters];
+  $("vlist").innerHTML=groups.map(g=>{const its=S.ideas.filter(i=>(i.cl||null)===g.id&&(g.id||!S.clusters.find(c=>c.id===i.cl)));if(!its.length)return"";return`<div class="cn" style="margin-top:8px">${esc(g.name)}</div>`+its.map(i=>{const mine=(S.votes[voter]||{})[i.id]||0;const tot=voteCount(i.id);return`<div class="vrow"><div><div class="tx">${esc(i.tx)}</div><div class="dots" style="margin-top:4px">${Array.from({length:Math.min(tot,12)},()=>'<span class="dot"></span>').join("")}${tot>12?`<span class="cn">+${tot-12}</span>`:""}<span class="cn" style="margin-left:6px">${tot} ${tot===1?"vote":"votes"}</span></div></div><div class="row"><button class="vbtn" data-vm="${i.id}" ${mine?"":"disabled"} aria-label="Remove my dot">−</button><button class="vbtn${mine?" on":""}" data-vp="${i.id}" ${left>0?"":"disabled"} aria-label="Add my dot">+${mine?" "+mine:""}</button></div></div>`}).join("")}).join("");
+}
+$("voters").addEventListener("click",e=>{const b=e.target.closest("[data-voter]");if(b){voter=b.dataset.voter;renderVote()}});
+$("vlist").addEventListener("click",e=>{
+  const p=e.target.closest("[data-vp]"),m=e.target.closest("[data-vm]");if(!p&&!m)return;
+  S.votes[voter]=S.votes[voter]||{};const id=(p||m).dataset.vp||(p||m).dataset.vm;
+  if(p&&S.dots-used(voter)>0)S.votes[voter][id]=(S.votes[voter][id]||0)+1;
+  if(m&&S.votes[voter][id]){S.votes[voter][id]--;if(!S.votes[voter][id])delete S.votes[voter][id]}
+  save();renderVote();
+});
+
+/* decide */
+$("topn").value=S.topn;
+$("topn").addEventListener("input",e=>{S.topn=Math.max(1,+e.target.value||5);save();renderDecide()});
+function ranked(){return S.ideas.map(i=>({...i,v:voteCount(i.id)})).sort((a,b)=>b.v-a.v)}
+function renderDecide(){
+  const p=people();const top=ranked().slice(0,S.topn);
+  $("outcomes").innerHTML=top.length?top.map((i,ix)=>{const o=S.outcomes[i.id]||{};const cl=S.clusters.find(c=>c.id===i.cl);return`<div class="oc${ix<3&&i.v>0?" top":""}" data-oc="${i.id}">
+    <div class="head"><div class="tx">${esc(i.tx)}</div><div class="v">${i.v} ${i.v===1?"vote":"votes"}${cl?" · "+esc(cl.name):""}</div></div>
+    <div class="type">${TYPES.map(t=>`<button class="${t}${o.type===t?" on":""}" data-type="${t}">${t}</button>`).join("")}</div>
+    <div class="tip">${o.type?TIPS[o.type]:"Pick a type — or leave blank if the room didn't decide."}</div>
+    <div class="grid2">
+      <div><label>Owner (one name)</label><select data-f="owner"><option value="">—</option>${p.map(n=>`<option${o.owner===n?" selected":""}>${esc(n)}</option>`).join("")}</select></div>
+      <div><label>${o.type==="parked"?"Revisit when":"First step · by when"}</label><input type="text" data-f="step" value="${esc(o.step||"")}" placeholder="${o.type==="parked"?"e.g. October":"e.g. Draft the page — Fri"}"></div>
+    </div>
+    <label>${o.type==="decision"?"What it beat, and why":o.type==="parked"?"Why not now":"Why this / what it's for"}</label>
+    <textarea data-f="why" placeholder="In the room's words.">${esc(o.why||"")}</textarea>
+  </div>`}).join(""):`<p class="hint">No ideas yet. Go back and diverge.</p>`;
+  $("oqs").innerHTML=S.oqs.map(q=>`<div class="idea"><div class="tx">${esc(q.tx)}</div><button class="del" data-rmoq="${q.id}" aria-label="Remove question">×</button></div>`).join("");
+}
+$("outcomes").addEventListener("click",e=>{const b=e.target.closest("[data-type]");if(!b)return;const id=b.closest("[data-oc]").dataset.oc;S.outcomes[id]=S.outcomes[id]||{};S.outcomes[id].type=S.outcomes[id].type===b.dataset.type?"":b.dataset.type;save();renderDecide()});
+$("outcomes").addEventListener("input",e=>{const f=e.target.closest("[data-f]");if(!f)return;const id=f.closest("[data-oc]").dataset.oc;S.outcomes[id]=S.outcomes[id]||{};S.outcomes[id][f.dataset.f]=f.value;save()});
+function addOq(){const v=$("newoq").value.trim();if(!v)return;S.oqs.push({id:uid(),tx:v});$("newoq").value="";save();renderDecide()}
+$("addoq").addEventListener("click",addOq);
+$("newoq").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addOq()}});
+$("oqs").addEventListener("click",e=>{const b=e.target.closest("[data-rmoq]");if(!b)return;S.oqs=S.oqs.filter(q=>q.id!==b.dataset.rmoq);save();renderDecide()});
+
+/* export */
+function exportMd(){
+  const d=new Date();const date=d.toISOString().slice(0,10);
+  const p=people();const r=ranked();
+  const groups=[...S.clusters,{id:null,name:"Unsorted"}];
+  const lines=[];
+  lines.push("BRAINSTORM BOARD EXPORT · Build Room","",`Date: ${date}`,`Framing question: ${S.q||"(none given)"}`,`In the room: ${p.length?p.join(", "):"(not given)"}`,`Diverge time box: ${S.mins} min · Ideas: ${S.ideas.length} · Dots each: ${S.dots}`,"");
+  if(S.carry.trim()){lines.push("CARRIED FORWARD FROM LAST TIME:");S.carry.split("\n").map(s=>s.trim()).filter(Boolean).forEach(s=>lines.push("- "+s));lines.push("")}
+  lines.push("IDEAS BY GROUP (votes · who said it):");
+  groups.forEach(g=>{const its=r.filter(i=>(i.cl||null)===g.id||(g.id===null&&i.cl&&!S.clusters.find(c=>c.id===i.cl)));if(!its.length)return;lines.push("","## "+g.name);its.forEach(i=>lines.push(`- [${i.v} ${i.v===1?"vote":"votes"}] ${i.tx} — ${i.by}`))});
+  lines.push("","OUTCOME CARDS (top "+S.topn+" by votes, as the room filled them in):");
+  const top=r.slice(0,S.topn);
+  if(!top.length)lines.push("- (none)");
+  top.forEach((i,ix)=>{const o=S.outcomes[i.id]||{};lines.push("",`${ix+1}. ${i.tx}  [${i.v} ${i.v===1?"vote":"votes"}]`,`   Type: ${o.type||"(not decided)"}`,`   Owner: ${o.owner||"(none named)"}`,`   ${o.type==="parked"?"Revisit":"First step"}: ${o.step||"(none)"}`,`   ${o.type==="decision"?"Beat / why":o.type==="parked"?"Why not now":"Why"}: ${o.why||"(none)"}`)});
+  lines.push("","OPEN QUESTIONS (raised, not answered):");
+  if(!S.oqs.length)lines.push("- (none recorded)");S.oqs.forEach(q=>lines.push("- "+q.tx));
+  lines.push("","---","Capture rules for Claude: extract only what is above; type before ranking; one owner per outcome; open stays open; at most three get a date this month.");
+  return lines.join("\n");
+}
+function renderExport(){
+  const md=exportMd();$("out").textContent=md;
+  const w=[];if(!S.q.trim())w.push("no framing question");if(!S.ideas.length)w.push("no ideas");
+  const top=ranked().slice(0,S.topn).filter(i=>i.v>0);const untyped=top.filter(i=>!(S.outcomes[i.id]||{}).type).length;const unowned=top.filter(i=>(S.outcomes[i.id]||{}).type&&!(S.outcomes[i.id]||{}).owner).length;
+  if(untyped)w.push(`${untyped} voted idea${untyped>1?"s":""} with no type (fine if the room didn't decide — Claude will ask)`);
+  if(unowned)w.push(`${unowned} typed outcome${unowned>1?"s":""} with no owner ("we" isn't an owner)`);
+  $("warn").hidden=!w.length;$("warn").textContent=w.length?"Before you copy: "+w.join(" · ")+".":"";
+}
+$("copy").addEventListener("click",async()=>{const md=exportMd();try{await navigator.clipboard.writeText(md);$("copied").hidden=false;setTimeout(()=>{$("copied").hidden=true},2500)}catch(e){const r=document.createRange();r.selectNodeContents($("out"));const s=getSelection();s.removeAllRanges();s.addRange(r);$("copied").textContent="Select-all in the box and copy.";$("copied").hidden=false}});
+$("dl").addEventListener("click",()=>{const b=new Blob([exportMd()],{type:"text/markdown"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=`brainstorm-${new Date().toISOString().slice(0,10)}.md`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)});
+function reset(){if(!confirm("Start a new board? The current one is cleared from this browser. Copy or download it first if you need it."))return;stopTimer();S=fresh();save();location.reload()}
+$("newboard").addEventListener("click",reset);$("clearall").addEventListener("click",reset);
+
+/* phase render */
+function renderPhase(i){if(i===1){renderWho();renderIdeas();tdisp()}if(i===2)renderClusters();if(i===3)renderVote();if(i===4)renderDecide();if(i===5)renderExport()}
+go(S.phase||0);
+})();
+</script>
+</body>
+</html>
