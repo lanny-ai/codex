@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Say These Words — Build Room OS</title>
+<style>
+  @page { size: Letter; margin: 0; }
+  :root{
+    --ink:#0f1424; --ink2:#2b3247; --mute:#6b7390; --line:#d9dde8; --panel:#f4f5f9;
+    --orange:#f97316; --amber:#fbbf24; --orange-soft:#fff1e6; --navy:#0f1424;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#fff;color:var(--ink);
+    font-family:"Liberation Sans",Arial,Helvetica,sans-serif;font-size:9pt;line-height:1.32;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .page{width:8.5in;height:11in;padding:0.45in 0.5in 0.36in;position:relative;overflow:hidden;page-break-after:always;display:flex;flex-direction:column}
+  .page:last-child{page-break-after:auto}
+  .serif{font-family:"Bitstream Charter","Charter",Georgia,serif}
+
+  /* header */
+  .band{background:var(--navy);color:#fff;margin:-0.45in -0.5in 0;padding:0.3in 0.5in 0.26in;position:relative}
+  .band:after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:6px;background:linear-gradient(90deg,var(--orange),var(--amber))}
+  .eyebrow{font-size:8pt;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);font-weight:700}
+  h1{font-family:"Bitstream Charter",Georgia,serif;font-size:28pt;line-height:1;margin:6px 0 6px;font-weight:700;letter-spacing:-.01em}
+  .lede{font-size:9.6pt;color:#d6dae6;max-width:5.9in;margin:0}
+  .brand{position:absolute;right:0.5in;top:0.34in;text-align:right;font-size:8pt;color:#aeb5c8;line-height:1.3}
+  .brand b{display:block;color:#fff;font-size:9.5pt;letter-spacing:.04em}
+  .brand .mark{display:inline-block;width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--orange),var(--amber));margin-bottom:6px;position:relative}
+  .brand .mark:after{content:"";position:absolute;inset:9px;border:2.5px solid #0f1424;border-radius:5px;border-right-color:transparent;border-bottom-color:transparent;transform:rotate(45deg)}
+
+  /* how it works strip */
+  .how{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0 6px}
+  .how .step{background:var(--panel);border-radius:8px;padding:6px 8px 6px;position:relative}
+  .how .n{display:inline-block;width:18px;height:18px;border-radius:50%;background:var(--orange);color:#fff;font-weight:700;font-size:8.5pt;text-align:center;line-height:18px;margin-bottom:3px}
+  .how b{display:block;font-size:9.2pt}
+  .how span{display:block;font-size:8pt;color:var(--ink2);line-height:1.3}
+  .how .step:not(:last-child):after{content:"›";position:absolute;right:-8px;top:50%;transform:translateY(-55%);color:var(--mute);font-size:14pt;font-weight:700}
+
+  /* groups */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+  .group{margin:4px 0 2px;break-inside:avoid}
+  .group h2{font-size:8pt;letter-spacing:.16em;text-transform:uppercase;color:var(--orange);margin:7px 0 2px;padding-bottom:3px;border-bottom:1.5px solid var(--orange);display:flex;justify-content:space-between;align-items:baseline}
+  .group h2 small{letter-spacing:0;text-transform:none;color:var(--mute);font-weight:400;font-size:7.8pt}
+  .row{display:grid;grid-template-columns:2.0in 1fr;gap:0 10px;padding:5px 0 5px;border-bottom:1px solid var(--line);align-items:start}
+  .row:last-child{border-bottom:0}
+  .say{font-family:"Bitstream Charter",Georgia,serif;font-size:10.6pt;font-weight:700;color:var(--ink);line-height:1.18}
+  .say:before{content:"“";color:var(--orange)} .say:after{content:"”";color:var(--orange)}
+  .sess{font-size:7.6pt;color:var(--mute);margin-top:2px;letter-spacing:.02em}
+  .get{font-size:8.6pt;color:var(--ink2);line-height:1.3}
+  .tags{margin-top:2px;display:flex;gap:4px;flex-wrap:wrap}
+  .tag{font-size:6.8pt;padding:0 5px;border-radius:999px;border:1px solid var(--line);color:var(--ink2);background:#fff;white-space:nowrap}
+  .tag.w{background:var(--orange-soft);border-color:#fcd3b4;color:#9a3f05;font-weight:700}
+  .tag.n{background:var(--panel)}
+
+  /* callouts */
+  .boxes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+  .box{border:1.5px solid var(--line);border-radius:10px;padding:8px 12px 8px}
+  .box.hot{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .box h3{margin:0 0 4px;font-size:9.4pt;letter-spacing:.06em;text-transform:uppercase}
+  .box.hot h3{color:var(--amber)}
+  .box p{margin:0 0 4px;font-size:8.8pt;line-height:1.35}
+  .box.hot p{color:#e2e6f0}
+  .box .say{font-size:9.6pt}
+  .box.hot .say{color:#fff}
+
+  .foot{margin-top:auto;padding-top:6px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:7.6pt;color:var(--mute)}
+  .foot b{color:var(--ink)}
+  .sec{color:var(--mute);font-weight:400}
+</style>
+</head>
+<body>
+
+<!-- ============ PAGE 1 ============ -->
+<section class="page">
+  <div class="band">
+    <div class="eyebrow">Build Room OS · Field Guide</div>
+    <h1>Say These Words.</h1>
+    <p class="lede">Every Build Room session starts with one sentence. Say it, and the session reads your Business File, asks only what the file can't answer, builds the asset, and writes its section back.</p>
+    <div class="brand"><span class="mark"></span><b>THE BUILD ROOM</b>AI Momentum Labs</div>
+  </div>
+
+  <div class="how">
+    <div class="step"><span class="n">1</span><b>Say the phrase</b><span>Any phrase on this sheet, in Claude Code, Codex, or Cowork.</span></div>
+    <div class="step"><span class="n">2</span><b>It reads your file</b><span>Your Business File answers everything it already can.</span></div>
+    <div class="step"><span class="n">3</span><b>Answer the gaps</b><span>One question at a time. Only what the file doesn't know.</span></div>
+    <div class="step"><span class="n">4</span><b>Save the asset</b><span>A finished offer, page, map, SOP, or script.</span></div>
+    <div class="step"><span class="n">5</span><b>Keep the file</b><span>It hands back your updated file and names the next session.</span></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="group">
+        <h2>Start here <small>run once, then whenever you're lost</small></h2>
+        <div class="row">
+          <div><div class="say">I'm new to the Build Room, set me up</div><div class="sess">Build Room OS · navigator</div></div>
+          <div class="get">Creates your Business File, fills §1 Snapshot in five minutes, and names the one session to run next.<div class="tags"><span class="tag n">Needs nothing</span><span class="tag w">Writes §1</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Where do I start?</div><div class="sess">Build Room OS · navigator</div></div>
+          <div class="get">Shows what's complete and what's provisional, and gives you exactly one next step with the words to say.<div class="tags"><span class="tag n">Needs file</span><span class="tag w">Writes nothing</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Build my compass</div><div class="sess">Compass · anytime</div></div>
+          <div class="get">Who you are at a deep level, in a page and a half that ends in your Compass Statement. Every later session sounds like you.<div class="tags"><span class="tag n">Needs nothing</span><span class="tag w">Writes §17</span></div></div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Foundation <small>in this order, one a week</small></h2>
+        <div class="row">
+          <div><div class="say">Help me build my ideal client avatar</div><div class="sess">Ideal Client Avatar · Week 1</div></div>
+          <div class="get">The one person you're writing to: pains, dream state, objections, and a language bank built only from real client words.<div class="tags"><span class="tag n">Needs §1</span><span class="tag w">Writes §2</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Help me build my signature offer</div><div class="sess">Signature Offer · Week 2</div></div>
+          <div class="get">Promise, structure, phases, deliverables, value stack, guarantee, and a 60-second pitch.<div class="tags"><span class="tag n">Needs §2</span><span class="tag w">Writes §3</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Help me position my business</div><div class="sess">Positioning &amp; Messaging · Week 3</div></div>
+          <div class="get">Category, differentiator, positioning statement, tagline, villain, for-you and not-for-you lists: your Messaging Bible.<div class="tags"><span class="tag n">Needs §2 §3</span><span class="tag w">Writes §4</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Write my offer page</div><div class="sess">Offer Page Copy · Week 4</div></div>
+          <div class="get">A complete, publication-ready page, headline to CTA, plus the path to publish it on your own domain.<div class="tags"><span class="tag n">Needs §2 §3 §4</span><span class="tag w">Writes §5</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="group">
+        <h2>Funnel &amp; automation <small>in this order</small></h2>
+        <div class="row">
+          <div><div class="say">Help me map my funnel</div><div class="sess">Funnel Map · Week 1</div></div>
+          <div class="get">Your value ladder, one conversion event, the map, the biggest drop-off, the automation trigger map, and baseline metrics.<div class="tags"><span class="tag n">Needs §1</span><span class="tag w">Writes §6</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Build my follow-up system</div><div class="sess">Decision Machine · Week 2</div></div>
+          <div class="get">A campaign on every yes/no in your funnel, one belief per message, tag architecture, and a build map your CRM can run.<div class="tags"><span class="tag n">Needs §3 §6</span><span class="tag w">Writes §16</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Help me build my opt-in page</div><div class="sess">Lead Capture · Week 3</div></div>
+          <div class="get">Lead magnet, landing page, thank-you page, and the delivery automation, with the setup steps for your CRM.<div class="tags"><span class="tag n">Needs §6</span><span class="tag w">Writes §7</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Where is my funnel leaking?</div><div class="sess">Funnel Scorecard · Week 4</div></div>
+          <div class="get">Every stage measured, the top three leaks with fixes you approve one by one, and an optional weekly routine that re-runs it.<div class="tags"><span class="tag n">Needs §6 + a week of traffic</span><span class="tag w">Writes §6 §13</span></div></div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Leads &amp; sales</h2>
+        <div class="row">
+          <div><div class="say">Help me get more leads</div><div class="sess">Lead Gen Machine · four modules</div></div>
+          <div class="get">Warm network, outreach machine, referral system, content pipeline. One module per session, picked from your file.<div class="tags"><span class="tag n">Needs §1</span><span class="tag w">Writes §14</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Help me with my sales call</div><div class="sess">Sales Conversations</div></div>
+          <div class="get">A stage-by-stage consultative script, your objection set, and a role-play partner.<div class="tags"><span class="tag n">Needs §3</span><span class="tag w">Writes §15</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot"><span><b>§</b> numbers are sections of your Business File. <b>Needs</b> = sections that must exist first. <b>Writes</b> = what the session updates.</span><span>Page 1 of 2</span></div>
+</section>
+
+<!-- ============ PAGE 2 ============ -->
+<section class="page">
+  <div class="band" style="padding-top:0.24in;padding-bottom:0.2in">
+    <div class="eyebrow">Build Room OS · Field Guide</div>
+    <h1 style="font-size:20pt;margin:4px 0 0">Operations, hardening, electives.</h1>
+    <div class="brand" style="top:0.3in"><b>THE BUILD ROOM</b>AI Momentum Labs</div>
+  </div>
+
+  <div class="grid" style="margin-top:12px">
+    <div>
+      <div class="group">
+        <h2>Operations <small>in this order</small></h2>
+        <div class="row">
+          <div><div class="say">Help me document my process</div><div class="sess">SOP Creator · Week 1</div></div>
+          <div class="get">Processes triaged, 2–4 SOPs someone else could run, a checklist for each, and an honest go / no-go on automating them.<div class="tags"><span class="tag n">Needs §1</span><span class="tag w">Writes §9</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Help me hire for this role</div><div class="sess">Hiring Ad + Interview Kit · Week 2</div></div>
+          <div class="get">Scorecard, filter ad, screening call, paid work sample, structured interviews, references, offer.<div class="tags"><span class="tag n">Needs §9</span><span class="tag w">Writes §10</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Help me train my new hire</div><div class="sess">Team Training Doc Builder · Week 3</div></div>
+          <div class="get">Training modules with checkouts, a 30-day onboarding calendar, a sign-off log, and a living FAQ.<div class="tags"><span class="tag n">Needs §9 §10</span><span class="tag w">Writes §11</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">What numbers should I be watching every week?</div><div class="sess">Weekly Ops Dashboard · Week 4</div></div>
+          <div class="get">Five to nine numbers, a one-page dashboard, the 30-minute weekly meeting, and an optional Monday routine.<div class="tags"><span class="tag n">Needs §9 §11</span><span class="tag w">Writes §12</span></div></div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Hardening <small>when the navigator flags it</small></h2>
+        <div class="row">
+          <div><div class="say">Find the words my clients actually use</div><div class="sess">Audience Insight</div></div>
+          <div class="get">Real customer language with sources, written into your sourced bank. Run before any page ships on guessed quotes.<div class="tags"><span class="tag n">Needs §1</span><span class="tag w">Writes §2</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Make my offer a no-brainer</div><div class="sess">Offer Deep Dive</div></div>
+          <div class="get">Twelve questions, seven answered from your file: the one belief, the value stack, real urgency. Run when sales are slow.<div class="tags"><span class="tag n">Needs §3</span><span class="tag w">Writes §3</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="group">
+        <h2>Anytime</h2>
+        <div class="row">
+          <div><div class="say">Write me the email</div><div class="sess">Copy Engine · any piece</div></div>
+          <div class="get">Copy in your voice from your file: Kern for short pieces, Halbert for long-form. Or "write me the sales letter," "the follow-up."<div class="tags"><span class="tag n">Needs §2–§5</span><span class="tag w">Writes nothing</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Let's brainstorm</div><div class="sess">Brainstorm Session + Board</div></div>
+          <div class="get">Frame, diverge on a timer, cluster, vote, decide. Then say <b>"Capture what we decided"</b> to turn it into owned, dated records.<div class="tags"><span class="tag n">Needs nothing</span><span class="tag w">Writes §13</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Convene the board</div><div class="sess">C-Suite Boardroom</div></div>
+          <div class="get">Four executives who genuinely disagree about your real offer, avatar, and numbers, and a chairperson who forces the call.<div class="tags"><span class="tag n">Needs file</span><span class="tag w">Writes §13</span></div></div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Electives <small>when you want them</small></h2>
+        <div class="row">
+          <div><div class="say">Set up my second brain</div><div class="sess">Obsidian + Claude Code</div></div>
+          <div class="get">A vault on your own machine with Claude inside it; your Business File moves into its root.<div class="tags"><span class="tag w">Writes §1 tools</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Build me a source watcher</div><div class="sess">Source Watcher</div></div>
+          <div class="get">A watcher on any source (podcasts, YouTube, newsletters) that filters by your goals and writes to your vault.<div class="tags"><span class="tag w">Writes §13</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Make me an agent</div><div class="sess">Agent Forge</div></div>
+          <div class="get">One agent definition from the thirteen elements, installable as a skill or handed off as a build brief.<div class="tags"><span class="tag n">Best with §9</span><span class="tag w">Writes §13</span></div></div>
+        </div>
+        <div class="row">
+          <div><div class="say">Set up the video engine</div><div class="sess">Video Engine</div></div>
+          <div class="get">The automated video pipeline, installed and running. States the monthly cost before anyone signs up.<div class="tags"><span class="tag w">Writes §13</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="boxes">
+    <div class="box">
+      <h3>If a session says something is missing</h3>
+      <p><b>Run the missing session first.</b> Almost always right. The navigator names it.</p>
+      <p><b>Or take the provisional path.</b> A five-minute interview stands in. The output is marked <i>provisional</i> and the Viewer keeps flagging it until the real session runs.</p>
+    </div>
+    <div class="box hot">
+      <h3>The one habit</h3>
+      <p>Never re-explain your business. Every session reads your Business File first and hands it back updated. Replace your saved copy every time.</p>
+      <p>If a session asks something the file already answers, say: <span class="say">Read my Business File first.</span></p>
+    </div>
+  </div>
+
+  <div class="foot"><span>Your file: <b>BUILDROOM_BUSINESS_FILE.md</b> · See it whole: <b>Business_File_Viewer.html</b> · Claude Code, Codex, Cowork</span><span>Page 2 of 2</span></div>
+</section>
+
+</body>
+</html>

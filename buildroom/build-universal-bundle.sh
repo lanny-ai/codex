@@ -11,6 +11,7 @@
 #   install.sh / install.ps1       optional: copy skills into ~/.claude/skills and ~/.codex/skills
 #   cowork/*.skill                 packaged skills for Claude Cowork / claude.ai upload
 #   tools/*.html                   Rent Calculator, Brainstorm Board, Business File Viewer, Quick Start
+#   BuildRoom_OS_Say_These_Words.pdf  the printable two-page trigger-phrase guide
 #   BUILDROOM_BUSINESS_FILE.md     the member's Business File — lives in this folder
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -36,6 +37,7 @@ mkdir -p "$STAGE/cowork"; cp dist/*.skill "$STAGE/cowork/"
 # tools
 mkdir -p "$STAGE/tools"
 cp rollout/Rent_Calculator.html rollout/Brainstorm_Board.html rollout/Business_File_Viewer.html rollout/BuildRoom_OS_Quick_Start.html "$STAGE/tools/"
+cp rollout/BuildRoom_OS_Say_These_Words.pdf "$STAGE/"
 
 # member file + docs
 cp templates/BUILDROOM_BUSINESS_FILE.md "$STAGE/"
