@@ -17,7 +17,8 @@ Read these reference files, in order, before any member-facing work:
 1. **`references/genie-source.md`** — the original custom GPT, verbatim: the 36 intake questions and the ten post-wizard prompts. The prompts are run exactly as written. The GPT's knowledge-base PDF is not included and nothing here depends on it.
 2. **`references/discovery-method.md`** — the pipeline: research first → score the questions (answered / partial / gap, with certainty) → confirm → gaps become the scripted call → the ten prompts → outputs per subject. Also the two engagement levels and the rules.
 3. **`references/identity-verification.md`** — Phase 0 for any subject that is not the member's own business. Mandatory. "Never assume the email domain is the website."
-4. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly.
+4. **`references/certainty-adapter.md`** — optional: if the member has a Jev or OpenAI Decisions key in their `.env`, `scripts/certainty.py` scores Phase 2 and the Phase 0 identity choice with calibrated probabilities. Without a key, the three-word scale stands. Read this before Phase 2.
+5. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly.
 
 ## Prerequisites
 
@@ -32,7 +33,7 @@ Read these reference files, in order, before any member-facing work:
 Follow the protocol for the member's file. Then ask, one at a time, only what you need:
 
 1. **Who is the subject?** Their own business, a client, or a prospect. If a client or prospect: name, business name, stated website or email, geography.
-2. **For a client or prospect, run `identity-verification.md` in full.** Write the verified identity block. If the subject cannot be disambiguated in ten minutes, stop and ask. Never research on a guess.
+2. **For a client or prospect, run `identity-verification.md` in full.** Write the verified identity block. If the subject cannot be disambiguated in ten minutes, stop and ask. Never research on a guess. With a certainty key present, put the candidates through the adapter's identity choice; a top candidate under the threshold is the same stop.
 3. **What do they already have?** Anything pasted (call notes, emails, intake forms, reviews, a transcript) is `[client]` provenance and outranks the web.
 4. **Where does the output go?** Own business: this Business File. Client: a separate client Business File in its own project folder, never the member's. Prospect: a Prospect Brief.
 
@@ -42,7 +43,7 @@ Run the research sweep from `discovery-method.md`, grouped by what the 36 questi
 
 ### Phase 2 — Score the 36 questions
 
-Produce the **answer sheet**: every question marked answered, partial, or gap, with its source and a certainty in plain words (confirmed / likely / inferred). Show it to the member in one message before going further. Questions research cannot answer by nature (motivation, passion, mindset, "anything else") go straight to the gap list.
+Produce the **answer sheet**: every question marked answered, partial, or gap, with its source and a certainty in plain words (confirmed / likely / inferred). **If a certainty key is in the member's `.env`**, write the sheet as JSON, run `scripts/certainty.py` (first time: `--probe`, and offer `--dry-run` so they see what is sent), and take the states and probabilities from its output, showing the number beside each item. Show the sheet to the member in one message before going further. Questions research cannot answer by nature (motivation, passion, mindset, "anything else") go straight to the gap list.
 
 ### Phase 3 — Confirm
 
@@ -83,7 +84,8 @@ Only once the answer sheet is complete (or, for a prospect, the assumptions are 
 - Put a client's data into the member's own Business File.
 - Research a subject whose identity is ambiguous. Phase 0 stops the run.
 - Replace the Ideal Client Avatar, Signature Offer, or Positioning sessions. It seeds them, marked provisional; they own their sections.
-- Print API keys or credentials for any research tool; those stay in `.env`.
+- Print API keys or credentials for any research or certainty tool; those stay in `.env`. The adapter never prints them either.
+- Let a decision model decide anything a human should: it scores evidence; the subject still confirms every answered item.
 - Use or reproduce the original GPT's knowledge-base document.
 
 ## When the Session Is Complete
