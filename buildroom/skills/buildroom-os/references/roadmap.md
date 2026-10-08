@@ -82,6 +82,7 @@ Capture turns a raw brainstorm (board export, transcript, notes) into outcome re
 |---|---|---|
 | Buzz (2026-08-12) | A third-party open-source desktop app where humans and agents share channels, shown as a demo. The founder called it "just an operation layer" over the second brain, told members not to let it distract from money-making, and by 08-26 was off the stock app and onto a custom build. No Build Room artifact, unstable vendor onboarding, no member follow-through. If a member asks: the vault is still the brain; the Second Brain and Source Watcher electives are the durable parts. | This note. |
 | Agent Forge app (2026-07-29) | The hosted builder never reached members (workspace-gated publish). The thirteen elements it encoded are the `buildroom-agent-forge` elective. | `buildroom-agent-forge` |
+| Discovery Engine | `buildroom-discovery-engine` | The founder's Magic Business Genie (36 questions + ten prompts) rebuilt per the 2026-10-07 co-design: research first, score and confirm, scripted gaps, then the prompts. Three subjects: own business, client (separate file), prospect (brief). |
 
 ## Trigger phrases to hand the member
 
@@ -105,6 +106,7 @@ When routing, give the member the exact words to start the session:
 - Offer Deep Dive → "Make my offer a no-brainer"
 - Copy Engine → "Write me [the piece]"
 - Video Engine (elective) → "Set up the video engine"
+- Discovery Engine (anytime) → "Run discovery on this business"
 - Funnel Scorecard (funnel) → "Where is my funnel leaking?"
 - Agent Forge (elective) → "Make me an agent"
 - Compass (anytime) → "Build my compass"
