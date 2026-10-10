@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Business File Viewer</title>
+<meta name="description" content="Paste your Build Room Business File and see your whole business on one screen: every section's status, your progress, the one session to run next, and your Build Plan.">
+<style>
+:root{--bg:#0a0a0f;--panel:#15151f;--line:#2a2a3a;--text:#e8e8f0;--muted:#9a9ab0;--dim:#6c6c82;--accent:#f97316;--accent2:#fbbf24;--good:#34d399;--warn:#fbbf24;--bad:#f87171;--input:#1e1e2c;--blue:#60a5fa}
+*{box-sizing:border-box;margin:0;padding:0}
+html{color-scheme:dark}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;line-height:1.55;padding-block:28px;padding-inline:16px;min-height:100vh}
+.wrap{max-width:980px;margin:0 auto}
+.eyebrow{color:var(--muted);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+h1{font-size:clamp(28px,6vw,42px);font-weight:700;letter-spacing:-1px;line-height:1.05;text-wrap:balance;background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.sub{color:#b8b8c8;font-size:15px;max-width:64ch}
+h2{font-size:16px;margin:0 0 8px;color:#fff}
+.hint{color:var(--muted);font-size:13px}
+button{font:inherit;cursor:pointer}
+.btn{background:linear-gradient(135deg,var(--accent),#ea580c);border:0;color:#fff;font-weight:600;padding:10px 16px;border-radius:9px}
+.ghost{background:transparent;border:1px solid #3a3a4e;color:var(--muted);padding:9px 14px;border-radius:9px}
+.ghost:hover{color:#fff;border-color:var(--accent)}
+.btn:focus-visible,.ghost:focus-visible,.sec:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+textarea{width:100%;min-height:150px;background:var(--input);border:1px solid #3a3a4e;border-radius:10px;color:var(--text);padding:12px;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;resize:vertical}
+textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+.drop{margin-top:18px}
+.drop.over{border-color:var(--accent)}
+.ok{color:var(--good);font-size:13px}
+.err{color:var(--bad);font-size:13px}
+/* dashboard */
+#dash{display:none;margin-top:18px}
+#dash.on{display:block}
+.head{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end;margin-bottom:14px}
+.head .biz{font-size:clamp(22px,4vw,30px);font-weight:700;color:#fff;letter-spacing:-.5px;line-height:1.1}
+.head .own{color:var(--muted);font-size:14px;margin-top:4px}
+.head .upd{color:var(--dim);font-size:12px;text-align:right;white-space:nowrap}
+.prog{background:var(--input);border:1px solid #3a3a4e;border-radius:99px;height:14px;overflow:hidden;display:flex}
+.prog .c{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.prog .p{background:#7a5a1a}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--muted)}
+.legend b{color:#fff}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.dot.c{background:var(--accent)}.dot.p{background:#7a5a1a}.dot.n{background:#3a3a4e}
+/* next */
+.next{margin-top:14px;background:linear-gradient(135deg,#1a1207 0%,#15151f 70%);border:1px solid #f9731660;border-radius:14px;padding:18px}
+.next .k{color:var(--accent2);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.next .t{font-size:clamp(18px,3.5vw,24px);font-weight:700;color:#fff;letter-spacing:-.3px}
+.next .why{color:#d8d8e4;font-size:14px;margin:8px 0 12px;max-width:70ch}
+.say{display:inline-block;background:var(--input);border:1px solid #3a3a4e;border-radius:8px;padding:5px 12px;font-family:ui-monospace,Menlo,monospace;font-size:13px;color:var(--accent2)}
+.next .alt{margin-top:10px;color:var(--muted);font-size:13px}
+.goal{margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+select{background:var(--input);border:1px solid #3a3a4e;border-radius:8px;color:var(--text);padding:7px 10px;font:inherit;font-size:13px}
+.path{margin-top:8px;color:#d8d8e4;font-size:13px}
+.path .step{display:inline-block;background:var(--input);border:1px solid #3a3a4e;border-radius:99px;padding:3px 10px;margin:3px 4px 3px 0;font-size:12px}
+.path .step.done{border-color:#34d39960;color:var(--good)}
+.path .step.gap{border-color:var(--accent);color:var(--accent2)}
+/* sequences */
+.seqs{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:14px}
+.seq{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.seq h3{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.sec{background:var(--input);border:1px solid #3a3a4e;border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer;text-align:left;width:100%;color:var(--text)}
+.sec .top{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.sec .nm{font-weight:600;color:#fff;font-size:14px}
+.sec .nm small{color:var(--dim);font-weight:400;margin-right:6px}
+.pill{font-size:11px;padding:2px 9px;border-radius:99px;border:1px solid;white-space:nowrap}
+.pill.complete{color:var(--good);border-color:#34d39960}
+.pill.provisional{color:var(--warn);border-color:#fbbf2460}
+.pill.notstarted{color:var(--dim);border-color:#3a3a4e}
+.pill.other{color:var(--blue);border-color:#60a5fa60}
+.sec .meta{color:var(--dim);font-size:11px;margin-top:4px}
+.sec .fill{height:4px;background:#2a2a3a;border-radius:99px;margin-top:8px;overflow:hidden}
+.sec .fill i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.sec .body{display:none;margin-top:10px;border-top:1px solid #2a2a3a;padding-top:8px}
+.sec.open .body{display:block}
+.sec .f{font-size:13px;color:#d8d8e4;margin:4px 0;overflow-wrap:anywhere}
+.sec .f b{color:var(--muted);font-weight:500}
+.sec .f.empty{color:var(--dim)}
+.sec .f.sub{padding-left:14px;color:#b8b8c8}
+.sec .flag{color:var(--warn);font-size:12px;margin-top:6px}
+/* panels */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.bp{margin-top:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{color:var(--muted);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top;min-width:110px}
+#bp table{min-width:640px}
+#log table{min-width:420px}
+tr:last-child td{border-bottom:0}
+.tw{overflow-x:auto}
+.st{font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid #3a3a4e;color:var(--muted);white-space:nowrap}
+.st.shipped{color:var(--good);border-color:#34d39960}.st.building{color:var(--blue);border-color:#60a5fa60}.st.scheduled{color:var(--accent2);border-color:#fbbf2460}.st.parked{color:var(--dim)}.st.captured{color:#fff}
+.stale{color:var(--warn);font-size:12px}
+.foot{text-align:center;color:var(--dim);font-size:12px;margin-top:36px;padding-top:18px;border-top:1px solid var(--line)}
+.foot button{background:none;border:0;color:var(--dim);text-decoration:underline;font-size:12px}
+@media(max-width:700px){.two{grid-template-columns:1fr}.head{grid-template-columns:1fr}.head .upd{text-align:left;white-space:normal}}
+.two>.panel,.seq,.panel{min-width:0;max-width:100%}
+.tw{max-width:100%}
+@media print{body{background:#fff;color:#111}.panel,.seq,.sec,.next{border-color:#ccc;background:#fff;color:#111}.drop,.foot,.ghost,.btn{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Build Room · Anytime tool</div>
+  <h1>Your business on one screen</h1>
+  <p class="sub">Paste your Business File. See every section's status, how far along you are, the one session to run next, and your Build Plan. Nothing leaves this page.</p>
+
+  <div class="panel drop" id="drop">
+    <h2>Paste your Business File</h2>
+    <p class="hint">Open <code>BUILDROOM_BUSINESS_FILE.md</code>, select all, copy, paste here. Or drop the file onto this box.</p>
+    <textarea id="src" placeholder="# Build Room Business File&#10;&#10;**Owner:** …" spellcheck="false"></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="go">Show my business</button>
+      <label class="ghost" style="cursor:pointer">Open a file<input type="file" id="file" accept=".md,.txt,text/markdown,text/plain" hidden></label>
+      <button class="ghost" id="sample">Try a sample</button>
+      <span class="ok" id="msg" hidden></span>
+      <span class="err" id="errmsg" hidden></span>
+    </div>
+  </div>
+
+  <div id="dash">
+    <div class="panel">
+      <div class="head">
+        <div><div class="biz" id="biz">—</div><div class="own" id="own"></div></div>
+        <div class="upd" id="upd"></div>
+      </div>
+      <div class="prog" id="prog" role="img" aria-label="Progress"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="next" id="next"></div>
+
+    <div class="seqs" id="seqs"></div>
+
+    <div class="panel bp" id="bp"></div>
+
+    <div class="two">
+      <div class="panel" id="log"></div>
+      <div class="panel" id="extras"></div>
+    </div>
+
+    <div class="row" style="margin-top:14px">
+      <button class="ghost" id="copyNext">Copy my next step</button>
+      <button class="ghost" id="print">Print / save as PDF</button>
+      <button class="ghost" id="again">Paste a different file</button>
+      <span class="ok" id="msg2" hidden></span>
+    </div>
+  </div>
+
+  <div class="foot">Build Room · AI Momentum Labs · Your file stays in this browser. <button id="clear">Forget my last paste</button></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const KEY="buildroom.viewer.v1";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---- registry: the program map (mirrors buildroom-os/references/roadmap.md) ---- */
+const REG={
+  1:{t:"Business Snapshot",skill:"Build Room OS",say:"I'm new to the Build Room — set me up",req:[]},
+  2:{t:"Ideal Client Avatar",skill:"Ideal Client Avatar",say:"Help me build my ideal client avatar",req:[]},
+  3:{t:"Signature Offer",skill:"Signature Offer",say:"Help me build my signature offer",req:[2]},
+  4:{t:"Positioning & Messaging",skill:"Positioning & Messaging",say:"Help me position my business",req:[2,3]},
+  5:{t:"Offer Page",skill:"Offer Page Copy",say:"Write my offer page",req:[2,3,4]},
+  6:{t:"Funnel & Automation",skill:"Funnel Map",say:"Help me map my funnel",req:[1],soft:[2,3]},
+  7:{t:"Lead Capture",skill:"Lead Capture",say:"Help me build my opt-in page",req:[6]},
+  9:{t:"Operations & SOPs",skill:"SOP Creator",say:"Help me document my process",req:[1]},
+  10:{t:"Team & Hiring",skill:"Hiring Ad + Interview Kit",say:"Help me hire for this role",req:[9]},
+  11:{t:"Training & Onboarding",skill:"Team Training Doc Builder",say:"Help me train my new hire",req:[9,10]},
+  12:{t:"Weekly Ops",skill:"Weekly Ops Dashboard",say:"What numbers should I be watching every week?",req:[9,11]},
+  13:{t:"Build Plan",skill:"Brainstorm Session",say:"Let's brainstorm",req:[]},
+  14:{t:"Lead Generation Engine",skill:"Lead Gen Machine",say:"Help me get more leads",req:[1],soft:[2,3]},
+  15:{t:"Sales Conversations",skill:"Sales Conversations",say:"Help me with my sales call",req:[3],soft:[2,4]},
+  16:{t:"Follow-Up Engine",skill:"Decision Machine",say:"Build my follow-up system",req:[3,6],soft:[2,7]},
+  17:{t:"Founder Compass",skill:"Compass",say:"Build my compass",req:[]},
+  8:{t:"Session Log",skill:"",say:"",req:[]}
+};
+const SEQ=[
+  {name:"Foundation · Offer Clarity",secs:[2,3,4,5]},
+  {name:"Funnel · Automation",secs:[6,16,7]},
+  {name:"Lead Generation",secs:[14]},
+  {name:"Sales",secs:[15]},
+  {name:"Operations · SOPs",secs:[9,10,11,12]},
+  {name:"Anytime",secs:[1,13,17]}
+];
+const GOALS={"5":"a sales page","14":"more leads","15":"a sales call script","7":"an opt-in page","16":"automated follow-up","6":"a funnel","9":"to delegate a process","11":"a trained hire","12":"my numbers on one page"};
+
+/* ---- parser ---- */
+const PLACEHOLDER=/^(—|-|–|\[.*\]|n\/a|tbd|todo|\$\s*—|)$/i;
+function isFilled(v){v=(v||"").trim();if(PLACEHOLDER.test(v))return false;
+  // "a: — · b: —" style: filled if any labelled part has content
+  if(/·/.test(v)&&/:/.test(v)){const parts=v.split("·");if(parts.every(p=>/:/.test(p)))return parts.some(p=>{const q=p.split(":").slice(1).join(":").trim();return q&&!PLACEHOLDER.test(q)});}
+  return true}
+function normStatus(s){s=(s||"").toLowerCase().trim();if(/complete|done/.test(s))return"complete";if(/provisional|draft|partial/.test(s))return"provisional";if(!s||/not started|none|—/.test(s))return"notstarted";return"other"}
+function parse(md){
+  const lines=md.replace(/\r/g,"").split("\n");
+  const doc={owner:"",business:"",updated:"",sections:[],extras:[],log:[],raw:md};
+  let cur=null;
+  const hdr=(re)=>{const m=md.match(re);return m?m[1].trim():""};
+  doc.owner=hdr(/\*\*Owner:\*\*\s*(.+)/);doc.business=hdr(/\*\*Business:\*\*\s*(.+)/);doc.updated=hdr(/\*\*Last updated:\*\*\s*(.+)/);
+  for(const raw of lines){
+    const h=raw.match(/^##\s+(\d+)\.\s*(.+?)\s*$/);
+    if(h){cur={n:+h[1],title:h[2].trim(),status:"notstarted",statusRaw:"",updated:"",by:"",fields:[],lines:[],warn:[]};doc.sections.push(cur);continue}
+    if(!cur)continue;
+    cur.lines.push(raw);
+    const st=raw.match(/\*\*Status:\*\*\s*([^·\n]+)(?:·\s*\*\*Updated:\*\*\s*([^·\n]+))?(?:·\s*\*\*By:\*\*\s*(.+))?/);
+    if(st){cur.statusRaw=st[1].trim();cur.status=normStatus(st[1]);cur.updated=(st[2]||"").trim();cur.by=(st[3]||"").trim();continue}
+    if(/^\*\*⚠|^⚠|^_Built by/.test(raw.trim())){if(/⚠/.test(raw))cur.warn.push(raw.replace(/\*\*/g,"").trim());continue}
+    const f=raw.match(/^(\s*)-\s+\*\*(.+?)\*\*:?\s*(.*)$/);
+    if(f){cur.fields.push({label:f[2].replace(/:$/,""),value:f[3].trim(),sub:f[1].length>0,filled:isFilled(f[3])});continue}
+    const s=raw.match(/^(\s+)-\s+(.+)$/);
+    if(s&&cur.fields.length){const v=s[2].trim();cur.fields.push({label:"",value:v,sub:true,filled:isFilled(v)&&!/^_.*_$/.test(v)});continue}
+  }
+  // session log table
+  const log=doc.sections.find(s=>s.n===8&&/session log/i.test(s.title));
+  if(log){for(const l of log.lines){const m=l.match(/^\|(.+)\|$/);if(!m)continue;const cells=m[1].split("|").map(c=>c.trim());if(cells.length<3||/^-+$/.test(cells[0])||/^date$/i.test(cells[0])||!cells[0])continue;doc.log.push(cells)}}
+  // build plan rows
+  const bp=doc.sections.find(s=>s.n===13&&/build plan/i.test(s.title));
+  doc.plan={rows:[],parked:[],open:[]};
+  if(bp){let mode="";for(const l of bp.lines){const lab=l.match(/^-\s+\*\*(Ideas|Parked|Open questions|Brainstorm log|Last brainstorm)/i);if(lab){mode=lab[1].toLowerCase();if(/brainstorm log|last brainstorm/.test(mode)){const v=l.split(/\*\*:?\s*/).pop().trim();if(isFilled(v))doc.plan[mode.startsWith("last")?"last":"loc"]=v;mode=""}continue}
+    const item=l.match(/^\s+-\s+(.+)$/);if(!item||!mode)continue;const v=item[1].trim();if(!isFilled(v)||/^_.*_$/.test(v))continue;
+    const parts=v.split(/\s*·\s*/);
+    if(mode==="ideas"){const r={idea:parts[0]||"",source:parts[1]||"",status:(parts[2]||"").toLowerCase().trim(),owner:parts[3]||"",next:parts[4]||"",produced:parts[5]||"",raw:v};const d=v.match(/\d{4}-\d{2}-\d{2}/);r.date=d?d[0]:"";doc.plan.rows.push(r)}
+    else if(mode==="parked")doc.plan.parked.push({idea:parts[0]||v,why:parts[1]||"",revisit:parts[2]||""});
+    else doc.plan.open.push(v)}}
+  // registry mapping: first section with a known number and matching title wins; others are extras
+  doc.map={};
+  for(const s of doc.sections){const r=REG[s.n];const titleOk=r&&s.title.toLowerCase().replace(/&/g,"and").includes(r.t.toLowerCase().replace(/&/g,"and").split(" ")[0]);
+    if(r&&titleOk&&!doc.map[s.n])doc.map[s.n]=s;else doc.extras.push(s)}
+  return doc;
+}
+
+/* ---- navigator ---- */
+function status(doc,n){const s=doc.map[n];return s?s.status:"notstarted"}
+function met(doc,n){const st=status(doc,n);return st==="complete"||st==="provisional"}
+function nextStep(doc){
+  if(status(doc,1)==="notstarted")return{n:1,why:"Your file has no Business Snapshot yet. The navigator builds it in five minutes and everything else reads from it.",kind:"start"};
+  for(const seq of SEQ){if(seq.name==="Anytime")continue;
+    for(const n of seq.secs){const st=status(doc,n);if(st==="complete")continue;
+      const r=REG[n];const missing=r.req.filter(p=>!met(doc,p));
+      if(missing.length){const m=missing[0];return{n:m,why:`${r.t} needs ${missing.map(x=>"§"+x+" "+REG[x].t).join(" and ")} first. Start there.`,kind:"prereq"}}
+      const debt=r.req.filter(p=>status(doc,p)==="provisional");
+      if(st==="notstarted"&&debt.length){const d=debt[0];return{n:d,why:`§${d} ${REG[d].t} is provisional, and ${r.t} would build on it. Harden it first: one session, and everything after it gets stronger.`,kind:"harden"}}
+      if(st==="provisional")return{n,why:`§${n} ${r.t} is provisional. Re-run its session to make it load-bearing before building higher.`,kind:"harden"};
+      return{n,why:`First gap in the ${seq.name.split(" · ")[0]} sequence with its prerequisites met.`,kind:"next"}}}
+  return{n:13,why:"Every sequence is complete. Run a brainstorm to decide what the next month builds, or check your Build Plan below for captured ideas waiting on a date.",kind:"done"};
+}
+function shipTip(doc){const tips=[];const s5=doc.map[5],s7=doc.map[7];
+  if(s5&&s5.status!=="notstarted"){const f=s5.fields.find(x=>/page status/i.test(x.label));if(f&&/draft/i.test(f.value)&&!/live/i.test(f.value.replace(/draft\s*\/\s*live/i,"")))tips.push("§5 Offer Page is still a draft. Publishing it may be worth more than a new session.")}
+  if(s7&&s7.status!=="notstarted"){const f=s7.fields.find(x=>/landing page/i.test(x.label));if(f&&/draft|not live|building/i.test(f.value))tips.push("§7 landing page isn't live yet. Building on unshipped work compounds nothing.")}
+  return tips}
+function goalPath(doc,target){const seen=new Set();const order=[];(function walk(n){if(seen.has(n))return;seen.add(n);(REG[n].req||[]).forEach(walk);order.push(n)})(+target);return order}
+
+/* ---- render ---- */
+let DOC=null,NEXT=null;
+function render(doc){
+  DOC=doc;
+  $("biz").textContent=doc.business&&!/\[.*\]/.test(doc.business)?doc.business:"(business name not set)";
+  $("own").textContent=doc.owner&&!/\[.*\]/.test(doc.owner)?doc.owner:"";
+  $("upd").textContent=doc.updated&&!/\[.*\]/.test(doc.updated)?"Last updated "+doc.updated:"";
+  const build=[1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17];
+  const c=build.filter(n=>status(doc,n)==="complete").length,p=build.filter(n=>status(doc,n)==="provisional").length;
+  $("prog").innerHTML=`<div class="c" style="width:${c/build.length*100}%"></div><div class="p" style="width:${p/build.length*100}%"></div>`;
+  $("legend").innerHTML=`<span><i class="dot c"></i><b>${c}</b> complete</span><span><i class="dot p"></i><b>${p}</b> provisional</span><span><i class="dot n"></i><b>${build.length-c-p}</b> not started</span><span>· ${build.length} sections · ${doc.log.length} session${doc.log.length===1?"":"s"} logged</span>`;
+  // next
+  NEXT=nextStep(doc);const r=REG[NEXT.n];const tips=shipTip(doc);
+  $("next").innerHTML=`<div class="k">${NEXT.kind==="done"?"All sequences complete":NEXT.kind==="harden"?"Harden this first":NEXT.kind==="prereq"?"Prerequisite missing":"Run this next"}</div>
+    <div class="t">${esc(r.skill)} <span style="color:var(--dim);font-weight:400;font-size:14px">· writes §${NEXT.n}</span></div>
+    <div class="why">${esc(NEXT.why)}</div>
+    <div>Say: <span class="say">${esc(r.say)}</span></div>
+    ${tips.map(t=>`<div class="alt">⚑ ${esc(t)}</div>`).join("")}
+    <div class="goal"><label for="goal">Or route by goal: I want</label><select id="goal"><option value="">choose…</option>${Object.entries(GOALS).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join("")}</select></div>
+    <div class="path" id="path"></div>`;
+  $("goal").addEventListener("change",e=>{const t=e.target.value;if(!t){$("path").innerHTML="";return}
+    const order=goalPath(doc,t);const gaps=order.filter(n=>status(doc,n)!=="complete");
+    $("path").innerHTML=order.map(n=>`<span class="step ${status(doc,n)==="complete"?"done":"gap"}">§${n} ${esc(REG[n].t)}${status(doc,n)==="provisional"?" (provisional)":""}</span>`).join("")+
+      (gaps.length?`<div style="margin-top:6px">${gaps.length} session${gaps.length===1?"":"s"} between you and ${esc(GOALS[t])}. Start with <b>${esc(REG[gaps[0]].skill)}</b>: <span class="say">${esc(REG[gaps[0]].say)}</span></div>`:`<div style="margin-top:6px">Everything ${esc(GOALS[t])} needs is complete.</div>`)});
+  // sequences
+  $("seqs").innerHTML=SEQ.map(seq=>`<div class="seq"><h3>${esc(seq.name)}</h3>${seq.secs.map(n=>secCard(doc,n)).join("")}</div>`).join("");
+  $("seqs").querySelectorAll(".sec").forEach(b=>b.addEventListener("click",()=>b.classList.toggle("open")));
+  // build plan
+  const pl=doc.plan;const now=Date.now();
+  const stale=pl.rows.filter(r=>r.status==="captured"&&r.date&&(now-Date.parse(r.date))>28*864e5);
+  $("bp").innerHTML=`<h2>Build Plan <span class="hint">· §13</span></h2>`+(pl.rows.length?`<div class="tw"><table><tr><th>Idea</th><th>Status</th><th>Owner</th><th>Next step</th><th>Produced</th></tr>${pl.rows.map(r=>`<tr><td>${esc(r.idea)}<div class="hint">${esc(r.source)}</div></td><td><span class="st ${esc(r.status)}">${esc(r.status||"—")}</span>${stale.includes(r)?`<div class="stale">captured ${Math.floor((now-Date.parse(r.date))/(7*864e5))} weeks ago, no date</div>`:""}</td><td>${esc(r.owner||"—")}</td><td>${esc(r.next||"—")}</td><td>${esc(r.produced||"—")}</td></tr>`).join("")}</table></div>`:`<p class="hint">No ideas captured yet. After your next brainstorm, say <span class="say">Capture what we decided</span> and they land here.</p>`)+
+    (stale.length?`<p class="stale" style="margin-top:8px">⚑ ${stale.length} captured idea${stale.length===1?"":"s"} older than four weeks with no next step. Schedule, park, or drop.</p>`:"")+
+    (pl.parked.length?`<h2 style="margin-top:14px">Parked</h2><div class="tw"><table><tr><th>Idea</th><th>Why not now</th><th>Revisit</th></tr>${pl.parked.map(r=>`<tr><td>${esc(r.idea)}</td><td>${esc(r.why)}</td><td>${esc(r.revisit)}</td></tr>`).join("")}</table></div>`:"")+
+    (pl.open.length?`<h2 style="margin-top:14px">Open questions</h2><ul style="padding-left:18px;font-size:13px;color:#d8d8e4">${pl.open.map(q=>`<li>${esc(q)}</li>`).join("")}</ul>`:"");
+  // log
+  $("log").innerHTML=`<h2>Session Log <span class="hint">· §8</span></h2>`+(doc.log.length?`<div class="tw"><table><tr><th>Date</th><th>Session</th><th>Status</th><th>★</th></tr>${doc.log.slice().reverse().map(c=>`<tr><td>${esc(c[0])}</td><td>${esc(c[1])}<div class="hint">${esc(c[2]||"")}</div></td><td>${esc(c[3]||"")}</td><td>${esc(c[4]||"")}</td></tr>`).join("")}</table></div>`:`<p class="hint">No sessions logged yet.</p>`);
+  // extras
+  const ex=doc.extras.filter(s=>s.n!==8);
+  $("extras").innerHTML=`<h2>Also in your file</h2>`+(ex.length?ex.map(s=>`<div class="f" style="font-size:13px;color:#d8d8e4;margin:4px 0">§${s.n} ${esc(s.title)} <span class="pill other">${esc(s.statusRaw||"custom")}</span></div>`).join("")+`<p class="hint" style="margin-top:8px">Sections outside the standard seventeen. Skills preserve them untouched.</p>`:`<p class="hint">Nothing outside the standard seventeen sections. Anything you add by hand shows up here.</p>`);
+  $("dash").classList.add("on");
+  $("dash").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function secCard(doc,n){const r=REG[n];const s=doc.map[n];const st=s?s.status:"notstarted";
+  const fields=s?s.fields:[];const top=fields.filter(f=>!f.sub);const filled=top.filter(f=>f.filled).length;const ratio=top.length?filled/top.length:0;
+  const pillTxt=st==="notstarted"?"not started":(s&&s.statusRaw?s.statusRaw:st);
+  return`<button class="sec" aria-expanded="false"><div class="top"><span class="nm"><small>§${n}</small>${esc(r.t)}</span><span class="pill ${st}">${esc(pillTxt)}</span></div>
+    <div class="meta">${s&&s.updated&&isFilled(s.updated)?"Updated "+esc(s.updated):""}${s&&s.by&&isFilled(s.by)?" · by "+esc(s.by):""}${top.length?` · ${filled}/${top.length} fields`:""}</div>
+    ${top.length?`<div class="fill"><i style="width:${ratio*100}%"></i></div>`:""}
+    ${s&&s.warn.length?`<div class="flag">${esc(s.warn[0])}</div>`:""}
+    <div class="body">${fields.length?fields.map(f=>`<div class="f ${f.sub?"sub":""} ${f.filled?"":"empty"}">${f.label?`<b>${esc(f.label)}:</b> `:""}${esc(f.filled?f.value:(f.value||"—"))}</div>`).join(""):`<div class="f empty">Not in your file yet. ${r.skill?`Built by <b>${esc(r.skill)}</b>.`:""}</div>`}
+    ${r.say?`<div style="margin-top:8px">Say: <span class="say">${esc(r.say)}</span></div>`:""}</div></button>`}
+
+/* ---- wiring ---- */
+function run(){const md=$("src").value;$("errmsg").hidden=true;$("msg").hidden=true;
+  if(!/##\s+\d+\./.test(md)){$("errmsg").textContent="That doesn't look like a Business File. It should have headings like \"## 1. Business Snapshot\".";$("errmsg").hidden=false;return}
+  try{localStorage.setItem(KEY,md)}catch(e){}
+  render(parse(md))}
+$("go").addEventListener("click",run);
+$("src").addEventListener("keydown",e=>{if((e.metaKey||e.ctrlKey)&&e.key==="Enter")run()});
+$("file").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{$("src").value=t;run()})});
+const dz=$("drop");
+dz.addEventListener("dragover",e=>{e.preventDefault();dz.classList.add("over")});
+dz.addEventListener("dragleave",()=>dz.classList.remove("over"));
+dz.addEventListener("drop",e=>{e.preventDefault();dz.classList.remove("over");const f=e.dataTransfer.files[0];if(f)f.text().then(t=>{$("src").value=t;run()})});
+$("again").addEventListener("click",()=>{$("dash").classList.remove("on");window.scrollTo({top:0,behavior:"smooth"});$("src").focus()});
+$("print").addEventListener("click",()=>window.print());
+$("copyNext").addEventListener("click",async()=>{if(!NEXT)return;const r=REG[NEXT.n];const t=`Next Build Room session: ${r.skill} (writes §${NEXT.n}). ${NEXT.why} Say: "${r.say}"`;try{await navigator.clipboard.writeText(t);$("msg2").textContent="Copied.";$("msg2").hidden=false;setTimeout(()=>{$("msg2").hidden=true},2000)}catch(e){}});
+$("clear").addEventListener("click",()=>{try{localStorage.removeItem(KEY)}catch(e){}$("src").value="";$("dash").classList.remove("on");$("msg").textContent="Forgotten.";$("msg").hidden=false});
+$("sample").addEventListener("click",()=>{$("src").value=SAMPLE;run()});
+try{const last=localStorage.getItem(KEY);if(last){$("src").value=last;$("msg").textContent="Restored your last paste from this browser.";$("msg").hidden=false}}catch(e){}
+
+const SAMPLE=`# Build Room Business File
+
+**Owner:** Dana Reyes
+**Business:** Northwind Social
+**File version:** 1.0
+**Last updated:** 2026-09-24 by Team Training Doc Builder
+
+---
+
+## 1. Business Snapshot
+
+**Status:** complete · **Updated:** 2026-07-08 · **By:** Build Room OS
+
+- **What I do:** Done-for-you social media for chiropractors
+- **Who I serve (niche + segment):** Single-location chiropractic clinics, 1–3 providers
+- **Core result I deliver:** 8–12 new-patient inquiries a month from organic social
+- **Current price / price range:** $1,800/mo retainer
+- **Lead sources today (how people find me):** Referrals, one Facebook group
+- **Tools:** email platform: Mailchimp · CRM: GoHighLevel · website/page builder: GHL · automation: GHL workflows
+
+---
+
+## 2. Ideal Client Avatar
+
+**Status:** complete · **Updated:** 2026-07-15 · **By:** Ideal Client Avatar
+
+- **ICA name (fictional):** Dr. Priya
+- **One-line profile (who + situation):** Owner-operator chiropractor, 6 years in, full schedule, no time for marketing
+- **Job To Be Done** — functional: keep the schedule full without doing marketing · emotional: stop feeling invisible online · identity: be the clinic people in town already know
+- **Pain stack** — surface: "I post when I remember" · emotional: watching the new clinic across town grow · identity (inner monologue): "I'm a great doctor and a terrible marketer"
+- **Dream state** — 90 days: a month of content she didn't touch · 1 year: waitlist
+- **Switching forces** — push: two slow months · pull: a peer's booked calendar · anxiety: "will it sound like me?" · habit: posting herself sporadically
+- **Awareness stage (Schwartz):** Solution-aware
+- **Buying trigger (what makes them act now):** A slow quarter after a competitor opened
+- **Top objections** — spoken: "I tried an agency before" · unspoken: "I'll have to babysit this"
+- **Negative avatar (who I refuse to serve, and why):** Multi-location groups with in-house marketing
+- **Verbatim language bank** (5–10 exact phrases clients actually said):
+  1. "I post when I remember, which is never."
+  2. "The clinic across town is everywhere and I'm nowhere."
+- **Full ICA document:** Northwind_ICA.md
+
+---
+
+## 3. Signature Offer
+
+**Status:** complete · **Updated:** 2026-07-22 · **By:** Signature Offer
+
+- **Offer name:** The Full Schedule System
+- **Core transformation promise (one sentence):** A full schedule from organic social in 90 days without the doctor posting once
+- **Engagement structure (length, format):** 90-day sprint, then monthly retainer
+- **Phases + outcome per phase:**
+  - Phase 1: Voice capture → outcome: 30 days of content in her voice
+- **Named deliverables:** Content calendar, 12 posts/mo, monthly report
+- **Value stack total:** $ 6,400 · **Investment:** $ 1,800/mo
+- **Guarantee (full wording):** 8 inquiries in 90 days or month four is free
+- **60-second pitch:** You keep adjusting. We keep you booked.
+- **Full offer document:** Northwind_Offer.md
+
+---
+
+## 4. Positioning & Messaging
+
+**Status:** provisional · **Updated:** 2026-07-29 · **By:** Positioning & Messaging
+
+- **Competitive alternative (what my best-fit client would do if I didn't exist):** Post herself, badly, or hire a generalist agency
+- **Market category:** Chiropractic patient-acquisition
+- **Core differentiator (most ownable):** Only chiropractors; content in the doctor's own voice
+- **Positioning statement:** For chiropractors who'd rather adjust than post
+- **Value proposition (one sentence):**
+- **Tagline:**
+- **Villain statement (what's wrong with how my space operates):** Generalist agencies post stock quotes and call it strategy
+- **For you if (top 3):** Single location · full schedule · hates posting
+- **Not for you if (top 3):**
+- **Unfair advantage:**
+- **Full Messaging Bible:** [filename or link]
+
+---
+
+## 5. Offer Page
+
+**Status:** not started · **Updated:** — · **By:** —
+
+- **Chosen headline:**
+- **Page status:** draft / live · **URL:** —
+- **Proof assets used (results, testimonials, composites — labeled):**
+- **Credibility anchor:**
+- **Full page copy document:** [filename or link]
+
+---
+
+## 6. Funnel & Automation
+
+**Status:** not started · **Updated:** — · **By:** —
+
+- **Value ladder** — bait/entry: — · core: — · backend/continuity: —
+- **Funnel type + single conversion event:**
+- **Funnel map (compact step list):**
+- **Biggest drop-off point:**
+- **Email sequence:** [name · # emails · doc link]
+- **Automation trigger map (compact):**
+- **First build priority:**
+- **Metrics** — opt-in rate: — · show-up rate: — · close rate: —
+
+---
+
+## 7. Lead Capture
+
+**Status:** not started · **Updated:** — · **By:** —
+
+- **Lead magnet (format + title):**
+- **Landing page:** status: — · URL: —
+- **Thank-you page + delivery automation:** status: —
+
+---
+
+## 9. Operations & SOPs
+
+**Status:** complete · **Updated:** 2026-09-03 · **By:** SOP Creator
+
+- **Processes documented** (name · owner · last reviewed):
+  - Client onboarding · Dana · 2026-09-03
+  - Monthly report · Dana · 2026-09-03
+  - Content approval loop · Dana · 2026-09-03
+- **Top undocumented processes** (from triage, by priority): Asset requests, Invoice chase
+- **SOP library location:** Notion / Ops
+- **Naming convention:** SOP-[area]-[name]
+- **Review cadence:** Quarterly
+- **Maintenance trigger** (the event that forces an update): Any client-facing complaint
+- **Full Operations Pack:** Northwind_Ops_Pack.md
+
+---
+
+## 10. Team & Hiring
+
+**Status:** complete · **Updated:** 2026-09-10 · **By:** Hiring Ad + Interview Kit
+
+- **Role** (title · hours/wk · contractor/employee · pay range): Client Delivery Coordinator · 20 · contractor · $22–28/hr
+- **Mission (one sentence):** Run onboarding, reports, and approvals so Dana never touches them
+- **Outcomes** (measurable, with timeframe):
+  1. Every report out by the 3rd, 3 months running
+- **SOPs this role bundles:** Client onboarding, Monthly report, Content approval loop
+- **90-day standard:** All three SOPs signed off
+- **Ad status** (drafted / posted where / closed): Posted, OnlineJobs.ph
+- **Funnel stage** (screening / work sample / interviews / references / offer / hired): Hired
+- **Hire** (name · start date · trial end): Marco · 2026-09-22 · 2026-10-22
+- **Full Hiring Kit:** Northwind_Hiring_Kit.md
+
+---
+
+## 11. Training & Onboarding
+
+**Status:** provisional · **Updated:** 2026-09-24 · **By:** Team Training Doc Builder
+
+- **Training Handbook location:** Notion / Handbook
+- **Modules** (SOP · checkout status · date · observer):
+  - Client onboarding · passed · 2026-09-26 · Dana
+  - Monthly report · pending · — · —
+- **Onboarding calendar** (start date · current week): 2026-09-22 · week 2
+- **Sign-off owner:** Dana
+- **FAQ location:** Notion / Handbook / FAQ
+- **Maintenance trigger** (the event that forces a handbook update): A checkout fails twice on the same criterion
+- **Full Training Handbook:** Northwind_Handbook.md
+
+---
+
+## 12. Weekly Ops
+
+**Status:** not started · **Updated:** — · **By:** —
+
+- **Metrics** (name · owner · goal · source):
+  - —
+
+---
+
+## 13. Build Plan
+
+**Status:** provisional · **Updated:** 2026-09-17 · **By:** Brainstorm Capture
+
+- **Ideas & builds** (idea · source · status · owner · next step · produced):
+  - Before/after clinic case study page · Brainstorm 2026-08-12 · captured · Dana · — · —
+  - Referral card for front desks · Brainstorm 2026-09-17 · scheduled · Marco · Draft by Oct 3 · —
+  - Voice-capture intake form · Brainstorm 2026-09-17 · shipped · Dana · — · GHL form
+- **Parked** (idea · why · revisit date):
+  - Podcast for chiropractors · no capacity until hire is signed off · November
+- **Open questions carried forward:**
+  - Do we raise the retainer for new clients in Q4?
+- **Brainstorm log location:** Notion / Brainstorm Log
+- **Last brainstorm** (date · framing question): 2026-09-17 · What gets us three more clinics before December?
+
+---
+
+## 8. Session Log
+
+| Date | Session | Outputs produced | Status | Rating (1–5) | Notes |
+|---|---|---|---|---|---|
+| 2026-07-08 | Build Room OS | §1 | complete | — | |
+| 2026-07-15 | Ideal Client Avatar | ICA doc | complete | 5 | |
+| 2026-07-22 | Signature Offer | Offer doc | complete | 4 | |
+| 2026-07-29 | Positioning & Messaging | Messaging Bible (partial) | provisional | 3 | ran out of time |
+| 2026-09-03 | SOP Creator | 3 SOPs + checklists | complete | 5 | |
+| 2026-09-10 | Hiring Kit | Scorecard, ad, interview kit | complete | 5 | |
+| 2026-09-17 | Brainstorm Capture | 3 rows, 1 parked | provisional | 4 | |
+| 2026-09-24 | Team Training Doc Builder | Handbook, 2 modules | provisional | 4 | one checkout pending |
+`;
+})();
+</script>
+</body>
+</html>
