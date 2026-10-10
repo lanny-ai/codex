@@ -72,7 +72,7 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 | "Help me build my signature offer" | Deliverables, price, guarantee, pitch |
 | "Help me position my business" | Your Messaging Bible |
 | "Write my offer page" | A publication-ready offer page |
-| "Help me map my funnel" | A traffic strategy proposed from your file, the funnel map, email sequence, build plan |
+| "Help me map my funnel" | A traffic strategy proposed from your file, the funnel map, emails written one at a time, built in GoHighLevel and launch-tested |
 | "Help me build my opt-in page" | Landing page or a built web application that qualifies leads, lead magnet, delivery automation |
 | "Build my follow-up system" | A campaign on every yes/no in your funnel, beliefs mapped, built and verified in your CRM |
 | "Help me get more leads" | Warm network, cold outreach, referrals, content: one module per session |

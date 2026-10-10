@@ -26,7 +26,7 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `buildroom-signature-offer` | Offer Clarity W2 | §3 | §2 |
 | `buildroom-positioning-messaging` | Offer Clarity W3 | §4 | §2 §3 |
 | `buildroom-offer-page-copy` | Offer Clarity W4 | §5 | §2 §3 §4 |
-| `buildroom-funnel-map` | Automation & Funnels W1 (+ Traffic Strategy phase, 2026-10-10) | §6 (incl. traffic strategy line) | §1 (best with §2 §3) |
+| `buildroom-funnel-map` | Automation & Funnels W1 (+ Traffic Strategy and Build it in GHL phases, 2026-10-10) | §6 (incl. traffic strategy and CRM build lines) | §1 (best with §2 §3) |
 | `buildroom-lead-capture` | Automation & Funnels W3 (retrofit + application builder, 2026-10-10) | §7 (incl. application line) | §6 |
 | `buildroom-os` | — (program navigator) | §1, §8 only | — |
 | `buildroom-sop-creator` | Operations & SOPs W1 | §9 | §1 |

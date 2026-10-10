@@ -19,7 +19,7 @@ Run after the foundation (needs at least §2 and §3 to produce strong output).
 
 | # | Session | Skill | Builds (file §) | Requires |
 |---|---|---|---|---|
-| 5 | Funnel Map & First Automation (with the Traffic Strategy phase: channels proposed from §1–§3, member confirms) | `buildroom-funnel-map` | §6 | §1 (best with §2 §3) |
+| 5 | Funnel Map & First Automation (Traffic Strategy phase: channels proposed from §1–§3, member confirms; Build it in GHL phase: API push + browser build + launch test) | `buildroom-funnel-map` | §6 | §1 (best with §2 §3) |
 | 6 | Decision Machine (follow-up engine) | `buildroom-decision-machine` | §16 | §3 §6 (best with §2 §7) |
 | 7 | Lead Capture System (form, or a web application built in place with the Build Lab loop) | `buildroom-lead-capture` | §7 | §6 |
 | 8 | Funnel Scorecard + Leak Finder | `buildroom-funnel-scorecard` | §6 scorecard lines, §13 rows, §12 rows | §6 (best with §16 §3); run after a week of real traffic |

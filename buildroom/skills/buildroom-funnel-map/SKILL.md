@@ -16,7 +16,8 @@ Read these reference files, in order, before any member-facing work:
 2. **`references/prompt-system.md`** — the session's engine. Adopt its SYSTEM PROMPT as your operating identity and its standards as non-negotiable: map before building, fix the leak first, one conversion event per funnel. (Ignore its manual load/paste instructions — this skill replaces that mechanic.)
 3. **`references/traffic-strategy.md`** — the channel menu, the fit rules, and the proposal format for the Traffic Strategy phase: the session proposes the two or three channels that fit this avatar, this offer, and what is already working, and the member confirms. Read it before Phase 1.
 4. **`references/kern-framework.md`** and **`references/halbert-writing-system.md`** — the two copywriting systems every email in this session is written with (byte-identical to the Copy Engine's). Kern for the short, conversational emails; Halbert for the story and proof email and any long-form piece. Read both before Phase 4.
-5. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly.
+5. **`references/ghl-build.md`** — the Build it in GHL phase: `scripts/ghl_push.py` pushes tags, custom fields, and email templates through the API from the member's `.env` key and checks the pipeline; the agent builds the workflows in the browser from the script's build sheet; the launch test proves it. Read it before Phase 7.
+6. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly.
 
 ## Prerequisites
 
@@ -46,11 +47,15 @@ Run the five prompts from `references/prompt-system.md` in order, one at a time,
 
 Quality bar: fix the leak before adding stages; one conversion event per funnel, defended if the member wants three; every automation mapped to a tool they actually have (or the free-tier tool to get).
 
-### Phase 7 — Deliverable + Business File update
+### Phase 7 — Build it in GHL (on the member's yes)
+
+Only after every email is approved and the trigger map is confirmed. Follow `references/ghl-build.md`: ask once whether to build now and confirm `GHL_API_KEY` and `GHL_LOCATION_ID` are in `.env` (never pasted here); write `funnel-build.json` from the approved emails, tags, fields, pipeline, workflows, and the launch test; run `scripts/ghl_push.py --dry-run funnel-build.json` and show every request and the build sheet for approval; `--probe` once; push (idempotent; a failed email-template push means `--skip-emails` and the emails go into the workflow steps in the browser); then build each workflow in the browser from the sheet, step by step, and **publish**; then the launch test, one real pass per path with the member's own contact. Nothing is "built" until the launch test passed. If the member says not now, the build sheet is still delivered as the implementation plan.
+
+### Phase 8 — Deliverable + Business File update
 
 1. Deliver the **complete Funnel System document**: funnel map, full email sequence, landing page draft, trigger map, implementation plan.
 2. Update the Business File per the protocol:
-   - **§6 Funnel & Automation** — the traffic strategy line (primary · secondary · test · first-lead window · status), value ladder, funnel type + conversion event, compact step list, drop-off point, email sequence reference, compact trigger map, first build priority, and baseline metrics (record "unknown" honestly — it becomes the before-picture). Status per the inheritance rule.
+   - **§6 Funnel & Automation** — the traffic strategy line (primary · secondary · test · first-lead window · status), value ladder, funnel type + conversion event, compact step list, drop-off point, email sequence reference, compact trigger map, first build priority, the CRM build line (location · tags/fields pushed · workflows built · launch test passed · date) when Phase 7 ran, and baseline metrics (record "unknown" honestly — it becomes the before-picture). Status per the inheritance rule.
    - **§13 Build Plan** — one `captured` row per confirmed channel that a Lead Gen Machine module must execute, with that module as the next step.
    - **§1** — update tool fields if they changed.
    - **§8 Session Log** — append the row; ask for the 1–5 rating.
@@ -65,7 +70,7 @@ Quality bar: fix the leak before adding stages; one conversion event per funnel,
 
 ## What This Skill Does NOT Do
 
-- Build inside the member's tools (it produces the exact copy and settings to paste; the Lead Capture session covers GHL build steps).
+- Build anything in the CRM before the emails are approved and the trigger map confirmed, or call anything built before its launch test passed. Workflows are built in the browser; the API cannot create them.
 - Design multi-funnel empires on day one. One funnel, one conversion event, shipped.
 - Promise metrics. It sets up measurement so the member's numbers tell the truth later.
 - Run the traffic channels. It picks them with reasons; the Lead Gen Machine executes them. It never builds a paid campaign.

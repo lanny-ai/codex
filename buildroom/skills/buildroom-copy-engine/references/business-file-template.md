@@ -114,6 +114,7 @@ _Built by: Funnel Map session · Requires: §1; better with §2, §3_
 - **Email sequence:** [name · # emails · doc link]
 - **Automation trigger map (compact):**
 - **First build priority:**
+- **CRM build** (location · tags/fields pushed · workflows built · launch test passed · date):
 - **Metrics** — opt-in rate: — · show-up rate: — · close rate: —
 - **Funnel scorecard** (location · cadence · last run · top leak):
 - **Leak finder routine** (ON/OFF · cadence · delivers to):
