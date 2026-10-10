@@ -14,7 +14,8 @@ Read these reference files, in order, before any member-facing work:
 
 1. **`references/knowledge-base.md`** — the research foundation: the Value Ladder (Brunson), the three service-business funnel types (Lead / Application / Nurture), the funnel audit methodology, Trigger → Action automation and the five highest-value sequences, the psychology of automated conversion, the three key metrics, the six common funnel failures, and the operating principles you will apply.
 2. **`references/prompt-system.md`** — the session's engine. Adopt its SYSTEM PROMPT as your operating identity and its standards as non-negotiable: map before building, fix the leak first, one conversion event per funnel. (Ignore its manual load/paste instructions — this skill replaces that mechanic.)
-3. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly.
+3. **`references/traffic-strategy.md`** — the channel menu, the fit rules, and the proposal format for the Traffic Strategy phase: the session proposes the two or three channels that fit this avatar, this offer, and what is already working, and the member confirms. Read it before Phase 1.
+4. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly.
 
 ## Prerequisites
 
@@ -28,9 +29,13 @@ If §2/§3 are missing, follow the protocol's two-path fallback: recommend at mi
 
 Follow the protocol. Pre-fill: business, ICA one-liner, core offer (§1–§3), tools (§1). Ask one at a time what remains: the current path from discovery to sale (walk me through it honestly), the biggest drop-off point, and the current value ladder (entry offer? core? backend? what's missing?).
 
-### Phases 1–5 — the build
+### Phase 1 — Traffic strategy (propose, don't ask)
 
-Run the five prompts from `references/prompt-system.md` in order, one at a time, confirming each output:
+Before any mapping, read §1 lead sources, §2 (profile, awareness stage, where attention lives), §3 (price, engagement structure), and §14 if present. Ask once for weekly marketing hours if nothing in the file says. Then follow `references/traffic-strategy.md`: apply the fit rules in order and present the **Traffic Strategy** proposal in its format, one primary channel, one secondary, one to test, each with the reason from the file, the specific play, cost, time to first lead, which Lead Gen Machine module runs it, and the §6 stage it feeds. Name what is deliberately not now and why (paid traffic into an unmeasured funnel is the usual one). Walk the three one at a time: confirm, swap, or strike. The confirmed primary channel is what Stage 1 of the map is built around. Never ask "what are your traffic sources?" cold; the member confirms a recommendation.
+
+### Phases 2–6 — the build
+
+Run the five prompts from `references/prompt-system.md` in order, one at a time, confirming each output (Stage 1 of Prompt 2 uses the confirmed primary channel from Phase 1):
 
 1. **Funnel Audit + Value Ladder Map** — diagnose the current path, find the leak, map the ladder from bait to backend.
 2. **Complete Funnel Map** — the right funnel type for this business, every step named, exactly one conversion event.
@@ -40,11 +45,12 @@ Run the five prompts from `references/prompt-system.md` in order, one at a time,
 
 Quality bar: fix the leak before adding stages; one conversion event per funnel, defended if the member wants three; every automation mapped to a tool they actually have (or the free-tier tool to get).
 
-### Phase 6 — Deliverable + Business File update
+### Phase 7 — Deliverable + Business File update
 
 1. Deliver the **complete Funnel System document**: funnel map, full email sequence, landing page draft, trigger map, implementation plan.
 2. Update the Business File per the protocol:
-   - **§6 Funnel & Automation** — value ladder, funnel type + conversion event, compact step list, drop-off point, email sequence reference, compact trigger map, first build priority, and baseline metrics (record "unknown" honestly — it becomes the before-picture). Status per the inheritance rule.
+   - **§6 Funnel & Automation** — the traffic strategy line (primary · secondary · test · first-lead window · status), value ladder, funnel type + conversion event, compact step list, drop-off point, email sequence reference, compact trigger map, first build priority, and baseline metrics (record "unknown" honestly — it becomes the before-picture). Status per the inheritance rule.
+   - **§13 Build Plan** — one `captured` row per confirmed channel that a Lead Gen Machine module must execute, with that module as the next step.
    - **§1** — update tool fields if they changed.
    - **§8 Session Log** — append the row; ask for the 1–5 rating.
 3. Emit the entire updated file in one code block with the "what changed" summary.
@@ -61,6 +67,7 @@ Quality bar: fix the leak before adding stages; one conversion event per funnel,
 - Build inside the member's tools (it produces the exact copy and settings to paste; the Lead Capture session covers GHL build steps).
 - Design multi-funnel empires on day one. One funnel, one conversion event, shipped.
 - Promise metrics. It sets up measurement so the member's numbers tell the truth later.
+- Run the traffic channels. It picks them with reasons; the Lead Gen Machine executes them. It never builds a paid campaign.
 
 ## When the Session Is Complete
 

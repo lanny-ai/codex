@@ -33,7 +33,7 @@ Read these reference files, in order, before any member-facing work:
 
 Follow the protocol. Pre-fill from the file: what they do, lead sources, CRM and email platform (§1); pains, identity monologue, switching forces, awareness stage, buying trigger, objections, sourced language (§2); promise, deliverables, price, guarantee, pitch, urgency (§3); differentiator, villain, tagline (§4); funnel map, conversion event, trigger map, metrics (§6); lead magnet, landing page, delivery automation (§7); any manual outreach sequences that already exist (§14), so the machine doesn't duplicate them.
 
-Ask one at a time only what the file can't answer: the offer link the invite points to, what exists in the CRM already, who will build it (the member by hand, or an agent in Claude Code, Codex, or Cowork with the browser extension) and whether the CRM API key exists yet (in GoHighLevel a private integration key; create it before the build, because tags batch through the API and go one at a time through the browser), list size and dormant count, whether authentication is set up, two or three emails that got replies (for voice), and the cadence they can live with. Voice and resistance patterns come from §17 Founder Compass when it is filled; a pasted Compass or Blueprint document adds detail and is optional: the founder ran the machine from an AI-written product summary and the file.
+Ask one at a time only what the file can't answer: the offer link the invite points to, what exists in the CRM already, who will build it (the member by hand, or an agent in Claude Code or Codex, through the CRM API or a browser) and whether the CRM API key exists yet (in GoHighLevel a private integration key; create it before the build, because tags batch through the API and go one at a time through the browser), list size and dormant count, whether authentication is set up, two or three emails that got replies (for voice), and the cadence they can live with. Voice and resistance patterns come from §17 Founder Compass when it is filled; a pasted Compass or Blueprint document adds detail and is optional: the founder ran the machine from an AI-written product summary and the file.
 
 ### Phases 1–5 — the build
 
@@ -64,7 +64,7 @@ Quality bar: every campaign traces to a conversion point; every campaign has ent
 - One question at a time. The belief confirmations and the story interviews are the heart of the session; don't rush them.
 - Write to one person. Narrative, hyper-specific, one belief. The offer never appears before Authorize.
 - Say plainly what is mechanical and what is creative, and which model tier each deserves.
-- Honest about the build: an agent will mis-click, the API may not create workflows, four of ten exit tags were wrong in a real build, and members' builds routinely outlast one Cowork session. That's why the checklist exists and why the API key comes first.
+- Honest about the build: an agent will mis-click, the API may not create workflows, four of ten exit tags were wrong in a real build, and members' builds routinely outlast one session. That's why the checklist exists and why the API key comes first.
 - When the member says the emails aren't converting, run the founder's diagnostic before rewriting anything: feed the machine what was sent and what happened, ask "why aren't people buying, and what do I need to do better or different," then write the next touches to bridge the gap.
 
 ## What This Skill Does NOT Do

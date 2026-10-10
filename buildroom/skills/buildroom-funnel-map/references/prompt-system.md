@@ -144,7 +144,8 @@ PRIMARY CONVERSION EVENT: [The one action this entire funnel exists to produce]
 STAGE-BY-STAGE MAP:
 
 STAGE 1 — TRAFFIC SOURCE(S):
-Where does traffic enter this funnel?
+Where does traffic enter this funnel? [Use the confirmed primary channel
+from the Traffic Strategy phase; name the secondary as the second entry.]
 What type of person is arriving (warm / cold / referral)?
 What are they thinking/feeling when they arrive?
 

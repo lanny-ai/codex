@@ -189,7 +189,7 @@ The member has: the session deliverable saved separately, and an updated Busines
         print("     the BUSINESS-FILE-SPEC.md registry, and buildroom-os/references/roadmap.md.")
     else:
         print(f"  2. Confirm §{a.writes} guidance in buildroom-os/references/roadmap.md covers this session.")
-    print("  3. bash build-skills.sh && test-drive the .skill in Cowork before shipping.")
+    print("  3. bash build-skills.sh && test-drive the skill in Claude Code or Codex before shipping.")
 
 if __name__ == "__main__":
     main()

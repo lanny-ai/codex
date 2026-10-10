@@ -25,9 +25,10 @@ At the start of every session, read these reference files:
 2. **`references/kern-framework.md`** — Frank Kern's 8-step persuasion-first copywriting framework. Read this when entering any copywriting phase (Prompts 2, 3, and 5).
 
 3. **`references/deploy-pages.md`** — publishing a page to the member's own domain without a page builder (Cloudflare Pages via the Build Room Pages zip, token in `.env`, branded subdomain), and the one open decision for opt-in pages: GoHighLevel cannot receive pages, so a self-hosted landing page must embed a GHL form or the opt-in page stays in GHL. Read it before Phase 4 when the member wants the page on their own domain.
-4. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly. (A blank file lives at `references/business-file-template.md`.)
+4. **`references/application-builder.md`** — the web application branch: three application ideas seeded from the file (§2 pains and gates, §4 for/not-for, §3 frame, §6 conversion event), then the Build Lab loop run in place in Claude Code or Codex: Prompt 1 brainstorm on the chosen idea, Prompt 2 Pursue Goal, Prompt 3 build, Prompt 12 executive review, Prompt 13 five-persona panel, a launch test per path, deployed to the member's domain, answers landing in the CRM as fields and tags. Read it before Phase 2.
+5. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly. (A blank file lives at `references/business-file-template.md`.)
 
-Load all four before any other work happens.
+Load all five before any other work happens.
 
 ## Prerequisites
 
@@ -131,6 +132,14 @@ Once the member confirms their selection, design the complete lead magnet:
 - 5 title variations tested against the five-second test
 - Perceived value audit (specificity / immediacy / relevance / effort)
 
+### Phase 2a — Form or application?
+
+Before writing the page, decide the front door with the member, recommendation first. Per `references/application-builder.md`: an **application** when the offer is over roughly $1,000, the §6 conversion event is a booked call, the member has been burned by unqualified calls, or §2 names a negative avatar worth screening out; a **form** when the lead magnet is a simple download and the funnel type is Lead. Ask once: "Form, or application? I'd go with [X] because [reason from the file]."
+
+If **application**: present the three seeded ideas from the file as the reference describes (name, mechanism, five to ten questions, the qualifying rule, what the applicant gets, why it fits), recommend one, let the member pick or edit, then run the Build Lab loop in this project: Prompt 1 on the chosen idea, Prompt 2 for the Pursue Goal with the fixed requirements folded in, Prompt 3 to build, Prompt 12 as the ship gate, Prompt 13 if anything gates a sale, then one real submission per path checked in the CRM. The application page carries the Phase 2 copy below (headline, hook, who it's for and not for) above the questions; the "form micro-copy" becomes the application's framing line and the CTA becomes "Apply" or the member's word for it. Deploy through `references/deploy-pages.md`. Then continue with Phase 3 for the thank-you and "not yet" pages.
+
+If **form**: continue as written.
+
 ### Phase 2 — Landing Page Copy (Kern voice)
 
 **This is where you channel Frank Kern.** Apply his framework:
@@ -198,7 +207,7 @@ Apply Kern's voice and persuasion rules throughout:
 
 Step-by-step instructions for GoHighLevel:
 
-**Form Setup:**
+**Form Setup** (form branch) **or Application wiring** (application branch: the app posts to GHL via the API with the key from `.env`; custom fields per question, one tag per band or gate outcome; confirm the fields and tags exist before launch):
 - How to create a new form in GHL
 - Fields: name + email only (explain why)
 - Set redirect URL to thank you page
@@ -247,7 +256,7 @@ Then provide priority build order and quick-clone instructions.
 
 Before closing, follow the protocol's session-end steps:
 
-1. Update **§7 Lead Capture** — lead magnet format + title, landing page status (draft until live, then the URL), thank-you page + delivery automation status, and a reference to the full copy documents. Status `complete`, or `provisional` if built on a provisional foundation.
+1. Update **§7 Lead Capture** — lead magnet format + title, landing page status (draft until live, then the URL), the **Application** line when that branch ran (status · URL · question count · qualifying rule · where answers land), thank-you page + delivery automation status, and a reference to the full copy documents. Status `complete`, or `provisional` if built on a provisional foundation. An application that shipped also gets one `shipped` row in **§13**.
 2. Update **§1** (tools) and **§6** (funnel/automation facts) if anything changed today.
 3. Append the **§8 Session Log** row; ask for the member's 1–5 rating.
 4. Emit the ENTIRE updated file in one code block with the "what changed" summary. If the member arrived without a file, create it now from `references/business-file-template.md` with everything this session learned.

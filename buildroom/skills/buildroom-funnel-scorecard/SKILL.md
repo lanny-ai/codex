@@ -22,7 +22,7 @@ Read these reference files before any member-facing work:
 
 **Requires §6 (Funnel & Automation).** The stages come from the funnel map; without it there is nothing to measure. §6 missing → run **Funnel Map** first; no provisional path, because inventing stages defeats the point. **Best with §16** (a campaign per conversion point to route fixes to) and **§3** (the investment, for revenue at risk). Without §16, every leak's automation fix routes to the Decision Machine as "build the campaign on this point".
 
-**Environment:** the scorecard itself needs only the file and whatever numbers the member can read off their CRM. The routine needs a tool that runs recurring tasks (Claude Code, Codex, or Cowork) and API access to the CRM (in GoHighLevel: a private integration key) and the payment processor. Keys live in `.env`, never in the chat.
+**Environment:** the scorecard itself needs only the file and whatever numbers the member can read off their CRM. The routine needs a tool that runs recurring tasks (Claude Code or Codex) and API access to the CRM (in GoHighLevel: a private integration key) and the payment processor. Keys live in `.env`, never in the chat.
 
 ## Session Flow
 

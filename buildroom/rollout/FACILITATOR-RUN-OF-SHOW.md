@@ -1,7 +1,7 @@
 # Build Room OS — Launch Session Run of Show
 
 **Length:** 60 minutes live · **Format:** screen share, one live demo, members install alongside
-**Send before the session:** the install bundle ZIP. **Ask members to have:** Claude Cowork open, their old Build Room documents handy (ICA, offer doc — whatever they have).
+**Send before the session:** the install bundle ZIP. **Ask members to have:** Claude Code or Codex installed and open, their old Build Room documents handy (ICA, offer doc — whatever they have).
 
 ## The one message of the session
 
@@ -25,13 +25,13 @@ Everything in the hour serves that sentence. Don't teach the architecture — sh
 - Say the rules once: bring it every time · save the updated copy · your hand edits always win.
 
 ### 00:12 — Install together (8 min)
-- Screen-share `BuildRoom_OS_Quick_Start.html`.
-- Everyone uploads all twenty-seven `.skill` files now (Settings → Skills → Upload Skill). Order doesn't matter.
-- Members who had the old Lead Capture skill: the new one replaces it, same install step.
+- Screen-share `START-HERE.md`.
+- Everyone unzips the folder and opens a terminal in it: `claude` or `codex`. The twenty-seven skills load on their own.
+- Members with an earlier zip: replace the folder, copy the Business File back in.
 - While uploads run, preview the session table — what each skill builds and its trigger phrase.
 
 ### 00:20 — LIVE DEMO 1: the navigator (8 min)
-- Fresh Cowork session, live: **"I'm new to the Build Room — set me up."**
+- Fresh Claude Code or Codex session in the folder, live: **"I'm new to the Build Room — set me up."**
 - Let it run the snapshot intake (have your fictional business's answers ready — keep it brisk).
 - Show the file it emits at the end. Save it on screen — model the habit.
 - Then ask it: **"What should I work on next?"** — show the progress view and the single recommendation.

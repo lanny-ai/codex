@@ -1,7 +1,7 @@
 ---
 name: buildroom-obsidian
 description: |
-  Set up and run the Build Room second brain: an Obsidian vault on the member's own machine with Claude Code (or Codex, or Cowork) working inside it. Walks the install (Obsidian desktop, a local vault, Claude Code, the optional Terminal plugin), writes the standing instructions file and light note templates, runs the first fill from the member's drives, email, meetings and videos with quality gates, sets up the growth routines (morning briefing, ask-your-brain, weekly synthesis, connection sweep, expert hats, saved commands, watchers), and makes the vault the member's Build Room workspace by keeping the Business File in it. Use whenever a user mentions Obsidian, a second brain, a knowledge base for Claude, "Claude keeps forgetting my business," "get my data out of the cloud," "set up my vault," "put Claude Code inside Obsidian," "my brain," a morning briefing, or wants their notes, transcripts, and documents to be something Claude reads before answering. Elective: reads the Build Room Business File for context and writes only the §1 tools line, one §13 Build Plan row, and §8.
+  Set up and run the Build Room second brain: an Obsidian vault on the member's own machine with Claude Code (or Codex) working inside it. Walks the install (Obsidian desktop, a local vault, Claude Code, the optional Terminal plugin), writes the standing instructions file and light note templates, runs the first fill from the member's drives, email, meetings and videos with quality gates, sets up the growth routines (morning briefing, ask-your-brain, weekly synthesis, connection sweep, expert hats, saved commands, watchers), and makes the vault the member's Build Room workspace by keeping the Business File in it. Use whenever a user mentions Obsidian, a second brain, a knowledge base for Claude, "Claude keeps forgetting my business," "get my data out of the cloud," "set up my vault," "put Claude Code inside Obsidian," "my brain," a morning briefing, or wants their notes, transcripts, and documents to be something Claude reads before answering. Elective: reads the Build Room Business File for context and writes only the §1 tools line, one §13 Build Plan row, and §8.
 ---
 
 # Build Room — The Second Brain (Obsidian + Claude Code)
@@ -22,7 +22,7 @@ Read these reference files before any member-facing work:
 
 **Best with §1.** Nothing else is required; this is usually a member's first or second session. If there is no Business File, create one from the template at the end and put it in the vault: from now on the vault is where it lives.
 
-**Environment:** a computer the member controls (Mac or Windows), a Claude subscription with Claude Code (or Codex, or Cowork), local disk for the vault. No API keys. If you are running inside Claude Code or Codex on the member's machine, do the file work yourself; if you are in chat or Cowork, walk them through it one step at a time.
+**Environment:** a computer the member controls (Mac or Windows), a Claude subscription with Claude Code (or Codex), local disk for the vault. No API keys. You are running inside Claude Code or Codex on the member's machine, so do the file work yourself and narrate each step.
 
 ## Session Flow
 
@@ -32,7 +32,7 @@ Follow the protocol. From §1 note their tools and where their material lives to
 
 ### Phase 1 — Install
 
-Walk `references/obsidian-guide.md` §2 in order: the desktop app (the program, not the installer, not the website), a vault named something like Brain on local disk (never OneDrive), Claude Code installed from the system terminal, first run on a subscription ("not API tokens"), trust the folder. The Terminal plugin is optional: "ergonomics, not capabilities." The requirement is that Claude Code, Codex, or Cowork is opened on the vault folder. On any error: "copy and paste that whole block and feed it in and say, huh?"
+Walk `references/obsidian-guide.md` §2 in order: the desktop app (the program, not the installer, not the website), a vault named something like Brain on local disk (never OneDrive), Claude Code installed from the system terminal, first run on a subscription ("not API tokens"), trust the folder. The Terminal plugin is optional: "ergonomics, not capabilities." The requirement is that Claude Code or Codex is opened on the vault folder. On any error: "copy and paste that whole block and feed it in and say, huh?"
 
 ### Phase 2 — The standing instructions and the templates
 

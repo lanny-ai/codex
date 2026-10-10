@@ -1,6 +1,6 @@
 # Build Room OS — Start Here
 
-You unzipped one folder. It works in **Claude Code**, **Codex**, and **Claude Cowork / claude.ai**. Pick your tool below. Two minutes each.
+You unzipped one folder. It works in **Claude Code** and **Codex**. Pick your tool below. Two minutes each.
 
 Keep this folder. Your Business File lives in it, and every session reads and updates that file, so the work compounds.
 
@@ -45,13 +45,9 @@ For every project: run the same installer as above. It also fills `~/.codex/skil
 
 ---
 
-## Claude Cowork / claude.ai
+## Your Business File
 
-1. Settings → **Skills** → **Upload Skill**.
-2. Upload every file in the `cowork/` folder (twenty-seven `.skill` files, any order).
-3. Open a new session and say: **"I'm new to the Build Room — set me up."**
-
-In Cowork, paste your Business File into the session when asked and save the updated copy it hands back. In Claude Code and Codex this happens automatically: the skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder.
+The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatically. You never paste it; you never re-explain your business.
 
 ---
 
@@ -66,7 +62,6 @@ In Cowork, paste your Business File into the session when asked and save the upd
 | `tools/Business_File_Viewer.html` | Open in a browser: paste your Business File, see every section's status, your progress, the one session to run next, and your Build Plan. |
 | `tools/Brainstorm_Board.html` | Open in a browser: frame, diverge, cluster, dot-vote, decide, then "Copy for Claude." |
 | `skills/` | The twenty-seven skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
-| `cowork/` | The same skills packaged for Cowork upload. |
 | `CLAUDE.md`, `AGENTS.md` | Tell Claude Code and Codex what this folder is. Don't delete them. |
 
 ## The sessions
@@ -77,8 +72,8 @@ In Cowork, paste your Business File into the session when asked and save the upd
 | "Help me build my signature offer" | Deliverables, price, guarantee, pitch |
 | "Help me position my business" | Your Messaging Bible |
 | "Write my offer page" | A publication-ready offer page |
-| "Help me map my funnel" | Funnel map, email sequence, build plan |
-| "Help me build my opt-in page" | Landing page, lead magnet, delivery automation |
+| "Help me map my funnel" | A traffic strategy proposed from your file, the funnel map, email sequence, build plan |
+| "Help me build my opt-in page" | Landing page or a built web application that qualifies leads, lead magnet, delivery automation |
 | "Build my follow-up system" | A campaign on every yes/no in your funnel, beliefs mapped, built and verified in your CRM |
 | "Help me get more leads" | Warm network, cold outreach, referrals, content: one module per session |
 | "Help me with my sales call" | Seven-stage script, objections, live role-play |

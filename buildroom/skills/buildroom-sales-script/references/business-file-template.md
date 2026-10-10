@@ -106,6 +106,7 @@ _Built by: Offer Page Copy session · Requires: §2, §3, §4_
 **Status:** not started · **Updated:** — · **By:** —
 _Built by: Funnel Map session · Requires: §1; better with §2, §3_
 
+- **Traffic strategy** (primary · secondary · test · first-lead window · status):
 - **Value ladder** — bait/entry: — · core: — · backend/continuity: —
 - **Funnel type + single conversion event:**
 - **Funnel map (compact step list):**
@@ -126,6 +127,7 @@ _Built by: Lead Capture session · Requires: §6_
 
 - **Lead magnet (format + title):**
 - **Landing page:** status: — · URL: —
+- **Application** (status · URL · questions · qualifying rule · answers land in):
 - **Thank-you page + delivery automation:** status: —
 
 ---

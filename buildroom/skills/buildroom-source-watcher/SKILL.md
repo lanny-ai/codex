@@ -225,18 +225,8 @@ Now you generate the complete Python project. Read `references/code-templates.md
 
 Generate all 15 files, one workflow at a time, never the whole project in one output.
 
-In **Claude Code or Codex**, write the project straight into a folder the member names (default `./watchers/[source-name]-watcher/` in the current project, never inside the vault's own notes), then offer to install dependencies, create `.env` from the template, and run once. Never ask for a key in the chat; the member pastes it into `.env`.
+Write the project straight into a folder the member names (default `./watchers/[source-name]-watcher/` in the current project, never inside the vault's own notes), then offer to install dependencies, create `.env` from the template, and run once. Never ask for a key in the chat; the member pastes it into `.env`.
 
-In **Cowork**, package them as a ZIP:
-
-```bash
-mkdir -p /tmp/watcher-output
-# (generate files into /tmp/watcher-output)
-cd /tmp/watcher-output
-zip -r /mnt/user-data/outputs/[source-name]-watcher.zip .
-```
-
-Then present the file using present_files.
 
 Model rule, said out loud: "This shouldn't be a process that requires a heavy model, because it's very transactional." Runs go on the cheap model; a new thread per source.
 

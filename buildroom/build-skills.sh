@@ -23,4 +23,4 @@ for dir in skills/*/; do
   echo "built $OUT/$name.skill ($(du -h "$OUT/$name.skill" | cut -f1))"
 done
 
-echo "Done. Install via Claude Cowork: Settings -> Skills -> Upload Skill."
+echo "Done. Skills synced; .skill zips in dist/ are for inspection only (members install the universal zip)."

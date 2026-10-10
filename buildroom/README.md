@@ -1,6 +1,6 @@
 # Build Room — Skills Library
 
-The Build Room's weekly automations as installable Claude Cowork skills, unified by the **Build Room Business File** — one member-owned document that every session reads at the start and updates at the end, so each week compounds on the last automatically instead of relying on the member to keep documents open beside them.
+The Build Room's weekly automations as installable Claude Code and Codex skills, unified by the **Build Room Business File** — one member-owned document that every session reads at the start and updates at the end, so each week compounds on the last automatically instead of relying on the member to keep documents open beside them.
 
 Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rules for authoring new weekly skills, and the section registry.
 
@@ -16,8 +16,7 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `build-skills.sh` | Packages every skill into an installable `.skill` (a zip). Refuses to package drafts with unresolved `TODO-REVIEW` markers. |
 | `generate-skill.py` | Scaffolds a new weekly skill from a raw STEP1/STEP2 curriculum pair. |
 | `rollout/` | Member-facing launch assets: Quick Start HTML, the Rent Calculator (September W1 giveaway; exports a §9 block), the Build Room OS one-pager, member README, facilitator run-of-show. |
-| `build-rollout-bundle.sh` | Packages the complete member install bundle (all skills + guides + blank file). |
-| `build-universal-bundle.sh` | Packages `dist/BuildRoom_OS.zip`: one drag-and-drop folder for Claude Code (`.claude/skills/`), Codex (`.codex/skills/`), and Cowork (`cowork/*.skill`), with `CLAUDE.md`/`AGENTS.md`, optional global installers, the tools, and the Business File. Sources in `rollout/universal/`. |
+| `build-universal-bundle.sh` | Packages `dist/BuildRoom_OS.zip`: one drag-and-drop folder for Claude Code (`.claude/skills/`) and Codex (`.codex/skills/`), with `CLAUDE.md`/`AGENTS.md`, optional global installers, the tools, and the Business File. Sources in `rollout/universal/`. |
 
 ## The skills (v1)
 
@@ -27,8 +26,8 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `buildroom-signature-offer` | Offer Clarity W2 | §3 | §2 |
 | `buildroom-positioning-messaging` | Offer Clarity W3 | §4 | §2 §3 |
 | `buildroom-offer-page-copy` | Offer Clarity W4 | §5 | §2 §3 §4 |
-| `buildroom-funnel-map` | Automation & Funnels W1 | §6 | §1 (best with §2 §3) |
-| `buildroom-lead-capture` | Automation & Funnels W3 (retrofit) | §7 | §6 |
+| `buildroom-funnel-map` | Automation & Funnels W1 (+ Traffic Strategy phase, 2026-10-10) | §6 (incl. traffic strategy line) | §1 (best with §2 §3) |
+| `buildroom-lead-capture` | Automation & Funnels W3 (retrofit + application builder, 2026-10-10) | §7 (incl. application line) | §6 |
 | `buildroom-os` | — (program navigator) | §1, §8 only | — |
 | `buildroom-sop-creator` | Operations & SOPs W1 | §9 | §1 |
 | `buildroom-hiring-kit` | Operations & SOPs W2 | §10 | §9 |
@@ -52,7 +51,7 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `buildroom-brainstorm` | Anytime tool (with `rollout/Brainstorm_Board.html`) | §8, §13 last-brainstorm line | — |
 | `buildroom-brainstorm-capture` | Anytime tool | §13 | — |
 
-`buildroom-lead-capture` is the retrofit of the previously shipped skill: its three original references are byte-identical; only the SKILL.md gained the Business File protocol. `buildroom-os` is the front door — it reads the file, shows progress, and routes the member to exactly one next session. `buildroom-source-watcher` (the founder's Watcher Master, generator skill byte-identical) works standalone and, when a file is present, pre-fills its interests profile from it and writes a §1 tools line, one §13 row, and §8.
+`buildroom-lead-capture` is the retrofit of the previously shipped skill: its three original references are byte-identical; the SKILL.md gained the Business File protocol and, later, the application-builder branch (`references/application-builder.md`, the Build Lab loop with the founder's Codex Prompt Library prompts 1, 2, 3, 12, 13). `buildroom-os` is the front door — it reads the file, shows progress, and routes the member to exactly one next session. `buildroom-source-watcher` (the founder's Watcher Master, generator skill byte-identical) works standalone and, when a file is present, pre-fills its interests profile from it and writes a §1 tools line, one §13 row, and §8.
 
 ## Producing a new weekly skill
 
@@ -65,16 +64,15 @@ The generator copies both curriculum files byte-for-byte into `references/`, par
 
 1. Resolve every `TODO-REVIEW` (the frontmatter description's trigger phrases matter most — that is what makes the skill fire).
 2. For a new section number, register it: add the section to `templates/BUILDROOM_BUSINESS_FILE.md`, the spec's registry, and `buildroom-os/references/roadmap.md`.
-3. `bash build-skills.sh` and test-drive the `.skill` in Cowork before shipping. Unresolved drafts are skipped with a warning, so a scaffold can never ship by accident.
+3. `bash build-skills.sh` (syncs the protocol and template into every skill) and test-drive the skill in Claude Code or Codex before shipping. Unresolved drafts are skipped with a warning, so a scaffold can never ship by accident.
 
 This turns each remaining roadmap week into scaffold-and-review work: the writing that remains is exactly the writing that needs human judgment.
 
 ## Build
 
 ```bash
-bash build-skills.sh            # emits dist/*.skill
-bash build-rollout-bundle.sh    # emits dist/BuildRoom_OS_Complete_Install_Bundle.zip (skills + guides + blank file)
-bash build-universal-bundle.sh  # emits dist/BuildRoom_OS.zip (Claude Code + Codex + Cowork, one folder)
+bash build-skills.sh            # syncs protocol + template into every skill; emits dist/*.skill (zips, for inspection)
+bash build-universal-bundle.sh  # emits dist/BuildRoom_OS.zip (Claude Code + Codex, one folder)
 ```
 
-Install each `.skill` in Claude Cowork via **Settings → Skills → Upload Skill**. Members bring their Business File to every session; a member without one gets it created in their first session.
+Members unzip `BuildRoom_OS.zip` and open Claude Code or Codex in the folder; the skills load on their own and read and write the Business File in place. A member without one gets it created in their first session. Cowork is not a supported path.

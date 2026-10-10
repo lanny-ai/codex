@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the drag-and-drop install folder for Claude Code AND Codex (plus Cowork .skill files).
+# Build the drag-and-drop install folder for Claude Code AND Codex.
 # Usage: bash build-universal-bundle.sh   (emits dist/BuildRoom_OS.zip)
 #
 # Layout of the zip (one top-level folder, BuildRoom_OS/):
@@ -9,7 +9,6 @@
 #   .codex/skills/<skill>/         project-scoped skills for Codex         (auto-discovered)
 #   skills/<skill>/                the same skills, visible; install.sh copies these globally
 #   install.sh / install.ps1       optional: copy skills into ~/.claude/skills and ~/.codex/skills
-#   cowork/*.skill                 packaged skills for Claude Cowork / claude.ai upload
 #   tools/*.html                   Rent Calculator, Brainstorm Board, Business File Viewer, Quick Start
 #   BuildRoom_OS_Say_These_Words.pdf  the printable two-page trigger-phrase guide
 #   BUILDROOM_BUSINESS_FILE.md     the member's Business File — lives in this folder
@@ -31,8 +30,6 @@ done
 cp -R "$STAGE/skills/." "$STAGE/.claude/skills/"
 cp -R "$STAGE/skills/." "$STAGE/.codex/skills/"
 
-# Cowork packages
-mkdir -p "$STAGE/cowork"; cp dist/*.skill "$STAGE/cowork/"
 
 # tools
 mkdir -p "$STAGE/tools"

@@ -14,14 +14,14 @@ Two honesty rules from the session that built it. **The money gate:** the requir
 
 Read these reference files before any member-facing work:
 
-1. **`references/video-engine-guide.md`** — the method, reconstructed from the session in the founder's words: the pipeline and its providers, the `.env` recipe, accounts and costs, avatar setup, the install steps, the feedback loop, Code vs. Cowork, troubleshooting, the keyword lead-capture bridge, and the open questions that only the zip answers.
+1. **`references/video-engine-guide.md`** — the method, reconstructed from the session in the founder's words: the pipeline and its providers, the `.env` recipe, accounts and costs, avatar setup, the install steps, the feedback loop, why the install runs in Claude Code, troubleshooting, the keyword lead-capture bridge, and the open questions that only the zip answers.
 2. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. This skill reads §1, §2, §4, and §14 and writes only §8 and a §13 row.
 
 ## Prerequisites
 
 **Best with §1 (tools), §2 (avatar), §4 (voice), and the member's business knowledge base file.** Without a business knowledge base the scripts are "generic, crappy stuff"; if the member has none, build a compact one from §1–§4 before the first run and tell them it's provisional. No Business File section is written; this is an elective.
 
-**Environment:** Claude desktop app with Claude Code (not Cowork for the install; Cowork is fine for scheduled runs of a working engine), a local folder outside Google Drive, FFmpeg and Python, and on Windows Git and PowerShell. If you are running inside Claude Code already, you can do the install steps yourself; if you are in Cowork or chat, you walk the member through them.
+**Environment:** Claude Code (or Codex), a local folder outside Google Drive, FFmpeg and Python, and on Windows Git and PowerShell. You are running inside the member's tool, so do the install steps yourself and narrate them.
 
 ## Session Flow
 
