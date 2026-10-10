@@ -22,7 +22,7 @@ At the start of every session, read these reference files:
 
 1. **`references/knowledge-base.md`** — The complete research foundation: conversion data, psychology of opt-ins, lead magnet formats ranked for service businesses, anatomy of high-converting pages, message match principle, common failures, operating principles.
 
-2. **`references/kern-framework.md`** — Frank Kern's 8-step persuasion-first copywriting framework. Read this when entering any copywriting phase (Prompts 2, 3, and 5).
+2. **`references/kern-framework.md`** — Frank Kern's 8-step persuasion-first copywriting framework. Read this when entering any copywriting phase (Prompts 2, 3, and 5). **`references/halbert-writing-system.md`** sits beside it for any long-form or story piece. One email per output, approved before the next.
 
 3. **`references/deploy-pages.md`** — publishing a page to the member's own domain without a page builder (Cloudflare Pages via the Build Room Pages zip, token in `.env`, branded subdomain), and the one open decision for opt-in pages: GoHighLevel cannot receive pages, so a self-hosted landing page must embed a GHL form or the opt-in page stays in GHL. Read it before Phase 4 when the member wants the page on their own domain.
 4. **`references/application-builder.md`** — the web application branch: three application ideas seeded from the file (§2 pains and gates, §4 for/not-for, §3 frame, §6 conversion event), then the Build Lab loop run in place in Claude Code or Codex: Prompt 1 brainstorm on the chosen idea, Prompt 2 Pursue Goal, Prompt 3 build, Prompt 12 executive review, Prompt 13 five-persona panel, a launch test per path, deployed to the member's domain, answers landing in the CRM as fields and tags. Read it before Phase 2.

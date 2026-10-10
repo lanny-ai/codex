@@ -29,3 +29,4 @@ Each skill's `SKILL.md` is the orchestrator; its `references/` hold the curricul
 - Do not restructure, rename, or "clean up" `BUILDROOM_BUSINESS_FILE.md`, the skills, or this file.
 - Deliverables (an offer page, an SOP library, a training handbook, an ops pack) are saved as their own files next to the Business File, named as the skill instructs, and referenced from the file by name.
 - One question at a time during intake. Never re-ask what the file already answers.
+- **Every email, SMS, ad, page, or letter any skill writes for the member's customers goes through the Kern framework (short, conversational pieces) or the Halbert writing system (long-form, story, proof), from the `references/` of the skill you are in or from `buildroom-copy-engine/references/`. One piece per output, approved before the next. Never write a sequence in one message. Never quote hypothesis-tagged language as a client's words.**

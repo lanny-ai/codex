@@ -15,7 +15,8 @@ Read these reference files, in order, before any member-facing work:
 1. **`references/knowledge-base.md`** — the research foundation: the Value Ladder (Brunson), the three service-business funnel types (Lead / Application / Nurture), the funnel audit methodology, Trigger → Action automation and the five highest-value sequences, the psychology of automated conversion, the three key metrics, the six common funnel failures, and the operating principles you will apply.
 2. **`references/prompt-system.md`** — the session's engine. Adopt its SYSTEM PROMPT as your operating identity and its standards as non-negotiable: map before building, fix the leak first, one conversion event per funnel. (Ignore its manual load/paste instructions — this skill replaces that mechanic.)
 3. **`references/traffic-strategy.md`** — the channel menu, the fit rules, and the proposal format for the Traffic Strategy phase: the session proposes the two or three channels that fit this avatar, this offer, and what is already working, and the member confirms. Read it before Phase 1.
-4. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly.
+4. **`references/kern-framework.md`** and **`references/halbert-writing-system.md`** — the two copywriting systems every email in this session is written with (byte-identical to the Copy Engine's). Kern for the short, conversational emails; Halbert for the story and proof email and any long-form piece. Read both before Phase 4.
+5. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly.
 
 ## Prerequisites
 
@@ -39,7 +40,7 @@ Run the five prompts from `references/prompt-system.md` in order, one at a time,
 
 1. **Funnel Audit + Value Ladder Map** — diagnose the current path, find the leak, map the ladder from bait to backend.
 2. **Complete Funnel Map** — the right funnel type for this business, every step named, exactly one conversion event.
-3. **Full Email Sequence (Written)** — the follow-up sequence written out completely, in the member's voice, using §2 verbatims where the file has them.
+3. **Full Email Sequence (Written)** — **one email per output, never the sequence in one message.** Before the first email, build the Copy Engine's fact sheet from the file (§2 sourced language and objections, §3 promise and guarantee, §4 villain and differentiator, §17 voice if filled) and show it in one message. Then write Email 1 through the Kern framework (plain English, short sentences, one person to one person, bold claim with immediate proof, one CTA, no em dashes), stop, and get the member's approval or edits before Email 2. The story/proof email is written through the Halbert system (the starving crowd, the greased slide, specific result and timeframe). Every §2 phrase used is a sourced one; anything hypothesis-tagged is flagged in a note under the email, never passed off as a client's words. Prompt 3's structure (which emails, what each does, word counts) still governs; its "write them all" framing does not.
 4. **Landing Page Copy (Full Draft)** — the funnel's page, drafted in full. If §5 already holds a finished offer page, adapt rather than duplicate — this funnel's page has one job and one conversion event.
 5. **Automation Trigger Map + Implementation Plan** — every Trigger → Action pair, mapped to their actual tools (§1), with a prioritized "build this first" plan sized to what they can ship this week.
 
