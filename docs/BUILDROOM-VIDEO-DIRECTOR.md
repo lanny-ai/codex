@@ -35,7 +35,7 @@ One flow for all four: brief (G0) → beats (G1) → script one piece at a time 
 8. **Loudness −14 LUFS integrated, true peak ≤ −1 dBTP**, two-pass. **Safe zones** per ratio, 9:16 following the Reels interface (14% / 35% / 6%).
 9. **ffmpeg from the member's system or `pip install imageio-ffmpeg`;** ffprobe optional (the scripts parse ffmpeg when it is absent).
 10. **Review honesty:** the machine checks what it can measure; the reviewer works from frames, transcripts and measurements; motion, pacing and feel are always marked unverified and the member watches every final with sound.
-11. **Retired lines:** the founder's "taught emergency responders decontamination" credibility line is removed from the Ad Studio dry run and listed under §1 *Retired lines* in the founder's migrated Business File; no new example uses it.
+11. **Retired lines:** a credibility line the founder asked never to use again is removed from the Ad Studio dry run and listed under §1 *Retired lines* in the founder's migrated Business File (kept out of this repo); no example uses it.
 12. **fal.ai is not routed; Sora is never used.** The Video Engine zip's own pipeline may still call fal.ai; the Build Room routes do not.
 
 ## What the first review changed
