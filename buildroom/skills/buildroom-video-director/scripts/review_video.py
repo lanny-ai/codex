@@ -9,16 +9,23 @@
         opening      brand cue on screen by 2.0 s; first spoken word by 1.0 s (ads) or 2.0 s (others)
         ending       call-to-action end card held at least 2.5 s
         words        what was said (transcript) against the approved script, word for word
-        captions     size >= 48 px, at most two lines, inside the safe zone, each cue >= 0.7 s
+        captions     size >= 48 px, at most two lines, inside the safe zone (bottom and top), each cue
+                     >= 0.7 s, none over the end card
         pacing aids  dead air over 1.2 s inside the speech; cuts per minute
-        frames       a contact sheet (one frame a second) and a safe-zone overlay frame
+        frames       a contact sheet (one frame a second) and safe-zone overlay frames at 0.5 s, the
+                     middle, and on the end card
       Motion, pacing and feel are marked UNVERIFIED: the member watches the full cut with sound.
+      When the edit is marked "placeholder": true (stand-in footage or voice) or the transcript is an
+      approximate alignment, the measurements that depend on real speech and pictures (first word,
+      loudness, dead air, cuts, caption timing) are reported as UNVERIFIED, never as passes.
       Rebuilds review/checklist.md from every check so far.
 
   review_video.py kit --project project.json --manifest videos.json --renders renders/ --out kit/ [--preview] [--force]
       Refuses unless the ledger says every video passed G3 and G4 and the member approved it.
-      Builds kit/: videos/ (structured names), captions/*.srt, thumbnails/*.jpg, publish.csv
-      (title, caption, description, CTA, UTM-keyed URL per video and ratio), disclosure-sheet.md.
+      Builds kit/: videos/ (structured names), captions/*.srt, thumbnails/*.jpg (from the clean cut),
+      publish.csv (one row per placement: title, caption, description, CTA, UTM-keyed URL, note),
+      disclosure-sheet.md. Also refuses when a generated person appears without the AI label, and
+      lists approximate caption timing under "Before upload".
 
 Standard library plus ffmpeg (ffprobe optional). Manifest format: references/delivery.md.
 """
@@ -49,10 +56,19 @@ def check(a):
     base = edl_path.resolve().parent
     info = probe(video)
     ratio = ratio_of(video, info)
-    res = {"video": str(video), "id": edl["id"], "ratio": ratio, "playbook": edl.get("playbook"), "checks": [], "unverified": []}
+    placeholder = bool(edl.get("placeholder"))
+    res = {"video": str(video), "id": edl["id"], "ratio": ratio, "playbook": edl.get("playbook"), "placeholder": placeholder,
+           "checks": [], "unverified": []}
 
     def add(name, ok, detail, severity="fix"):
         res["checks"].append({"check": name, "result": "pass" if ok else ("FAIL" if severity == "fix" else "note"), "detail": detail})
+
+    def soft(name, ok, detail, why, severity="fix"):
+        """A measurement that means nothing on stand-in media: a failure still shows, a pass is unverified."""
+        if ok:
+            res["unverified"].append(f"{name}: measured {detail} on {why}; check again on the real cut")
+        else:
+            add(name, ok, detail, severity)
 
     # technical
     exp_w, exp_h = RATIOS.get(ratio, (None, None))
@@ -68,8 +84,9 @@ def check(a):
     # loudness
     L = loudness(video)
     target = float(edl.get("loudness", LOUDNESS_TARGET))
-    add("loudness", L["integrated"] is not None and abs(L["integrated"] - target) <= 1.0, f"{L['integrated']} LUFS integrated (target {target:g} ±1)")
-    add("true peak", L["true_peak"] is not None and L["true_peak"] <= TRUE_PEAK + 0.05, f"{L['true_peak']} dBTP (limit {TRUE_PEAK:g})")
+    lcheck = (lambda n, ok, d: soft(n, ok, d, "placeholder media")) if placeholder else add
+    lcheck("loudness", L["integrated"] is not None and abs(L["integrated"] - target) <= 1.0, f"{L['integrated']} LUFS integrated (target {target:g} ±1)")
+    lcheck("true peak", L["true_peak"] is not None and L["true_peak"] <= TRUE_PEAK + 0.05, f"{L['true_peak']} dBTP (limit {TRUE_PEAK:g})")
     # opening and ending
     cue = edl.get("brand_cue") or {}
     first_clip = edl["clips"][0] if edl["clips"] else {}
@@ -82,6 +99,12 @@ def check(a):
         add("brand cue by 2 s", False, "no brand cue in the edit (logo, name or the member's face)")
     last = edl["clips"][-1] if edl["clips"] else {}
     hold = float(last.get("dur", 0)) if last.get("type") == "card" else 0
+    tail = 0.0  # every end card at the end (an end card may follow a title card)
+    for c in reversed(edl["clips"]):
+        if c.get("type") != "card":
+            break
+        tail += float(c.get("dur", 0))
+    card_start = expected - tail
     add("end card held >= 2.5 s", hold >= 2.5, f"last clip is {'an end card held ' + str(hold) + ' s' if last.get('type') == 'card' else 'not an end card'}")
     # words
     tr = None
@@ -90,9 +113,12 @@ def check(a):
         tr = load_json(tpath)
         words = tr.get("words", [])
         limit = HOOK_LIMIT.get(edl.get("playbook"), 2.0)
+        approx = tr.get("approximate") or placeholder
+        why = "an approximate alignment" if tr.get("approximate") else "placeholder media"
         if words:
-            add(f"first word by {limit:g} s", words[0]["start"] <= limit, f"first word at {words[0]['start']:.2f} s"
-                + (" (approximate timing)" if tr.get("approximate") else ""), severity="fix" if edl.get("playbook") == "ad" else "note")
+            sev = "fix" if edl.get("playbook") == "ad" else "note"
+            (lambda n, ok, d: soft(n, ok, d, why, sev) if approx else add(n, ok, d, sev))(
+                f"first word by {limit:g} s", words[0]["start"] <= limit, f"first word at {words[0]['start']:.2f} s")
         if a.script:
             said, approved = norm_words(" ".join(w["w"] for w in words)), norm_words(Path(a.script).read_text(encoding="utf-8"))
             sm = difflib.SequenceMatcher(a=approved, b=said, autojunk=False)
@@ -108,16 +134,27 @@ def check(a):
         if cap.get("mode") == "burn" and rep_path.exists():
             rep = load_json(rep_path)
             st = next((r.get("caption_style") for r in rep["ratios"] if r["ratio"] == ratio), None)
+            entry = next((r for r in rep["ratios"] if r["ratio"] == ratio), {})
+            st = entry.get("caption_style")
             if st:
                 H = RATIOS[ratio][1]
                 add("caption size >= 48 px", st["size"] >= 48, f"{st['size']} px")
                 add("captions <= 2 lines", st["max_lines"] <= 2, f"longest cue: {st['max_lines']} line(s)")
-                add("captions inside the safe zone", st["margin_v"] >= SAFE[ratio]["b"] * H, f"bottom margin {st['margin_v']} px (unsafe band {int(SAFE[ratio]['b'] * H)} px)")
-            cues = caption_lines(words, max_chars=int(cap.get("max_chars", 26)))
+                add("captions above the bottom safe zone", st["margin_v"] >= SAFE[ratio]["b"] * H,
+                    f"bottom margin {st['margin_v']} px (unsafe band {int(SAFE[ratio]['b'] * H)} px)")
+                top = H - st["margin_v"] - st.get("block_h", st["max_lines"] * st["size"] * 1.25)
+                add("captions below the top safe zone", top >= SAFE[ratio]["t"] * H,
+                    f"caption block top at {int(top)} px (unsafe band {int(SAFE[ratio]['t'] * H)} px)")
+            cues = entry.get("caption_cues") or caption_lines(words, max_chars=int(cap.get("max_chars", 26)), end_by=card_start if tail else None)
             short = [c for c in cues if c["end"] - c["start"] < 0.7 - 1e-3]
-            add("each caption on screen >= 0.7 s", not short, f"{len(cues)} cues; {len(short)} shorter than 0.7 s" if short else f"{len(cues)} cues")
-            if tr.get("approximate"):
-                res["unverified"].append("caption timing follows an approximate transcript; watch that captions track the voice")
+            at = ", ".join(f"{c['start']:.2f} s" for c in short[:4])
+            add("each caption on screen >= 0.7 s", not short, f"{len(cues)} cues; {len(short)} shorter than 0.7 s (at {at})" if short else f"{len(cues)} cues")
+            if tail:
+                over = [c for c in cues if c["end"] > card_start + 0.02]
+                add("no captions over the end card", not over,
+                    f"end card from {card_start:.2f} s; " + (f"{len(over)} cue(s) run onto it, last ends {max(c['end'] for c in over):.2f} s" if over else "captions end before it"))
+            if approx:
+                res["unverified"].append(f"caption timing follows {why}; watch that captions track the voice")
         elif cap.get("mode") == "submagic":
             sw = video.with_suffix(".submagic-words.json")
             res["unverified"].append("captions were set by SubMagic: check spelling of names, numbers and brand words against the script on the contact sheet"
@@ -129,10 +166,15 @@ def check(a):
     speech_end = expected - (hold or 0)
     if voice.exists():
         gaps = [(s, e) for s, e in silences(voice, noise="-38dB", min_d=1.2) if e is not None and s > 0.3 and e < speech_end - 0.3]
-        add("no dead air over 1.2 s", not gaps, "; ".join(f"{s:.1f}–{e:.1f} s" for s, e in gaps) or "none", severity="note")
+        if placeholder:
+            res["unverified"].append("dead air: the voice is a placeholder, so pauses were not measured on the real delivery")
+        else:
+            add("no dead air over 1.2 s", not gaps, "; ".join(f"{s:.1f}–{e:.1f} s" for s, e in gaps) or "none", severity="note")
     p = run([ffmpeg_bin(), "-hide_banner", "-nostats", "-i", str(video), "-vf", "scdet=threshold=12", "-f", "null", "-"], check=False)
     cuts = len(re.findall(r"lavfi\.scd\.time", p.stderr))
     res["cuts_per_minute"] = round(cuts / max(info["duration"] or 1, 1) * 60, 1)
+    if placeholder:
+        res["cuts_per_minute_note"] = "counted on placeholder pictures; recount on the real cut"
     # frames
     stem = f"{edl['id']}_{ratio}"
     W, H = RATIOS.get(ratio, (1080, 1920))
@@ -144,9 +186,15 @@ def check(a):
          "-frames:v", "1", "-update", "1", str(out / f"{stem}_sheet.png")])
     s = SAFE.get(ratio, {"t": 0, "b": 0, "s": 0})
     box = f"drawbox=x={int(W * s['s'])}:y={int(H * s['t'])}:w={int(W * (1 - 2 * s['s']))}:h={int(H * (1 - s['t'] - s['b']))}:color=cyan@0.9:t=6"
-    mid = min(max(1.0, (info["duration"] or 2) * 0.35), (info["duration"] or 2) - 0.1)
-    run([ffmpeg_bin(), "-y", "-ss", f"{mid:.2f}", "-i", str(video), "-vf", box, "-frames:v", "1", "-update", "1", str(out / f"{stem}_safe.png")])
-    res["frames"] = {"sheet": f"{stem}_sheet.png", "safe_overlay": f"{stem}_safe.png"}
+    dur = info["duration"] or 2
+    stops = [("open", min(0.5, dur / 2)), ("mid", dur * 0.5)]
+    if tail:
+        stops.append(("endcard", min(card_start + tail / 2, dur - 0.1)))
+    res["frames"] = {"sheet": f"{stem}_sheet.png", "safe_overlay": []}
+    for tag, t in stops:
+        name = f"{stem}_safe_{tag}.png"
+        run([ffmpeg_bin(), "-y", "-ss", f"{t:.2f}", "-i", str(video), "-vf", box, "-frames:v", "1", "-update", "1", str(out / name)])
+        res["frames"]["safe_overlay"].append(name)
     res["unverified"].append("motion, pacing, performance and how it feels: the member watches the full cut with sound before approving")
     res["loudness"] = L
     res["probe"] = info
@@ -171,10 +219,11 @@ def write_checklist(out):
         md.append(f"- cuts per minute: {r.get('cuts_per_minute')}")
         for u in r["unverified"]:
             md.append(f"- ⬜ unverified: {u}")
-        md.append(f"- frames: `{r['frames']['sheet']}`, `{r['frames']['safe_overlay']}`")
-        md += ["", "**G3 craft (reviewer)** — hook lands and pays off · every beat adds something · real face intact, no generated hero · "
-               "B-roll plausible and on-message · captions readable, accurate, off faces · brand cue early · CTA clear and held · "
-               "sound: voice clear over music", "  - verdict: ______ · issues (time · defect · fix):", "",
+        md.append(f"- frames: `{r['frames']['sheet']}`, " + ", ".join(f"`{x}`" for x in r['frames']['safe_overlay']))
+        md += ["", "**G3 craft (reviewer)** — hook lands and pays off (ads: one opening per approved hook, normally three) · the edit follows the "
+               "approved storyboard beat for beat · every beat adds something · real face intact, no generated hero · "
+               "B-roll plausible, on-message, and quiet behind the caption band · captions readable, accurate, off faces, none on the end card · "
+               "brand cue early · CTA clear, held, and right for each placement · sound: voice clear over music", "  - verdict: ______ · issues (time · defect · fix):", "",
                "**G4 compliance (reviewer)** — every claim and number traced to proof · guarantees word for word · no synthetic customer or "
                "testimonial · consent on file for every person and voice · AI label where a generated person appears · music licensed · "
                "destination matches the CTA", "  - verdict: ______ · issues:", ""]
@@ -205,28 +254,54 @@ def kit(a):
         shutil.rmtree(out)
     for d in ("videos", "captions", "thumbnails"):
         (out / d).mkdir(parents=True, exist_ok=True)
-    rows, disc = [], []
+    rows, disc, notes = [], [], []
     led = {x["id"]: x for x in data["ads"]}
     for v in m["videos"]:
         name = f"{yymm}_{v['playbook']}_{slug(v.get('slug') or v.get('title', v['id']))}_{v['id']}"
         copy = v.get("platform_copy", {})
-        for r in v.get("ratios", ["9x16"]):
+        ratios = v.get("ratios", ["9x16"])
+        people_generated = [g for g in v.get("generated", []) if g.get("person") or g.get("kind") == "twin"]
+        if people_generated and not v.get("ai_label"):
+            errs.append(f"{v['id']}: a generated person appears ({', '.join(g.get('asset', '?') for g in people_generated)}) "
+                        "and ai_label is not set; the on-screen AI label is required")
+        rep = renders / f"{v['id']}.assemble.json"
+        if rep.exists() and any(r.get("transcript_approximate") for r in load_json(rep).get("ratios", [])):
+            notes.append(f"{v['id']}: burned captions follow an approximate alignment (no speech engine); "
+                         "watch them against the voice before upload, or re-run transcribe.py with an engine and assemble again")
+        files = {}
+        for r in ratios:
             src = renders / f"{v['id']}_{r}.mp4"
             if not src.exists():
                 raise SystemExit(f"{v['id']}: missing final {src}")
             dst = out / "videos" / f"{name}_{r}.mp4"
             shutil.copy2(src, dst)
-            url = copy.get("url", "")
+            files[r] = dst.name
+        # one publish row per placement (where it goes, with its own ask and tracking); without placements, one per ratio
+        placements = v.get("placements") or [{"name": "", "ratio": r} for r in ratios]
+        for pl in placements:
+            r = pl.get("ratio", ratios[0])
+            if r not in files:
+                raise SystemExit(f"{v['id']}: placement {pl.get('name')!r} wants {r}, which is not in ratios")
+            c = {**copy, **{k: pl[k] for k in ("title", "caption", "description", "cta_button", "url", "utm_source", "utm_medium") if k in pl}}
+            url = c.get("url", "")
             if url:
-                q = {"utm_source": copy.get("utm_source", "meta"), "utm_medium": "paid_social" if v["playbook"] == "ad" else "organic_video",
-                     "utm_campaign": f"{yymm}_{v['id']}", "utm_content": f"{name}_{r}"}
+                q = {"utm_source": c.get("utm_source", "meta"),
+                     "utm_medium": c.get("utm_medium") or ("paid_social" if v["playbook"] == "ad" else "organic_video"),
+                     "utm_campaign": f"{yymm}_{v['id']}", "utm_content": f"{name}_{r}" + (f"_{slug(pl['name'], 20)}" if pl.get("name") else "")}
                 url = url + ("&" if "?" in url else "?") + urllib.parse.urlencode(q)
-            rows.append({"file": dst.name, "ratio": r, "title": copy.get("title", ""), "caption": copy.get("caption", ""),
-                         "description": copy.get("description", ""), "cta_button": copy.get("cta_button", ""), "url": url})
+            note = pl.get("note", "")
+            if c.get("utm_medium") == "embed" and not note:
+                note = "embed on the page: autoplay off, controls on, poster from thumbnails/, the SRT as its caption track"
+            rows.append({"file": files[r], "placement": pl.get("name", ""), "ratio": r, "title": c.get("title", ""),
+                         "caption": c.get("caption", ""), "description": c.get("description", ""),
+                         "cta_button": c.get("cta_button", ""), "url": url, "note": note})
         srt = renders / f"{v['id']}.srt"
         if srt.exists():
             shutil.copy2(srt, out / "captions" / f"{name}.srt")
-        first = renders / f"{v['id']}_{v.get('ratios', ['9x16'])[0]}.mp4"
+        # the thumbnail comes from the clean cut (no burned caption across it) when there is one
+        first = renders / f"{v['id']}_{ratios[0]}.cut.mp4"
+        if not first.exists():
+            first = renders / f"{v['id']}_{ratios[0]}.mp4"
         run([ffmpeg_bin(), "-y", "-ss", str(v.get("thumbnail_at", 1.0)), "-i", str(first), "-frames:v", "1", "-q:v", "2", "-update", "1",
              str(out / "thumbnails" / f"{name}.jpg")])
         lv = led.get(v["id"], {})
@@ -244,7 +319,11 @@ def kit(a):
         "|---|---|---|---|---|---|---|", *disc, "",
         "When uploading: answer each platform's AI-content questions truthfully; never remove an on-screen AI label; keep the original "
         "generated files (their provenance metadata is part of the record). This sheet records the checks made; it is not legal advice "
-        "or a guarantee of platform approval."]) + "\n", encoding="utf-8")
+        "or a guarantee of platform approval.", "",
+        *(["## Before upload", "", *(f"- {n}" for n in notes), ""] if notes else [])]) + "\n", encoding="utf-8")
+    if errs and not a.preview:
+        shutil.rmtree(out)
+        raise SystemExit("kit refused: " + "; ".join(errs))
     if errs:
         (out / "NOT-READY.txt").write_text("PREVIEW ONLY. Not ready to publish:\n- " + "\n- ".join(errs) + "\n", encoding="utf-8")
     if final_out.exists():

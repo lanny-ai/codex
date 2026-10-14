@@ -61,8 +61,10 @@ def main():
     check("ledger refuses a twin without consent", ok and "consent" in out)
     ok, out, _ = sh([py, L, "plan", P, "--asset-id", "X", "--provider", "falai", "--model", "m", "--prompt-ref", "x"], work, ok_codes=(2,))
     check("ledger refuses an unrouted provider (fal.ai)", ok)
+    ok, out, _ = sh([py, L, "gate", P, "--gate", "G2", "--verdict", "pass", "--by", "producer", "--ref", "x"], work, ok_codes=(2,))
+    check("ledger refuses a G2 pass without the member's sign-off", ok and "member" in out, out[-200:])
     for g in ("G0", "G1", "G2"):
-        sh([py, L, "gate", P, "--gate", g, "--verdict", "pass", "--by", "producer", "--ref", "x"], work)
+        sh([py, L, "gate", P, "--gate", g, "--verdict", "pass", "--by", "member" if g == "G2" else "producer", "--ref", "x"], work)
     for aid, prov, kind in (("IMG", "kie", "plate"), ("VID", "kie", "broll"), ("VID2", "kie", "broll"), ("HV", "higgsfield", "broll"), ("CAP", "submagic", "captions")):
         sh([py, L, "plan", P, "--asset-id", aid, "--provider", prov, "--model", "m" if prov != "kie" else ("nano" if kind == "plate" else "kling"), "--prompt-ref", "x", "--kind", kind], work)
     sh([py, L, "plan", P, "--asset-id", "TWIN", "--provider", "heygen", "--model", "hg", "--prompt-ref", "x", "--kind", "twin", "--consent-ref", "signed 2026-10-14"], work)
@@ -147,6 +149,36 @@ def main():
           all(r["caption_style"]["max_lines"] <= 2 and r["caption_style"]["size"] >= 48 for r in rep["ratios"]))
     cues = caption_lines(tr["words"], max_chars=24)
     check("captions: every cue on screen >= 0.7 s", all(c["end"] - c["start"] >= 0.7 - 1e-3 for c in cues))
+    check("captions: none run onto the end card", all(c["end"] <= 10.0 + 0.02 for r in rep["ratios"] for c in r["caption_cues"]))
+
+    # ---- framing, word-timed cutaways, cards over the voice ----
+    sh([ff, "-y", "-f", "lavfi", "-i", "color=c=0x223355:s=1080x1920", "-frames:v", "1", "media/card_9x16.png"], work)
+    edl_u = {"id": "U", "playbook": "sales", "fps": 30, "ratios": ["9x16"], "out_dir": "renders",
+             "clips": [{"src": "media/aroll.mp4", "in": 0, "out": 10.0, "type": "aroll"},
+                       {"src": "media/broll.mp4", "in": 0, "out": 1.5, "type": "broll", "fit": "pad"},
+                       {"src": "media/end_{ratio}.png", "type": "card", "dur": 3.0}],
+             "cutaways": [{"src": "media/broll.mp4", "at": 1.0, "dur": 1.0},
+                          {"src": "media/card_{ratio}.png", "at_word": "babysitting", "until_word": "AI?", "hide_captions": True}],
+             "brand_cue": {"type": "face"}, "placeholder": True,
+             "captions": {"mode": "burn", "transcript": "transcript.json", "size": 64, "max_chars": 24}, "loudness": -14}
+    (work / "edit-u.json").write_text(json.dumps(edl_u))
+    ok, out, _ = sh([py, VD / "assemble_video.py", "edit-u.json"], work, env)
+    rep_u = json.loads((work / "renders/U.assemble.json").read_text())
+    ru = rep_u["ratios"][0] if rep_u.get("ratios") else {}
+    warns = ru.get("warnings", [])
+    check("assemble: a cropped 16:9 shot in 9:16 is warned as enlarged; the padded one is not",
+          ok and len([w for w in warns if "enlarged" in w]) == 1, out[-300:] + str(warns))
+    w_b = next(w for w in tr["words"] if w["w"].lower().startswith("babysitting"))
+    w_a = next(w for w in tr["words"] if w["w"] == "AI?")
+    a0, a1 = w_b["start"] - 0.1, w_a["end"] + 0.25
+    check("assemble: a card timed to the words hides the captions under it",
+          ru.get("final") and all(c["end"] <= a0 + 0.01 or c["start"] >= a1 - 0.01 for c in ru.get("caption_cues", [])))
+    ok, out, _ = sh([py, VD / "review_video.py", "check", "--video", "renders/U_9x16.mp4", "--edit", "edit-u.json", "--script", "script.txt", "--out", "review-u"], work, env, ok_codes=(0, 1))
+    res_u = json.loads((work / "review-u/U_9x16.check.json").read_text())
+    names = {c["check"] for c in res_u["checks"]}
+    check("review: on placeholder media, loudness and first word are unverified, not passed",
+          "loudness" not in names and not any(n.startswith("first word") for n in names)
+          and any(u.startswith("loudness") for u in res_u["unverified"]), str(names))
     sys.path.insert(0, str(VD))
     from transcribe import snap  # noqa: E402
     words = [{"w": w, "start": i * .4, "end": i * .4 + .35} for i, w in enumerate("how many hours a week do you spend baby sitting your a i".split())]
@@ -158,7 +190,7 @@ def main():
     res = json.loads((work / "review/T_9x16.check.json").read_text())
     check("review: clean video passes every machine check", ok and all(c["result"] != "FAIL" for c in res["checks"]), out[-300:])
     check("review: motion and pacing marked unverified", any("motion" in u for u in res["unverified"]))
-    check("review: contact sheet and safe frame written", (work / "review/T_9x16_sheet.png").exists() and (work / "review/T_9x16_safe.png").exists())
+    check("review: contact sheet and three safe frames written", (work / "review/T_9x16_sheet.png").exists() and all((work / f"review/T_9x16_safe_{k}.png").exists() for k in ("open", "mid", "endcard")))
     bad = dict(edl)
     bad["brand_cue"] = {"src": "media/logo.png", "at": 2.6, "dur": 2.0}
     bad["clips"] = edl["clips"][:-1] + [{"src": "media/end_{ratio}.png", "type": "card", "dur": 1.5}]
@@ -178,13 +210,13 @@ def main():
     VP = work / "v.json"
     sh([py, L, "init", VP, "--cycle", "2026-10"], work)
     for g in ("G0", "G1", "G2"):
-        sh([py, L, "gate", VP, "--gate", g, "--verdict", "pass", "--by", "producer", "--ref", "x"], work)
+        sh([py, L, "gate", VP, "--gate", g, "--verdict", "pass", "--by", "member" if g == "G2" else "producer", "--ref", "x"], work)
     for aid in ("C1", "C2"):
         sh([py, L, "plan", VP, "--asset-id", aid, "--provider", "submagic", "--model", "Sara", "--prompt-ref", "edit.json", "--kind", "captions"], work)
     sh([py, L, "authorize", VP, "--provider", "submagic", "--cap", "3", "--units", "minutes", "--note", "test"], work)
-    ok, out, _ = sh([py, VD / "submagic.py", "--project", VP, "--asset-id", "C1", "--video", "renders/T_9x16.cut.mp4", "--out", "renders/T_9x16.sm.mp4", "--cost", "1", "--quote", "q"], work, env)
+    ok, out, _ = sh([py, VD / "submagic.py", "--project", VP, "--asset-id", "C1", "--video", "renders/T_9x16.cut.mp4", "--out", "renders/T_9x16.sm.mp4", "--template", "Sara", "--cost", "1", "--quote", "q"], work, env)
     check("submagic upload route completes through the ledger", ok and (work / "renders/T_9x16.sm.mp4").exists(), out[-300:])
-    ok, out, _ = sh([py, VD / "submagic.py", "--project", VP, "--asset-id", "C2", "--video", "renders/T_4x5.cut.mp4", "--video-url", "https://example.com/v.mp4", "--title", "reject", "--out", "x.mp4", "--cost", "1", "--quote", "q"], work, env, ok_codes=(1,))
+    ok, out, _ = sh([py, VD / "submagic.py", "--project", VP, "--asset-id", "C2", "--video", "renders/T_4x5.cut.mp4", "--video-url", "https://example.com/v.mp4", "--title", "reject", "--out", "x.mp4", "--template", "Sara", "--cost", "1", "--quote", "q"], work, env, ok_codes=(1,))
     st = {j["asset_id"]: j["status"] for j in json.loads(VP.read_text())["jobs"]}
     check("submagic rejection is recorded no_submission with the burn fallback named", ok and st.get("C2") == "no_submission" and "burn" in out)
 
@@ -199,6 +231,21 @@ def main():
     sh([py, L, "approve", VP, "--ad", "T", "--note", "member watched"], work)
     ok, out, _ = sh([py, VD / "review_video.py", "kit", "--project", VP, "--manifest", "videos.json", "--renders", "renders", "--out", "kit"], work, env)
     check("kit built after review and approval", ok and len(list((work / "kit/videos").glob("*.mp4"))) == 2 and (work / "kit/publish.csv").exists(), out[-300:])
+    man = {"cycle": "2026-10", "videos": [{"id": "T", "playbook": "ad", "slug": "test", "ratios": ["9x16", "4x5"],
+           "platform_copy": {"title": "t", "caption": "c", "cta_button": "LEARN_MORE", "url": "https://example.com"},
+           "placements": [{"name": "reels", "ratio": "9x16"}, {"name": "feed", "ratio": "4x5"},
+                          {"name": "email", "ratio": "9x16", "utm_source": "email", "utm_medium": "email", "caption": "see you on the call"}],
+           "generated": [{"asset": "B1", "provider": "kie", "model": "m", "person": True}]}]}
+    (work / "videos-p.json").write_text(json.dumps(man))
+    ok, out, _ = sh([py, VD / "review_video.py", "kit", "--project", VP, "--manifest", "videos-p.json", "--renders", "renders", "--out", "kit-p"], work, env, ok_codes=(1,))
+    check("kit refused when a generated person appears without the AI label", ok and "AI label" in out and not (work / "kit-p").exists(), out[-300:])
+    man["videos"][0]["ai_label"] = True
+    (work / "videos-p.json").write_text(json.dumps(man))
+    ok, out, _ = sh([py, VD / "review_video.py", "kit", "--project", VP, "--manifest", "videos-p.json", "--renders", "renders", "--out", "kit-p"], work, env)
+    import csv as _csv
+    rows = list(_csv.DictReader(open(work / "kit-p/publish.csv", encoding="utf-8"))) if ok else []
+    check("kit: one publish row per placement, each with its own UTM medium",
+          len(rows) == 3 and "utm_medium=email" in rows[2]["url"] and rows[2]["caption"] == "see you on the call", out[-300:])
 
     # ---- renderer (optional) ----
     if shutil.which("node"):

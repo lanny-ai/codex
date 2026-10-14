@@ -18,6 +18,8 @@
 - **Proof** only from the vault: consented testimonials, real numbers with sources, real screen recordings. A missing proof beat becomes a "what we'll measure together" beat, never an invented one.
 - **Scarcity** only if it is real and the number is set (an open [N] is not scarcity).
 - The ask said twice in the sales video: once after the offer, once at the end.
+- **One ask per placement.** The same explainer often goes to the booking page, the 9:16 feed and the confirmation email; the person in the email has already booked. Cut a placement version (a different last line and end card: "See you on the call" with what to prepare) rather than asking them to book again. List each placement in `videos.json` so the kit writes a row and UTM for each.
+- **Your part, in plain words.** Say the member's time cost as the offer states it ("one 90-minute call, then about 30 minutes a week"), never softened.
 
 ## The personalised prospect video
 

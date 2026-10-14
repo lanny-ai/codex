@@ -26,6 +26,7 @@ Physical events in order: approach → contact → weight or force → consequen
 4. The timed stages: `0–3 s — slow push-in on the closed laptop; end state: laptop centred, steam rising from the mug`.
 5. Sound only if the provider generates it and the edit will use it; usually none (the edit adds music).
 6. A closing "hold" line restating the few invariants: no people, no text, no logos, exactly one laptop.
+7. For 9:16, where the subject sits: the captions take the band from about 50% to 65% of the height and the platform's buttons the bottom third, so put the subject in the upper-middle and keep the caption band plain (no text, faces or busy detail).
 
 Leave out quality filler ("cinematic", "8K", "stunning"), unused references and abandoned options.
 
@@ -35,11 +36,11 @@ Leave out quality filler ("cinematic", "8K", "stunning"), unused references and 
 Reference A defines the room's desk and window geometry only.
 A calm home office at seven in the morning, vertical frame. Window light from the left falls across a pale oak desk; the wall behind stays evenly lit. A closed silver laptop sits centre-right, a white mug of coffee on the left with a thin line of steam.
 0–3 s — slow push-in from desk height toward the laptop; nothing else moves except the steam.
-3–5 s — hold; end state: laptop centred in the lower half, the upper half quiet for captions.
+3–5 s — hold; end state: laptop in the upper-middle of the frame (about 20–45% of the height); the band from about half to two-thirds of the height, where the captions sit, is plain oak desk.
 No people, hands, faces or reflections of people. No screens showing content. No writing, logos or brand marks. Exactly one laptop and one mug. No colour cast.
 ```
 
-**Acceptance:** the push-in is smooth and slow; the steam behaves like steam; no object appears, disappears or changes shape; the upper half stays quiet for captions; nothing suggests a client, a result or a real office the member does not have.
+**Acceptance:** the push-in is smooth and slow; the steam behaves like steam; no object appears, disappears or changes shape; the caption band (about 50–65% of the height in 9:16) stays plain; nothing suggests a client, a result or a real office the member does not have.
 
 ## Review and repair
 

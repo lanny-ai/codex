@@ -12,8 +12,8 @@ Sign-up: https://submagic.co/?via=harrison22
 
 Schema status (2026-10-14). From SubMagic's public API reference as summarised in search results
 (the docs host was unreachable from the build environment): POST {base}/v1/projects with an
-x-api-key header and {title, language, videoUrl (public, no auth), templateName}; the default
-template is "Sara". The local-file upload path (/v1/projects/upload, multipart), the status
+x-api-key header and {title, language, videoUrl (public, no auth), templateName}. The template
+is the member's choice (recorded in §19) and is required for a job; --probe lists them. The local-file upload path (/v1/projects/upload, multipart), the status
 fields and whether an explicit export call is needed are less certain. All of it lives in SHAPE
 below. Run --probe once; fix SHAPE if a field is wrong.
 
@@ -179,9 +179,12 @@ def main():
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--project"); ap.add_argument("--asset-id"); ap.add_argument("--key")
     ap.add_argument("--video"); ap.add_argument("--video-url"); ap.add_argument("--out")
-    ap.add_argument("--template", default="Sara"); ap.add_argument("--language", default="en")
+    ap.add_argument("--template", help="the member's SubMagic template, as recorded in §19 (required for a job)")
+    ap.add_argument("--language", default="en")
     ap.add_argument("--title"); ap.add_argument("--cost"); ap.add_argument("--quote")
     a = ap.parse_args()
+    if not a.probe and not a.resume and not a.template:
+        ap.error("--template is required: use the member's template from §19 (submagic.py --probe lists them)")
     load_dotenv()
     if a.probe:
         try:

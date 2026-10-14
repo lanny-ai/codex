@@ -4,7 +4,7 @@ The brief (G0), the beats (G1) and the script (G2) were approved before anything
 
 ## Step 1 — the machine checks (`review_video.py check`)
 
-Per final file: size, codec, frame rate, audio format; duration within 0.1 s of the edit; loudness −14 LUFS ±1 and true peak ≤ −1 dBTP; brand cue by 2 s; first spoken word by 1 s (ads) or 2 s; end card held ≥ 2.5 s; spoken words against the approved script, word for word (when a speech engine made the transcript); captions ≥ 48 px, ≤ 2 lines, inside the safe zone, each ≥ 0.7 s; dead air over 1.2 s; cuts per minute; a one-frame-a-second contact sheet and a safe-zone overlay frame. A failed machine check is fixed before the reviewer sees the file.
+Per final file: size, codec, frame rate, audio format; duration within 0.1 s of the edit; loudness −14 LUFS ±1 and true peak ≤ −1 dBTP; brand cue by 2 s; first spoken word by 1 s (ads) or 2 s; end card held ≥ 2.5 s; spoken words against the approved script, word for word (when a speech engine made the transcript); captions ≥ 48 px, ≤ 2 lines, inside the safe zone (bottom margin and the top of the caption block), each ≥ 0.7 s, none on the end card; dead air over 1.2 s; cuts per minute; a one-frame-a-second contact sheet and safe-zone overlay frames at 0.5 s, the middle and the end card. When the edit is marked `placeholder` or the transcript is an approximate alignment, the speech and picture measurements are reported as unverified, never as passes. A failed machine check is fixed before the reviewer sees the file.
 
 ## Step 2 — the separate reviewer
 
@@ -12,11 +12,14 @@ Give a fresh reviewer (a subagent with a clean brief; where the host has none, a
 
 **G3 craft:**
 - The first two seconds: a clear situation, question or face; the brand on screen.
+- Ads: one opening per approved hook (normally three) on the same body; fewer is a revise unless the brief says otherwise.
+- The edit follows the approved storyboard beat for beat; a changed beat goes back to the member, not quietly into the cut.
 - Every beat adds something; the hook pays off; nothing is generic filler that would fit any business.
+- Every join between two A-roll takes is covered by a cutaway or is a deliberate jump listed in the storyboard.
 - The member's face and voice are real and clear; no generated person is the hero; generated B-roll is plausible (no warping, flicker, melting edges, phantom text or changing objects) and shows what is being said.
-- Captions accurate, readable, off faces, in the safe zone; on-screen text matches the manifest.
+- Captions accurate, readable, off faces, in the safe zone, none on the end card; on-screen text matches the manifest; the B-roll behind the caption band is quiet.
 - Sound: the voice is clear over music; no clipping, hum or room echo that hurts understanding.
-- The ask is clear, matches the destination, and holds long enough to act on.
+- The ask is clear, matches the destination, and holds long enough to act on; it is right for **each placement** (a booking ask is wrong in an email sent to someone who already booked; a "tap below" is wrong on a sales page).
 
 **G4 compliance:** see `video-compliance.md`. Every claim and number traced to proof; guarantees word for word; no synthetic testimonial, customer or result; consent on file for every recognisable person and every cloned voice or face; the AI label where a generated person appears; music licensed; the destination keeps the promise.
 

@@ -9,11 +9,16 @@ ffmpeg is required: macOS `brew install ffmpeg` · Windows `winget install ffmpe
 ## The edit decision list
 
 - **clips** — the spine, in order: A-roll takes (the member speaking), B-roll that stands alone, cards. Each with `in`/`out` on the source and a `focus` point ("50% 35%" keeps the eyes in frame when a vertical take is cropped to 4:5 or a horizontal one to 9:16).
-- **cutaways** — B-roll laid **over** continuous voice: `at` (seconds on the timeline) and `dur`. This is how the director makes L and J cuts: the voice carries on while the picture shows what is being said. Use them to cover a jump between takes, to show the thing named, and to reset attention every few seconds in an ad.
+- **cutaways** — B-roll laid **over** continuous voice: `at` (seconds on the timeline) and `dur`. This is how the director makes L and J cuts: the voice carries on while the picture shows what is being said. Use them to cover a jump between takes, to show the thing named, and to reset attention every few seconds in an ad. Options:
+  - `at_word` / `until_word` instead of `at` / `dur`: start on the first word of a phrase and end after the last word of another, read from `transcript.json` (with `lead` and `tail` in seconds to start early or hold late). Use these whenever the cutaway illustrates a phrase, so it stays in sync after a re-cut.
+  - a still (PNG or JPG) instead of a video, for a card shown over the voice: a guarantee, a price, a step list.
+  - `hide_captions: true` when the cutaway carries its own words (a guarantee card): the captions stop for its length so the two never stack.
+- **framing per clip** — `focus` ("50% 35%"), `zoom` (1.0 = cover; 1.1 tightens), and `fit: "pad"` to show the whole frame on a brand-dark background instead of cropping it (screen recordings in 9:16: a cropped screen loses its width and becomes unreadable). The edit report warns when a clip is enlarged more than 5% (`enlarged 1.78×`); a soft, enlarged frame is a G3 issue, so reshoot vertically, pad, or choose a tighter crop on purpose.
 - **brand_cue** — the logo or name on screen from 0 s for about 2 s (top-left, inside the safe zone), or `{"type": "face"}` when the member's face opens the first frame and is the brand.
 - **end card** — the last clip: `cards/end_{ratio}.png`, rendered per ratio with `render_static.mjs` (layout `end-card`: the ask as the headline, the URL, the button label, the member's photo inset if wanted), held at least 2.5 s.
 - **music** — licensed or generated-with-licence only, about −20 dB under the voice, ducked automatically when the voice speaks. No music under a testimonial unless very low.
-- **captions** — `burn` (the director's), `submagic`, or `none`; see `captions.md`.
+- **captions** — `burn` (the director's), `submagic`, or `none`; see `captions.md`. Burned captions stop before the end card on their own.
+- **placeholder** — `true` while any footage or voice is a stand-in (a dry run, a rough cut before the shoot). The review then reports loudness, first word, dead air and cuts as unverified rather than as passes.
 - **loudness** — −14 LUFS integrated for social (the default), true peak −1 dBTP. For YouTube long-form −14 also works; for podcast-style audio −16.
 
 ## The cut
@@ -21,7 +26,7 @@ ffmpeg is required: macOS `brew install ffmpeg` · Windows `winget install ffmpe
 1. Pick the best take of each line (voice first, then face, then framing).
 2. Trim every breath and filler before the first word and after the last.
 3. Hook first: the video starts on the first word or the first movement, never on silence.
-4. Cover take-to-take jumps with a cutaway rather than a visible jump; a deliberate jump cut is fine in a fast founder video.
+4. Cover take-to-take jumps with a cutaway rather than a visible jump; a deliberate jump cut is fine in a fast founder video. Every boundary between two A-roll takes either has a cutaway over it or is listed in the storyboard as a deliberate jump.
 5. Read the pacing: dead air over about 1.2 s inside the speech gets cut.
 6. End on the ask: the last line, then the end card.
 

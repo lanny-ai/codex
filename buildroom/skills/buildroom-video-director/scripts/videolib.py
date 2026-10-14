@@ -109,6 +109,14 @@ def srt_time(t):
 
 BREAK_BEFORE = {"and", "but", "so", "or", "because", "then", "when", "while", "which", "that", "what", "who",
                 "to", "in", "on", "with", "for", "from", "at", "by", "of", "if", "until", "before", "after"}
+# words a caption line or cue should never end on: they lean on the next word
+NO_END = {"the", "a", "an", "we", "i", "you", "your", "our", "my", "to", "of", "in", "on", "at", "for", "and", "or",
+          "but", "with", "by", "is", "are", "be", "it’s", "it's", "this", "that", "every", "one", "no",
+          "its", "their", "his", "her", "who", "which"}
+
+
+def _bare(w):
+    return w.lower().strip("“”\"'‘’(),.:;!?")
 
 
 def _balance(words, max_chars, max_lines=2):
@@ -122,6 +130,10 @@ def _balance(words, max_chars, max_lines=2):
         worst = max(len(a), len(b))
         if words[k - 1][:1].isupper() and words[k][:1].isupper():
             worst += 8  # keep a capitalised name ("Babysitting Test") on one line
+        if _bare(words[k - 1]) in NO_END or "-" in words[k - 1][-1:]:
+            worst += 10  # a line never ends on "the", "a", "we" …
+        if words[k - 1].endswith((",", ";", ":")):
+            worst -= 3  # prefer breaking after punctuation
         if best is None or worst < best[0]:
             best = (worst, [a, b])
     return best[1]
@@ -139,23 +151,27 @@ def _chunks(sentence, max_chars, max_dur):
         while j < n and _fits([w["w"] for w in sentence[i:j + 1]], max_chars) and sentence[j]["end"] - sentence[i]["start"] <= max_dur:
             j += 1
         if j < n:  # sentence continues: step back to the best phrase break, keeping >= 3 words each side
-            best = None
-            for k in range(j, i + 2, -1):
-                if n - k < 3:
+            best, best_score = None, None
+            for k in range(j, i + 1, -1):  # candidate break before word k; both sides at least two words
+                if n - k < 2 or k - i < 2:
                     continue
-                prev, nxt = sentence[k - 1]["w"], sentence[k]["w"].lower().strip("“\"'(")
-                if prev.endswith((",", ";", ":", "—")) or nxt in BREAK_BEFORE:
-                    best = k
-                    break
+                prev, nxt = sentence[k - 1]["w"], _bare(sentence[k]["w"])
+                if _bare(prev) in NO_END:
+                    continue
+                score = 0.15 * (k - i)                                   # fuller first chunk
+                score += 3 if prev.endswith((",", ";", ":")) else (2 if nxt in BREAK_BEFORE else 0)
+                score += 2.5 if n - k >= 3 else 0                        # no two-word tail
+                if best_score is None or score > best_score:
+                    best, best_score = k, score
             if best is None:
-                best = j if n - j >= 3 else max(i + 3, n - 3)
+                best = j if n - j >= 2 else max(i + 2, n - 2)
             j = best
         out.append(sentence[i:j])
         i = j
     return out
 
 
-def caption_lines(words, max_chars=26, max_lines=2, max_dur=3.4, min_dur=0.7):
+def caption_lines(words, max_chars=26, max_lines=2, max_dur=3.4, min_dur=0.7, end_by=None):
     """Group timed words into cues of at most two balanced lines. Cues follow sentences, split long
     sentences at phrase breaks (after commas, before conjunctions and prepositions), never leave a
     one- or two-word cue when the sentence can avoid it, and hold each cue until the next begins."""
@@ -186,6 +202,10 @@ def caption_lines(words, max_chars=26, max_lines=2, max_dur=3.4, min_dur=0.7):
                 continue
         i += 1
     cues = [{"start": g[0]["start"], "end": g[-1]["end"], "lines": _balance([w["w"] for w in g], max_chars, max_lines)} for g in groups]
+    if end_by is not None:  # nothing runs onto the end card
+        cues = [c for c in cues if c["start"] < end_by - 0.2]
+        for c in cues:
+            c["end"] = min(c["end"], end_by)
     for i in range(len(cues) - 1):
         c, n = cues[i], cues[i + 1]
         short = c["start"] + min_dur - n["start"]

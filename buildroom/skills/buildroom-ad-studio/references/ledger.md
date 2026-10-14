@@ -28,7 +28,7 @@ P=ads/2026-10/project.json
 python3 $S/ledger.py init $P --cycle 2026-10
 python3 $S/ledger.py gate $P --gate G0 --verdict pass --by producer --ref ads/2026-10/brief.md
 python3 $S/ledger.py gate $P --gate G1 --verdict pass --by producer --ref ads/2026-10/concepts.md
-python3 $S/ledger.py gate $P --gate G2 --verdict pass --by producer --ref ads/2026-10/copy-manifest.json
+python3 $S/ledger.py gate $P --gate G2 --verdict pass --by member --ref ads/2026-10/copy-manifest.json   # the member's sign-off; refused otherwise (demo mode excepted)
 python3 $S/ledger.py plan $P --asset-id PLATE-C2 --provider higgsfield --model <resolved id> --prompt-ref ads/2026-10/plates/C2.prompt.txt
 python3 $S/gen.py --dry-run ads/2026-10/jobs.json --prices ads/2026-10/prices.json     # show the member
 python3 $S/ledger.py authorize $P --provider higgsfield --cap 12 --units credits --note "member approved quote in session 2026-10-14"

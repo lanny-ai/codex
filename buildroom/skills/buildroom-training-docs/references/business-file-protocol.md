@@ -48,10 +48,11 @@ Open every session with (adapt wording to the skill's voice):
 Before closing, always:
 
 1. **Update the sections this session built.** Distilled decisions and key verbatims only — the file stores the *essence*; full deliverables (complete ICA document, full page copy, full email sequence) are separate documents the member saves, referenced from the file by name.
-2. **Set the status line** on each touched section: `complete` or `provisional`, today's date, this skill's name.
-3. **Append one Session Log row**: date, session name, outputs produced, status, the member's 1–5 rating (ask for it — one question: "Quick gut check: 1–5, how usable is what we built today?"), and any note worth keeping.
-4. **Emit the ENTIRE updated file** in a single fenced code block — not a diff, not just the changed sections — so the member can replace their saved copy in one paste. Precede it with a 2–4 bullet "What changed in your Business File" summary.
-5. Remind them: "Save this over your old copy. Bring it to every Build Room session."
+2. **Add any missing section.** An older file may lack a section this skill writes (a file from before §18 or §19, say). Insert it from the current template, in its registered place (§8 Session Log stays last), with its heading, status line and fields, and fill only what this session confirmed. Never write a section's content into another section because its heading is missing.
+3. **Set the status line** on each touched section: `complete` or `provisional`, today's date, this skill's name.
+4. **Append one Session Log row**: date, session name, outputs produced, status, the member's 1–5 rating (ask for it — one question: "Quick gut check: 1–5, how usable is what we built today?"), and any note worth keeping.
+5. **Emit the ENTIRE updated file** in a single fenced code block — not a diff, not just the changed sections — so the member can replace their saved copy in one paste. Precede it with a 2–4 bullet "What changed in your Business File" summary.
+6. Remind them: "Save this over your old copy. Bring it to every Build Room session."
 
 ## Size discipline
 

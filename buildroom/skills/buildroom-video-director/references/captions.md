@@ -30,10 +30,12 @@ Set `captions.mode` to `"submagic"` in `edit.json` so the assembly leaves a clea
 
 `captions.mode: "burn"` in `edit.json`, then assemble again. The script builds cues from the transcript:
 
-- at most **two lines**, balanced, about 26 characters a line at 1080 wide (set `max_chars`);
+- at most **two lines**, balanced; characters a line (`max_chars`) by ratio: about **24–26 for 9:16, 4:5 and 1:1** (1080 wide), about **38–42 for 16:9** (1920 wide). A short line count per cue matters more than filling the width;
+- a line never ends on "the", "a", "to", "of", "your", "we" and the like: the break moves so the phrase stays together;
 - cues follow sentences and split at natural breaks (after a comma, before "and", "but", "to", "with"…); never a one- or two-word cue when the sentence can avoid it; a capitalised name stays on one line;
 - each cue on screen at least **0.7 s**;
-- set in the brand font (`fontsdir` with the font's **TTF or OTF** file; WOFF2 will not load in the caption renderer), at least **48 px**, white on a semi-opaque brand-dark box, **inside the safe zone** for each ratio, off the face.
+- set in the brand font (`fontsdir` with the font's **TTF or OTF** file; WOFF2 will not load in the caption renderer), at least **48 px**, white on one semi-opaque brand-dark box around the whole caption (`box_style: "single"`, needs libass 0.17 or later, any ffmpeg from 2023 on; `"lines"` gives a box per line for older builds), **inside the safe zone** for each ratio (the review checks both the bottom margin and the top of the caption block), off the face;
+- the B-roll behind the caption band (in 9:16 roughly 50–65% of the height) stays quiet: no text, no busy detail, no faces there.
 
 ## Rules for both
 

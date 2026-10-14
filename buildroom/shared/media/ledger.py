@@ -23,6 +23,7 @@ Usage
   ledger.py record    P --key 2610.C1.plate.r0 --status submitting|pending|completed|failed|canceled|unknown|no_submission
                         [--job-id ID] [--result path] [--charged N --charge-evidence ref] [--evidence text]
   ledger.py gate      P --gate G0|G1|G2 --verdict pass|revise|unverified --by producer --ref brief.md
+                        (a G2 pass is the member's sign-off on the words: --by member, except in demo mode)
   ledger.py ad        P --ad C1-H1 --concept C1 --layout photo-hook --spec specs/C1-H1.json [--renders a.png b.png ...]
   ledger.py gate      P --ad C1-H1 --gate G3|G4 --verdict pass --by reviewer --ref review/review.md
   ledger.py repair    P --ad C1-H1 --note "headline overflowed 9x16; shortened sub"  (ceiling: 2, or --ceiling N if the member set one)
@@ -339,6 +340,8 @@ def cmd_gate(data, a):
     else:
         if a.gate not in GATES_PROJECT:
             raise ValueError("project gates are G0, G1, G2")
+        if a.gate == "G2" and a.verdict == "pass" and a.by != "member" and data["mode"] == "live":
+            raise ValueError("G2 is the member's sign-off on the approved words (guarantees included): record it --by member")
         data["gates"][a.gate] = rec
 
 
