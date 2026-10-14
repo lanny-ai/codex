@@ -34,12 +34,17 @@ Every line passes:
 - **Sourced language** for any line in the customer's voice; any hypothesis-tagged phrase flagged under the ad, never presented as a client's words.
 - The Kern or Halbert checks from those references (no em dashes in Kern pieces, one CTA, one reader).
 - **Message match:** the landing headline repeats the ad's angle.
+- **Every hook names its subject** ("We install your AI workforce," not "We install it").
+- **Typography in the words themselves:** curly quotes and apostrophes (’ “ ”), a non-breaking space where a number and its unit must not split ("30 minutes"), answer bands that do not overlap ("2 to 5", "6 to 10").
+- **Guarantees word for word** and approximations with their qualifier (see `compliance.md` 4a, 4b).
 
 ## G3 — Craft (Phase 6, on the actual exported files)
 
 - A **distinctive brand asset** reads in the first glance.
 - The ad **reads on mute** and at phone size: hook, offer and CTA legible without zoom.
 - **Safe zones clear** for each ratio (the renderer's report, then the eye).
+- **No word on bare picture:** every line sits on the scrim or a solid panel, judged against the real plate, not the placeholder.
+- **Legible at phone size in every ratio,** 9:16 included: no body text below the renderer's 30 px floor; if a slot sits at the floor, cut words.
 - **No model-rendered price, URL, terms or headline.** Every word matches the copy manifest exactly.
 - People: the face is the member's real photo, identity intact; no generated person as the hero; any generated background figure is clearly secondary and disclosed.
 - Plates: plausible light, contact, scale and materials; no waxy surfaces, impossible geometry, phantom text, warped hands, stray logos; local colour kept (no orange/teal wash).

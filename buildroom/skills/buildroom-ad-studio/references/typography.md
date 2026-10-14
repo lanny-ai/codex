@@ -27,13 +27,17 @@ One dominant message, one proof focus, one CTA. Reading order by size, weight, c
 
 The 9:16 bottom third is covered by the platform's caption and buttons in Reels; the renderer keeps every word above it and lets the picture or brand colour fill it. These margins are the commonly cited Reels zones (14/35/6) †; check them against Meta's current placement guide once per quarter and change `SAFE` in the renderer if they moved.
 
+**Legibility floor.** Body-level slots (sub, bullets, rows, options, list lines) never go below 30 px on the 1080-wide canvas; the renderer fails the file instead of shrinking further, and the fix is fewer words. Headlines have their own floors per layout.
+
+**The words themselves.** Curly quotes and apostrophes (the renderer warns on straight ones), a non-breaking space between a number and its unit where a break would split them, sentence case.
+
 Each ratio is **recomposed**, not cropped: the layout moves the picture, the type scale and the stacking per ratio. The type shrinks to fit (down to a floor per slot); a slot at its floor is reported, and the fix is fewer words.
 
 ## The layouts
 
 See the table in `service-portfolio.md`. The spec format is in the header of `scripts/render_static.mjs`. Picture placement per layout:
 
-- `photo-hook` — full-bleed picture, a scrim dark behind the words and the CTA and clear in the middle so the picture reads; optional circular inset of the member's real photo next to the CTA.
+- `photo-hook` — full-bleed picture; the scrim is measured after the type is set, dark down to the last line of text and behind the CTA, clear in between so the picture reads; optional circular inset of the member's real photo next to the CTA.
 - `split` — picture on the left 44% (1:1, 4:5) or the top 30% (9:16).
 - `offer-card` — optional picture band across the top third.
 - `quote-card`, `stat`, `quiz` — solid brand background; an optional plate sits behind a near-solid veil.

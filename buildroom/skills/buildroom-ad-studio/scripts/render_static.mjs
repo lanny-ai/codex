@@ -98,7 +98,7 @@ function brandMark(brand, base) {
     : `<div class="bname" data-t="brand"><i></i>${esc(brand.name)}</div>`;
 }
 const cta = c => c.cta ? `<div class="cta" data-t="cta">${esc(c.cta)}<span aria-hidden="true"> →</span></div>` : '';
-const list = (items, cls, mark) => (items || []).map((t, i) => `<li class="${cls}" data-t="${cls}${i + 1}" data-fit="42,26"><b aria-hidden="true">${mark}</b><span>${esc(t)}</span></li>`).join('');
+const list = (items, cls, mark) => (items || []).map((t, i) => `<li class="${cls}" data-t="${cls}${i + 1}" data-fit="42,30"><b aria-hidden="true">${mark}</b><span>${esc(t)}</span></li>`).join('');
 
 function body(spec, base, ratio) {
   const c = spec.copy || {}, b = spec.brand, L = spec.layout;
@@ -106,14 +106,14 @@ function body(spec, base, ratio) {
   const head = `<header>${brandMark(b, base)}</header>`;
   const foot = (extra = '') => `<footer>${cta(c)}${extra}</footer>`;
   switch (L) {
-    case 'photo-hook': return `${head}<main><h1 data-t="hook" data-fit="104,52">${esc(c.hook)}</h1>${c.sub ? `<p class="sub" data-t="sub" data-fit="42,28">${esc(c.sub)}</p>` : ''}</main>${foot(inset)}`;
+    case 'photo-hook': return `${head}<main><h1 data-t="hook" data-fit="104,52">${esc(c.hook)}</h1>${c.sub ? `<p class="sub" data-t="sub" data-fit="42,30">${esc(c.sub)}</p>` : ''}</main>${foot(inset)}`;
     case 'split': return `${head}<main><h1 data-t="hook" data-fit="86,44">${esc(c.hook)}</h1><ul class="bul">${list(c.bullets, 'b', '✓')}</ul></main>${foot()}`;
-    case 'quote-card': return `${head}<main>${inset}<div class="qm" aria-hidden="true">“</div><blockquote data-t="quote" data-fit="74,34">${esc(c.quote)}</blockquote><p class="attr" data-t="attribution" data-fit="36,24">${esc(c.attribution)}</p>${c.rating ? `<p class="rating" data-t="rating">${esc(c.rating)}</p>` : ''}${c.source ? `<p class="src" data-t="source">${esc(c.source)}</p>` : ''}</main>${foot()}`;
-    case 'stat': return `${head}<main><div class="num" data-t="number" data-fit="330,120">${esc(c.number)}</div><h2 data-t="label" data-fit="76,36">${esc(c.label)}</h2>${c.sub ? `<p class="sub" data-t="sub" data-fit="36,26">${esc(c.sub)}</p>` : ''}${c.source ? `<p class="src" data-t="source">${esc(c.source)}</p>` : ''}</main>${foot()}`;
-    case 'notes': return `<main><div class="paper"><h1 data-t="title" data-fit="74,38">${esc(c.title)}</h1><ul class="lines">${(c.lines || []).map((l, i) => { const o = typeof l === 'string' ? { text: l } : l; return `<li data-t="line${i + 1}" data-fit="46,26"><b aria-hidden="true">${o.done ? '✓' : ''}</b><span>${esc(o.text)}</span></li>`; }).join('')}</ul></div></main>${foot(`<div class="sig">${brandMark(b, base)}</div>`)}`;
-    case 'us-vs-them': return `${head}<main><h1 data-t="hook" data-fit="80,40">${esc(c.hook)}</h1><table class="vs"><thead><tr><th data-t="left_label">${esc(c.left_label)}</th><th data-t="right_label">${esc(c.right_label)}</th></tr></thead><tbody>${(c.rows || []).map((r, i) => `<tr><td data-t="row${i + 1}_left" data-fit="38,22"><b aria-hidden="true">✕</b>${esc(r[0])}</td><td data-t="row${i + 1}_right" data-fit="38,22"><b aria-hidden="true">✓</b>${esc(r[1])}</td></tr>`).join('')}</tbody></table></main>${foot()}`;
-    case 'offer-card': return `${head}<main><h1 data-t="offer" data-fit="84,42">${esc(c.offer || c.hook)}</h1>${c.sub ? `<p class="sub" data-t="sub" data-fit="36,26">${esc(c.sub)}</p>` : ''}<ul class="bul">${list(c.bullets, 'b', '✓')}</ul>${c.price ? `<div class="price" data-t="price">${esc(c.price)}</div>` : ''}${c.terms ? `<p class="src" data-t="terms">${esc(c.terms)}</p>` : ''}</main>${foot()}`;
-    case 'quiz': return `${head}<main><h1 data-t="question" data-fit="92,42">${esc(c.question)}</h1><ol class="opts">${(c.options || []).map((o, i) => `<li data-t="option${i + 1}" data-fit="44,26"><b aria-hidden="true">${'ABCDEF'[i]}</b><span>${esc(o)}</span></li>`).join('')}</ol>${c.sub ? `<p class="sub" data-t="sub" data-fit="34,24">${esc(c.sub)}</p>` : ''}</main>${foot()}`;
+    case 'quote-card': return `${head}<main>${inset}<div class="qm" aria-hidden="true">“</div><blockquote data-t="quote" data-fit="74,34">${esc(c.quote)}</blockquote><p class="attr" data-t="attribution" data-fit="36,30">${esc(c.attribution)}</p>${c.rating ? `<p class="rating" data-t="rating">${esc(c.rating)}</p>` : ''}${c.source ? `<p class="src" data-t="source">${esc(c.source)}</p>` : ''}</main>${foot()}`;
+    case 'stat': return `${head}<main><div class="num" data-t="number" data-fit="330,120">${esc(c.number)}</div><h2 data-t="label" data-fit="76,36">${esc(c.label)}</h2>${c.sub ? `<p class="sub" data-t="sub" data-fit="36,30">${esc(c.sub)}</p>` : ''}${c.source ? `<p class="src" data-t="source">${esc(c.source)}</p>` : ''}</main>${foot()}`;
+    case 'notes': return `<main><div class="paper"><h1 data-t="title" data-fit="74,38">${esc(c.title)}</h1><ul class="lines">${(c.lines || []).map((l, i) => { const o = typeof l === 'string' ? { text: l } : l; return `<li data-t="line${i + 1}" data-fit="46,30"><b aria-hidden="true">${o.done ? '✓' : '•'}</b><span>${esc(o.text)}</span></li>`; }).join('')}</ul></div></main>${foot(`<div class="sig">${brandMark(b, base)}</div>`)}`;
+    case 'us-vs-them': return `${head}<main><h1 data-t="hook" data-fit="80,40">${esc(c.hook)}</h1><table class="vs"><thead><tr><th data-t="left_label">${esc(c.left_label)}</th><th data-t="right_label">${esc(c.right_label)}</th></tr></thead><tbody>${(c.rows || []).map((r, i) => `<tr><td data-t="row${i + 1}_left" data-fit="38,30"><div class="cell"><b aria-hidden="true">✕</b><span>${esc(r[0])}</span></div></td><td data-t="row${i + 1}_right" data-fit="38,30"><div class="cell"><b aria-hidden="true">✓</b><span>${esc(r[1])}</span></div></td></tr>`).join('')}</tbody></table></main>${foot()}`;
+    case 'offer-card': return `${head}<main><h1 data-t="offer" data-fit="84,42">${esc(c.offer || c.hook)}</h1>${c.sub ? `<p class="sub" data-t="sub" data-fit="36,30">${esc(c.sub)}</p>` : ''}<ul class="bul">${list(c.bullets, 'b', '✓')}</ul>${c.price ? `<div class="price" data-t="price">${esc(c.price)}</div>` : ''}${c.terms ? `<p class="src" data-t="terms">${esc(c.terms)}</p>` : ''}</main>${foot()}`;
+    case 'quiz': return `${head}<main><h1 data-t="question" data-fit="92,42">${esc(c.question)}</h1><ol class="opts">${(c.options || []).map((o, i) => `<li data-t="option${i + 1}" data-fit="44,30"><b aria-hidden="true">${'ABCDEF'[i]}</b><span>${esc(o)}</span></li>`).join('')}</ol>${c.sub ? `<p class="sub" data-t="sub" data-fit="34,30">${esc(c.sub)}</p>` : ''}</main>${foot()}`;
   }
   throw new Error(`unknown layout ${L}; use one of ${LAYOUTS.join(', ')}`);
 }
@@ -179,11 +179,11 @@ blockquote{font-size:58px;line-height:1.16;font-weight:600}
 .L-quote-card main .inset{flex-direction:row;align-self:flex-start}
 .L-quote-card main .inset img{width:150px;height:150px;border-width:6px}
 .num{font-size:250px;line-height:.9;color:${accent}}
-.paper{background:${paper};color:#1d1d1f;border-radius:28px;padding:${tall ? 56 : 52}px ${tall ? 54 : 56}px;flex:1;min-height:0;display:flex;flex-direction:column;gap:${tall ? 32 : 24}px;box-shadow:0 18px 40px rgba(0,0,0,.18);overflow:hidden;background-image:repeating-linear-gradient(180deg, transparent 0 ${tall ? 75 : 63}px, rgba(29,29,31,.07) ${tall ? 75 : 63}px ${tall ? 76 : 64}px)}
+.paper{background:${paper};color:#1d1d1f;border-radius:28px;padding:${tall ? 56 : 52}px ${tall ? 54 : 56}px;flex:1;min-height:0;display:flex;flex-direction:column;gap:${tall ? 32 : 24}px;box-shadow:0 18px 40px rgba(0,0,0,.18);overflow:hidden}
 .paper h1{font-family:${bf};font-size:62px;font-weight:800;letter-spacing:-.02em;color:#1d1d1f}
 .lines{list-style:none;display:flex;flex-direction:column;gap:${tall ? 22 : 16}px}
 .lines li{display:flex;gap:20px;align-items:flex-start;font-size:40px;line-height:1.3}
-.lines b{flex:none;width:42px;height:42px;margin-top:4px;border:3px solid #1d1d1f;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:30px;color:${accent};background:#fff}
+.lines b{flex:none;width:1em;color:${accent};font-weight:800;text-align:center}
 .L-notes .safe{gap:22px}
 .L-notes main{justify-content:center}
 .L-notes .paper{flex:none}
@@ -196,7 +196,8 @@ blockquote{font-size:58px;line-height:1.16;font-weight:600}
 .vs th+th{color:${accent}}
 .vs td{font-size:32px;line-height:1.25;padding:20px 18px;vertical-align:top;background:${rgba(fg, .06)}}
 .vs td+td{background:${rgba(accent, .16)};font-weight:600}
-.vs td b{margin-right:12px;color:${muted}}
+.vs .cell{display:flex;gap:12px;align-items:flex-start}
+.vs td b{flex:none;color:${muted}}
 .vs td+td b{color:${accent}}
 .vs td:first-child{border-radius:14px 0 0 14px}.vs td:last-child{border-radius:0 14px 14px 0}
 .price{font-family:${df};font-size:76px;font-weight:800;color:${accent};line-height:1}
@@ -206,7 +207,7 @@ blockquote{font-size:58px;line-height:1.16;font-weight:600}
 .ailabel{flex:none;font-size:22px;line-height:1.2;color:${L === 'notes' ? onColor(accent) : fg};opacity:.85}
 .draft{position:absolute;left:0;right:0;top:0;height:${Math.max(30, Math.round(H * s.t * .6))}px;background:#dc2626;color:#fff;font:700 22px/${Math.max(30, Math.round(H * s.t * .6))}px ${bf};text-align:center;letter-spacing:.12em;z-index:9}
 </style></head><body><div id="ad" class="L-${L} R-${ratio}">
-${pic ? `<div class="pic"><img src="${pic}" alt=""></div>` : (L !== 'notes' ? '<div class="deco"></div>' : '')}${scrim}
+${pic ? `<div class="pic"><img src="${pic}" alt=""></div>` : (['quote-card', 'stat', 'offer-card'].includes(L) ? '<div class="deco"></div>' : '')}${scrim}
 <div class="safe">${body(spec, base, ratio)}${spec.ai_label ? `<div class="ailabel" data-t="ai_label">${AI_LABEL}</div>` : ''}</div>
 ${spec.draft_label ? `<div class="draft">${esc(spec.draft_label)}</div>` : ''}
 </div></body></html>`;
@@ -225,6 +226,15 @@ async function fitAndCheck(page, spec, ratio) {
       if (!changed) break;
     }
     const W = ad.clientWidth, H = ad.clientHeight;
+    // photo-hook: keep the scrim dark down to the last line of text, then let the picture through
+    const scrimEl = ad.querySelector('.scrim');
+    if (scrimEl && ad.classList.contains('L-photo-hook')) {
+      const n = parseInt(bg.slice(1), 16), c = `${n >> 16 & 255},${n >> 8 & 255},${n & 255}`;
+      const kids = [...main.children]; const textBottom = kids.length ? Math.max(...kids.map(k => k.getBoundingClientRect().bottom)) : H * .4;
+      const footTop = ad.querySelector('footer')?.getBoundingClientRect().top ?? H * .8;
+      const p1 = Math.min(98, (textBottom + 28) / H * 100), p2 = Math.min(99, p1 + 10), p3 = Math.max(p2, (footTop - 40) / H * 100);
+      scrimEl.style.background = `linear-gradient(180deg, rgba(${c},.9) 0%, rgba(${c},.84) ${p1}%, rgba(${c},.22) ${p2}%, rgba(${c},.22) ${p3}%, rgba(${c},.8) 100%)`;
+    }
     const sr = safe.getBoundingClientRect();
     const zone = { top: H * safeFrac.t, bottom: H * (1 - safeFrac.b), left: W * safeFrac.s, right: W * (1 - safeFrac.s) };
     const overflow = [], outside = [], text = {};
@@ -297,7 +307,7 @@ async function main() {
       const pass = !res.overflow.length && !res.outside_safe.length && !contrastFail;
       if (!pass) failed++;
       report.files.push({ ratio, width: W, height: H, file: path.relative(process.cwd(), file), pass, ...res, ...checks,
-        warnings: [...(fontFail ? ['a brand font did not load; fallback used (check network or font_files)'] : []), ...(res.at_min.length ? [`at minimum size: ${res.at_min.join(', ')} (consider shorter copy)`] : [])] });
+        warnings: [...(fontFail ? ['a brand font did not load; fallback used (check network or font_files)'] : []), ...Object.entries(res.text).filter(([k, v]) => /['"]/.test(v)).map(([k]) => `straight quote marks in ${k}: use ’ “ ” in the copy manifest`), ...(res.at_min.length ? [`at minimum size: ${res.at_min.join(', ')} (consider shorter copy)`] : [])] });
       console.log(`${pass ? 'PASS' : 'FAIL'}  ${path.basename(file)}${res.overflow.length ? '  overflow: ' + res.overflow.join(', ') : ''}${res.outside_safe.length ? '  outside safe zone: ' + res.outside_safe.join(', ') : ''}${contrastFail ? '  contrast below 4.5:1' : ''}${fontFail ? '  (font fallback)' : ''}`);
       await page.close();
     }

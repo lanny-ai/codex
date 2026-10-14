@@ -22,6 +22,8 @@ Dates and figures below come from the October 2026 research and were not all rea
 2. **The picture makes no claim the business can't back.** A generated "full calendar," "dashboard," "team of ten" or "award" is a claim. Remove it.
 3. **Results in context.** A best-case result is labelled as such ("Results vary; this client had…") when the ad implies it is typical.
 4. **Never-say claims absent** (§18), and no guarantees, prices, discounts, deadlines or bonuses that §3 does not hold as real terms.
+4a. **Guarantees word for word.** Wherever a guarantee appears (hook, sub, primary text, description, landing headline), it is the exact §3 sentence, including when the clock starts and what it covers. A shortened guarantee is a new claim. If the hook needs something shorter, the hook says something else and the exact sentence goes in the sub or primary text. The member signs off the guarantee wording before the first ad that carries it ships.
+4b. **Approximations keep their qualifier.** "About 30 minutes a week" in the source stays "about 30 minutes" on the image, not "30 minutes".
 5. **Wrong-fit respected.** The copy does not promise outcomes to people §18 says the offer is wrong for.
 6. **Sensitive attributes.** No copy asserting or implying the viewer's health, finances, age, race, religion, sexuality or other sensitive traits ("Struggling with your debt?" names the viewer's finances; "For owners rebuilding after a slow year" does not).
 7. **AI disclosure** applied where a generated person appears, and noted in the disclosure sheet for every ad that contains generated imagery.
