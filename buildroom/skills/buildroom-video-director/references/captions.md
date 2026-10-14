@@ -30,7 +30,7 @@ Set `captions.mode` to `"submagic"` in `edit.json` so the assembly leaves a clea
 
 `captions.mode: "burn"` in `edit.json`, then assemble again. The script builds cues from the transcript:
 
-- at most **two lines**, balanced; characters a line (`max_chars`) by ratio: about **24–26 for 9:16, 4:5 and 1:1** (1080 wide), about **38–42 for 16:9** (1920 wide). A short line count per cue matters more than filling the width;
+- at most **two lines**, balanced; characters a line by ratio: about **24–26 for 9:16, 4:5 and 1:1** (1080 wide), about **38–42 for 16:9** (1920 wide). Set `max_chars` per ratio (`{"9x16": 24, "16x9": 40}`); a single number applies to the 1080-wide ratios (capped at 28) and 16:9 gets at least 40. A short line count per cue matters more than filling the width;
 - a line never ends on "the", "a", "to", "of", "your", "we" and the like: the break moves so the phrase stays together;
 - cues follow sentences and split at natural breaks (after a comma, before "and", "but", "to", "with"…); never a one- or two-word cue when the sentence can avoid it; a capitalised name stays on one line;
 - each cue on screen at least **0.7 s**;

@@ -115,6 +115,18 @@ NO_END = {"the", "a", "an", "we", "i", "you", "your", "our", "my", "to", "of", "
           "its", "their", "his", "her", "who", "which"}
 
 
+def max_chars_for(cap, ratio):
+    """Characters a caption line, per ratio: about 26 for the 1080-wide ratios, about 40 for 16:9.
+    captions.max_chars may be one number (used for 1080-wide ratios; 16:9 gets at least 40) or
+    {"16x9": 40, "9x16": 24}."""
+    mc = cap.get("max_chars")
+    if isinstance(mc, dict):
+        return int(mc.get(ratio, 40 if ratio == "16x9" else 26))
+    if mc is None:
+        return 40 if ratio == "16x9" else 26
+    return max(int(mc), 40) if ratio == "16x9" else min(int(mc), 28)
+
+
 def _bare(w):
     return w.lower().strip("“”\"'‘’(),.:;!?")
 
@@ -134,6 +146,8 @@ def _balance(words, max_chars, max_lines=2):
             worst += 10  # a line never ends on "the", "a", "we" …
         if words[k - 1].endswith((",", ";", ":")):
             worst -= 3  # prefer breaking after punctuation
+        elif any(ch.isdigit() for ch in words[k - 1]) and not words[k - 1][-1:] in ".?!":
+            worst += 8  # a number stays with its unit ("30 minutes", "14 days")
         if best is None or worst < best[0]:
             best = (worst, [a, b])
     return best[1]
@@ -185,20 +199,44 @@ def caption_lines(words, max_chars=26, max_lines=2, max_dur=3.4, min_dur=0.7, en
             cur = []
     if cur:
         sentences.append(cur)
-    groups = [ch for snt in sentences for ch in _chunks(snt, max_chars, max_dur)]
-    # a cue shorter than min_dur cannot be read: merge it into a neighbour when the pair still fits two lines
+    groups, sid = [], []  # chunks, and the sentence each came from
+    for n_s, snt in enumerate(sentences):
+        for ch in _chunks(snt, max_chars, max_dur):
+            groups.append(ch)
+            sid.append(n_s)
+    dur = lambda g: g[-1]["end"] - g[0]["start"]
+    fits = lambda g: _fits([w["w"] for w in g], max_chars)
+    # a cue shorter than min_dur cannot be read. Merge it into a neighbour from the same sentence when
+    # the pair fits two lines; otherwise move the break between them so both last min_dur. A cue never
+    # takes words from another sentence ("leak. It's free," reads as one thought); a short cue that
+    # cannot be fixed is held on screen a little longer below.
     i = 0
     while i < len(groups):
         g = groups[i]
-        if g[-1]["end"] - g[0]["start"] < min_dur and len(groups) > 1:
-            nxt = groups[i + 1] if i + 1 < len(groups) else None
-            prv = groups[i - 1] if i > 0 else None
-            if nxt and _fits([w["w"] for w in g + nxt], max_chars):
-                groups[i:i + 2] = [g + nxt]
-                continue
-            if prv and _fits([w["w"] for w in prv + g], max_chars):
-                groups[i - 1:i + 1] = [prv + g]
-                i -= 1
+        if dur(g) < min_dur and len(groups) > 1:
+            done = False
+            for j in (i + 1, i - 1):
+                if 0 <= j < len(groups) and sid[j] == sid[i]:
+                    a0, a1 = min(i, j), max(i, j)
+                    pair = groups[a0] + groups[a1]
+                    if fits(pair):
+                        groups[a0:a1 + 1] = [pair]
+                        sid[a0:a1 + 1] = [sid[i]]
+                        i = a0
+                        done = True
+                        break
+                    best = None
+                    for k in range(2, len(pair) - 1):
+                        x, y = pair[:k], pair[k:]
+                        if fits(x) and fits(y) and dur(x) >= min_dur and dur(y) >= min_dur and _bare(x[-1]["w"]) not in NO_END:
+                            sc = (3 if x[-1]["w"].endswith((",", ";", ":")) else 0) - abs(len(x) - len(y)) * 0.2
+                            if best is None or sc > best[0]:
+                                best = (sc, k)
+                    if best:
+                        groups[a0:a1 + 1] = [pair[:best[1]], pair[best[1]:]]
+                        done = True
+                        break
+            if done:
                 continue
         i += 1
     cues = [{"start": g[0]["start"], "end": g[-1]["end"], "lines": _balance([w["w"] for w in g], max_chars, max_lines)} for g in groups]

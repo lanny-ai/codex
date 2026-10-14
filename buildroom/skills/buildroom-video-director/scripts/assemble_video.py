@@ -31,7 +31,7 @@ edit.json (paths relative to it; "{ratio}" in a path is replaced, e.g. cards/end
    "brand_cue": {"src": "brand/logo.png", "at": 0, "dur": 2.0, "position": "top-left", "width_frac": 0.26},
    "music": {"src": "music/bed.mp3", "gain_db": -20, "duck": true},
    "captions": {"mode": "burn", "transcript": "transcript.json", "font": "Source Sans 3", "fontsdir": "brand/fonts",
-                "size": 64, "color": "#FFFFFF", "box": "#0F1424", "box_alpha": 0.6, "max_chars": 26},
+                "size": 64, "color": "#FFFFFF", "box": "#0F1424", "box_alpha": 0.6, "max_chars": {"9x16": 26, "16x9": 40}},
    "loudness": -14}
   brand_cue may instead be {"type": "face"} when the member's face opens the first clip.
 """
@@ -40,7 +40,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from videolib import (RATIOS, SAFE, LOUDNESS_TARGET, TRUE_PEAK, ffmpeg_bin, run, probe, loudness,  # noqa: E402
-                      load_json, caption_lines, write_srt, norm_words)
+                      load_json, caption_lines, write_srt, norm_words, max_chars_for)
 
 V_ENC = ["-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", "-profile:v", "high"]
 SEG_ENC = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "14", "-pix_fmt", "yuv420p"]
@@ -327,7 +327,7 @@ def build_ratio(edl, base, ratio, out_dir, report, plan_only=False):
                     if c.get("type") != "card":
                         break
                     tail += clip_duration(c)
-                cues = caption_lines(tr["words"], max_chars=int(cap.get("max_chars", 26)), end_by=expected - tail)
+                cues = caption_lines(tr["words"], max_chars=max_chars_for(cap, ratio), end_by=expected - tail)
                 for cw in cutaways:  # a cutaway that carries its own words (a guarantee card) hides the captions
                     if cw.get("hide_captions"):
                         a0, a1 = float(cw["at"]), float(cw["at"]) + float(cw["dur"])
@@ -337,6 +337,8 @@ def build_ratio(edl, base, ratio, out_dir, report, plan_only=False):
                                 kept.append(c)
                             elif c["start"] < a0:
                                 kept.append({**c, "end": a0})
+                            elif c["end"] >= a1 + 0.7:  # starts under the card but runs past it: show it once the card goes
+                                kept.append({**c, "start": a1})
                         cues = kept
                 entry["caption_cues"] = [{"start": round(c["start"], 3), "end": round(c["end"], 3), "lines": c["lines"]} for c in cues]
                 ass = tmp / "captions.ass"

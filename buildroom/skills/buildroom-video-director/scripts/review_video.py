@@ -34,7 +34,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from videolib import (RATIOS, SAFE, LOUDNESS_TARGET, TRUE_PEAK, ffmpeg_bin, run, probe, loudness, silences,  # noqa: E402
-                      load_json, norm_words, caption_lines)
+                      load_json, norm_words, caption_lines, max_chars_for)
 import ledger  # noqa: E402
 
 HOOK_LIMIT = {"ad": 1.0}
@@ -145,7 +145,7 @@ def check(a):
                 top = H - st["margin_v"] - st.get("block_h", st["max_lines"] * st["size"] * 1.25)
                 add("captions below the top safe zone", top >= SAFE[ratio]["t"] * H,
                     f"caption block top at {int(top)} px (unsafe band {int(SAFE[ratio]['t'] * H)} px)")
-            cues = entry.get("caption_cues") or caption_lines(words, max_chars=int(cap.get("max_chars", 26)), end_by=card_start if tail else None)
+            cues = entry.get("caption_cues") or caption_lines(words, max_chars=max_chars_for(cap, ratio), end_by=card_start if tail else None)
             short = [c for c in cues if c["end"] - c["start"] < 0.7 - 1e-3]
             at = ", ".join(f"{c['start']:.2f} s" for c in short[:4])
             add("each caption on screen >= 0.7 s", not short, f"{len(cues)} cues; {len(short)} shorter than 0.7 s (at {at})" if short else f"{len(cues)} cues")

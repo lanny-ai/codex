@@ -149,6 +149,12 @@ def main():
           all(r["caption_style"]["max_lines"] <= 2 and r["caption_style"]["size"] >= 48 for r in rep["ratios"]))
     cues = caption_lines(tr["words"], max_chars=24)
     check("captions: every cue on screen >= 0.7 s", all(c["end"] - c["start"] >= 0.7 - 1e-3 for c in cues))
+    from videolib import _balance, max_chars_for  # noqa: E402
+    check("captions: a number stays with its unit", _balance("then about 30 minutes a week.".split(), 24) == ["then about", "30 minutes a week."])
+    tw = [{"w": w, "start": i * .3, "end": i * .3 + .28} for i, w in enumerate("and your single worst leak. It’s free, and your result shows up the moment you finish.".split())]
+    check("captions: no cue spans two sentences", not any("leak." in " ".join(c["lines"]) and "free," in " ".join(c["lines"]) for c in caption_lines(tw, 24)))
+    check("captions: line length per ratio", max_chars_for({"max_chars": 38}, "9x16") <= 28 and max_chars_for({}, "16x9") >= 38
+          and max_chars_for({"max_chars": {"9x16": 24, "16x9": 40}}, "9x16") == 24)
     check("captions: none run onto the end card", all(c["end"] <= 10.0 + 0.02 for r in rep["ratios"] for c in r["caption_cues"]))
 
     # ---- framing, word-timed cutaways, cards over the voice ----
