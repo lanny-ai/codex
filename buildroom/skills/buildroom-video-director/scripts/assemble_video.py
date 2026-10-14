@@ -195,7 +195,7 @@ def take_joins(clips):
 def resolve_cutaways(edl, base):
     """Cutaways may be timed to the words: {"at_word": "Your first agent", "until_word": "on us."}.
     Needs the transcript; falls back to "at"/"dur" when it is missing. They may also be tied to a
-    join between takes: "at_join": 1 starts the cutaway at the join before clip 1 (minus "lead",
+    join between takes: "at_join": 1 starts the cutaway at the join before clip 1 (minus "join_lead",
     default 0.1 s), so a hook take plays whole on the face; "cover_join": 2 stretches the cutaway
     to at least 0.3 s past the join before clip 2, so the jump between takes is never seen."""
     joins = take_joins(edl["clips"])
