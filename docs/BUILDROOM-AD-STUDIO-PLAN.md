@@ -122,6 +122,7 @@ One skill, `buildroom-ad-studio`, in the house pattern: a SKILL.md orchestrator,
 |---|---|---|
 | Higgsfield | `https://higgsfield.ai?fpr=lanny-756d90` | Ready. Program pays recurring commission for 12 months through Impact.com; new sign-ups may see a time-limited discount. Confirm current terms before quoting a percentage to members |
 | fal.ai | Pending | Waiting on the link |
+| Kie.ai | `https://kie.ai?ref=62126a8991d5546179db893d9bc15a7c` | Ready. Pay-as-you-go credit aggregator (Veo, Seedance, Wan, Nano Banana and others), no subscription; reviews report failed jobs aren't charged. A candidate cheap route in the router alongside fal.ai. Commission terms not found publicly; confirm before quoting |
 | HeyGen | None | Plain sign-up link only |
 
 ## 8. The testing and learning loop for small budgets
@@ -148,7 +149,7 @@ This plugs into what exists: the **Funnel Scorecard** reads the ad results as st
 
 ## 10. Decisions for you
 
-1. **Provider.** Recommended: Higgsfield as the default hub with fal.ai as the pay-as-you-go path, both behind one router with live prices and a monthly spend cap in §18. Both sign-ups go through your affiliate links with the disclosure beside them (section 7). The alternative is the uploaded skill's hard lock to Higgsfield and its three models.
+1. **Provider.** Recommended: Higgsfield as the default hub with fal.ai as the pay-as-you-go path, both behind one router with live prices and a monthly spend cap in §18. Kie.ai is a second pay-as-you-go option the router can price against fal.ai per job. Every sign-up goes through your affiliate links with the disclosure beside them (section 7). The alternative is the uploaded skill's hard lock to Higgsfield and its three models.
 2. **Generated people.** Recommended: no photoreal AI people as heroes, ever; AI people only as clearly secondary background figures, auto-disclosed. The founder twin only with written consent. The alternative is allowing AI presenters with disclosure, which the evidence says costs trust exactly where members sell.
 3. **Upload.** Recommended: stop at an upload-ready kit in phase 1 to 3. Decide on paused upload after phase 3.
 4. **Attribution of the uploaded skill.** Its workflow and direction references are substantial original work. If it came from someone else, confirm we may adapt it, and credit it in the references as we did for the Codex Prompt Library and the Genie.
@@ -156,4 +157,4 @@ This plugs into what exists: the **Funnel Scorecard** reads the ad results as st
 
 ## 11. Verify before it reaches members
 
-The research could not fetch most primary pages. Before any of these appear in member-facing material, check them against the source: the NCSolutions creative share (47% / 49%), Field's creativity multiplier (12x falling below 4x), the Binet & Field category splits, Meta's creative testing tool limits and the 20% budget suggestion, Higgsfield's API prices, the New York law's signing date, the EU Article 50 deferrals, whether Meta auto-labels third-party AI ads, and the Higgsfield and fal.ai affiliate terms. The full list with sources is at the top of the research report.
+The research could not fetch most primary pages. Before any of these appear in member-facing material, check them against the source: the NCSolutions creative share (47% / 49%), Field's creativity multiplier (12x falling below 4x), the Binet & Field category splits, Meta's creative testing tool limits and the 20% budget suggestion, Higgsfield's API prices, the New York law's signing date, the EU Article 50 deferrals, whether Meta auto-labels third-party AI ads, and the Higgsfield, fal.ai and Kie.ai affiliate terms and Kie.ai's per-model prices. The full list with sources is at the top of the research report.
