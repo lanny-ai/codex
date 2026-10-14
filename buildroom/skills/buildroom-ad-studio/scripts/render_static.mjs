@@ -4,6 +4,9 @@
  * + brand kit, recomposed for 1:1, 4:5 and 9:16, with overflow, safe-zone and contrast checks.
  * The image model never sets a word; this does.
  *
+ * Shared by the Ad Studio and the Video Director (end cards, title cards, thumbnails). Source:
+ * buildroom/shared/media/render_static.mjs; the build copies it into each skill. Edit the shared copy only.
+ *
  * Usage
  *   node render_static.mjs specs/C1-H1.json [more specs...] --out renders/ [--overlay] [--ratios 1x1,4x5,9x16]
  *
@@ -35,11 +38,11 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const RATIOS = { '1x1': [1080, 1080], '4x5': [1080, 1350], '9x16': [1080, 1920] };
+const RATIOS = { '1x1': [1080, 1080], '4x5': [1080, 1350], '9x16': [1080, 1920], '16x9': [1920, 1080] };
 // Fractions of the canvas kept clear of platform UI. 9:16 follows the Reels overlay (14% top,
 // 35% bottom, 6% sides), the strictest placement; verify against Meta's current guide.
-const SAFE = { '1x1': { t: .055, b: .055, s: .055 }, '4x5': { t: .05, b: .05, s: .055 }, '9x16': { t: .14, b: .35, s: .06 } };
-const LAYOUTS = ['photo-hook', 'split', 'quote-card', 'stat', 'notes', 'us-vs-them', 'offer-card', 'quiz'];
+const SAFE = { '1x1': { t: .055, b: .055, s: .055 }, '4x5': { t: .05, b: .05, s: .055 }, '9x16': { t: .14, b: .35, s: .06 }, '16x9': { t: .06, b: .1, s: .05 } };
+const LAYOUTS = ['photo-hook', 'split', 'quote-card', 'stat', 'notes', 'us-vs-them', 'offer-card', 'quiz', 'end-card', 'title-card'];
 const AI_LABEL = 'Includes AI-generated imagery';
 
 function loadPlaywright() {
@@ -114,6 +117,8 @@ function body(spec, base, ratio) {
     case 'notes': return `<main><div class="paper"><h1 data-t="title" data-fit="74,38">${et(c.title)}</h1><ul class="lines">${(c.lines || []).map((l, i) => { const o = typeof l === 'string' ? { text: l } : l; return `<li data-t="line${i + 1}" data-fit="46,30"><b aria-hidden="true">${o.done ? '✓' : '•'}</b><span>${et(o.text)}</span></li>`; }).join('')}</ul></div></main>${foot(`<div class="sig">${brandMark(b, base)}</div>`)}`;
     case 'us-vs-them': return `${head}<main><h1 data-t="hook" data-fit="80,40">${et(c.hook)}</h1><table class="vs"><thead><tr><th data-t="left_label">${et(c.left_label)}</th><th data-t="right_label">${et(c.right_label)}</th></tr></thead><tbody>${(c.rows || []).map((r, i) => `<tr><td data-t="row${i + 1}_left" data-fit="38,30"><div class="cell"><b aria-hidden="true">✕</b><span>${et(r[0])}</span></div></td><td data-t="row${i + 1}_right" data-fit="38,30"><div class="cell"><b aria-hidden="true">✓</b><span>${et(r[1])}</span></div></td></tr>`).join('')}</tbody></table></main>${foot()}`;
     case 'offer-card': return `${head}<main><h1 data-t="offer" data-fit="84,42">${et(c.offer || c.hook)}</h1>${c.sub ? `<p class="sub" data-t="sub" data-fit="36,30">${et(c.sub)}</p>` : ''}<ul class="bul">${list(c.bullets, 'b', '✓')}</ul>${c.price ? `<div class="price" data-t="price">${et(c.price)}</div>` : ''}${c.terms ? `<p class="src" data-t="terms">${et(c.terms)}</p>` : ''}</main>${foot()}`;
+    case 'end-card': return `${head}<main><h1 data-t="hook" data-fit="110,56">${et(c.hook)}</h1>${c.sub ? `<p class="sub" data-t="sub" data-fit="44,30">${et(c.sub)}</p>` : ''}${c.url ? `<p class="url" data-t="url">${et(c.url)}</p>` : ''}</main>${foot(inset)}`;
+    case 'title-card': return `${head}<main><h1 data-t="hook" data-fit="120,60">${et(c.hook)}</h1>${c.sub ? `<p class="sub" data-t="sub" data-fit="44,30">${et(c.sub)}</p>` : ''}</main>`;
     case 'quiz': return `${head}<main><h1 data-t="question" data-fit="92,42">${et(c.question)}</h1><ol class="opts">${(c.options || []).map((o, i) => `<li data-t="option${i + 1}" data-fit="44,30"><b aria-hidden="true">${'ABCDEF'[i]}</b><span>${et(o)}</span></li>`).join('')}</ol>${c.sub ? `<p class="sub" data-t="sub" data-fit="34,30">${et(c.sub)}</p>` : ''}</main>${foot()}`;
   }
   throw new Error(`unknown layout ${L}; use one of ${LAYOUTS.join(', ')}`);
@@ -173,7 +178,8 @@ h2{font-size:60px;line-height:1.08}
 .bul li,.opts li{display:flex;gap:18px;align-items:flex-start;font-size:42px;line-height:1.22}
 .bul b{color:${accent};flex:none;width:1em}
 .L-split h1{font-size:86px}
-.L-quote-card main,.L-stat main,.L-quiz main,.L-us-vs-them main{justify-content:center}
+.L-quote-card main,.L-stat main,.L-quiz main,.L-us-vs-them main,.L-end-card main,.L-title-card main{justify-content:center}
+.url{font-size:34px;font-weight:700;color:${accent};letter-spacing:.01em}
 .L-offer-card main{justify-content:space-evenly}
 .qm{font-family:${df};font-size:200px;line-height:.6;color:${accent};height:90px}
 blockquote{font-size:58px;line-height:1.16;font-weight:600}
@@ -210,7 +216,7 @@ blockquote{font-size:58px;line-height:1.16;font-weight:600}
 .ailabel{flex:none;font-size:22px;line-height:1.2;color:${L === 'notes' ? onColor(accent) : fg};opacity:.85}
 .draft{position:absolute;left:0;right:0;top:0;height:${Math.max(30, Math.round(H * s.t * .6))}px;background:#dc2626;color:#fff;font:700 22px/${Math.max(30, Math.round(H * s.t * .6))}px ${bf};text-align:center;letter-spacing:.12em;z-index:9}
 </style></head><body><div id="ad" class="L-${L} R-${ratio}">
-${pic ? `<div class="pic"><img src="${pic}" alt=""></div>` : (['quote-card', 'stat', 'offer-card'].includes(L) ? '<div class="deco"></div>' : '')}${scrim}
+${pic ? `<div class="pic"><img src="${pic}" alt=""></div>` : (['quote-card', 'stat', 'offer-card', 'end-card', 'title-card'].includes(L) ? '<div class="deco"></div>' : '')}${scrim}
 <div class="safe">${body(spec, base, ratio)}${spec.ai_label ? `<div class="ailabel" data-t="ai_label">${AI_LABEL}</div>` : ''}</div>
 ${spec.draft_label ? `<div class="draft">${esc(spec.draft_label)}</div>` : ''}
 </div></body></html>`;

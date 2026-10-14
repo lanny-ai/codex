@@ -15,7 +15,7 @@ for s in $MEDIA_SKILLS; do
   [ -d "skills/$s" ] || continue
   for src in shared/media/*; do
     f="$(basename "$src")"
-    case "$f" in *.py) dest="skills/$s/scripts/$f" ;; *) dest="skills/$s/references/$f" ;; esac
+    case "$f" in *.py|*.mjs) dest="skills/$s/scripts/$f" ;; *) dest="skills/$s/references/$f" ;; esac
     if [ -f "$dest" ] && ! cmp -s "$src" "$dest" && [ "$dest" -nt "$src" ]; then
       echo "ERROR $dest was edited in the skill. Move the change into $src (the shared source), then rebuild." >&2
       exit 1
@@ -41,7 +41,7 @@ for dir in skills/*/; do
       mkdir -p "$dir/scripts" "$dir/references"
       for src in shared/media/*; do
         f="$(basename "$src")"
-        case "$f" in *.py) cp "$src" "$dir/scripts/$f" ;; *) cp "$src" "$dir/references/$f" ;; esac
+        case "$f" in *.py|*.mjs) cp "$src" "$dir/scripts/$f" ;; *) cp "$src" "$dir/references/$f" ;; esac
       done ;;
   esac
   # Package: a .skill is a zip whose top-level folder is the skill name.
