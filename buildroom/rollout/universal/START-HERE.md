@@ -15,7 +15,7 @@ cd BuildRoom_OS
 claude
 ```
 
-The twenty-seven skills are picked up automatically from `.claude/skills/`. Say:
+The twenty-eight skills are picked up automatically from `.claude/skills/`. Say:
 
 > I'm new to the Build Room — set me up.
 
@@ -55,13 +55,13 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 
 | Path | What it is |
 |---|---|
-| `BUILDROOM_BUSINESS_FILE.md` | **Your** Business File. One file, seventeen sections, every session builds on it. Blank until your first session. |
+| `BUILDROOM_BUSINESS_FILE.md` | **Your** Business File. One file, eighteen sections, every session builds on it. Blank until your first session. |
 | `BuildRoom_OS_Say_These_Words.pdf` | Print it, keep it by your computer: every trigger phrase, what it needs, what it writes. |
 | `tools/BuildRoom_OS_Quick_Start.html` | Open in a browser: the visual guide to the program and every session's trigger phrase. |
 | `tools/Rent_Calculator.html` | Open in a browser: what your undocumented processes cost you. Copies a §9 block into your file. |
 | `tools/Business_File_Viewer.html` | Open in a browser: paste your Business File, see every section's status, your progress, the one session to run next, and your Build Plan. |
 | `tools/Brainstorm_Board.html` | Open in a browser: frame, diverge, cluster, dot-vote, decide, then "Copy for Claude." |
-| `skills/` | The twenty-seven skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
+| `skills/` | The twenty-eight skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
 | `CLAUDE.md`, `AGENTS.md` | Tell Claude Code and Codex what this folder is. Don't delete them. |
 
 ## The sessions

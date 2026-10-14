@@ -43,7 +43,7 @@ The `create-ads-with-agents` skill is the most rigorous ad workflow I have seen 
 |---|---|---|---|
 | **The subject** | E-commerce products; the portfolio is Callout Diagram, Review Card, Offer Card | Service businesses; the portfolio is **founder-led, proof-led, and offer-led**, with QUEST, quizzes and case studies first-class | Members sell themselves, not SKUs |
 | **The hero** | Generated people and products | **The member's real face and real work**, filmed on a phone from a shot list; AI makes the scenes, B-roll, statics, resizes and hook variants around them | NIQ, System1/Orlando Wood (real people, faces, place, dialogue build memory), high-involvement purchase, FTC, New York law |
-| **Provider** | Higgsfield only, three locked models | **Provider router.** Higgsfield by default (MCP for interactive, its CLI or pay-per-generation API for pipelines), fal.ai pay-as-you-go as the no-subscription path (members of the Video Engine already have the key), HeyGen for a consented founder twin. Models chosen per job, read live with live prices | Prices and rosters changed repeatedly in 2026; Sora was shut down; a hard lock breaks the day a model moves |
+| **Provider** | Higgsfield only, three locked models | **Provider router.** Higgsfield by default (MCP for interactive, its pay-per-generation API for pipelines), Kie.ai pay-as-you-go as the no-subscription path, HeyGen for a consented founder twin (phase 2). fal.ai is not routed (founder decision, 2026-10-14). Models chosen per job, read live with live prices | Prices and rosters changed repeatedly in 2026; Sora was shut down; a hard lock breaks the day a model moves |
 | **Audience research** | Researched fresh each assignment | **Read from the Business File.** §2 sourced language, objections and triggers; §4 villain and differentiator; §17 voice. Fresh research only where the file is thin, and it routes to Audience Insight or the Discovery Engine instead of duplicating them | Read before asking; never redo what the file holds |
 | **Concept presentation** | No concept stage; generate straight from strategy | **One short concept table** (the angle in one phrase per concept, why it differs, the hook) before anything paid is generated | A coach must recognise themselves in the angle before money is spent; one approval, not a gauntlet |
 | **The brief** | A separate client brief document | **§18 Advertising** in the Business File holds only what the file doesn't (see section 6). Everything else pre-fills | One file |
@@ -109,7 +109,7 @@ One skill, `buildroom-ad-studio`, in the house pattern: a SKILL.md orchestrator,
 
 | Script | Does |
 |---|---|
-| `gen.py` | Provider adapter (Higgsfield API or CLI, fal.ai, HeyGen): `--dry-run` shows every request and its price, `--probe` confirms keys and models, real runs go through the ledger. Same pattern as the GHL push and the certainty adapter |
+| `gen.py` | Provider adapter (Higgsfield API, Kie.ai; HeyGen in phase 2): `--dry-run` shows every request and its price, `--probe` confirms keys and models, real runs go through the ledger. Same pattern as the GHL push and the certainty adapter |
 | `ledger.py` | Adapted from the uploaded `workflow_state.py`: reserve, submitting, record, reconcile, spend cap from §18, two-repair ceiling |
 | `render_static.mjs` | Deterministic static compositor in Chromium: generated photo + real fonts + exact copy + brand kit + safe-zone overlay check, exports every ratio |
 | `assemble_video.py` | ffmpeg: A-roll + B-roll, burned captions, brand cue in the first two seconds, CTA hold, loudness, exports per ratio |
@@ -121,8 +121,8 @@ One skill, `buildroom-ad-studio`, in the house pattern: a SKILL.md orchestrator,
 | Provider | Link | Status |
 |---|---|---|
 | Higgsfield | `https://higgsfield.ai?fpr=lanny-756d90` | Ready. Program pays recurring commission for 12 months through Impact.com; new sign-ups may see a time-limited discount. Confirm current terms before quoting a percentage to members |
-| fal.ai | Pending | Waiting on the link |
-| Kie.ai | `https://kie.ai?ref=62126a8991d5546179db893d9bc15a7c` | Ready. Pay-as-you-go credit aggregator (Veo, Seedance, Wan, Nano Banana and others), no subscription; reviews report failed jobs aren't charged. A candidate cheap route in the router alongside fal.ai. Commission terms not found publicly; confirm before quoting |
+| fal.ai | — | Not routed in the Ad Studio (founder decision, 2026-10-14) |
+| Kie.ai | `https://kie.ai?ref=62126a8991d5546179db893d9bc15a7c` | Ready, in the router as the pay-as-you-go path. Credit aggregator (Veo, Seedance, Wan, Nano Banana and others), no subscription; reviews report failed jobs aren't charged. Commission terms not found publicly; confirm before quoting |
 | HeyGen | None | Plain sign-up link only |
 
 ## 8. The testing and learning loop for small budgets
@@ -147,14 +147,27 @@ This plugs into what exists: the **Funnel Scorecard** reads the ad results as st
 | **3 · The loop** | Ad Library scan, results intake through the Funnel Scorecard, metric diagnosis, the learning library, the auto-drafted next brief, fatigue monitor | A second monthly cycle is briefed from the first cycle's logged results with no re-entry |
 | **4 · Optional upload** | Upload approved ads to Meta **paused**, through the Marketing API with the member's token in `.env` | Only if you want it; the uploaded skill deliberately stops at delivery, and so does this plan until you decide |
 
+## Phase 1 status (built 2026-10-14)
+
+Shipped as `buildroom/skills/buildroom-ad-studio/`: the SKILL.md orchestrator; fourteen references (ad principles, quality gates G0–G4 with the separate reviewer, service portfolio and the eight layouts, concept matrix, compliance and the disclosure sheet, generation router with the setup step and affiliate links, image direction, typography, ledger, launch kit, source credit, plus the Kern and Halbert systems); four scripts, each tested:
+
+- `ledger.py` — gates, per-provider spend cap, reserve → submitting → pending → completed, reconcile-before-retry, two-repair ceiling, reviewer-only G3/G4 passes, member approval; refuses the kit until everything passed.
+- `gen.py` — Higgsfield and Kie.ai still-image adapter through the ledger; `--dry-run`, `--probe`, `--resume`. Tested end to end against a local mock of both providers' shapes (success, provider failure, 4xx rejection, timeout recovery). The live request shapes are unverified until `--probe` runs with real keys.
+- `render_static.mjs` — eight layouts in 1:1, 4:5 and 9:16, real fonts (Google Fonts or local files), every word from the approved manifest, auto-fit, overflow, safe-zone and contrast checks, safe-zone overlays for the reviewer.
+- `review_pack.py` — contact sheet, reviewer checklist with copy-manifest match, PNG size and optional OCR; the launch kit (named files, `ads.csv` with UTMs, landing headlines, test plan, disclosure sheet, learning-library rows).
+
+Also: §18 Advertising in the Business File template (spec v1.2), the viewer, the navigator roadmap, CLAUDE.md, START-HERE, the Quick Start, the member README and the printable guide ("Make me ads"). The Funnel Scorecard answers "How did my ads do?" until phase 3.
+
+**Dry run on AI Momentum Labs:** brief, matrix, three concepts with three hooks each, copy, 27 layout proofs, a generation dry run, the review pack and a kit preview, with the plates and the founder photo as labelled placeholders. **Not yet done:** the live run on your own account (needs your Higgsfield or Kie.ai key in `.env`, your real photo and live prices).
+
 ## 10. Decisions for you
 
-1. **Provider.** Recommended: Higgsfield as the default hub with fal.ai as the pay-as-you-go path, both behind one router with live prices and a monthly spend cap in §18. Kie.ai is a second pay-as-you-go option the router can price against fal.ai per job. Every sign-up goes through your affiliate links with the disclosure beside them (section 7). The alternative is the uploaded skill's hard lock to Higgsfield and its three models.
-2. **Generated people.** Recommended: no photoreal AI people as heroes, ever; AI people only as clearly secondary background figures, auto-disclosed. The founder twin only with written consent. The alternative is allowing AI presenters with disclosure, which the evidence says costs trust exactly where members sell.
-3. **Upload.** Recommended: stop at an upload-ready kit in phase 1 to 3. Decide on paused upload after phase 3.
-4. **Attribution of the uploaded skill.** Its workflow and direction references are substantial original work. If it came from someone else, confirm we may adapt it, and credit it in the references as we did for the Codex Prompt Library and the Genie.
-5. **The first test member.** Recommended: AI Momentum Labs itself, your Install Call funnel, the same way the Funnel Scorecard dry run used your §6.
+1. **Provider.** **Decided 2026-10-14:** Higgsfield as the default hub, Kie.ai as the pay-as-you-go path, both behind one router with live prices and a monthly cap in §18; fal.ai left off. Every sign-up goes through your affiliate links with the disclosure beside them (section 7).
+2. **Generated people.** _Built as recommended; say if you want it changed._ Recommended: no photoreal AI people as heroes, ever; AI people only as clearly secondary background figures, auto-disclosed. The founder twin only with written consent. The alternative is allowing AI presenters with disclosure, which the evidence says costs trust exactly where members sell.
+3. **Upload.** _Built as recommended._ Recommended: stop at an upload-ready kit in phase 1 to 3. Decide on paused upload after phase 3.
+4. **Attribution of the uploaded skill.** _Credited in `references/source-credit.md`; still open: confirm we may adapt it._ Its workflow and direction references are substantial original work. If it came from someone else, confirm we may adapt it, and credit it in the references as we did for the Codex Prompt Library and the Genie.
+5. **The first test member.** _Dry run done on AI Momentum Labs; the live run waits on your key and photo._ Recommended: AI Momentum Labs itself, your Install Call funnel, the same way the Funnel Scorecard dry run used your §6.
 
 ## 11. Verify before it reaches members
 
-The research could not fetch most primary pages. Before any of these appear in member-facing material, check them against the source: the NCSolutions creative share (47% / 49%), Field's creativity multiplier (12x falling below 4x), the Binet & Field category splits, Meta's creative testing tool limits and the 20% budget suggestion, Higgsfield's API prices, the New York law's signing date, the EU Article 50 deferrals, whether Meta auto-labels third-party AI ads, and the Higgsfield, fal.ai and Kie.ai affiliate terms and Kie.ai's per-model prices. The full list with sources is at the top of the research report.
+The research could not fetch most primary pages. Before any of these appear in member-facing material, check them against the source: the NCSolutions creative share (47% / 49%), Field's creativity multiplier (12x falling below 4x), the Binet & Field category splits, Meta's creative testing tool limits and the 20% budget suggestion, Higgsfield's API prices, the New York law's signing date, the EU Article 50 deferrals, whether Meta auto-labels third-party AI ads, the Higgsfield and Kie.ai affiliate terms, Kie.ai's per-model prices, the Reels safe-zone margins (14% / 35% / 6%), and both providers' API request shapes (`gen.py --probe`). The full list with sources is at the top of the research report.

@@ -40,6 +40,15 @@ Run after the foundation (needs §1; every message gets sharper with §2 and §3
 |---|---|---|---|---|
 | 1 | Sales Conversations (script + role-play) | `buildroom-sales-script` | §15 | §3 (best with §2 §4) |
 
+### Advertising sequence — Ad Studio
+Run after the funnel has a live destination (§7 or §5) and, ideally, after the Traffic Strategy says paid traffic is on. Monthly: one cycle per month.
+
+| # | Session | Skill | Builds (file §) | Requires |
+|---|---|---|---|---|
+| 1 | Ad Studio (brief → matrix → three concepts → copy → statics in three ratios → review → launch kit; paid image generation through a spend ledger) | `buildroom-ad-studio` | §18, §13 rows | §2 §3 (best with §4 §7) |
+
+Statics only in this release; video (shoot list, founder-led and proof-led edits) and the results loop arrive next. Route "How did my ads do?" to the **Funnel Scorecard** until the loop ships.
+
 ### Operations sequence — Operations & SOPs
 Run after the foundation. Documents the business so it can be delegated.
 
@@ -102,6 +111,7 @@ When routing, give the member the exact words to start the session:
 - Ops Dashboard → "What numbers should I be watching every week?"
 - Lead Gen Machine → "Help me get more leads" (the skill picks the module from §14)
 - Sales Conversations → "Help me with my sales call"
+- Ad Studio → "Make me ads"
 - Audience Insight → "Find the words my clients actually use"
 - Offer Deep Dive → "Make my offer a no-brainer"
 - Copy Engine → "Write me [the piece]"

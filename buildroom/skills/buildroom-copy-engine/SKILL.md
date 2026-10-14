@@ -74,6 +74,8 @@ Ask what hits and what misses. Offer the variants that matter for the format: mo
 
 ## What This Skill Does NOT Do
 
+- Make a full ad set. Concepts, finished images in three ratios, review and a launch kit belong to the **Ad Studio** ("Make me ads"). This skill writes a single ad's words when that is all the member asks for.
+
 - Build the offer (§3), the positioning (§4), the offer page as a system (§5), or the lead magnet and landing page as a system (§7). It writes copy for them.
 - Invent testimonials, results, or numbers.
 - Present generated language as something a customer said.

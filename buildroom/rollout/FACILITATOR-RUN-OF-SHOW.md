@@ -26,7 +26,7 @@ Everything in the hour serves that sentence. Don't teach the architecture — sh
 
 ### 00:12 — Install together (8 min)
 - Screen-share `START-HERE.md`.
-- Everyone unzips the folder and opens a terminal in it: `claude` or `codex`. The twenty-seven skills load on their own.
+- Everyone unzips the folder and opens a terminal in it: `claude` or `codex`. The twenty-eight skills load on their own.
 - Members with an earlier zip: replace the folder, copy the Business File back in.
 - While uploads run, preview the session table — what each skill builds and its trigger phrase.
 

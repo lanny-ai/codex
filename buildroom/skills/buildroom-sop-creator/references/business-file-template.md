@@ -292,6 +292,28 @@ _Built by: Compass session · Requires: —_
 
 ---
 
+## 18. Advertising
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: Ad Studio · Requires: §2, §3; best with §4, §7_
+
+- **Budget** (amount · period) · **margin per sale before ads:**
+- **Paid traffic** (on / not yet · why):
+- **Success metric** (cost per qualified lead or booked call · what counts as qualified · where it is counted):
+- **Never-say claims:**
+- **Wrong fit** (who the offer is not for):
+- **Proof vault** (location · consented testimonials · real numbers · review count + rating · founder photos):
+- **Brand kit** (1–3 locked assets: face · colour · name · line · shape · fonts):
+- **Platforms** (Meta ad account ready · LinkedIn · who approves):
+- **Generation** (provider · monthly cap in provider units · likeness consent on file):
+- **Past results** (campaign · dates · spend · leads · qualified · counting rule):
+  - —
+- **Current cycle** (month · concepts · hooks · status · winner · next brief):
+- **Learning library:** [ads/learning-library.csv]
+- **Launch kit:** [folder]
+
+---
+
 ## 8. Session Log
 
 | Date | Session | Outputs produced | Status | Rating (1–5) | Notes |
