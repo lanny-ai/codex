@@ -21,7 +21,7 @@ One flow for all four: brief (G0) → beats (G1) → script one piece at a time 
 
 **Business File 1.3:** §19 Video; §1 *Retired lines*, bound into the shared protocol so a retired line is never used again by any skill.
 
-**Tests:** `buildroom/tests/media/run_tests.py`: ledger rules, generation and SubMagic against a local mock of all four providers, assembly, alignment and captions on synthetic media, review with planted defects, kits, the renderer. No network, no keys, no spend.
+**Tests:** `buildroom/tests/media/run_tests.py` (51 checks): ledger rules, generation and SubMagic against a local mock of all four providers, assembly, alignment and captions on synthetic media, review with planted defects and placeholder media, word-timed cutaways and caption-hiding cards, per-placement kits and the AI-label refusal, caption rules, the renderer. No network, no keys, no spend.
 
 ## Decisions made
 
@@ -38,10 +38,23 @@ One flow for all four: brief (G0) → beats (G1) → script one piece at a time 
 11. **Retired lines:** the founder's "taught emergency responders decontamination" credibility line is removed from the Ad Studio dry run and listed under §1 *Retired lines* in the founder's migrated Business File; no new example uses it.
 12. **fal.ai is not routed; Sora is never used.** The Video Engine zip's own pipeline may still call fal.ai; the Build Room routes do not.
 
+## What the first review changed
+
+An independent reviewer failed every gate on the first dry run and found seven tooling flaws. Fixed in the tools, so every member benefits:
+
+- **No false passes.** An edit marked `placeholder`, or a transcript aligned from the script, has its loudness, first word, dead air and cuts reported as unverified, never as passes.
+- **Checks that look at the result.** Captions are checked against the end card (none may run onto it) and against the top of the safe zone as well as the bottom; safe-zone frames are taken at 0.5 s, the middle and the end card.
+- **Captions.** One box around each caption; a cue never spans two sentences; a line never ends on "the", "a", "to", "your"…; a number stays with its unit; line length per ratio (about 26 characters for 1080-wide, 40 for 16:9); captions stop before the end card and hide under cards that carry their own words (a guarantee).
+- **The edit.** Cutaways timed to words (`at_word` / `until_word`) so they stay in sync after a re-cut; stills as cutaways (guarantee cards); `fit: "pad"` for screen recordings in 9:16; `zoom`; a warning when a clip is enlarged more than 5%.
+- **Gates.** G2 (the approved words, guarantees included) passes only `--by member`, except in demo mode.
+- **The kit.** One publish row per placement with its own ask and UTM; thumbnails from the uncaptioned cut; refuses a generated person without the AI label; flags approximate captions under "Before upload". The SubMagic template is the member's choice and required.
+- **Rules.** The ad playbook needs one opening per approved hook on the same body; a booking ask never goes to people who already booked (cut a placement version); generated B-roll keeps the caption band clear; a session inserts a missing Business File section from the template rather than writing around it.
+
 ## Unverified until checked live
 
 - **Provider request shapes** for Higgsfield (image and video), Kie.ai (createTask image and video), HeyGen (v2 generate, status) and SubMagic (project create, upload, status, export): written from public descriptions; the docs were unreachable from the build environment. Each lives in one config block; `gen.py --probe` and `submagic.py --probe` confirm them with real keys.
 - **Live prices** and current model IDs per provider.
 - **Safe-zone margins** per platform (check quarterly).
+- **One box per caption** needs libass 0.17 or later (any ffmpeg from 2023 on); older builds set `box_style: "lines"`. Tested here on ffmpeg 7.0.2.
 - **Motion, pacing and feel** of every real video (the member watches).
 - **Founder items:** the §3 guarantee wording sign-off, likeness and voice consent (§19), live-page checks (the Babysitting Test's email capture, WF-1).
