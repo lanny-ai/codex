@@ -166,10 +166,11 @@ def cmd_kit(a):
     concepts = {c["id"]: c for c in manifest.get("concepts", [])}
     reps = load_reports(a.renders)
     led_ads = {x["id"]: x for x in data["ads"]}
-    out = Path(a.out)
-    if out.exists() and any(out.iterdir()):
-        if not a.force:
-            raise SystemExit(f"{out} is not empty; pass --force to rebuild it")
+    final_out = Path(a.out)
+    if final_out.exists() and any(final_out.iterdir()) and not a.force:
+        raise SystemExit(f"{final_out} is not empty; pass --force to rebuild it")
+    out = final_out.with_name(final_out.name + ".building")  # built aside, swapped in only when complete
+    if out.exists():
         shutil.rmtree(out)
     (out / "ads").mkdir(parents=True, exist_ok=True)
     rows, disc, lib = [], [], []
@@ -234,9 +235,14 @@ def cmd_kit(a):
           "Keep the original generated files; their provenance metadata is part of the record. "
           "This sheet records the checks made; it is not legal advice or a guarantee of platform approval."]
     (out / "disclosure-sheet.md").write_text("\n".join(ds) + "\n", encoding="utf-8")
-    libf = out.parent / "learning-library.csv"
-    if errs:  # a preview never enters the learning library
+    libf = final_out.parent / "learning-library.csv"
+    if errs:
         (out / "NOT-READY.txt").write_text("PREVIEW ONLY. Not upload-ready:\n- " + "\n- ".join(errs) + "\n", encoding="utf-8")
+    if final_out.exists():
+        shutil.rmtree(final_out)
+    out.rename(final_out)
+    out = final_out
+    if errs:  # a preview never enters the learning library
         print(f"kit PREVIEW written to {out} · {len(rows)} ads · NOT upload-ready (see NOT-READY.txt)")
         return
     new = not libf.exists()

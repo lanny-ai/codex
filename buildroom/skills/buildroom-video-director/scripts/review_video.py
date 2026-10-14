@@ -196,10 +196,12 @@ def kit(a):
     m = load_json(a.manifest)
     cycle = m.get("cycle") or data["cycle"]
     yymm = re.sub(r"\D", "", cycle)[2:6] or cycle
-    out, renders = Path(a.out), Path(a.renders)
-    if out.exists() and any(out.iterdir()):
-        if not a.force:
-            raise SystemExit(f"{out} is not empty; pass --force to rebuild it")
+    final_out, renders = Path(a.out), Path(a.renders)
+    if final_out.exists() and any(final_out.iterdir()) and not a.force:
+        raise SystemExit(f"{final_out} is not empty; pass --force to rebuild it")
+    ffmpeg_bin()  # fail before touching anything if ffmpeg is missing
+    out = final_out.with_name(final_out.name + ".building")  # built aside, swapped in only when complete
+    if out.exists():
         shutil.rmtree(out)
     for d in ("videos", "captions", "thumbnails"):
         (out / d).mkdir(parents=True, exist_ok=True)
@@ -245,9 +247,13 @@ def kit(a):
         "or a guarantee of platform approval."]) + "\n", encoding="utf-8")
     if errs:
         (out / "NOT-READY.txt").write_text("PREVIEW ONLY. Not ready to publish:\n- " + "\n- ".join(errs) + "\n", encoding="utf-8")
-        print(f"kit PREVIEW written to {out} · {len(m['videos'])} videos · NOT ready (see NOT-READY.txt)")
+    if final_out.exists():
+        shutil.rmtree(final_out)
+    out.rename(final_out)
+    if errs:
+        print(f"kit PREVIEW written to {final_out} · {len(m['videos'])} videos · NOT ready (see NOT-READY.txt)")
     else:
-        print(f"kit written to {out} · {len(m['videos'])} videos · {len(rows)} files")
+        print(f"kit written to {final_out} · {len(m['videos'])} videos · {len(rows)} files")
 
 
 def main():

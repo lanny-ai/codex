@@ -143,7 +143,7 @@ This plugs into what exists: the **Funnel Scorecard** reads the ad results as st
 | Phase | Ships | Done when |
 |---|---|---|
 | **1 · Statics and the brain** (first) | The skill, §18, the brief, matrix, concepts, copy, gates G0–G4, the reviewer agent, `render_static.mjs`, `gen.py` and `ledger.py` for images only, the launch kit and disclosure sheet | One real member's file produces three distinct static concepts, each with three hooks, in three ratios, through every gate, with a dry run and a live run on your own account |
-| **2 · Video** | The shoot list, `assemble_video.py`, video routes in the router, HeyGen twin with consent, full-media review | A founder-led and a proof-led video assembled from real phone footage plus generated B-roll pass G3 on full playback with sound |
+| **2 · Video** _(built 2026-10-14 as the Video Director's ad playbook; see `docs/BUILDROOM-VIDEO-DIRECTOR.md`)_ | The shoot list, `assemble_video.py`, video routes in the router, HeyGen twin with consent, full-media review | A founder-led and a proof-led video assembled from real phone footage plus generated B-roll pass G3 on full playback with sound _(dry run done on placeholder footage; the real-footage pass waits on the founder's shoot)_ |
 | **3 · The loop** | Ad Library scan, results intake through the Funnel Scorecard, metric diagnosis, the learning library, the auto-drafted next brief, fatigue monitor | A second monthly cycle is briefed from the first cycle's logged results with no re-entry |
 | **4 · Optional upload** | Upload approved ads to Meta **paused**, through the Marketing API with the member's token in `.env` | Only if you want it; the uploaded skill deliberately stops at delivery, and so does this plan until you decide |
 
