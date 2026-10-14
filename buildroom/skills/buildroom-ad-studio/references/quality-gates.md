@@ -32,7 +32,7 @@ Every line passes:
 - **Length set by awareness** (see `concept-matrix.md`).
 - **Emotion opens, reason closes.**
 - **Sourced language** for any line in the customer's voice; any hypothesis-tagged phrase flagged under the ad, never presented as a client's words.
-- The Kern or Halbert checks from those references (no em dashes in Kern pieces, one CTA, one reader).
+- The Kern or Halbert checks from those references (no em dashes in Kern pieces, one CTA, one reader). A quotation is never restyled: it keeps its exact words and punctuation.
 - **Message match:** the landing headline repeats the ad's angle.
 - **Every hook names its subject** ("We install your AI workforce," not "We install it").
 - **Typography in the words themselves:** curly quotes and apostrophes (’ “ ”), a non-breaking space where a number and its unit must not split ("30 minutes"), answer bands that do not overlap ("2 to 5", "6 to 10").

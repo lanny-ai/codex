@@ -37,7 +37,8 @@ from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
-SCHEMA = "buildroom-ad-studio/1"
+SCHEMA = "buildroom-media/1"  # shared by the Ad Studio and the Video Director
+OLD_SCHEMAS = {"buildroom-ad-studio/1"}  # read as-is, upgraded on the next write
 PROVIDERS = {"higgsfield", "kie", "heygen", "submagic"}
 KINDS = {"plate", "broll", "twin", "captions"}
 STATES = {
@@ -97,8 +98,10 @@ def locked(path):
 def load(path):
     with open(path, encoding="utf-8") as fh:
         data = json.load(fh)
+    if data.get("schema") in OLD_SCHEMAS:
+        data["schema"] = SCHEMA
     if data.get("schema") != SCHEMA:
-        raise ValueError("not an Ad Studio ledger (schema mismatch)")
+        raise ValueError("not a Build Room media ledger (schema mismatch)")
     return data
 
 

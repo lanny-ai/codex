@@ -38,7 +38,7 @@ videos/2026-10-install-explainer/      (or ads/2026-10/video/ when the Ad Studio
    "music": "Artlist track 'Morning Light', commercial licence #…"}]}
 ```
 
-`placements` is optional. Without it the kit writes one row per ratio. With it, one row per placement, each with its own copy, ask and UTM (`utm_medium` overrides the default); a placement that needs a different spoken ask (the email to someone who already booked) is its own render with its own `id`. Mark a generated shot `"person": true` (or `"kind": "twin"`) when a generated person appears: the kit then refuses unless `ai_label` is true.
+`placements` is optional. Without it the kit writes one row per ratio. With it, one row per placement, each with its own copy, ask and UTM (`utm_medium` overrides the default); a placement that needs a different spoken ask (the email to someone who already booked) is its own render with its own `id`. Mark a placement `"audience": "booked"` when it reaches people who have already booked (confirmation and reminder emails) and give the manifest a top-level `"booking_url"`: the kit refuses such a placement when it has no link or links to the booking page. Mark a generated shot `"person": true` (or `"kind": "twin"`) when a generated person appears: the kit then refuses unless `ai_label` is true.
 
 ## Naming
 

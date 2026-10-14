@@ -179,6 +179,7 @@ h2{font-size:60px;line-height:1.08}
 .bul b{color:${accent};flex:none;width:1em}
 .L-split h1{font-size:86px}
 .L-quote-card main,.L-stat main,.L-quiz main,.L-us-vs-them main,.L-end-card main,.L-title-card main{justify-content:center}
+.L-end-card .safe,.L-title-card .safe{padding:0 ${Math.round(W * .025)}px}
 .url{font-size:34px;font-weight:700;color:${accent};letter-spacing:.01em}
 .L-offer-card main{justify-content:space-evenly}
 .qm{font-family:${df};font-size:200px;line-height:.6;color:${accent};height:90px}

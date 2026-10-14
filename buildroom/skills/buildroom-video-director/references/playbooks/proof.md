@@ -29,7 +29,7 @@ The member asks, then stays quiet. The best lines come after the pause.
 
 ## The edit
 
-- **Verbatim and in context.** Cut for length, never for meaning; no reordering that changes what was said; keep the context of a result ("in our first month, with our own list").
+- **Verbatim and in context.** Cut for length, never for meaning; no reordering that changes what was said; keep the context of a result ("in our first month, with our own list"). Written quotes keep their exact punctuation too (em dashes included); house style never edits a quote. Each result keeps its timeframe and what it was about (training, a build, the product).
 - **Structures:** Before · during · after; The objection answered (`story-structures.md`).
 - **Cuts:** one 2–3 min story (16:9 for pages and YouTube), three 20–40 s clips (9:16 for ads and social), each built around one specific line.
 - Lower-third with the name as consented. Light music or none. Captions burned in.

@@ -104,9 +104,17 @@ def segment(c, src, W, H, fps, out, log, pad="#0f1424", warnings=None):
     dur = clip_duration(c)
     vf = cover(W, H, c.get("focus"), c.get("zoom", 1.0), c.get("fit", "cover"), pad)
     if warnings is not None:
-        e = enlargement(probe(src), W, H, c.get("zoom", 1.0), c.get("fit", "cover"))
+        info = probe(src)
+        e = enlargement(info, W, H, c.get("zoom", 1.0), c.get("fit", "cover"))
         if e and e > 1.05:
             warnings.append(f"{Path(src).name} enlarged {e}x for {W}x{H}: it will look soft; shoot 4K or a separate take in this ratio, or use fit: pad")
+        if e and c.get("fit") == "pad" and e < 0.7:
+            warnings.append(f"{Path(src).name} shown at {e}x in {W}x{H} (padded): text in it will be hard to read on a phone, and the "
+                            "captions may cover it; record a version in this ratio (src with {ratio}) or crop to the part that matters")
+        still_src = c.get("type") == "card" or src.suffix.lower() in (".png", ".jpg", ".jpeg")
+        if not still_src and info.get("duration") and info["duration"] + 0.05 < float(c.get("in", 0)) + clip_duration(c):
+            warnings.append(f"{Path(src).name} is {info['duration']:.2f} s long but the edit asks for {float(c.get('in', 0)):.2f}–"
+                            f"{float(c.get('in', 0)) + clip_duration(c):.2f} s: it ends early (a cutaway drops back to the take underneath)")
     if dur <= 0:
         raise SystemExit(f"clip {c.get('src')}: out must be after in")
     still = c.get("type") == "card" or src.suffix.lower() in (".png", ".jpg", ".jpeg")
@@ -174,9 +182,23 @@ def write_ass(cues, cap, ratio, path):
             "block_h": int(max_lines * size * 1.2 + 2 * pad), "box_style": "lines" if border == 3 else "single"}
 
 
+def take_joins(clips):
+    """Timeline times where one A-roll take meets another: {clip index after the join: time}."""
+    t, out = 0.0, {}
+    for i, c in enumerate(clips):
+        if i and c.get("type", "aroll") == "aroll" and clips[i - 1].get("type", "aroll") == "aroll":
+            out[i] = round(t, 3)
+        t += clip_duration(c)
+    return out
+
+
 def resolve_cutaways(edl, base):
     """Cutaways may be timed to the words: {"at_word": "Your first agent", "until_word": "on us."}.
-    Needs the transcript; falls back to "at"/"dur" when it is missing."""
+    Needs the transcript; falls back to "at"/"dur" when it is missing. They may also be tied to a
+    join between takes: "at_join": 1 starts the cutaway at the join before clip 1 (minus "lead",
+    default 0.1 s), so a hook take plays whole on the face; "cover_join": 2 stretches the cutaway
+    to at least 0.3 s past the join before clip 2, so the jump between takes is never seen."""
+    joins = take_joins(edl["clips"])
     cap = edl.get("captions") or {}
     tpath = base / cap.get("transcript", "transcript.json")
     words = load_json(tpath)["words"] if tpath.exists() else None
@@ -204,6 +226,19 @@ def resolve_cutaways(edl, base):
         elif cw.get("at_word"):
             if "at" not in cw:
                 raise SystemExit(f"cutaway '{cw['src']}' is timed to a word but there is no transcript yet; give 'at' and 'dur' for the first cut")
+        if cw.get("at_join") is not None:
+            j = joins.get(int(cw["at_join"]))
+            if j is None:
+                raise SystemExit(f"cutaway at_join {cw['at_join']}: there is no join between takes before clip {cw['at_join']}")
+            end = float(cw["at"]) + float(cw["dur"])
+            cw["at"] = round(j - float(cw.get("join_lead", 0.1)), 3)
+            cw["dur"] = round(end - cw["at"], 3)
+        if cw.get("cover_join") is not None:
+            j = joins.get(int(cw["cover_join"]))
+            if j is None:
+                raise SystemExit(f"cutaway cover_join {cw['cover_join']}: there is no join between takes before clip {cw['cover_join']}")
+            cw["at"] = min(float(cw["at"]), round(j - 0.3, 3))
+            cw["dur"] = round(max(float(cw["at"]) + float(cw["dur"]), j + 0.3) - float(cw["at"]), 3)
         out.append(cw)
     return out
 
@@ -219,6 +254,16 @@ def build_ratio(edl, base, ratio, out_dir, report, plan_only=False):
     cutaways = resolve_cutaways(edl, base)
     pad = (edl.get("brand") or {}).get("bg", edl.get("pad_color", "#0f1424"))
     entry["warnings"] = []
+    deliberate = set(int(x) for x in edl.get("deliberate_jumps", []))
+    entry["take_joins"] = []
+    for i, t in take_joins(clips).items():
+        covered = any(float(cw["at"]) <= t - 0.1 and float(cw["at"]) + float(cw["dur"]) >= t + 0.1 for cw in cutaways)
+        entry["take_joins"].append({"before_clip": i, "at": t, "covered": covered, "deliberate": i in deliberate})
+        if not covered and i not in deliberate:
+            entry["warnings"].append(f"the join between takes at {t:.2f} s (before clip {i}) is not under a cutaway: a visible jump. "
+                                     f"Lay a cutaway across it (cover_join: {i}) or list it in deliberate_jumps")
+    entry["cutaways"] = [{"src": cw["src"], "at": round(float(cw["at"]), 3), "dur": round(float(cw["dur"]), 3),
+                          "hide_captions": bool(cw.get("hide_captions"))} for cw in cutaways]
     for c in clips + cutaways:
         p = resolve(base, c["src"], ratio)
         entry["inputs"][str(p.relative_to(base) if base in p.parents else p)] = sha(p)
@@ -337,9 +382,11 @@ def build_ratio(edl, base, ratio, out_dir, report, plan_only=False):
                                 kept.append(c)
                             elif c["start"] < a0:
                                 kept.append({**c, "end": a0})
-                            elif c["end"] >= a1 + 0.7:  # starts under the card but runs past it: show it once the card goes
-                                kept.append({**c, "start": a1})
+                            elif c["end"] > a1 + 0.05:  # starts under the card but runs past it: show it once the card goes
+                                kept.append({**c, "start": a1, "end": max(c["end"], a1 + 0.7)})
                         cues = kept
+                for c, nx in zip(cues, cues[1:]):  # a held cue never overlaps the next
+                    c["end"] = min(c["end"], nx["start"])
                 entry["caption_cues"] = [{"start": round(c["start"], 3), "end": round(c["end"], 3), "lines": c["lines"]} for c in cues]
                 ass = tmp / "captions.ass"
                 entry["caption_style"] = write_ass(cues, cap, ratio, ass)

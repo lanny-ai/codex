@@ -128,7 +128,7 @@ def main():
            "clips": [{"src": "media/aroll.mp4", "in": 0, "out": 2.6, "type": "aroll"},
                      {"src": "media/aroll.mp4", "in": 2.6, "out": 10.0, "type": "aroll"},
                      {"src": "media/end_{ratio}.png", "type": "card", "dur": 3.0}],
-           "cutaways": [{"src": "media/broll.mp4", "at": 4.0, "dur": 2.0}],
+           "cutaways": [{"src": "media/broll.mp4", "at": 4.0, "dur": 2.0, "cover_join": 1}],
            "brand_cue": {"src": "media/logo.png", "at": 0, "dur": 2.0},
            "music": {"src": "media/bed.m4a", "gain_db": -22, "duck": True},
            "captions": {"mode": "burn", "transcript": "transcript.json", "size": 64, "max_chars": 24}, "loudness": -14}
@@ -179,6 +179,30 @@ def main():
     a0, a1 = w_b["start"] - 0.1, w_a["end"] + 0.25
     check("assemble: a card timed to the words hides the captions under it",
           ru.get("final") and all(c["end"] <= a0 + 0.01 or c["start"] >= a1 - 0.01 for c in ru.get("caption_cues", [])))
+    check("assemble: a padded 16:9 shot shrunk in 9:16 is warned as hard to read", any("hard to read" in w for w in warns), str(warns))
+
+    # ---- joins between takes, short sources ----
+    edl_j = {"id": "J", "playbook": "ad", "fps": 30, "ratios": ["9x16"], "out_dir": "renders",
+             "clips": [{"src": "media/aroll.mp4", "in": 0, "out": 5.0, "type": "aroll"},
+                       {"src": "media/aroll.mp4", "in": 5.3, "out": 10.0, "type": "aroll"},
+                       {"src": "media/end_{ratio}.png", "type": "card", "dur": 3.0}],
+             "cutaways": [{"src": "media/broll.mp4", "at": 6.0, "dur": 2.0, "in": 0, "at_join": 1},
+                          {"src": "media/broll.mp4", "at": 8.0, "dur": 2.0, "in": 4.0}],
+             "brand_cue": {"type": "face"}, "captions": {"mode": "none"}, "loudness": -14}
+    (work / "edit-j.json").write_text(json.dumps(edl_j))
+    ok, out, _ = sh([py, VD / "assemble_video.py", "edit-j.json"], work, env)
+    rj = json.loads((work / "renders/J.assemble.json").read_text())["ratios"][0]
+    cw0 = rj.get("cutaways", [{}])[0]
+    check("assemble: at_join starts the cutaway at the take join and keeps its end",
+          ok and abs(cw0.get("at", 0) - 4.9) < 0.01 and abs(cw0["at"] + cw0["dur"] - 8.0) < 0.01, str(rj.get("cutaways")))
+    check("assemble: a cutaway past the end of its source is warned", any("ends early" in w for w in rj["warnings"]), str(rj["warnings"]))
+    edl_j2 = dict(edl_j, id="J2", cutaways=[])
+    (work / "edit-j2.json").write_text(json.dumps(edl_j2))
+    sh([py, VD / "assemble_video.py", "edit-j2.json"], work, env)
+    ok, out, _ = sh([py, VD / "review_video.py", "check", "--video", "renders/J2_9x16.mp4", "--edit", "edit-j2.json", "--out", "review-j"], work, env, ok_codes=(1,))
+    rj2 = json.loads((work / "review-j/J2_9x16.check.json").read_text())
+    check("review: an uncovered join between takes fails", ok and any(c["check"] == "every join between takes covered" and c["result"] == "FAIL" for c in rj2["checks"]), out[-300:])
+
     ok, out, _ = sh([py, VD / "review_video.py", "check", "--video", "renders/U_9x16.mp4", "--edit", "edit-u.json", "--script", "script.txt", "--out", "review-u"], work, env, ok_codes=(0, 1))
     res_u = json.loads((work / "review-u/U_9x16.check.json").read_text())
     names = {c["check"] for c in res_u["checks"]}
@@ -246,6 +270,12 @@ def main():
     ok, out, _ = sh([py, VD / "review_video.py", "kit", "--project", VP, "--manifest", "videos-p.json", "--renders", "renders", "--out", "kit-p"], work, env, ok_codes=(1,))
     check("kit refused when a generated person appears without the AI label", ok and "AI label" in out and not (work / "kit-p").exists(), out[-300:])
     man["videos"][0]["ai_label"] = True
+    man["booking_url"] = "https://example.com"
+    man["videos"][0]["placements"][2]["audience"] = "booked"
+    (work / "videos-p.json").write_text(json.dumps(man))
+    ok, out, _ = sh([py, VD / "review_video.py", "kit", "--project", VP, "--manifest", "videos-p.json", "--renders", "renders", "--out", "kit-p"], work, env, ok_codes=(1,))
+    check("kit refused when a placement for people who booked links to the booking page", ok and "already booked" in out, out[-300:])
+    man["videos"][0]["placements"][2]["url"] = "https://video.example.org/before-your-call"
     (work / "videos-p.json").write_text(json.dumps(man))
     ok, out, _ = sh([py, VD / "review_video.py", "kit", "--project", VP, "--manifest", "videos-p.json", "--renders", "renders", "--out", "kit-p"], work, env)
     import csv as _csv

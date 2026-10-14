@@ -47,7 +47,7 @@ Show one summary and get a confirm-or-correct. Then ask, one question at a time,
 
 Under Kern: run the eight steps silently from the fact sheet, state the objective, the argument, and the counter-beliefs you'll dismantle in three lines, propose the structure, and get a yes before drafting. Under Halbert: confirm the starving crowd and the offer are right (the 40/40/20 check), then plan the slide: headline, opening, proof, bullets, offer, risk reversal, close, P.S.
 
-Then write the full piece. Both voices share the house rules: plain English, short sentences and paragraphs, bold claims backed immediately, damaging admissions where they're true, questions as commands, a specific and frictionless call to action, a P.S. that carries urgency or the last objection, and no em dashes anywhere.
+Then write the full piece. Both voices share the house rules: plain English, short sentences and paragraphs, bold claims backed immediately, damaging admissions where they're true, questions as commands, a specific and frictionless call to action, a P.S. that carries urgency or the last objection, and no em dashes anywhere, except inside a quotation: a quote keeps its exact words and punctuation, because a style rule never edits what someone said.
 
 Sourced customer language goes in as written. Hypothesis language is fine in a draft but is flagged in the notes so the member knows which lines are guesses about how their customer talks.
 

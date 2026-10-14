@@ -11,6 +11,8 @@
         words        what was said (transcript) against the approved script, word for word
         captions     size >= 48 px, at most two lines, inside the safe zone (bottom and top), each cue
                      >= 0.7 s, none over the end card
+        joins        every join between two takes sits under a cutaway (or is listed as deliberate);
+                     the edit's warnings (enlarged, shrunk or too-short sources) are shown as notes
         pacing aids  dead air over 1.2 s inside the speech; cuts per minute
         frames       a contact sheet (one frame a second) and safe-zone overlay frames at 0.5 s, the
                      middle, and on the end card
@@ -170,6 +172,16 @@ def check(a):
             res["unverified"].append("dead air: the voice is a placeholder, so pauses were not measured on the real delivery")
         else:
             add("no dead air over 1.2 s", not gaps, "; ".join(f"{s:.1f}–{e:.1f} s" for s, e in gaps) or "none", severity="note")
+    rep_path2 = base / edl.get("out_dir", "renders") / f"{edl['id']}.assemble.json"
+    if rep_path2.exists():
+        ent = next((r for r in load_json(rep_path2)["ratios"] if r["ratio"] == ratio), {})
+        joins = ent.get("take_joins")
+        if joins is not None:
+            bad = [j for j in joins if not j["covered"] and not j["deliberate"]]
+            add("every join between takes covered", not bad,
+                "; ".join(f"{j['at']:.2f} s (before clip {j['before_clip']}) uncovered" for j in bad) or f"{len(joins)} join(s), all covered or deliberate")
+        for w in ent.get("warnings", []):
+            add("edit warning", False, w, severity="note")
     p = run([ffmpeg_bin(), "-hide_banner", "-nostats", "-i", str(video), "-vf", "scdet=threshold=12", "-f", "null", "-"], check=False)
     cuts = len(re.findall(r"lavfi\.scd\.time", p.stderr))
     res["cuts_per_minute"] = round(cuts / max(info["duration"] or 1, 1) * 60, 1)
@@ -284,6 +296,12 @@ def kit(a):
                 raise SystemExit(f"{v['id']}: placement {pl.get('name')!r} wants {r}, which is not in ratios")
             c = {**copy, **{k: pl[k] for k in ("title", "caption", "description", "cta_button", "url", "utm_source", "utm_medium") if k in pl}}
             url = c.get("url", "")
+            if pl.get("audience") == "booked":  # people who already booked must never be sent to book again
+                booking = (m.get("booking_url") or "").rstrip("/")
+                if not url:
+                    errs.append(f"{v['id']} · {pl.get('name')}: no link; point it at the hosted video, not the booking page")
+                elif booking and url.rstrip("/").startswith(booking):
+                    errs.append(f"{v['id']} · {pl.get('name')}: this placement is for people who already booked but links to the booking page ({url})")
             if url:
                 q = {"utm_source": c.get("utm_source", "meta"),
                      "utm_medium": c.get("utm_medium") or ("paid_social" if v["playbook"] == "ad" else "organic_video"),
