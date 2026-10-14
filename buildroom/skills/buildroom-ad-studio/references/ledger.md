@@ -2,7 +2,7 @@
 
 The founder's warning from the 2026-09-16 session: you can spend a lot of money really fast by accident. The ledger is how the studio cannot. Adapted from the job ledger in the `create-ads-with-agents` skill (see `source-credit.md`).
 
-`scripts/ledger.py` keeps one `project.json` per cycle in the member's ads folder (never inside the skill). It is local, makes no network calls and submits nothing. It records:
+`scripts/ledger.py` (shared with the Video Director; its source is `buildroom/shared/media/`) keeps one `project.json` per cycle in the member's ads folder (never inside the skill). It is local, makes no network calls and submits nothing. It records:
 
 - the gates G0–G2 for the cycle and G3–G4 per ad, and who passed them (a G3/G4 pass from the author is refused);
 - the spend cap per provider, in the provider's own units, with where the member approved it;

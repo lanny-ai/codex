@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Ad Studio ledger: the gates, the spend cap and every paid job, in one local file.
+"""Build Room media ledger: the gates, the spend cap and every paid job, in one local file.
+
+Shared by the Ad Studio and the Video Director (source: buildroom/shared/media/ledger.py;
+build-skills.sh copies it into each skill's scripts/). Edit the shared copy only.
 
 Adapted from the job ledger in the create-ads-with-agents skill (workflow_state.py,
 v2.1.2): reserve a job key before any paid call, mark it submitting, record the
 provider's job id, reconcile an uncertain job before any retry, never exceed the cap.
-Made provider-neutral (Higgsfield, Kie.ai), images only, and wired to the Build Room
-gates G0-G4 and the member's approval.
+Made provider-neutral (Higgsfield, Kie.ai, HeyGen, SubMagic) for images, video B-roll,
+consented avatar twins and captions, and wired to the Build Room gates G0-G4 and the
+member's approval. An "ad" record is any deliverable: a static ad or a video.
 
 It is local, makes no network calls, and never submits anything. It checks structure,
 not truth: a passed gate here means someone recorded a pass, not that the ad is good.
@@ -13,7 +17,8 @@ not truth: a passed gate here means someone recorded a pass, not that the ad is 
 Usage
   ledger.py init      ads/2026-10/project.json --cycle 2026-10 [--mode demo]
   ledger.py authorize P --provider kie --cap 400 --units credits --note "quote q1 approved by member 2026-10-14"
-  ledger.py plan      P --asset-id PLATE-C1 --provider kie --model nano-banana-pro --prompt-ref plates/c1.prompt.txt
+  ledger.py plan      P --asset-id PLATE-C1 --provider kie --model <resolved id> --prompt-ref plates/c1.prompt.txt
+                        [--kind plate|broll|twin|captions] [--consent-ref "§19 consent, signed 2026-10-14"]  (twin needs consent)
   ledger.py reserve   P --key 2610.C1.plate.r0 --asset-id PLATE-C1 --cost 18 --quote prices.json --request-ref jobs.json
   ledger.py record    P --key 2610.C1.plate.r0 --status submitting|pending|completed|failed|canceled|unknown|no_submission
                         [--job-id ID] [--result path] [--charged N --charge-evidence ref] [--evidence text]
@@ -32,7 +37,8 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 SCHEMA = "buildroom-ad-studio/1"
-PROVIDERS = {"higgsfield", "kie"}
+PROVIDERS = {"higgsfield", "kie", "heygen", "submagic"}
+KINDS = {"plate", "broll", "twin", "captions"}
 STATES = {
     "reserved": {"submitting", "no_submission"},
     "submitting": {"pending", "completed", "failed", "unknown", "no_submission"},
@@ -114,7 +120,7 @@ def project_path(value):
     p = Path(value).expanduser().resolve()
     skill_root = Path(__file__).resolve().parents[1]
     if p == skill_root or skill_root in p.parents:
-        raise ValueError("keep the ledger in the member's ads folder, not inside the skill")
+        raise ValueError("keep the ledger in the member's project folder (ads/ or videos/), not inside the skill")
     return p
 
 
@@ -215,8 +221,15 @@ def cmd_plan(data, a):
         raise ValueError(f"provider must be one of {sorted(PROVIDERS)}")
     if any(x["id"] == a.asset_id for x in data["assets"]):
         raise ValueError("asset id exists")
-    data["assets"].append({"id": a.asset_id, "kind": "plate", "provider": a.provider, "model": a.model,
-                           "prompt_ref": a.prompt_ref, "result_ref": None, "planned_at": now()})
+    kind = getattr(a, "kind", None) or "plate"
+    if kind not in KINDS:
+        raise ValueError(f"kind must be one of {sorted(KINDS)}")
+    consent = (getattr(a, "consent_ref", None) or "").strip()
+    if kind == "twin" and not consent:
+        raise ValueError("an avatar twin needs --consent-ref: written likeness and voice consent on file")
+    data["assets"].append({"id": a.asset_id, "kind": kind, "provider": a.provider, "model": a.model,
+                           "prompt_ref": a.prompt_ref, "consent_ref": consent or None,
+                           "result_ref": None, "planned_at": now()})
 
 
 def cmd_reserve(data, a):
@@ -360,6 +373,7 @@ def main():
     s = sub.add_parser("plan"); s.add_argument("path")
     for f in ("asset-id", "provider", "model", "prompt-ref"):
         s.add_argument("--" + f, required=True)
+    s.add_argument("--kind", choices=sorted(KINDS), default="plate"); s.add_argument("--consent-ref")
     s = sub.add_parser("reserve"); s.add_argument("path")
     for f in ("key", "asset-id", "cost", "quote", "request-ref"):
         s.add_argument("--" + f, required=True)

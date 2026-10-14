@@ -24,7 +24,7 @@ Read these before any member-facing work, in this order:
 4. **`references/concept-matrix.md`** — persona × awareness × angle, category entry points, angle → mechanic → hook → format, hook tactics, concept family vs variant, the concept table.
 5. **`references/kern-framework.md`** and **`references/halbert-writing-system.md`** — every word a customer reads goes through one of them (byte-identical to the Copy Engine's). Kern for hooks, headlines and short primary text; Halbert for long primary text and any story-led ad.
 6. **`references/compliance.md`** — G4: the FTC testimonial rule, AI-person disclosure, consent, never-say claims, platform rules, the disclosure sheet. Read before Phase 3.
-7. **`references/generation-router.md`** — jobs to models, the two providers (Higgsfield, Kie.ai), the first-time setup step with sign-up links, live prices. Read before Phase 4.
+7. **`references/generation-router.md`** and **`references/provider-signup.md`** — jobs to models, the providers (Higgsfield, Kie.ai), the first-time setup step, the sign-up links with their disclosure, live prices. Read before Phase 4.
 8. **`references/image-direction.md`** and **`references/typography.md`** — how to write a plate prompt that does not look like slop, and how the controlled type layer, ratios and safe zones work. Read before Phase 4.
 9. **`references/ledger.md`** — the paid-job ledger. No paid call happens outside it.
 10. **`references/launch-kit.md`** — naming, the kit, the small-budget test plan, the learning library rows.

@@ -19,7 +19,7 @@ Read before Phase 4. This release generates **still images only**: plates (scene
 | Member's real photo placed into a generated setting | **Renderer first** (photo framed or inset over the plate, no generation). Generative edit only with written likeness consent and a reason | An identity-altering edit of a real person is a likeness use; record consent, preserve identity, disclose as AI-edited |
 | Prices, URLs, terms, headlines, CTAs, logos | **Never a model** | The renderer sets every word |
 | A photoreal person as the hero | **Not offered** | Founder decision: real faces only |
-| Video (B-roll, founder twin, talking head) | Next release | Not routed here yet |
+| Video (B-roll, founder twin, talking head) | **Video Director** | `buildroom-video-director` produces every video; the Ad Studio hands it the concept |
 | Sora | **Never** | Discontinued in 2026 |
 
 Model names and versions move every few months. Resolve the exact model ID on the provider at the time (`gen.py --probe` and the provider's model list); a family name in this table is not an API identifier.
@@ -40,10 +40,8 @@ HeyGen (founder twin, with consent) arrives with the video release.
 Say it plainly, one step at a time:
 
 1. "Your ads need N generated pictures this month; the rest use your photos and layouts. To make those, you need an account with one picture service. I recommend **Higgsfield**; if you'd rather pay only for what you use, **Kie.ai**."
-2. If they have no account, give the link with the disclosure next to it, word for word:
-   - **Higgsfield:** https://higgsfield.ai?fpr=lanny-756d90 — *This is my affiliate link. If you sign up through it, I earn a commission, at no extra cost to you.* (Or go to higgsfield.ai directly.)
-   - **Kie.ai:** https://kie.ai?ref=62126a8991d5546179db893d9bc15a7c — *This is my affiliate link. If you sign up through it, I earn a commission, at no extra cost to you.* (Or go to kie.ai directly.)
-3. Keys: "Create an API key in your account settings and paste it into the `.env` file in this folder, on its own line, like `KIE_API_KEY=...`. Don't paste it here." Never print, echo or log a key.
+2. If they have no account, give the sign-up link and the disclosure exactly as `provider-signup.md` sets them out, with the plain route next to it.
+3. Keys: follow `provider-signup.md` (the key goes in `.env`, never in chat; `--probe` once).
 4. Interactive Higgsfield: offer to connect the MCP instead (`claude mcp add --transport http higgsfield https://mcp.higgsfield.ai/mcp` in Claude Code; the Codex equivalent in its MCP settings). Sign-in happens in the browser.
 5. Renderer: Node and Chromium. `npm i playwright` once in the ads folder and `npx playwright install chromium`, or set `CHROME_PATH` to an installed Chrome or Edge.
 6. Record the provider, the monthly cap (in the provider's own units) and likeness consent in §18.
