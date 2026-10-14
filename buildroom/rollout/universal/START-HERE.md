@@ -55,7 +55,7 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 
 | Path | What it is |
 |---|---|
-| `BUILDROOM_BUSINESS_FILE.md` | **Your** Business File. One file, eighteen sections, every session builds on it. Blank until your first session. |
+| `BUILDROOM_BUSINESS_FILE.md` | **Your** Business File. One file, nineteen sections, every session builds on it. Blank until your first session. |
 | `BuildRoom_OS_Say_These_Words.pdf` | Print it, keep it by your computer: every trigger phrase, what it needs, what it writes. |
 | `tools/BuildRoom_OS_Quick_Start.html` | Open in a browser: the visual guide to the program and every session's trigger phrase. |
 | `tools/Rent_Calculator.html` | Open in a browser: what your undocumented processes cost you. Copies a §9 block into your file. |
@@ -86,7 +86,8 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 | "What numbers should I be watching every week?" | One-page dashboard, 30-minute weekly meeting, optional Monday routine |
 | "Let's brainstorm" | A framed question, a voted board, outcomes with owners |
 | "Capture what we decided" | Decision records, proto-SOPs, build briefs, Build Plan rows |
-| "Set up the video engine" | The automated video pipeline installed in Claude Code (elective, costs money; it tells you how much first) |
+| "Make me ads" | Three different ad concepts from your file, copy one ad at a time, finished image ads in three sizes, reviewed, with a kit ready to upload |
+| "Make me a video" (ad, content, sales video, or "help me get a client testimonial video") | A directed video around your real face and footage: script, shoot list, edit, captions, review, ready to publish |
 | "Build me a source watcher" | A watcher for any source, filing filtered notes into your Obsidian vault (elective; some sources need a paid key, it says which) |
 | "Set up my second brain" | An Obsidian vault with Claude Code inside it, your data on your own machine (elective; free app, subscription only) |
 | "Make me an agent" | An agent definition from the founder's thirteen elements, installable as a skill or handed to a build (elective) |

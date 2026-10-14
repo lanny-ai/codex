@@ -1,7 +1,7 @@
 ---
 name: buildroom-ad-studio
 description: |
-  Make a member's paid social ads in one guided session, the way a strategist would: a one-screen brief pre-filled from the Business File, a persona × awareness × angle matrix, three genuinely different concepts with three hooks each, copy written one ad at a time through the Kern and Halbert systems, then finished static ads in 1:1, 4:5 and 9:16 built around the member's real face and real proof, with AI generating only the scenes, objects and plates around them and every word set in a controlled layout, never by the image model. Every ad passes five gates (brief, concept, copy, craft, compliance) and a separate reviewer before the member approves it, and leaves as a named, upload-ready launch kit with primary text, headlines, angle-matched landing headlines, a small-budget test plan and a disclosure sheet. Paid generation runs through a spend ledger with a quote first and a monthly cap. Use whenever a user wants to make ads, build Facebook or Instagram ads, make Meta ads, LinkedIn ads, static ads, ad creatives, ad concepts or hooks, refresh tired ads, or says their ads are not working. Trigger on phrases like "make me ads," "build my ads," "I need Facebook ads," "my ads aren't working," "write me ad hooks," "give me ad concepts," or "show me how the ad studio works." Statics only in this release; video arrives next. Reads §1–§7, §14, §17; writes §18 Advertising, §13 rows, §8.
+  Make a member's paid social ads in one guided session, the way a strategist would: a one-screen brief pre-filled from the Business File, a persona × awareness × angle matrix, three genuinely different concepts with three hooks each, copy written one ad at a time through the Kern and Halbert systems, then finished static ads in 1:1, 4:5 and 9:16 built around the member's real face and real proof, with AI generating only the scenes, objects and plates around them and every word set in a controlled layout, never by the image model. Every ad passes five gates (brief, concept, copy, craft, compliance) and a separate reviewer before the member approves it, and leaves as a named, upload-ready launch kit with primary text, headlines, angle-matched landing headlines, a small-budget test plan and a disclosure sheet. Paid generation runs through a spend ledger with a quote first and a monthly cap. Use whenever a user wants to make ads, build Facebook or Instagram ads, make Meta ads, LinkedIn ads, static ads, ad creatives, ad concepts or hooks, refresh tired ads, or says their ads are not working. Trigger on phrases like "make me ads," "build my ads," "I need Facebook ads," "my ads aren't working," "write me ad hooks," "give me ad concepts," or "show me how the ad studio works." Video ads come from the same concepts: the studio hands them to the Video Director, which shoots, edits, captions and reviews them into the same kit. Reads §1–§7, §14, §17; writes §18 Advertising, §13 rows, §8.
 ---
 
 # Build Room — Ad Studio
@@ -90,6 +90,8 @@ For each concept, decide the **picture layer**, in this order of preference:
 
 Then write `specs/<ad>.json` per ad (layout, picture layer, brand kit, exact copy from the manifest).
 
+**Video concepts.** When a concept is best as video (founder to camera, a client's words, a demonstration), it goes to the **Video Director** with the ad playbook (`buildroom-video-director`, "make me a video ad from concept C2"). The director works in `ads/YYYY-MM/video/`, uses this ledger and this copy manifest, writes the three hooks as three openings on one body, and returns videos that passed its own G3 and G4 review into `kit/videos/`. Statics and videos of the same concept share the angle, the proof and the landing headline.
+
 **First time only — setup** (`generation-router.md`): if any plate needs generating, the member chooses Higgsfield (default) or Kie.ai (pay-as-you-go). If they have no account, give the sign-up link with the disclosure line next to it, word for word. Keys go in `.env` by the member, never pasted in chat. Confirm Chromium for the renderer (`npx playwright install chromium` once, or `CHROME_PATH` to an installed Chrome).
 
 **Quote before spend.** Read the provider's current prices into `prices.json` (source and date), run `scripts/gen.py --dry-run jobs.json` and show every request and the total in the provider's own units. Ask once for authorisation of that total plus up to two repair passes per plate, as a cap in provider units; record it in the ledger (`ledger.py authorize`). An existing cap from §18 for this month covers it if the total fits. `--probe` once before the first live call.
@@ -131,7 +133,8 @@ Show the contact sheet. The member approves each ad, or sends it back with a not
 - Spend outside the ledger, above the cap, or before a quote was shown and authorised.
 - Make political, election or social-issue ads.
 - Launch, upload, set budgets, change campaigns or touch Ads Manager.
-- Make videos (next release: shoot list, assembly, full-media review) or run the results loop (the release after).
+- Make videos itself. A video concept goes to the **Video Director** (ad playbook), which inherits the brief, the concept, the approved copy and this ledger, and returns reviewed videos into this kit.
+- Run the results loop (a later release; until then the Funnel Scorecard reads ad results).
 
 ## When the Session Is Complete
 

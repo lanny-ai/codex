@@ -31,7 +31,7 @@ Model names and versions move every few months. Resolve the exact model ID on th
 | **Higgsfield** (default) | One account for Nano Banana Pro, Seedream and the video models the next release uses; a hosted MCP for interactive sessions; a pay-per-generation API for scripts | **Interactive:** the Higgsfield MCP (`https://mcp.higgsfield.ai/mcp`), connected once in Claude Code or Codex; it handles sign-in and uploads. **Scripted:** `scripts/gen.py --provider higgsfield` | Credits on the member's plan; the MCP deducts credits even on "Unlimited" plans † | `HIGGSFIELD_API_KEY`, `HIGGSFIELD_API_SECRET` |
 | **Kie.ai** | Pay-as-you-go credits for many models, no subscription; for members who generate a few plates a month | `scripts/gen.py --provider kie` | Prepaid credits; reviews report failed jobs are not charged † | `KIE_API_KEY` |
 
-fal.ai is not routed in the Ad Studio (founder decision, October 2026). Members of the Video Engine elective may already hold a fal.ai key; it is not used here.
+fal.ai is not routed in the Ad Studio (founder decision, October 2026). Members running the Video Engine zip may already hold a fal.ai key for that pipeline; the Build Room's own routes do not use it.
 
 HeyGen (founder twin, with consent) arrives with the video release.
 

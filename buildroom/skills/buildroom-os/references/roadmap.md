@@ -40,14 +40,16 @@ Run after the foundation (needs §1; every message gets sharper with §2 and §3
 |---|---|---|---|---|
 | 1 | Sales Conversations (script + role-play) | `buildroom-sales-script` | §15 | §3 (best with §2 §4) |
 
-### Advertising sequence — Ad Studio
+### Advertising and video sequence — Ad Studio, Video Director
 Run after the funnel has a live destination (§7 or §5) and, ideally, after the Traffic Strategy says paid traffic is on. Monthly: one cycle per month.
 
 | # | Session | Skill | Builds (file §) | Requires |
 |---|---|---|---|---|
 | 1 | Ad Studio (brief → matrix → three concepts → copy → statics in three ratios → review → launch kit; paid image generation through a spend ledger) | `buildroom-ad-studio` | §18, §13 rows | §2 §3 (best with §4 §7) |
 
-Statics only in this release; video (shoot list, founder-led and proof-led edits) and the results loop arrive next. Route "How did my ads do?" to the **Funnel Scorecard** until the loop ships.
+| 2 | Video Director (one director, four playbooks: ad, content, sales, proof; real footage first, generated B-roll through the ledger, SubMagic or burned captions, separate review, publish kit; volume mode for content series and the Video Engine zip) | `buildroom-video-director` | §19; §18 proof vault (proof), §14 content (content), §5/§15 reference (sales), §13 rows | §1 §2 (best §3 §4 §17) |
+
+Video ads start in the Ad Studio, which hands the concept to the director. The **proof** playbook is the highest-leverage video for most members: run it as soon as a client has a result, because every ad and page is capped by the proof vault. The Video Engine elective is retired into the director's volume mode ("Set up the video engine" routes there). Route "How did my ads do?" to the **Funnel Scorecard** until the results loop ships.
 
 ### Operations sequence — Operations & SOPs
 Run after the foundation. Documents the business so it can be delegated.
@@ -79,7 +81,6 @@ Capture turns a raw brainstorm (board export, transcript, notes) into outcome re
 ### Electives
 | Session | Skill | Notes |
 |---|---|---|
-| Video Engine | `buildroom-video-engine` | Install and run the automated video pipeline (Claude Code + HeyGen/Hedra + Pexels + fal.ai + FFmpeg + SubMagic). Elective with a money gate (~$100–325/mo); the durable lesson is Claude Code + APIs + a `.env` keys file. Reads §1/§2/§4; writes §1 tools, one §13 row, §8. |
 | C-Suite Boardroom | `buildroom-boardroom` | The founder's C-Suite Boardroom: four executives who genuinely disagree plus a chairperson who forces the call. Reads the whole file as the board pack; writes one §13 row (the decision, with its flip condition as an open question) and §8. Route here for any decision the member is circling. |
 | Source Watcher | `buildroom-source-watcher` | The founder's Watcher Master (Obsidian month, week 3): generates a watcher for any of eight source types with filters derived from the member's goals and hard-coded vault protection; the Video-to-Vault YouTube skills ride along. Standalone, or with a file: pre-fills interests from §1–§4/§12 and writes §1 tools, one §13 row, §8. Route here when the member wants their knowledge base to grow without them. |
 | Second Brain | `buildroom-obsidian` | The Obsidian + Claude Code second brain (June month, weeks 1, 2 and 4): install, CLAUDE.md and templates, a gated first fill, routines and expert hats; the Business File moves into the vault root. Writes §1 tools, one §13 row, §8. Route here when a member says Claude keeps forgetting their business, or before any heavy knowledge work. |
@@ -112,10 +113,10 @@ When routing, give the member the exact words to start the session:
 - Lead Gen Machine → "Help me get more leads" (the skill picks the module from §14)
 - Sales Conversations → "Help me with my sales call"
 - Ad Studio → "Make me ads"
+- Video Director → "Make me a video" (ad, content, sales) · "Help me get a client testimonial video" (proof) · "Set up the video engine" (volume mode)
 - Audience Insight → "Find the words my clients actually use"
 - Offer Deep Dive → "Make my offer a no-brainer"
 - Copy Engine → "Write me [the piece]"
-- Video Engine (elective) → "Set up the video engine"
 - Discovery Engine (anytime) → "Run discovery on this business"
 - Funnel Scorecard (funnel) → "Where is my funnel leaking?"
 - Agent Forge (elective) → "Make me an agent"

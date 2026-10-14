@@ -58,7 +58,8 @@ The single record of approved words. The renderer's specs must match it exactly;
 
 Built by `review_pack.py kit`, only when the ledger says every ad passed G3 and G4 and was approved:
 
-- `ads/` — every approved ad in every ratio, named as above.
+- `ads/` — every approved static ad in every ratio, named as above.
+- `videos/` — video ads made by the Video Director from this cycle's concepts, with their own publish rows and disclosure entries (built by the director's `review_video.py kit` into this folder).
 - `ads.csv` — per ad: name, files, primary text, headline, description, CTA button, and the URL with UTM parameters (`utm_source=meta`, `utm_medium=paid_social`, `utm_campaign=YYMM_<concept>`, `utm_content=<ad name>`).
 - `landing-headlines.md` — one angle-matched headline per concept for the landing page (message match). Each one that needs a page change becomes a §13 row.
 - `test-plan.md` — the plan below, filled in.

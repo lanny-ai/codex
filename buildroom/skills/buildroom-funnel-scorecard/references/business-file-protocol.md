@@ -12,6 +12,7 @@ A blank copy of the file lives at `references/business-file-template.md`.
 2. **Write before ending.** At session end, hand back the complete updated file. A session that ends without updating the file is unfinished.
 3. **The member's edits always win.** The file is theirs. Never overwrite hand-edited content without asking; never "correct" their file silently.
 4. **Never invent facts into the file.** Only member-confirmed content goes in. Drafts and inferences stay in session deliverables until the member approves them.
+5. **Retired lines stay retired.** Anything listed under §1 *Retired lines* is never used again, by any session, in any output (copy, scripts, ads, pages, videos, examples), even if it still appears elsewhere in the file. When the member says a line should not be used any more, add it there and confirm.
 
 ---
 

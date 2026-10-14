@@ -40,7 +40,8 @@ Start with [`BUSINESS-FILE-SPEC.md`](BUSINESS-FILE-SPEC.md) for the design, rule
 | `buildroom-audience-insight` | Hardening pass (retrofit of the Audience Insight Playbook) | §2 sourced language, with provenance | §1 |
 | `buildroom-offer-deep-dive` | Hardening pass (retrofit of the Million-Dollar Offer Maker) | §3 | best §3 §2 |
 | `buildroom-copy-engine` | Copy tool (Kern + Halbert) | §8 only | best §2 §3 |
-| `buildroom-video-engine` | Elective (rebuilt from the May 20 session) | §1 tools, §13 row, §8 | — |
+| `buildroom-ad-studio` | Advertising (2026-10-14): brief → matrix → three concepts → copy → statics in three ratios → review → launch kit; paid generation through the shared ledger | §18, §13 rows | §2 §3 (best §4 §7) |
+| `buildroom-video-director` | Video (2026-10-14): one director, four playbooks (ad, content, sales, proof), real footage first, generated B-roll through the ledger, SubMagic or burned captions, separate review, kit; the Video Engine elective folded in as volume mode | §19; §18 proof vault, §14 content, §5/§15 references, §13 rows | §1 §2 (best §3 §4 §17) |
 | `buildroom-boardroom` | Elective (the founder's C-Suite Boardroom plugin, rebuilt from the Jul 1 session; five persona files byte-identical) | §13 row, §8 | — |
 | `buildroom-source-watcher` | Elective (the founder's Watcher Master generator, rebuilt from the Jun 17 session; generator skill and references byte-identical; Video-to-Vault skills included) | §1 tools, §13 row, §8 | — |
 | `buildroom-obsidian` | Elective (the Obsidian + Claude Code month, rebuilt from the Jun 3/10/24 sessions and office hours) | §1 tools, §13 row, §8 | — |

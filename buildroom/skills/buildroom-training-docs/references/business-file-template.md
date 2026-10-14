@@ -21,6 +21,7 @@ _One file. Every Build Room session reads it before asking you anything, and upd
 - **Current price / price range:**
 - **Lead sources today (how people find me):**
 - **Tools:** email platform: — · CRM: — · website/page builder: — · automation: —
+- **Retired lines** (never used again in any output, by any session — e.g. a credibility story, a claim, an old offer):
 
 ---
 
@@ -311,6 +312,22 @@ _Built by: Ad Studio · Requires: §2, §3; best with §4, §7_
 - **Current cycle** (month · concepts · hooks · status · winner · next brief):
 - **Learning library:** [ads/learning-library.csv]
 - **Launch kit:** [folder]
+
+---
+
+## 19. Video
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: Video Director · Requires: §1, §2; best with §3, §4, §17_
+
+- **Playbooks run** (ad · content · sales · proof — last date each):
+- **Footage library** (location · A-roll takes · screen recordings · interviews):
+- **Video brand kit** (brand cue · end card · caption template or style · music source + licence):
+- **Consent** (my likeness + voice: yes/no, date, where · avatar twin: yes/no, scope, date):
+- **Content series** (pillars · cadence · platform · volume mode on/off):
+- **Testimonials collected** (count · latest · consent forms location):
+- **Video library** (location · last delivered: title · playbook · date):
+- **Results to watch** (ad: cost per qualified lead · content: watch time, follows · sales: booked calls · proof: testimonials):
 
 ---
 
