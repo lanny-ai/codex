@@ -194,7 +194,7 @@ def main():
     rj = json.loads((work / "renders/J.assemble.json").read_text())["ratios"][0]
     cw0 = rj.get("cutaways", [{}])[0]
     check("assemble: at_join starts the cutaway at the take join and keeps its end",
-          ok and abs(cw0.get("at", 0) - 4.9) < 0.01 and abs(cw0["at"] + cw0["dur"] - 8.0) < 0.01, str(rj.get("cutaways")))
+          ok and abs(cw0.get("at", 0) - 4.8) < 0.01 and abs(cw0["at"] + cw0["dur"] - 8.0) < 0.01, str(rj.get("cutaways")))
     check("assemble: a cutaway past the end of its source is warned", any("ends early" in w for w in rj["warnings"]), str(rj["warnings"]))
     edl_j2 = dict(edl_j, id="J2", cutaways=[])
     (work / "edit-j2.json").write_text(json.dumps(edl_j2))

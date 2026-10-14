@@ -196,7 +196,7 @@ def resolve_cutaways(edl, base):
     """Cutaways may be timed to the words: {"at_word": "Your first agent", "until_word": "on us."}.
     Needs the transcript; falls back to "at"/"dur" when it is missing. They may also be tied to a
     join between takes: "at_join": 1 starts the cutaway at the join before clip 1 (minus "join_lead",
-    default 0.1 s), so a hook take plays whole on the face; "cover_join": 2 stretches the cutaway
+    default 0.2 s), so a hook take plays whole on the face; "cover_join": 2 stretches the cutaway
     to at least 0.3 s past the join before clip 2, so the jump between takes is never seen."""
     joins = take_joins(edl["clips"])
     cap = edl.get("captions") or {}
@@ -231,7 +231,7 @@ def resolve_cutaways(edl, base):
             if j is None:
                 raise SystemExit(f"cutaway at_join {cw['at_join']}: there is no join between takes before clip {cw['at_join']}")
             end = float(cw["at"]) + float(cw["dur"])
-            cw["at"] = round(j - float(cw.get("join_lead", 0.1)), 3)
+            cw["at"] = round(j - float(cw.get("join_lead", 0.2)), 3)
             cw["dur"] = round(end - cw["at"], 3)
         if cw.get("cover_join") is not None:
             j = joins.get(int(cw["cover_join"]))
@@ -257,7 +257,7 @@ def build_ratio(edl, base, ratio, out_dir, report, plan_only=False):
     deliberate = set(int(x) for x in edl.get("deliberate_jumps", []))
     entry["take_joins"] = []
     for i, t in take_joins(clips).items():
-        covered = any(float(cw["at"]) <= t - 0.1 and float(cw["at"]) + float(cw["dur"]) >= t + 0.1 for cw in cutaways)
+        covered = any(float(cw["at"]) <= t - 0.15 and float(cw["at"]) + float(cw["dur"]) >= t + 0.15 for cw in cutaways)  # a few frames of slack either side
         entry["take_joins"].append({"before_clip": i, "at": t, "covered": covered, "deliberate": i in deliberate})
         if not covered and i not in deliberate:
             entry["warnings"].append(f"the join between takes at {t:.2f} s (before clip {i}) is not under a cutaway: a visible jump. "
