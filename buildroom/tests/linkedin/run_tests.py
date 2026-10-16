@@ -141,7 +141,8 @@ def main():
         "DISCOVERY": [["Overall Performance", "10/12/2026 - 10/18/2026"], ["Impressions", 5230], ["Members reached", 3110]],
         "ENGAGEMENT": [["Date", "Impressions", "Engagements"], ["10/11/2026", 900, 40], ["10/12/2026", 1200, 55], ["10/13/2026", 800, 30], ["10/19/2026", 999, 9]],
         "TOP POSTS": [["Maximum of 50 posts available to include in this list"], [], ["Post URL", "Post publish date", "Engagements", None, "Post URL", "Post publish date", "Impressions"],
-                      ["https://www.linkedin.com/feed/update/urn:li:activity:1", "10/13/2026", 55, None, "https://www.linkedin.com/feed/update/urn:li:activity:1", "10/13/2026", 2100]],
+                      ["https://www.linkedin.com/feed/update/urn:li:activity:1", "10/13/2026", 55, None, "https://www.linkedin.com/feed/update/urn:li:activity:2", "10/14/2026", 2100],
+                      ["https://www.linkedin.com/feed/update/urn:li:activity:2", "10/14/2026", 30, None, "https://www.linkedin.com/feed/update/urn:li:activity:1", "10/13/2026", 900]],
         "FOLLOWERS": [["Total followers on 10/18/2026:", 1520], [], ["Date", "New followers"], ["10/12/2026", 4], ["10/14/2026", 6], ["10/30/2026", 99]],
     })
     sys.path.insert(0, str(S))
@@ -150,7 +151,9 @@ def main():
     m = li_scorecard.metrics_from_xlsx(work / "export.xlsx", dt.date(2026, 10, 12), dt.date(2026, 10, 19))
     check("scorecard sums the week's daily rows only", m["impressions"] == 2000 and m["engagements"] == 85, m)
     check("scorecard reads followers and members reached", m["new_followers"] == 10 and m["members_reached"] == 3110, m)
-    check("scorecard finds the week's top post", m["top_posts"] and m["top_posts"][0]["impressions"] == 2100, m["top_posts"])
+    tp = {p["url"][-1]: p for p in m["top_posts"]}
+    check("scorecard merges TOP POSTS' two tables by post link", tp.get("1", {}).get("engagements") == 55 and tp.get("1", {}).get("impressions") == 900
+          and tp.get("2", {}).get("impressions") == 2100 and m["top_posts"][0]["url"].endswith("2"), m["top_posts"])
     (work / "manual.json").write_text(json.dumps({"profile_viewers": 41, "saves": 6, "sends": 2}))
     ok, out = run([py, SC, "week", "--pipeline", P, "--xlsx", "export.xlsx", "--manual", "manual.json", "--from", "2026-10-12", "--out", "cards"], work)
     md = (work / "cards/2026-W42.md").read_text(encoding="utf-8") if ok else ""

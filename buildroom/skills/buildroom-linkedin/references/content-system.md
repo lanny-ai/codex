@@ -81,7 +81,8 @@ Never: "comment KEYWORD to get it", "agree?", reaction polls, "repost if", taggi
 
 Every post goes through **Kern** (`kern-framework.md`): short, one person to one person, specific. A long story-led post or a newsletter issue goes through **Halbert** (`halbert-writing-system.md`). One post per output; the member approves or edits before the next.
 
-- **The first two lines carry the post.** LinkedIn truncates with "see more"; the opening must name the reader, the situation or the claim plainly. (Data on the exact cut-off and ideal length: see `linkedin-principles.md` and the research report.)
+- **The first ~140 characters carry the post.** LinkedIn truncates with "see more" at about 140 characters on mobile (about 210 on desktop; LinkedIn does not publish the number, and line breaks move it). The opening must name the reader, the situation or the claim plainly inside that space.
+- **Length:** a whole idea, usually 1,300 to 2,500 characters (the best-performing band in AuthoredUp's 372,000-post data); the 600 to 1,500 middle is weakest in two datasets. A short punchy post now and then is fine.
 - **The topic in the first lines,** in the words the buyer uses, so both readers and the feed's model know what it is about.
 - **Specifics over adjectives:** a number, a name (consented), a year, a place.
 - **Short paragraphs,** one idea each; white space for reading on a phone, not "broetry" on every line.

@@ -89,7 +89,7 @@ Every DM draft goes through Kern, uses the member's voice, and is edited by the 
 
 ## 7. Sales Navigator: when it is worth it
 
-Core costs about $119.99 a month ($89.99 a month billed yearly) in October 2026 [LinkedIn pricing page; an older LinkedIn page still shows $99.99]. Worth it when the member posts consistently, has a defined ideal-client list, does the daily routine, and has hit the free account's monthly search limit; it pays for itself with one extra client a year. Useful parts: saved searches with alerts (job changes, recent posts), lead lists, 50 InMails a month. Not yet if the member is not posting or has no clear ideal client. Free alternatives: notification bells on tier A and B, "Who viewed your profile", a manual warm list in the pipeline, Google alerts for client triggers.
+Core costs about $119.99 a month ($89.99 a month billed yearly) in October 2026 [LinkedIn pricing page; an older LinkedIn page still shows $99.99]. Worth it when the member posts consistently, has a defined ideal-client list, does the daily routine, and has hit the free account's monthly search limit; it pays for itself with one extra client a year. Useful parts: saved searches with alerts (job changes, recent posts), lead lists, 50 InMails a month (Premium Career has 5, Premium Business 15; messages to 1st-degree connections need no credits and LinkedIn publishes no cap on them). Not yet if the member is not posting or has no clear ideal client. Free alternatives: notification bells on tier A and B, "Who viewed your profile", a manual warm list in the pipeline, Google alerts for client triggers.
 
 ## 8. Diagnosis (weekly, from the scorecard)
 

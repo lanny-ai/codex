@@ -15,7 +15,7 @@ cd BuildRoom_OS
 claude
 ```
 
-The twenty-eight skills are picked up automatically from `.claude/skills/`. Say:
+The twenty-nine skills are picked up automatically from `.claude/skills/`. Say:
 
 > I'm new to the Build Room — set me up.
 
@@ -61,7 +61,7 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 | `tools/Rent_Calculator.html` | Open in a browser: what your undocumented processes cost you. Copies a §9 block into your file. |
 | `tools/Business_File_Viewer.html` | Open in a browser: paste your Business File, see every section's status, your progress, the one session to run next, and your Build Plan. |
 | `tools/Brainstorm_Board.html` | Open in a browser: frame, diverge, cluster, dot-vote, decide, then "Copy for Claude." |
-| `skills/` | The twenty-eight skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
+| `skills/` | The twenty-nine skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
 | `CLAUDE.md`, `AGENTS.md` | Tell Claude Code and Codex what this folder is. Don't delete them. |
 
 ## The sessions
@@ -88,6 +88,7 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 | "Capture what we decided" | Decision records, proto-SOPs, build briefs, Build Plan rows |
 | "Make me ads" | Three different ad concepts from your file, copy one ad at a time, finished image ads in three sizes, reviewed, with a kit ready to upload |
 | "Make me a video" (ad, content, sales video, or "help me get a client testimonial video") | A directed video around your real face and footage: script, shoot list, edit, captions, review, ready to publish |
+| "Build my LinkedIn engine" (or "write my LinkedIn posts", "who should I message on LinkedIn today", "how is my LinkedIn doing") | A profile that converts, three posts a week in your own words, carousels, a 20-minute daily conversation routine, a pipeline and a weekly scorecard; you post and send everything yourself |
 | "Build me a source watcher" | A watcher for any source, filing filtered notes into your Obsidian vault (elective; some sources need a paid key, it says which) |
 | "Set up my second brain" | An Obsidian vault with Claude Code inside it, your data on your own machine (elective; free app, subscription only) |
 | "Make me an agent" | An agent definition from the founder's thirteen elements, installable as a skill or handed to a build (elective) |

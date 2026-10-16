@@ -33,6 +33,7 @@ Run after the foundation (needs §1; every message gets sharper with §2 and §3
 | 2 | The Outreach Machine | `buildroom-leadgen` | §14 | Module 1 |
 | 3 | The Referral System | `buildroom-leadgen` | §14 | Module 1 |
 | 4 | Content Lead Engine + Pipeline | `buildroom-leadgen` | §14 (complete) | Modules 1–3; reads §6 §7 |
+| 5 | LinkedIn Engine (profile as landing page, 2–3 pillars, three posts a week from the member's own stories, carousels, the daily 20-minute comment-and-DM routine, a local pipeline to booked calls, the weekly scorecard from LinkedIn's export; drafts only, the member acts) | `buildroom-linkedin` | §14 LinkedIn lines, §13 rows | §1 §2 (best with §3 §4 §17); any time after Module 1, or first when LinkedIn is the primary channel |
 
 ### Sales sequence — Sales Conversations
 
@@ -111,6 +112,7 @@ When routing, give the member the exact words to start the session:
 - Training Docs → "Help me train my new hire"
 - Ops Dashboard → "What numbers should I be watching every week?"
 - Lead Gen Machine → "Help me get more leads" (the skill picks the module from §14)
+- LinkedIn Engine → "Build my LinkedIn engine" · "Fix my LinkedIn profile" · "Write my LinkedIn posts" · "Plan my LinkedIn week" · "Who should I message on LinkedIn today" · "How is my LinkedIn doing"
 - Sales Conversations → "Help me with my sales call"
 - Ad Studio → "Make me ads"
 - Video Director → "Make me a video" (ad, content, sales) · "Help me get a client testimonial video" (proof) · "Set up the video engine" (volume mode)

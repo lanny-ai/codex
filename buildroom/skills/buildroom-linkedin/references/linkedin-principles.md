@@ -4,7 +4,7 @@ The rulebook behind every recommendation this skill makes. Each line is tagged: 
 
 Full sources and dates: `research_notes/World class organic LinkedIn pipeline/` in the Build Room repository, and the summary report `reports/World class organic LinkedIn pipeline.md`.
 
-## The seven things that matter
+## The eight things that matter
 
 1. **The feed now matches posts to people by topic, not by who they are connected to.** In March 2026 LinkedIn rebuilt feed retrieval and ranking around language models and a "Generative Recommender" that reads each member's history of interactions, to understand "what a post is about" and how it fits a member's professional interests. [LinkedIn, Mar 2026] Van der Blom's 2026 data puts network-based distribution at about 10%, down from 70% in 2024, and finds that sticking to 2 to 3 core topics for 90 days goes with about 27% more reach. [data: van der Blom 2026, ~1.3M posts, figures relayed secondhand]
    → **Pick 2 to 3 pillars tied to the offer and stay on them for at least 90 days.** The headline, About section and posts all say the same thing.
@@ -14,12 +14,21 @@ Full sources and dates: `research_notes/World class organic LinkedIn pipeline/` 
    → **No pods, no automation, no bait.** Offer the resource openly (`account-safety.md`).
 4. **Formats on personal profiles, ranked by reach relative to the author's own average:** PDF document carousels 1.39x reach and 1.30x engagement (only about 5% of posts use them); single image 1.20x and 1.33x; text only 1.07x and 0.78x; native video 0.86x (median video reach down 36% a year); polls 1.78x reach but 0.37x engagement. [data: AuthoredUp, 3M+ posts; some recaps credit the same multipliers to van der Blom 2025] LinkedIn is pushing video (watch time +36%) and down-ranks "videos that don't match the post text". [LinkedIn]
    → **Default to text with an image, and one document carousel a week.** Video for trust with people who already follow; polls only for genuine market research. Not three carousels in a row. [practitioner: van der Blom]
-5. **Cadence: 2 to 5 posts a week is enough.** Buffer's study of 2M+ posts found the per-post gain from 2 to 5 posts a week over 1, with smaller gains above; van der Blom now recommends 2 to 4. [data: Buffer 2025; practitioner: van der Blom] Half of a post's impressions arrive within 48 hours, so the "golden hour" is overstated. [data: Metricool 2026, 673k posts] Best days are Tuesday to Thursday; studies disagree on the hour, so post in the buyer's working hours and let the member's own analytics decide. [data: Buffer 4.8M posts, Sprout, Hootsuite]
+5. **Cadence: 2 to 5 posts a week is enough.** Buffer's study of 2M+ posts found the per-post gain from 2 to 5 posts a week over 1, with smaller gains above; van der Blom now recommends 2 to 4. [data: Buffer 2025; practitioner: van der Blom] Half of a post's impressions arrive within 48 hours, so the "golden hour" is overstated. [data: Metricool 2026, 673k posts] A LinkedIn VP says 2 to 5 posts a week, and that posting more than once a day "won't hurt your total reach"; the old 18-hour spacing rule dates from 2023. Two-week gaps showed no engagement effect in one small study. [LinkedIn via press; data: Ordinal] Best days are Tuesday to Thursday; studies disagree on the hour, so post in the buyer's working hours and let the member's own analytics decide. [data: Buffer 4.8M posts, Sprout, Hootsuite]
    → **Three posts a week is the default for a busy expert.** Consistency beats volume.
 6. **Links in posts: disputed.** LinkedIn says there is no penalty when a post leads with value [LinkedIn, Sep 2025]; van der Blom measures about 19% less reach for one link in the body [data]; Metricool 2025 found link posts got 14% more interactions [data, 577k posts]. 
    → **Keep most posts complete without a link.** When a link is the point, test body versus first comment on the member's own account.
 7. **AI-written text is a reach risk, not a rule break.** LinkedIn allows AI-assisted writing, asks members to review and edit it, added a "Seems like AI slop" report button in July 2026 (over a million clicks in a month), and replaced its own AI post writer with a proofreader that keeps the author's voice. [LinkedIn] Within the same author, posts that read as AI got 22% less engagement. [data: LigoSocial, 134,522 posts]
+   In May 2026 LinkedIn said it identifies generic content correctly 94% of the time in testing, and that AI-looking posts without a clear point of view are "less likely to be widely distributed beyond a person's immediate network"; AI is fine as long as posts "represent your voice and your perspectives". Its product chief says flagged posts get about 40% fewer views. [LinkedIn, May and Jul 2026]
    → **Capture the member's own words first (voice notes, interview answers), then shape them.** The member's 10 to 25 years of specific stories are the one thing a model cannot fake.
+8. **The first lines and the length.** LinkedIn publishes no "see more" cut-off; plan on about 140 characters (about three short lines) on mobile and about 210 on desktop, and remember line breaks move the fold. [practitioner planning figures] Longer posts that carry a whole idea do best: about 1,300 to 2,500 characters peaks in AuthoredUp's 372,000-post study, Ordinal (248,000) peaks at 2,000 to 3,000, and the 600 to 1,500 middle band is weakest in two datasets. [data] Story openers lead in AuthoredUp's 310,000-post hook study; questions come last. [data]
+   → **Open with the reader's situation or the claim inside the first 140 characters; then give the full idea.** Short punchy posts are fine as a change of pace, not the default.
+
+## Other formats
+
+- **Articles** get about 0.65x the reach of a text post [data: AuthoredUp]: use them only as a home for a long piece you will link to.
+- **Newsletters** invite the member's connections and followers only with the first edition [LinkedIn Help]: start one when there are about 500 followers, so that single invitation counts.
+- **LinkedIn Live** must be scheduled as an event since 22 June 2026 [LinkedIn]: worth it for a member who already runs workshops.
 
 ## Personal profile, not company page
 

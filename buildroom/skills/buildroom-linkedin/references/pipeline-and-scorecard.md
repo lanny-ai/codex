@@ -1,6 +1,6 @@
 # The pipeline and the weekly scorecard
 
-What gets counted gets better. The member's own log is the source of truth, kept on their computer by `scripts/li_pipeline.py`, with numbers from LinkedIn's own exports read by `scripts/li_scorecard.py`. LinkedIn's Social Selling Index is not used: it was reportedly switched off for accounts without Sales Navigator in September 2026, and it measured activity, not clients.
+What gets counted gets better. The member's own log is the source of truth, kept on their computer by `scripts/li_pipeline.py`, with numbers from LinkedIn's own exports read by `scripts/li_scorecard.py`. LinkedIn's Social Selling Index is not used: LinkedIn's own page now says it "no longer accurately reflects the modern sales environment", members reported losing free and Premium access between late August and 7 September 2026, and it measured activity, not clients.
 
 ## 1. Stages
 
@@ -47,7 +47,7 @@ Once a conversation reaches `qualified`, it belongs in the CRM too:
 **Inputs the member controls** (from the pipeline log): posts published (and pillar, format) · substantive comments on others' posts · connection requests sent · warm-signal DMs started · follow-ups sent.
 
 **Outputs** (from the log and LinkedIn's export):
-- From LinkedIn's creator analytics export (`.xlsx`, Analytics → Export, 7 days): impressions, members reached, engagements, new followers; per post: impressions, reactions, comments, reposts.
+- From LinkedIn's creator analytics export (`.xlsx`: Me → View profile → Analytics → Show all analytics → Post impressions → past 7 days → Export). Its sheets are DISCOVERY, ENGAGEMENT, TOP POSTS, FOLLOWERS and DEMOGRAPHICS; LinkedIn does not document the columns, so the reader finds them by name, and `li_scorecard.py inspect` shows what a new export contains. TOP POSTS is LinkedIn's sample of the top 50 posts (two tables, by engagements and by impressions), merged by post link: use it to see what worked, not as totals.
 - Typed by the member (LinkedIn shows them but does not export them): profile viewers this week, saves and sends on the week's posts, profile views and followers gained from each post.
 - From the pipeline: acceptance rate, replies and reply rate, conversations (two or more exchanges each way), calls booked, calls held, proposals, clients won and value.
 

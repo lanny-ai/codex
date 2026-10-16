@@ -140,6 +140,7 @@ def metrics_from_xlsx(path, start, end):
     sheets = read_xlsx(path)
     m = {"source": Path(path).name, "impressions": None, "members_reached": None, "engagements": None,
          "new_followers": None, "top_posts": []}
+    posts = {}
     for t in tables(sheets):
         h = t["header"]
         di = next((i for i, x in enumerate(h) if x == "date" or x.endswith(" date")), None)
@@ -158,22 +159,39 @@ def metrics_from_xlsx(path, start, end):
                         tot += num(r[idx]); seen = True
                 if seen:
                     m[key] = (m[key] or 0) + tot
-        elif url is not None:  # per-post table
-            imp, eng = col("impressions"), col("engagements")
-            pdi = next((i for i, x in enumerate(h) if "date" in x), None)
-            for r in t["rows"]:
-                d = to_date(r[pdi]) if pdi is not None and pdi < len(r) else None
-                if d and not (start <= d < end):
+        elif url is not None:  # per-post tables; TOP POSTS holds two side by side (by engagements, by impressions)
+            segs, cur = [], []
+            for i, x in enumerate(h + [""]):
+                if x:
+                    cur.append(i)
+                elif cur:
+                    segs.append(cur); cur = []
+            for seg in segs:
+                sh = {h[i]: i for i in seg}
+                u = next((i for k, i in sh.items() if "url" in k or "link" in k), None)
+                if u is None:
                     continue
-                if url < len(r) and r[url]:
-                    m["top_posts"].append({"url": r[url], "impressions": num(r[imp]) if imp is not None and imp < len(r) else None,
-                                           "engagements": num(r[eng]) if eng is not None and eng < len(r) else None})
+                pdi = next((i for k, i in sh.items() if "date" in k), None)
+                for k, i in sh.items():
+                    metric = "impressions" if k.startswith("impressions") else "engagements" if k.startswith("engagements") else None
+                    if not metric:
+                        continue
+                    for r in t["rows"]:
+                        if u >= len(r) or not r[u]:
+                            continue
+                        d = to_date(r[pdi]) if pdi is not None and pdi < len(r) else None
+                        if d and not (start <= d < end):
+                            continue
+                        post = posts.setdefault(r[u], {"url": r[u], "date": d.isoformat() if d else None, "impressions": None, "engagements": None})
+                        if i < len(r) and num(r[i]) is not None:
+                            post[metric] = num(r[i])
     kv = kv_pairs(sheets)
     for key, labels in (("impressions", ("impressions",)), ("members_reached", ("members reached",)),
                         ("new_followers", ("new followers",))):
         if m[key] is None:
             m[key] = next((kv[k] for k in kv if k in labels), None)
-    m["top_posts"] = sorted(m["top_posts"], key=lambda p: -(p["impressions"] or 0))[:5]
+    # TOP POSTS is LinkedIn's sample of the top 50, not every post: use it to see what worked, not as totals.
+    m["top_posts"] = sorted(posts.values(), key=lambda p: -(p["impressions"] or 0))[:5]
     return m
 
 
