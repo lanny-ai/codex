@@ -24,7 +24,7 @@ The rules below come from LinkedIn's User Agreement (section 8.2, "Don'ts"), the
 - Read the member's own exports: the creator analytics `.xlsx` and the Connections `.csv` (`scripts/li_scorecard.py`).
 - Render the banner and carousels (`scripts/render_linkedin.mjs`).
 - Warn on pace (below).
-- **Advanced, opt-in only:** if the member created their own LinkedIn developer app with the self-serve "Share on LinkedIn" product, publish one approved post at a time through it, on explicit confirmation each time. Prefer LinkedIn's own scheduler. Never comments, reactions or bulk posting through any API.
+- Nothing through any LinkedIn API. LinkedIn's own scheduler does everything a solo expert needs; a member who asks about posting through a developer app is told it is possible under LinkedIn's terms but not something this skill does.
 
 ## The member does by hand
 

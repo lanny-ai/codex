@@ -70,7 +70,7 @@ Settings & Privacy → Visibility → Followers → "Make follow primary" [Linke
 
 ## 7. Trust signals
 
-- **Verify identity** (free; Persona or CLEAR in the LinkedIn app). LinkedIn says verified members get up to 60% more profile views and up to 50% more post engagement. [LinkedIn's own "up to" figures]
+- **Verify identity** (free, in the LinkedIn app; the verification partner depends on the country). LinkedIn says verified members get up to 60% more profile views and up to 50% more post engagement. [LinkedIn's own "up to" figures]
 - **A current photo:** face filling most of the frame, plain background, looks like the member on a video call. An old photo is a trust leak on the first call. LinkedIn says having a photo brings up to 21x more profile views. [LinkedIn, old and undated]
 - **Experience entries** that carry outcomes, not duties, for the last two roles.
 - **Recommendations:** two or three recent ones from clients, about results. Ask by hand.

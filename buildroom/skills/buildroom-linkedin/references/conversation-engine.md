@@ -13,6 +13,10 @@ Posts earn attention; conversations earn clients. This is the daily routine that
 
 `li_pipeline.py today` prints this list from the member's own log. When someone answers, log it with `li_pipeline.py reply <id>`; the follow-ups stop. On a busy day: comments and follow-ups only.
 
+**On a posting day** the routine moves to the post: 10 minutes of comments on the watch list shortly before posting, then stay with the post for the first hour or two and reply to every comment with a real answer or a question (K4) [practitioner: Alić and Welsh both work the hours after posting; LinkedIn ranks live discussions]. Follow-ups wait until later that day.
+
+**The measure that matters:** every warm signal answered within 48 hours. Volume follows from posting and commenting; it is never chased with cold requests.
+
 ## 2. The watch list (whose posts to comment on)
 
 Three tiers, named by the member, kept in `linkedin/watch-list.md` (names and profile links the member chose; no scraping):
@@ -26,8 +30,10 @@ Turn on the notification bell for tiers A and B so their posts surface. Commenti
 LinkedIn has said commenting regularly can triple profile views (reported secondhand), and automated or excessive comments are limited [LinkedIn Help a524166]. Two to four sentences, one specific idea, never "Great post!", never a pitch.
 
 - **K1, add a layer** [practitioner: Welsh's formula]: "[Specific line from the post] is the part most people skip. With [client type] the version that bites is [concrete example or number]. Do you see [X] or [Y] more often?"
-- **K2, respectful nuance** [practitioner: Alić]: "Agree on [point]. One nuance from [N] years doing [X]: it flips when [condition]. We saw that with a [client type] who [brief result]."
-- **K3, mini-framework:** "Three things that made this work for my clients: 1) … 2) … 3) …. Number 2 is the one people underrate."
+- **K2, respectful nuance** [practitioner: Alić]: "Agree on [point]. One nuance from [N] years doing [X]: it flips when [condition]. We saw that with a [client type] who [brief result]." Proof-light: end at "…it flips when [condition], for example [a situation the member has seen, no result claimed]."
+- **K3, mini-framework:** "Three things that made this work for my clients: 1) … 2) … 3) …. Number 2 is the one people underrate." Proof-light: "Three things I'd check first: 1) … 2) … 3) …."
+
+**Comments and messages are public words too.** Before the member posts a comment or sends a message drafted here: no client result, client words or "my clients" claim that is not consented proof in the file or story bank; nothing on §18's never-say list; no open offer element (guarantee, places, price); no retired line or paraphrase of one. The same rules as the post gate, in four lines.
 - **K4, reply on your own post, open a second exchange:** "Thanks [Name]. When you hit [their issue], what did you try first?"
 - Comment within the first few hours of a post when you can. Write each one; the skill may suggest an angle from the member's story bank, never the finished comment pasted blind.
 
@@ -62,7 +68,13 @@ Withdraw requests still pending after three weeks (withdrawing does not restore 
 | Introduced or referred by someone | `sig:referral` | The introduction |
 | Launched or announced something relevant (a new service, a raise, an expansion) | `sig:launch` | Their post or company page |
 
-No signal, no DM. Cold strangers get a comment first.
+| Reacted to the member's post and fits (a weaker signal: comment on their next post or visit their profile before a DM) | `sig:reacted` | The post's reactions list |
+| Already knows the member: a past client, an old colleague, someone they have worked with | `sig:known` | The member's memory and their Connections export |
+
+No signal, no DM. Cold strangers get a comment first. A blank connection request to a tier A account the member has been commenting on is fine; log the count with `li_pipeline.py log-requests <n>` so the pace guard sees it.
+
+**The existing network first.** For an established expert the fastest clock is the people who already know them [research: warm outbound is weeks, content is months]. In Phase 4, go through the member's Connections export (`import-connections`) and their own memory for 10 to 20 past clients, colleagues and referrers who fit or know someone who does; log them with `sig:known` and send **R1** one at a time over two weeks. The Lead Gen Machine's warm-network module does the same across every channel; if the member has run it, use its list rather than starting again.
+- **R1, reconnect** (no pitch): "Hi [Name], [a real shared memory: the project, the year]. I've been [what the member does now, one line] and you came to mind because [specific reason]. How are things at [company]?" 
 
 ## 6. DMs: conversation first, call when earned
 
@@ -71,7 +83,7 @@ Under about 400 characters [LinkedIn Talent data], about them, easy to say no to
 **Opening (engagement → conversation)**
 - **D1, commented on my post:** "Hi [Name], thanks for your comment on my [topic] post. You mentioned [their point]. Is that something you're dealing with at [company] now, or more an observation?"
 - **D2, engaged with the topic, offer the resource here (instead of comment-gating):** "[Name], noticed you've been in a few threads on [problem]. I put together a short [checklist] on [specific outcome]. Want me to send it?"
-- **D3, trigger event:** "Congrats on the [new role], [Name]. In the first 90 days most [role]s I work with run into [specific problem]. On your radar yet, or too early?"
+- **D3, trigger event:** "Congrats on the [new role], [Name]. In the first 90 days most [role]s I work with run into [specific problem]. On your radar yet, or too early?" ("most [role]s I work with" only if the member works with them; otherwise "a common one in the first 90 days is [problem]")
 - **D4, profile viewer who fits:** "Hi [Name], saw you stopped by my profile, appreciate it. Anything around [topic] you're working through? Happy to point you to something useful."
 
 **Deepening**

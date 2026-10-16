@@ -4,7 +4,7 @@ Three posts a week a busy expert can keep up for a year, built from their own wo
 
 ## 1. Pillars (two or three, held for at least 90 days)
 
-The feed matches posts to readers by topic (`linkedin-principles.md` §1). A member who posts about everything is classified as nothing. Build the pillars from the file:
+The feed matches posts to readers by topic (`linkedin-principles.md` §1). A member who posts about everything gives the feed, and readers, nothing to file them under [practitioner: van der Blom's topic data]. Build the pillars from the file:
 
 | Pillar | Comes from | Job |
 |---|---|---|
@@ -82,7 +82,7 @@ Never: "comment KEYWORD to get it", "agree?", reaction polls, "repost if", taggi
 Every post goes through **Kern** (`kern-framework.md`): short, one person to one person, specific. A long story-led post or a newsletter issue goes through **Halbert** (`halbert-writing-system.md`). One post per output; the member approves or edits before the next.
 
 - **The first ~140 characters carry the post.** LinkedIn truncates with "see more" at about 140 characters on mobile (about 210 on desktop; LinkedIn does not publish the number, and line breaks move it). The opening must name the reader, the situation or the claim plainly inside that space.
-- **Length:** a whole idea, usually 1,500 to 2,500 characters: AuthoredUp's 372,000-post data peaks between 1,300 and 2,500, Ordinal's at 2,000 to 3,000, and posts of 600 to 1,300 do worst in both. A short punchy post (under 600) now and then is fine; it is the in-between length that underperforms.
+- **Length:** a text post carries a whole idea, usually 1,300 to 2,500 characters: AuthoredUp's 372,000-post data peaks between 1,300 and 2,500, Ordinal's at 2,000 to 3,000; the weakest bands are about 600 to 1,300 (AuthoredUp) and 600 to 1,500 (Ordinal). **Image posts and carousel captions are the exception:** AuthoredUp's newer 709,000-post data puts them at about 800 to 1,000 characters (a small gain), because the image or document carries the idea. A short punchy post (under 600) now and then is fine.
 - **The topic in the first lines,** in the words the buyer uses, so both readers and the feed's model know what it is about.
 - **Specifics over adjectives:** a number, a name (consented), a year, a place.
 - **Short paragraphs,** one idea each; white space for reading on a phone, not "broetry" on every line.
@@ -98,8 +98,8 @@ Every post goes through **Kern** (`kern-framework.md`): short, one person to one
 
 | Format | When | How it is made |
 |---|---|---|
-| Text + image | Default | Image: a real photo of the member or their work, or a simple card from `render_linkedin.mjs` (layout `card`, 1200 × 1500). No stock photos. Draft **alt text** for every image (what it shows, in one sentence; LinkedIn's "Add alt text" on upload) |
-| Document carousel | Once a week, for a method, checklist or framework | `render_linkedin.mjs` layout `carousel`: 5 to 10 slides at 1080 × 1350, a hook slide, one idea per slide, a final slide with the soft CTA, exported as a PDF to upload as a document. Draft the **document title** (LinkedIn asks for it on upload and shows it on the carousel in the feed: the hook in under 60 characters) and the post text that goes above it |
+| Text + image | Default | Image: a real photo of the member or their work, or a simple card from `render_linkedin.mjs` (layout `card`, 1200 × 1500). No stock photos. Draft **alt text** for every image (what it shows, in one sentence; LinkedIn's "Add alt text" on upload), in the render spec as `alt` |
+| Document carousel | Once a week, for a method, checklist or framework | `render_linkedin.mjs` layout `carousel`: 5 to 10 slides at 1080 × 1350, a hook slide, one idea per slide, a final slide with the soft CTA, exported as a PDF to upload as a document. Draft the **document title** (asked for on upload and shown with the document in the feed; keep it to the hook, about 60 characters [Build Room; check on the live upload screen]); it goes in the render spec as `title` so it travels with the PDF and the post text that goes above it |
 | Video | Trust with people who already follow; a short explanation to camera | Hand to the **Video Director** (content playbook: "Make me a content video") with the post as the brief; the post text must match the video |
 | Poll | Only to learn something real about the buyers, followed by a results post | Text only |
 | Newsletter | Optional, once the member has about 500 followers: the first issue invites the whole network once | Halbert; one issue a fortnight or month; each issue becomes three posts (hub and spoke, Welsh) |
