@@ -83,6 +83,7 @@ Apply the six principles from the module knowledge bases everywhere: specificity
 - "I need a referral partner strategy" → Module 3 Prompt 3
 - "I need a content strategy for leads" → Module 4 Prompt 1
 - "Help me build a pipeline tracker" → Module 4 Prompt 2
+- "Help me get clients from LinkedIn" / "Build my LinkedIn engine" → hand to **LinkedIn Engine** (`buildroom-linkedin`); Module 4 keeps the cross-channel content plan and points its LinkedIn row there
 
 Run the module's Phase 0 intake first regardless; the prompt's inputs still come from the file.
 
@@ -97,6 +98,7 @@ Run the module's Phase 0 intake first regardless; the prompt's inputs still come
 
 - Build the landing page or lead magnet — that's **Lead Capture** (§7). Module 4 reads §7; it doesn't rewrite it.
 - Write the automated email follow-up sequence — that's the funnel's Decision Machine (§6). Module 2's 5-touch sequence is manual outreach, and the skill says so.
+- Run LinkedIn as a channel in depth (profile, posts, carousels, the daily comment and DM routine, the LinkedIn scorecard) — that's the **LinkedIn Engine** (§14 LinkedIn lines). This skill's Module 2 LinkedIn messages stay valid; the engine adds the warm-signal routine and the pacing guard.
 - Write sales scripts for the discovery call itself — that's **Sales Conversations** (§15).
 - Invent proof, results, or client names the member didn't give you.
 

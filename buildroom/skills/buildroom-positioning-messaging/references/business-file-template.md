@@ -222,7 +222,7 @@ _Built by: Brainstorm Capture (and any session that produces an idea) · Require
 ## 14. Lead Generation Engine
 
 **Status:** not started · **Updated:** — · **By:** —
-_Built by: Lead Gen Machine (four modules, one session each) · Requires: §1; best with §2, §3_
+_Built by: Lead Gen Machine (four modules, one session each); LinkedIn Engine (the LinkedIn lines) · Requires: §1; best with §2, §3_
 
 - **Modules run** (module · date · status):
   - 1 Warm Network: — · 2 Outreach Machine: — · 3 Referral System: — · 4 Content + Pipeline: —
@@ -234,6 +234,9 @@ _Built by: Lead Gen Machine (four modules, one session each) · Requires: §1; b
 - **Weekly habit** (day · time · minutes):
 - **30-day targets** (conversations · discovery calls · deals):
 - **Results to date** (conversations · calls · clients · best channel):
+- **LinkedIn engine** (pillars · cadence and formats · profile rebuilt date · Featured asset · button or Services):
+- **LinkedIn routine** (daily minutes · watch list · story bank · calendar · pipeline file · scorecard day):
+- **LinkedIn last 4 weeks** (posts · comments · conversations · calls · clients · best pillar and format):
 - **Full Lead Gen Pack:** [filename or link]
 
 ---
