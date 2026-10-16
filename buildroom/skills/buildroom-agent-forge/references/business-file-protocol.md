@@ -12,7 +12,7 @@ A blank copy of the file lives at `references/business-file-template.md`.
 2. **Write before ending.** At session end, hand back the complete updated file. A session that ends without updating the file is unfinished.
 3. **The member's edits always win.** The file is theirs. Never overwrite hand-edited content without asking; never "correct" their file silently.
 4. **Never invent facts into the file.** Only member-confirmed content goes in. Drafts and inferences stay in session deliverables until the member approves them. Content already in the file is carried over exactly: quotes, prices and numbers character for character (a style rule never edits a quote, and a rewrite of the file is checked against the old copy for anything changed that the session did not mean to change).
-5. **Retired lines stay retired.** Anything listed under §1 *Retired lines* is never used again, by any session, in any output (copy, scripts, ads, pages, videos, examples), even if it still appears elsewhere in the file. When the member says a line should not be used any more, add it there and confirm.
+5. **Retired lines stay retired.** Anything listed under §1 *Retired lines* is never used again, by any session, in any output (copy, scripts, ads, pages, videos, examples), even if it still appears elsewhere in the file. That includes paraphrases and claims built on a retired line: the same story without its noun is still the same story. When a session finds one elsewhere in the file, it flags it to the member rather than using it. When the member says a line should not be used any more, add it there and confirm.
 
 ---
 
@@ -48,7 +48,7 @@ Open every session with (adapt wording to the skill's voice):
 Before closing, always:
 
 1. **Update the sections this session built.** Distilled decisions and key verbatims only — the file stores the *essence*; full deliverables (complete ICA document, full page copy, full email sequence) are separate documents the member saves, referenced from the file by name.
-2. **Add any missing section.** An older file may lack a section this skill writes (a file from before §18 or §19, say). Insert it from the current template, in its registered place (§8 Session Log stays last), with its heading, status line and fields, and fill only what this session confirmed. Never write a section's content into another section because its heading is missing.
+2. **Add any missing section or field.** An older file may lack a section this skill writes (a file from before §18 or §19, say), or a field the template has since added to an existing section. Insert it from the current template, in its registered place (§8 Session Log stays last; a new field goes where the template puts it within its section), with its heading or label, status line and fields, and fill only what this session confirmed. Never write a section's content into another section because its heading is missing.
 3. **Set the status line** on each touched section: `complete` or `provisional`, today's date, this skill's name.
 4. **Append one Session Log row**: date, session name, outputs produced, status, the member's 1–5 rating (ask for it — one question: "Quick gut check: 1–5, how usable is what we built today?"), and any note worth keeping.
 5. **Emit the ENTIRE updated file** in a single fenced code block — not a diff, not just the changed sections — so the member can replace their saved copy in one paste. Precede it with a 2–4 bullet "What changed in your Business File" summary.

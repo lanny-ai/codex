@@ -63,7 +63,7 @@ Three pillars × five styles = fifteen cells; each cell yields several posts. Fi
 | 15 | Question of the week | "A client asked me [real question]. My answer:" | general; strong for services |
 | 16 | News + point of view | A development → what most miss → what to do | general; Edelman's "make buyers rethink" |
 | 17 | Who I'm not for | Define the wrong client to sharpen the right one | general |
-| 18 | Soft offer | "I have [n] spots for [offer] in [month]. For [who]. Not for [who]. DM me if it's you." Never comment-gated | general |
+| 18 | Soft offer | "I'm taking on [n] new clients for [offer] in [month]. For [who]. Not for [who]. DM me if it's you." Use a number only when the member has set it; otherwise drop it ("I'm taking on new clients for…"). Never comment-gated | general |
 | 19 | Testimonial spotlight | The client's words (consented, verbatim) + the story behind the result | practitioner consensus |
 | 20 | Punchy advice | 3 to 6 lines, one sharp piece of advice | Jasmin Alić |
 
@@ -75,14 +75,14 @@ Never: "comment KEYWORD to get it", "agree?", reaction polls, "repost if", taggi
 - **Post 2, midweek:** proof or story (trust and conversion). Format: document carousel when the material is a method; image otherwise.
 - **Post 3, late week:** personal, a lesson, or (every second to fourth week) the soft offer.
 - One call to action in most posts, soft: a P.S. pointing to the Featured diagnostic, or "DM me if you're dealing with this". One explicit offer post every two to four weeks. The profile sells the rest of the time. [synthesis of Alić's "sell from your content, not in it" and Welsh's clear calls to action]
-- Days: Tuesday to Thursday weighted, in the buyer's working hours; the member's own analytics overrule after four weeks.
+- Days: midweek, in the buyer's working hours (studies disagree on the exact days: Buffer's 2026 data ranks Wednesday, Thursday and Friday highest, older studies Tuesday to Thursday); test Friday; the member's own analytics overrule after four weeks.
 
 ## 6. Writing each post
 
 Every post goes through **Kern** (`kern-framework.md`): short, one person to one person, specific. A long story-led post or a newsletter issue goes through **Halbert** (`halbert-writing-system.md`). One post per output; the member approves or edits before the next.
 
 - **The first ~140 characters carry the post.** LinkedIn truncates with "see more" at about 140 characters on mobile (about 210 on desktop; LinkedIn does not publish the number, and line breaks move it). The opening must name the reader, the situation or the claim plainly inside that space.
-- **Length:** a whole idea, usually 1,300 to 2,500 characters (the best-performing band in AuthoredUp's 372,000-post data); the 600 to 1,500 middle is weakest in two datasets. A short punchy post now and then is fine.
+- **Length:** a whole idea, usually 1,500 to 2,500 characters: AuthoredUp's 372,000-post data peaks between 1,300 and 2,500, Ordinal's at 2,000 to 3,000, and posts of 600 to 1,300 do worst in both. A short punchy post (under 600) now and then is fine; it is the in-between length that underperforms.
 - **The topic in the first lines,** in the words the buyer uses, so both readers and the feed's model know what it is about.
 - **Specifics over adjectives:** a number, a name (consented), a year, a place.
 - **Short paragraphs,** one idea each; white space for reading on a phone, not "broetry" on every line.
@@ -90,28 +90,44 @@ Every post goes through **Kern** (`kern-framework.md`): short, one person to one
 - **No hashtags needed;** at most one link, usually none.
 - **Avoid the AI tells:** cascades of em dashes, "Here's the thing:", "Let that sink in", triplets of abstractions, emoji bullets, generic questions, "In today's fast-paced world".
 - **The three tests on every line** [Harry Dry]: can I picture it, can I prove it, could only this member say it.
-- **Draft label:** each draft is marked "draft, edit before posting" and lists the facts it used from the story bank, so the member can check them.
+- **Draft label:** each draft is marked "draft, edit before posting" and lists the facts it used from the story bank, so the member can check them. Under it: the character count and the first 140 characters exactly as they will show before "see more".
+
+**Kern for LinkedIn.** The Kern and Halbert references are written for emails and sales letters and are shared with the Copy Engine, so on LinkedIn they are applied with these limits. "Kern checks pass" means: one objective per post; the reader's belief that is being changed is named; the help is inside the post, not behind a link or a DM; a damaging admission where one is true; every number from the file or the story bank. And never, on LinkedIn: capitals for emphasis, an urgency P.S., scarcity or countdowns, risk-reversal or guarantee language unless the member has signed the guarantee off, stock lines (Halbert's 45 to 65 list included), or anything that reads like a growth creator.
 
 ## 7. Formats
 
 | Format | When | How it is made |
 |---|---|---|
-| Text + image | Default | Image: a real photo of the member or their work, or a simple card from `render_linkedin.mjs` (layout `card`, 1200 × 1500). No stock photos. |
-| Document carousel | Once a week, for a method, checklist or framework | `render_linkedin.mjs` layout `carousel`: 5 to 10 slides at 1080 × 1350, a hook slide, one idea per slide, a final slide with the soft CTA, exported as a PDF to upload as a document |
+| Text + image | Default | Image: a real photo of the member or their work, or a simple card from `render_linkedin.mjs` (layout `card`, 1200 × 1500). No stock photos. Draft **alt text** for every image (what it shows, in one sentence; LinkedIn's "Add alt text" on upload) |
+| Document carousel | Once a week, for a method, checklist or framework | `render_linkedin.mjs` layout `carousel`: 5 to 10 slides at 1080 × 1350, a hook slide, one idea per slide, a final slide with the soft CTA, exported as a PDF to upload as a document. Draft the **document title** (LinkedIn asks for it on upload and shows it on the carousel in the feed: the hook in under 60 characters) and the post text that goes above it |
 | Video | Trust with people who already follow; a short explanation to camera | Hand to the **Video Director** (content playbook: "Make me a content video") with the post as the brief; the post text must match the video |
 | Poll | Only to learn something real about the buyers, followed by a results post | Text only |
 | Newsletter | Optional, once the member has about 500 followers: the first issue invites the whole network once | Halbert; one issue a fortnight or month; each issue becomes three posts (hub and spoke, Welsh) |
 
 ## 8. The post gate (before the member sees a draft as "ready")
 
-- [ ] On one of the pillars, and says so in the first two lines
-- [ ] Built on the member's own story or fact (named in the draft notes); nothing invented
-- [ ] Every number and name traceable to the file or the story bank; client names only with consent
+Show the gate filled in under every draft. A draft that fails a line is fixed before the member sees it.
+
+**Truth and permission**
+- [ ] Built on the member's own story or fact (named in the draft notes); nothing invented: no added detail about a client (gender, age, backstory) that the story bank does not hold
+- [ ] Every number and name traceable to the file or the story bank
+- [ ] Client names, and client words even when unnamed, only with consent recorded in the story bank
+- [ ] Proof claims ("I've helped…", results, before and after) only from consented proof in §5 or §18
+- [ ] No §18 never-say claim
+- [ ] No offer element still open in §3 or §13 (guarantee wording, number of places, price) unless the member confirmed it in this session
+- [ ] No retired line (§1), and no paraphrase of one
+
+**Craft**
+- [ ] On one of the pillars, and the topic is clear inside the first 140 characters
+- [ ] Character count shown; the length fits the post's job (§6)
+- [ ] Kern for LinkedIn checks pass (§6); no AI tells; the three tests pass
+- [ ] No story used twice within four weeks, unless the calendar plans it as hub and spoke
+- [ ] Draft label and facts list present
+
+**Platform**
 - [ ] No bait, no comment-gating, no "agree?", no tags of uninvolved people
-- [ ] Kern checks pass; no AI tells; the three tests pass
 - [ ] At most one link; the call to action is soft unless this is the scheduled offer post
-- [ ] Format matches the week's plan; a carousel or card is rendered and checked
-- [ ] Retired lines (§1) not used
+- [ ] Format matches the week's plan; a carousel or card is rendered and checked; document title and alt text drafted
 
 ## 9. The calendar
 

@@ -58,9 +58,9 @@ Once a conversation reaches `qualified`, it belongs in the CRM too:
 | Weekly | Months 1–3 | Established |
 |---|---|---|
 | Posts | 3 | 3 |
-| Substantive comments on others' posts | 25–50 | 25–50 |
+| Substantive comments on others' posts | 25 (5 a weekday) | 25–50 |
 | Profile viewers | rising week on week | rising or steady |
-| Connection requests (warm first) | 30–60 | 50–80 |
+| Connection requests (warm signals, then tier A accounts after a week or two of comments; never cold volume) | 15–30 | 30–50 |
 | Acceptance | ≥ 40% | ≥ 50% |
 | Warm-signal DMs started | 10–15 | 15–25 |
 | Reply rate on warm DMs | ≥ 25% | ≥ 30% |

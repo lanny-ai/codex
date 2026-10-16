@@ -42,20 +42,20 @@ LinkedIn publishes no invitation number. When the weekly limit is hit, invitatio
 | Thing | Warn above | Why |
 |---|---|---|
 | Connection requests | 20 a day or 80 a week | Commonly reported cap is about 100 a week; leave room |
-| Personalised connection notes (free account) | 5 a month | LinkedIn Help: 5 a month on free accounts (some reports say 3); Premium unlimited |
+| Personalised connection notes (free account) | 3 a month | LinkedIn Help says 5 a month on free accounts, but 2026 member reports say 3 and the page may be stale: warn from the fourth; Premium unlimited |
 | Connection note length | 200 characters (300 if the member confirms Premium) | Free-account limit |
 | Pending invitations | Withdraw after about 3 weeks | About 91% of eventual accepters accept within 2 weeks (Belkins 2026); withdrawing does not restore quota |
 | DMs in one sitting | 15 | A human pace; the real limit is reply quality |
-| Comments | No hard number; 5 to 10 thoughtful ones a day | LinkedIn may limit "excessive comment creation" |
+| Comments | No hard number; 5 thoughtful ones a day, 10 with more time | LinkedIn may limit "excessive comment creation" |
 
 `li_pipeline.py pace` reports these from the member's own log.
 
 ## Prospect data (GDPR and good manners)
 
 A solo expert who keeps a prospect list is a data controller. Keep it small and honest:
-- **Basis:** legitimate interests, written down once in a short note (who, why, what you keep).
+- **Basis:** legitimate interests, written down once in a short note (who, why, what you keep). The pipeline file starts with a standard note; show it to the member when the first record is added and let them edit it.
 - **What to keep:** name, LinkedIn URL, role and company as the person shows them, the signal (with the post link), notes the member typed, stage, next action, dates. Nothing else.
-- **First contact:** link a short privacy page from the profile (Contact info or Featured), or add one line to the first message when emailing. In the EU and UK the person must be told who you are and why you hold their details at first contact (GDPR Article 14).
+- **First contact:** before the first message to anyone in the EU or UK, check a privacy notice exists (if not, a §13 row, and hold EU/UK messages until it does). Link a short privacy page from the profile (Contact info or Featured), or add one line to the first message when emailing. In the EU and UK the person must be told who you are and why you hold their details at first contact (GDPR Article 14).
 - **Objections:** "please don't contact me" ends it. `li_pipeline.py forget <id>` deletes the record and keeps only a suppression line so they are never contacted again.
 - **Retention:** cold records with no interaction for 12 months are flagged for deletion (`li_pipeline.py due --retention`).
 - **Security:** the pipeline file stays on the member's computer; do not sync it to shared folders.

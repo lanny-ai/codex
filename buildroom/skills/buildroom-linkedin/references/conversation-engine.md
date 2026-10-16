@@ -1,12 +1,12 @@
 # The conversation engine: attention → conversation → call
 
-Posts earn attention; conversations earn clients. This is the daily routine that turns the first into the second, by hand, about 20 minutes a day. Every message below is a draft the member edits and sends themselves (`account-safety.md`).
+Posts earn attention; conversations earn clients. This is the daily routine that turns the first into the second, by hand, 20 to 30 minutes a day. Every message below is a draft the member edits and sends themselves (`account-safety.md`).
 
 ## 1. The daily 20 minutes
 
 | Minutes | What | Output |
 |---|---|---|
-| 0–10 | **Comment** on 5 to 10 posts from the watch list (below), substantively | Comments the member writes, logged as "commented" |
+| 0–10 | **Comment** on 5 posts from the watch list (below), substantively; 10 if the member has 30 minutes [van der Blom spends 25 to 30 minutes a day commenting] | Comments the member writes, logged with `log-comments` |
 | 10–13 | **Reply** to comments on the member's own recent posts; open a second exchange with the fitting ones | Warm signals logged |
 | 13–17 | **Act on warm signals:** connection requests and first DMs to people who signalled (commented, viewed and fit, new role, inbound request) | `li_pipeline.py signal` / `touch` |
 | 17–20 | **Follow-ups due today** (`li_pipeline.py due`) | Follow-ups sent or closed |
@@ -41,7 +41,8 @@ LinkedIn has said commenting regularly can triple profile views (reported second
 5. Event and community co-members
 6. Cold ideal-client profiles (last)
 
-**Note or no note:** five datasets agree a note does not raise acceptance; two show it lifts replies (8.2% versus 5.3%, Belkins 2026). Free accounts get about 5 personalised notes a month, 200 characters each. So: **blank requests by default; save notes for tiers 1 and 2, citing the signal.**
+**Note or no note:** five datasets agree a note does not raise acceptance; two show it lifts replies (8.2% versus 5.3%, Belkins 2026). Free accounts get a handful of personalised notes a month (LinkedIn's page says 5; members in 2026 report 3), 200 characters each; the pipeline warns from the fourth. So: **blank requests by default; save notes for tiers 1 and 2, citing the signal.**
+- **C1, blank request:** the default for everyone else; no text.
 - **C2, signal note** (≤200 characters): "Hi [Name], enjoyed your comment on [Person]'s post about [topic], especially [specific]. I work on the same problem with [client type]. Good to be connected."
 - **C3, welcoming an inbound request that fits** (as a DM after accepting, only with a real reason): "Thanks for connecting, [Name]. Saw you're [role] at [company]. What's taking most of your attention right now on [area]? No agenda, I like knowing who's here."
 Withdraw requests still pending after three weeks (withdrawing does not restore the weekly quota).
@@ -58,6 +59,8 @@ Withdraw requests still pending after three weeks (withdrawing does not restore 
 | Sent the member a connection request | `sig:inbound-connect` | Invitations |
 | DM'd the member first | `sig:dm-inbound` | Messages |
 | Same event or community | `sig:event` | Event page |
+| Introduced or referred by someone | `sig:referral` | The introduction |
+| Launched or announced something relevant (a new service, a raise, an expansion) | `sig:launch` | Their post or company page |
 
 No signal, no DM. Cold strangers get a comment first.
 
@@ -75,7 +78,8 @@ Under about 400 characters [LinkedIn Talent data], about them, easy to say no to
 - **D6, when the pain is unclear** [practitioner: Braun's "poke the bear"]: "Out of curiosity, how are you handling [problem] today? Most [client type] I talk to either [A] or [B], and both have trade-offs."
 
 **The call ask, only after two or more real exchanges** [practitioner: Morgan J. Ingram, "sell the meeting, not the product"; Braun, permission to say no]
-- **D5:** "Sounds like [their problem, in their words]. I've helped [similar client] with exactly that. Would a 20-minute call to map your options be useful? If not, no problem, happy to keep swapping notes here."
+- **D5:** "Sounds like [their problem, in their words]. I've helped [similar client] with exactly that. Would a [call length from §6]-minute call to map your options be useful? If not, no problem, happy to keep swapping notes here."
+- **D5, no proof yet** (no consented client story to point to): "Sounds like [their problem, in their words]. That's the exact problem [offer] is built for. Would a [call length]-minute call to map your options be useful? If not, no problem, happy to keep swapping notes here."
 - The link: the member's §6 booking calendar. Log "call offered", then "call booked" when it lands.
 
 **Follow-ups: two, then stop** [data: Expandi H2 2026, 3-message sequences 9.8% versus 5.0% for 5+]
@@ -83,7 +87,7 @@ Under about 400 characters [LinkedIn Talent data], about them, easy to say no to
 - **F2, day 7 to 10, permission to close:** "Haven't heard back, so I'll assume [topic] isn't a priority right now. Totally fine. If that changes, just reply here."
 - Then nurture: keep commenting on their posts; re-engage only on a new signal, no sooner than 60 to 90 days.
 
-**Voice notes** (mobile app, 1st-degree connections only, up to one minute [LinkedIn Help a548233]): as the second touch after someone replied, or for a strong warm signal. Under 45 seconds: their name and the signal (10 s), one insight tied to their situation (20 to 30 s), one easy question. Never as a cold first touch; never an AI voice clone.
+**V1, voice note** (mobile app, 1st-degree connections only, up to one minute [LinkedIn Help a548233]): as the second touch after someone replied, or for a strong warm signal. Under 45 seconds, spoken by the member: "Hi [Name], [the signal: your comment on X / your new role]. [One insight tied to their situation, 20 to 30 seconds.] Curious, [one easy question]?" Never as a cold first touch; never an AI voice clone.
 
 Every DM draft goes through Kern, uses the member's voice, and is edited by the member before sending. The skill never sends.
 
