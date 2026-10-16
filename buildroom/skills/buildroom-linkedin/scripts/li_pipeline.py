@@ -144,8 +144,8 @@ def cmd_touch(data, a):
             refuse(f"connection note is {len(a.text)} characters; the limit is {lim}")
     if t in {"D1", "D2", "D3", "D4", "D5", "D6", "F1", "F2", "C3"} and a.text and len(a.text) > 400:
         warn.append(f"message is {len(a.text)} characters; under about 400 gets more replies")
-    if t == "D5" and sum(1 for x in p["touches"] if x["template"] in FIRST_DM | {"D6"}) < 1 and p["stage"] not in ("conversation", "qualified"):
-        warn.append("call ask before any real exchange: earn it with two or more replies first")
+    if t == "D5" and p["stage"] not in ("conversation", "qualified"):
+        warn.append("call ask before they have replied: earn it with two or more real exchanges first")
     p["touches"].append({"date": on, "template": t, **({"chars": len(a.text)} if a.text else {}), **({"note": a.note} if a.note else {})})
     p["last_interaction"] = on
     p["retention_until"] = plus(on, RETENTION_DAYS)
