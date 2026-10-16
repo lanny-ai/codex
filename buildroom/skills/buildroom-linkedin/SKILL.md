@@ -46,7 +46,7 @@ Read these before any member-facing work, in this order:
 - **Build** (default; "build my LinkedIn engine", "help me get clients from LinkedIn"): Phases 0–6 below, usually over one long session or two shorter ones.
 - **Single piece** ("fix my LinkedIn profile", "write my LinkedIn posts", "make me a LinkedIn carousel"): run only that phase, reading the file and anything already in `linkedin/`.
 - **Weekly** ("plan my LinkedIn week"): the weekly loop at the end (capture, three drafts, the scorecard, next week's calendar).
-- **Daily** ("who should I message on LinkedIn today"): `li_pipeline.py today` plus drafts for each due item.
+- **Daily** ("who should I message on LinkedIn today"): `li_pipeline.py today` plus drafts for each due item; log what the member sent (`touch --text`) and who replied (`reply`).
 - **Log** ("I posted it: [link]", "log my comments"): `li_pipeline.py log-post` or `log-comments`, mark the calendar row posted, nothing else.
 - **Review** ("how is my LinkedIn doing"): the scorecard and diagnosis only.
 - **Demo** ("show me how the LinkedIn engine works"): a short labelled walkthrough on the member's file or an obviously hypothetical example: one headline, one post, one DM, one scorecard. Nothing written to the file; say once that it was a demo.
@@ -87,13 +87,13 @@ Headline (two versions, in the words the buyer searches: from §2 sourced langua
 
 1. **Watch list.** The member names 10 to 20 ideal clients, 10 to 20 peers, 3 to 5 larger voices (names and links they choose; no scraping). Write `watch-list.md`. Tell them to ring the bell on tiers A and B.
 2. **Templates in their voice.** Adapt K1–K4, C1–C3, D1–D6, F1–F2 and V1 (`conversation-engine.md`) to the member's offer and tone; show them as a one-page sheet.
-3. **Pipeline.** Initialise `pipeline.json` (`li_pipeline.py settings --premium yes|no`). If the member already has warm signals (recent commenters, inbound requests, profile viewers who fit), log them now with `li_pipeline.py add` and draft the first messages.
+3. **Pipeline.** Initialise `pipeline.json` (`li_pipeline.py settings --premium yes|no --pillars "<pillar 1>" "<pillar 2>"`); show the member the lawful-basis line it prints and let them edit it (`--basis`). If the member already has warm signals (recent commenters, inbound requests, profile viewers who fit), log them now with `li_pipeline.py add` and draft the first messages.
 4. **The daily routine**, written as a checklist they can keep open (`routine.md`), sized to the time they gave in Phase 0.
 5. **Privacy line.** Before the first message to anyone in the EU or UK, the member needs a privacy notice they can point to (a line on their site or booking page saying what they keep and why). If none exists, add a §13 row (`account-safety.md`).
 
 ### Phase 5 — Pipeline handoff and scorecard
 
-1. `li_pipeline.py ghl-build > linkedin/ghl-build.json`; if the member uses GoHighLevel and has the Decision Machine's `ghl_push.py`, push the tags and fields (`--dry-run` first) and list the pipeline stages to create in the browser.
+1. `li_pipeline.py ghl-build --pipeline existing --pipeline-name "<§16 pipeline>" --stages "<its stages>" > linkedin/ghl-build.json` (`pipeline-and-scorecard.md` §3; `--pipeline separate` only if the member wants LinkedIn tracked apart); if the member uses GoHighLevel and has the Decision Machine's `ghl_push.py`, push the tags and fields (`--dry-run` first) and list the pipeline stages to create in the browser.
 2. Agree the scorecard day. Show how to export LinkedIn analytics on the scorecard day (`pipeline-and-scorecard.md` §4: a custom date range, Monday to Sunday of the week just ended, saved in `linkedin/exports/`) and the few numbers to type by hand (`pipeline-and-scorecard.md` §4). If an export exists already, run `li_scorecard.py week` now for a baseline.
 3. Starter targets, labelled as a starting point to recalibrate after four weeks.
 

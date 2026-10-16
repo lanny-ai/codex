@@ -8,10 +8,10 @@ Posts earn attention; conversations earn clients. This is the daily routine that
 |---|---|---|
 | 0–10 | **Comment** on 5 posts from the watch list (below), substantively; 10 if the member has 30 minutes [van der Blom spends 25 to 30 minutes a day commenting] | Comments the member writes, logged with `log-comments` |
 | 10–13 | **Reply** to comments on the member's own recent posts; open a second exchange with the fitting ones | Warm signals logged |
-| 13–17 | **Act on warm signals:** connection requests and first DMs to people who signalled (commented, viewed and fit, new role, inbound request) | `li_pipeline.py signal` / `touch` |
+| 13–17 | **Act on warm signals:** connection requests and first DMs to people who signalled (commented, viewed and fit, new role, inbound request) | `li_pipeline.py add` / `touch --text` |
 | 17–20 | **Follow-ups due today** (`li_pipeline.py due`) | Follow-ups sent or closed |
 
-`li_pipeline.py today` prints this list from the member's own log. On a busy day: comments and follow-ups only.
+`li_pipeline.py today` prints this list from the member's own log. When someone answers, log it with `li_pipeline.py reply <id>`; the follow-ups stop. On a busy day: comments and follow-ups only.
 
 ## 2. The watch list (whose posts to comment on)
 

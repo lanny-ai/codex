@@ -21,24 +21,32 @@ What gets counted gets better. The member's own log is the source of truth, kept
 
 Name · LinkedIn URL · role and company as they show them · the signal (tag and a link to the post or comment) · ideal-client fit (A/B/C) · stage · touches (date, template used: C2, D1…F2, V1) · next action and date · notes the member typed · lawful basis (`legitimate-interest`) · objection flag · retention date. Nothing copied from the profile beyond role and company.
 
-`li_pipeline.py` commands:
+`li_pipeline.py` commands (run from the folder that holds the Business File; the pipeline file defaults to `linkedin/pipeline.json`, or pass `--file P`; `li_pipeline.py --help` and the script's header list every option):
 ```
+settings [--premium yes|no] [--notes-limit N] [--pillars "A" "B"] [--basis "..."]   # creates the pipeline (only settings or init does)
 add      --name --url --role --company --signal sig:commented-my-post --fit A [--link URL] [--note "..."]
-touch    <id> --template D1 [--note "..."]      # logs a message the member sent; schedules the follow-up
-move     <id> <stage> [--note "..."]
+touch    <id> --template C2|D1|… --text "the message as sent" [--note "..."]   # logs a message the member sent; schedules the next step
+                                                # --text is what the length checks read (C2 note 200/300, DM 400)
+reply    <id> [--note "..."]                    # they replied; two or more replies make a real conversation
+move     <id> <stage> [--value N] [--note "..."]
+log-post --url <post link> --pillar "<one of the stored pillars>" --format image|carousel|text|video|poll
+log-comments <n>                                # substantive comments written today
 today                                           # the daily list: follow-ups due, signals waiting, pacing
 due      [--retention]                          # follow-ups due; records past retention
 pace                                            # invitations this week, notes this month, warnings
 forget   <id>                                   # objection: delete, keep a one-line suppression
-week     [--from YYYY-MM-DD]                    # this week's counts for the scorecard
+week     [--from YYYY-MM-DD]                    # counts for the last complete Monday–Sunday week
 import-connections Connections.csv              # the member's own 1st-degree export: marks who is connected
+ghl-build [--pipeline existing|separate] [--pipeline-name "..."] [--stages "..." ...]   # the CRM plan, JSON
+list
 ```
+Every command takes `--date YYYY-MM-DD` to log something on the day it happened. An early call ask (D5 before they have replied) is logged with a warning and does not move the stage; a DM to someone not yet connected is warned.
 
 ## 3. Handing off to GoHighLevel (§6)
 
 Once a conversation reaches `qualified`, it belongs in the CRM too:
-- **Pipeline:** "LinkedIn Organic" with stages 4 to 10 above. `li_pipeline.py ghl-build > linkedin/ghl-build.json` writes the tags, custom fields and pipeline in the format the Decision Machine's `ghl_push.py` reads: it pushes the tags and fields from the member's `.env` key and reports the stages to create in the browser (the GoHighLevel API cannot create pipelines).
-- **Tags:** `src:linkedin-organic`, the signal tag, `fit:A|B|C`, `msg:d1|fu1|fu2`, `nurture-90d`.
+- **Pipeline:** read §6 and §16 first. Default: the member's **existing** sales pipeline, so the Funnel Scorecard sees one set of booked calls and wins (`li_pipeline.py ghl-build --pipeline existing --pipeline-name "<§16 pipeline>" --stages "<its stages in order>" > linkedin/ghl-build.json`); LinkedIn records join it from `qualified` onward, lost is a status and nurture a tag. Only if the member wants LinkedIn tracked apart, `--pipeline separate` ("LinkedIn Organic", stages 4 to 10 above). The file is in the format the Decision Machine's `ghl_push.py` reads: it pushes the tags and fields from the member's `.env` key (`--dry-run` first) and reports any stages to create in the browser (the GoHighLevel API cannot create pipelines).
+- **Tags:** lower case, in the Build Room's `src-*` style: `src-linkedin`, the signal tag (`sig-commented-my-post`…), `fit-a|b|c`, `msg-d1|fu1|fu2`, `nurture-90d` (`--tag-style colon` if the member's CRM already uses `src:`).
 - **Fields:** LinkedIn URL, first signal date, offer discussed.
 - The booking itself runs through the §6 calendar and its reminders. Logged by the member; never synced by scraping or extensions.
 
@@ -47,11 +55,11 @@ Once a conversation reaches `qualified`, it belongs in the CRM too:
 **Inputs the member controls** (from the pipeline log): posts published (and pillar, format) · substantive comments on others' posts · connection requests sent · warm-signal DMs started · follow-ups sent.
 
 **Outputs** (from the log and LinkedIn's export):
-- From LinkedIn's creator analytics export (`.xlsx`: Me → View profile → Analytics → Show all analytics → Post impressions → past 7 days → Export). Its sheets are DISCOVERY, ENGAGEMENT, TOP POSTS, FOLLOWERS and DEMOGRAPHICS; LinkedIn does not document the columns, so the reader finds them by name, and `li_scorecard.py inspect` shows what a new export contains. TOP POSTS is LinkedIn's sample of the top 50 posts (two tables, by engagements and by impressions), merged by post link: use it to see what worked, not as totals.
+- From LinkedIn's creator analytics export (`.xlsx`: Me → View profile → Analytics → Show all analytics → Post impressions → set a **custom date range of exactly the Monday to Sunday just ended** → Export; save it in `linkedin/exports/`. The scorecard reads the export's own date range and refuses one that does not match the week, because a "past 7 days" export taken mid-week mixes two weeks). Its sheets are DISCOVERY, ENGAGEMENT, TOP POSTS, FOLLOWERS and DEMOGRAPHICS; LinkedIn does not document the columns, so the reader finds them by name, and `li_scorecard.py inspect` shows what a new export contains. TOP POSTS is LinkedIn's sample of the top 50 posts (two tables, by engagements and by impressions), merged by post link: use it to see what worked, not as totals.
 - Typed by the member (LinkedIn shows them but does not export them): profile viewers this week, saves and sends on the week's posts, profile views and followers gained from each post.
-- From the pipeline: acceptance rate, replies and reply rate, conversations (two or more exchanges each way), calls booked, calls held, proposals, clients won and value.
+- From the pipeline: acceptance rate (of the member's own requests sent that week), people who replied and the reply rate on first DMs, real conversations (two or more replies, logged with `reply`), calls booked, calls held, proposals, clients won and value.
 
-`li_scorecard.py week --xlsx <export> --pipeline linkedin/pipeline.json --manual manual.json` writes `linkedin/scorecards/YYYY-Www.md`: the numbers, last week beside them, a four-week trend, and the diagnosis (`conversation-engine.md` §8) applied to the numbers.
+`li_scorecard.py week --xlsx linkedin/exports/<export>.xlsx --manual linkedin/manual.json` (pipeline defaults to `linkedin/pipeline.json`; `--date` replays a past week) writes `linkedin/scorecards/YYYY-Www.md`: the numbers, last week beside them, a four-week trend, and the diagnosis (`conversation-engine.md` §8) applied to the numbers.
 
 ### Starter targets (a Build Room proposal, not research; recalibrate after four weeks)
 
