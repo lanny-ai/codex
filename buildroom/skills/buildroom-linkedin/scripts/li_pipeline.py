@@ -14,26 +14,39 @@ Usage
                           creates the pipeline on first use and prints the lawful basis it records (edit with --basis)
   li_pipeline.py init     [P] [same options as settings]
   li_pipeline.py add    [P] --name "Dana Ruiz" --url https://www.linkedin.com/in/danaruiz --role "COO" --company "Ruiz & Co"
-                          --signal sig:commented-my-post --fit A [--link URL] [--note "..."] [--date YYYY-MM-DD]
+                          --signal sig:commented-my-post --fit A [--connected] [--link URL] [--note "..."] [--date YYYY-MM-DD]
                           signals: sig:commented-my-post sig:commented-peer-post sig:viewed-profile sig:new-role
                           sig:posted-problem sig:inbound-connect sig:dm-inbound sig:event sig:referral sig:launch
+                          sig:known (a past client, colleague or someone who already knows the member: the member
+                          says how in --note) · sig:reacted (reacted to the member's post: a weaker signal; the
+                          today list suggests a comment or a profile visit before a DM)
+                          --connected: already 1st-degree, so the record starts at stage connected
+                          The URL is reduced to linkedin.com/in/<slug> (decoded, lower case, no sub-domain, query,
+                          fragment or extra path) for duplicates, suppression and import-connections. A member-ID
+                          link (/in/ACoA...) is warned: open the profile and copy the public link.
   li_pipeline.py touch  [P] <id> --template D1 [--text "the message as sent"] [--note "..."] [--force-stage] [--date ...]
                           logs a message the member sent and schedules the next step.
-                          C1 blank request · C2 request with note · C3 welcome · D1–D4 first DM · D5 call ask
+                          C1 blank request · C2 request with note · C3 welcome · D1–D4 first DM · R1 reactivation
+                          (someone who already knows you; scheduled like a first DM) · D5 call ask
                           D6 deepening · F1/F2 follow-ups · V1 voice note
                           --text is what the length checks read: a C2 note over 200 characters (300 on Premium) is
                           refused, and a DM over 400 is warned. Without --text there is no length check.
                           A D5 before they have replied is logged with a warning and does not move them to
-                          call-offered (--force-stage moves them anyway).
+                          call-offered (--force-stage moves them anyway). A C3 (welcome after accepting) marks
+                          the record connected. More than 15 messages logged in one day is warned.
+  li_pipeline.py connect [P] <id> [--date ...]     they are 1st-degree now (same as move <id> connected)
   li_pipeline.py reply  [P] <id> [--note "..."] [--date ...]
-                          they replied: logs the reply (two or more make a real conversation) and moves a
-                          record that has not replied before to conversation
+                          they replied: logs the reply (two or more, on different days, make a real
+                          conversation; one per person per day is counted) and moves a record that has not
+                          replied before to conversation
   li_pipeline.py move   [P] <id> <stage> [--note "..."] [--value 12000] [--date ...]
                           stages: signal warming connected conversation qualified call-offered call-booked
                           call-held proposal won lost nurture (each sets its own next action)
   li_pipeline.py log-post [P] --url <post link> --pillar "Cash flow" --format image|carousel|text|video|poll [--date]
                           --pillar must be one of the pillars stored with settings --pillars
   li_pipeline.py log-comments [P] <n> [--date]        comments the member wrote on others' posts today
+  li_pipeline.py log-requests [P] <n> [--date]        blank connection requests sent to people not in the pipeline
+                          (no names stored): counted in pace and the week's requests, not in acceptance
   li_pipeline.py today  [P] [--date]                  the daily list: follow-ups due, signals waiting, pace
   li_pipeline.py due    [P] [--retention] [--date]    follow-ups due (and records past their retention date)
   li_pipeline.py pace   [P] [--date]                  invitations this week, notes this month, warnings
@@ -43,15 +56,27 @@ Usage
   li_pipeline.py import-connections [P] Connections.csv  the member's own 1st-degree export: marks who is connected
   li_pipeline.py ghl-build [P] [--pipeline existing|separate] [--pipeline-name "Sales Pipeline"] [--stages "New Lead" ...]
                           [--tag-style hyphen|colon] [--source-tag src-linkedin]
-                          tags, fields and pipeline for ghl_push.py (JSON to stdout; nothing is sent)
+                          tags, fields and pipeline for ghl_push.py (JSON to stdout; nothing is sent).
+                          --stages takes separate names or one comma-separated string. Stages are matched by
+                          whole words; a stage named no / not / lost / cancel / disqualified / unqualified is never
+                          used for a positive step. "unmapped" lists LinkedIn stages that matched nothing (they
+                          fall back to the stage before); "confirm" asks the member to check the map.
   li_pipeline.py list   [P] [--stage S]
 
-Standard library only. Exit code 2 on a refused action (missing pipeline file, suppressed person,
-unknown id, bad stage, unknown pillar).
+The week (week, li_scorecard.py): acceptance is measured on a mature cohort, the member's own C1/C2
+requests sent in the Monday–Sunday week two weeks before the scorecard week (so every request is at
+least 14 days old by the week's last day), accepted by that day. An empty cohort gives null (n/a),
+never 0. "invited" stays this week's count of people the member sent a request to. "signals_answered_rate"
+is the share of records added in the week (sig:known excluded) whose first logged touch came within 2
+days of the signal date.
+
+Standard library only. Exit code 2 on a refused action (missing or unreadable pipeline file, bad date,
+suppressed person, unknown id, bad stage, unknown pillar).
 """
 import sys
 sys.dont_write_bytecode = True  # noqa: E402  (keeps __pycache__ out of the installed skill folder)
-import argparse, csv, datetime as dt, hashlib, json, os, re, tempfile  # noqa: E402
+import argparse, csv, datetime as dt, hashlib, json, os, re, tempfile, unicodedata  # noqa: E402
+from urllib.parse import unquote  # noqa: E402
 from pathlib import Path  # noqa: E402
 
 SCHEMA = "buildroom-linkedin/1"
@@ -59,21 +84,25 @@ DEFAULT_PATH = "linkedin/pipeline.json"
 STAGES = ["signal", "warming", "connected", "conversation", "qualified", "call-offered", "call-booked",
           "call-held", "proposal", "won", "lost", "nurture"]
 SIGNALS = ["sig:commented-my-post", "sig:commented-peer-post", "sig:viewed-profile", "sig:new-role",
-           "sig:posted-problem", "sig:inbound-connect", "sig:dm-inbound", "sig:event", "sig:referral", "sig:launch"]
+           "sig:posted-problem", "sig:inbound-connect", "sig:dm-inbound", "sig:event", "sig:referral", "sig:launch",
+           "sig:known", "sig:reacted"]
+# signals where the person is often 1st-degree already: the DM warning asks rather than asserts
+LIKELY_CONNECTED = {"sig:commented-my-post", "sig:dm-inbound", "sig:known", "sig:reacted"}
 TEMPLATES = {"C1": "connection request (blank)", "C2": "connection request with note", "C3": "welcome after accepting",
              "D1": "first DM: commented on my post", "D2": "first DM: resource offer", "D3": "first DM: trigger event",
              "D4": "first DM: profile viewer", "D5": "call ask", "D6": "deepening question",
-             "F1": "follow-up 1 (add value)", "F2": "follow-up 2 (permission to close)", "V1": "voice note"}
-FIRST_DM = {"D1", "D2", "D3", "D4", "C3"}
+             "F1": "follow-up 1 (add value)", "F2": "follow-up 2 (permission to close)", "V1": "voice note",
+             "R1": "reactivation: someone who already knows you"}
+FIRST_DM = {"D1", "D2", "D3", "D4", "C3", "R1"}
 INVITES = {"C1", "C2"}
-DIRECT = {"C3", "D1", "D2", "D3", "D4", "D5", "D6", "F1", "F2", "V1"}   # messages that need a connection (or InMail)
+DIRECT = {"C3", "D1", "D2", "D3", "D4", "R1", "D5", "D6", "F1", "F2", "V1"}   # messages that need a connection (or InMail)
 FORMATS = ["text", "image", "carousel", "video", "poll", "newsletter", "article"]
 # follow-up rhythm (days): after a first DM or the call ask, F1 in 4 days; after F1, F2 in 5 more; after F2, stop.
 NEXT_AFTER = {"first": ("F1", 4), "F1": ("F2", 5), "F2": (None, 0), "invite": ("check accept / withdraw if pending", 21),
               "sent": ("wait for reply; F1 if silent", 4)}
 # the next action each stage sets when a record enters it (every stage has one; None clears it)
 STAGE_NEXT = {"signal": ("connect or first DM within 48 h", 2), "warming": ("check accept / withdraw if pending", 21),
-              "connected": ("first DM if there is a reason (C3/D1–D4)", 2), "conversation": ("learn the problem (D6)", 2),
+              "connected": ("first DM if there is a reason (C3/D1–D4/R1)", 2), "conversation": ("learn the problem (D6)", 2),
               "qualified": ("the call ask (D5)", 1), "call-offered": ("F1 if no answer", 4),
               "call-booked": ("prepare for the call", 0), "call-held": ("proposal or close", 2),
               "proposal": ("follow up on the proposal (§16)", 4), "won": (None, 0), "lost": (None, 0),
@@ -90,9 +119,17 @@ GENERIC_STAGES = ["New Lead", "Call Booked", "Showed", "Committed", "Paid"]   # 
 SEPARATE_STAGES = ["Conversation", "Qualified", "Call offered", "Call booked", "Call held", "Proposal", "Won", "Lost", "Nurture"]
 
 
+def parse_date(s, what="--date"):
+    """A YYYY-MM-DD date, or a clean refusal (exit 2), never a traceback."""
+    try:
+        return dt.date.fromisoformat(str(s).strip())
+    except (TypeError, ValueError):
+        refuse(f"{what} must be a real date as YYYY-MM-DD (got {s!r})")
+
+
 def today(a=None):
     d = getattr(a, "date", None) if a else None
-    return dt.date.fromisoformat(d) if d else dt.date.today()
+    return parse_date(d) if d else dt.date.today()
 
 
 def last_full_week(on):
@@ -100,31 +137,72 @@ def last_full_week(on):
     return on - dt.timedelta(days=on.weekday() + 7)
 
 
+PROFILE = re.compile(r"^(?:[a-z0-9-]+\.)*linkedin\.com/in/([^/?#\s]+)")
+
+
+def person_key(u):
+    """The canonical person key: linkedin.com/in/<slug>. URL-decoded, lower case, without scheme, sub-domain
+    (www., es., m.), query, fragment, trailing slash or extra path (/details/..., /recent-activity/...).
+    A link that is not a linkedin.com/in/ profile is only cleaned (scheme, www., query, fragment, slash)."""
+    s = unicodedata.normalize("NFC", unquote((u or "").strip())).lower()
+    s = re.sub(r"^[a-z][a-z0-9+.-]*://", "", s).split("#")[0].split("?")[0]
+    m = PROFILE.match(s)
+    if m:
+        return f"linkedin.com/in/{m.group(1)}"
+    return re.sub(r"^www\.", "", s).rstrip("/")
+
+
 def norm_url(u):
+    return person_key(u)
+
+
+def old_norm_url(u):
+    """The normalisation used before person_key (kept so suppression lines written then still match)."""
     u = (u or "").strip().lower().split("?")[0].rstrip("/")
     return re.sub(r"^https?://(www\.)?", "", u)
 
 
 def url_hash(u):
-    return hashlib.sha256(norm_url(u).encode()).hexdigest()[:24]
+    return hashlib.sha256(person_key(u).encode()).hexdigest()[:24]
+
+
+def url_hashes(u):
+    """Every hash a suppression line for this person may carry: the canonical key's and the old one's."""
+    return {url_hash(u), hashlib.sha256(old_norm_url(u).encode()).hexdigest()[:24]}
+
+
+def url_warnings(u):
+    k = person_key(u)
+    if not k.startswith("linkedin.com/in/"):
+        return [f"{u!r} is not a linkedin.com/in/ profile link: duplicates and suppression are matched on the profile "
+                "link, so copy it from the person's profile"]
+    if k.split("/")[-1].startswith("acoa"):
+        return ["this is a member ID link (/in/ACoA...); open the profile and copy the public link "
+                "(linkedin.com/in/name), or the same person can end up in the log twice"]
+    return []
 
 
 def new_pipeline(on=None):
     return {"schema": SCHEMA, "created": (on or dt.date.today()).isoformat(),
             "settings": {"premium": False, "notes_limit": WARN["notes_month_free"], "pillars": []},
-            "basis": BASIS, "people": [], "suppressed": [], "posts": [], "comments": [], "next_id": 1}
+            "basis": BASIS, "people": [], "suppressed": [], "posts": [], "comments": [], "cold_requests": [], "next_id": 1}
 
 
 def load(path, create=False, on=None):
-    """The pipeline at `path`. A missing file raises FileNotFoundError unless create=True."""
+    """The pipeline at `path`. A missing file raises FileNotFoundError unless create=True; an unreadable
+    or foreign file is refused (exit 2)."""
     p = Path(path)
     if not p.exists():
         if create:
             return new_pipeline(on)
         raise FileNotFoundError(str(path))
-    data = json.loads(p.read_text(encoding="utf-8"))
-    if data.get("schema") != SCHEMA:
-        raise SystemExit(f"{path} is not a LinkedIn Engine pipeline file")
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+    except (ValueError, UnicodeDecodeError) as e:
+        refuse(f"{path} is not readable JSON ({e}); restore it from a backup or fix the file by hand")
+    if not isinstance(data, dict) or data.get("schema") != SCHEMA:
+        refuse(f"{path} is not a LinkedIn Engine pipeline file")
+    data.setdefault("cold_requests", [])
     return data
 
 
@@ -162,11 +240,20 @@ def reached(p, stage):
 
 
 def replies_of(p):
-    """Dates of their replies. Older records without a reply log count entering conversation as one reply."""
+    """Dates of their replies, at most one per calendar day (several message bubbles in a row are one reply).
+    Older records without a reply log count entering conversation as one reply."""
     if "replies" in p:
-        return list(p["replies"])
+        return sorted(set(p["replies"]))
     c = p["stage_dates"].get("conversation")
     return [c] if c else []
+
+
+def connected_on(p):
+    """The first date the record is known to be 1st-degree (entered connected or later, or a C3), or None."""
+    i = STAGES.index("connected")
+    ds = [v for k, v in p["stage_dates"].items() if k in STAGES and STAGES.index(k) >= i and k not in ("lost", "nurture") and v]
+    ds += [t["date"] for t in p["touches"] if t["template"] == "C3"]
+    return min(ds) if ds else None
 
 
 def set_next(p, stage, on):
@@ -198,10 +285,12 @@ def schedule(person, template, on):
 def cmd_add(data, a):
     if not a.url:
         refuse("a LinkedIn URL is needed (the member's own copy of it)")
-    if url_hash(a.url) in {s["hash"] for s in data["suppressed"]}:
+    if url_hashes(a.url) & {s["hash"] for s in data["suppressed"]}:
         refuse("this person asked not to be contacted; the record is suppressed")
-    if any(norm_url(x["url"]) == norm_url(a.url) for x in data["people"]):
-        refuse("already in the pipeline; use touch or move")
+    key = person_key(a.url)
+    dup = next((x for x in data["people"] if person_key(x["url"]) == key), None)
+    if dup:
+        refuse(f"already in the pipeline as record {dup['id']} ({dup['name']}); use touch or move")
     if a.signal not in SIGNALS:
         refuse(f"signal must be one of {SIGNALS} (no signal, no DM: comment on their posts first)")
     on = today(a).isoformat()
@@ -212,15 +301,37 @@ def cmd_add(data, a):
            "next_action": None, "next_date": None, "last_interaction": on,
            "retention_until": plus(on, RETENTION_DAYS), "value": None}
     set_next(rec, "signal", on)
+    if a.connected:
+        enter(rec, "connected", on)
     data["people"].append(rec); data["next_id"] += 1
-    out = {"added": rec["id"], "name": rec["name"], "next": rec["next_action"]}
+    out = {"added": rec["id"], "name": rec["name"], "stage": rec["stage"], "next": rec["next_action"]}
+    warn = url_warnings(a.url)
+    if a.signal == "sig:reacted":
+        out["suggest"] = REACTED_HINT
+    if a.signal == "sig:known" and not a.note:
+        warn.append("sig:known: add --note saying how they know you (past client, colleague, met at ...)")
+    if warn:
+        out["warnings"] = warn
     if first:
         out.update({"lawful_basis": data.get("basis", BASIS), "note": BASIS_NOTE})
     return out
 
 
+REACTED_HINT = ("a reaction is a weak signal: comment on one of their posts or visit their profile first, "
+                "and send the first DM when they engage again (a blank request C1 is fine now)")
+
+
 def limit_warnings(data, on):
-    return pace(data, on, pending=False)["warnings"]
+    return [w for w in pace(data, on, pending=False)["warnings"] if "messages logged today" not in w]
+
+
+def dms_on(data, day):
+    return sum(1 for p in data["people"] for t in p["touches"] if t["template"] in DIRECT and t["date"] == day)
+
+
+def dm_warning(n):
+    return (f"{n} messages logged today (Build Room pace: keep to about {WARN['dms_session']} a day; "
+            "spread the rest over tomorrow)") if n > WARN["dms_session"] else None
 
 
 def cmd_touch(data, a):
@@ -236,9 +347,15 @@ def cmd_touch(data, a):
             refuse(f"connection note is {len(a.text)} characters; the limit is {lim}")
     if t in DIRECT and a.text and len(a.text) > 400:
         warn.append(f"message is {len(a.text)} characters; under about 400 gets more replies")
-    if t in DIRECT and before(p["stage"], "connected") and p.get("signal") != "sig:dm-inbound":
-        warn.append(f"not connected (stage {p['stage']}): this message needs a connection first, or InMail; "
-                    "send a connection request (C1/C2) and wait for the accept")
+    if t in DIRECT and t != "C3" and before(p["stage"], "connected"):
+        if p.get("signal") in LIKELY_CONNECTED:
+            warn.append(f"not marked connected yet (stage {p['stage']}): if you are not connected yet, send a request "
+                        f"first (C1/C2); if you are, run connect {p['id']} (add --connected next time, or import-connections)")
+        else:
+            warn.append(f"not connected (stage {p['stage']}): this message needs a connection first, or InMail; send a "
+                        f"connection request (C1/C2) and wait for the accept (already connected? run connect {p['id']})")
+    if t == "R1" and p.get("signal") != "sig:known":
+        warn.append("R1 is the reactivation message for people who already know you (signal sig:known)")
     early_ask = t == "D5" and before(p["stage"], "conversation")
     if early_ask:
         warn.append("call ask before they have replied: earn it with two or more real exchanges first"
@@ -248,6 +365,8 @@ def cmd_touch(data, a):
     p["retention_until"] = plus(on, RETENTION_DAYS)
     if t in INVITES and before(p["stage"], "warming"):
         p["stage"] = "warming"; p["stage_dates"]["warming"] = on
+    if t == "C3" and before(p["stage"], "connected"):   # a welcome after accepting: they are 1st-degree now
+        p["stage"] = "connected"; p["stage_dates"]["connected"] = on
     if t == "D5" and before(p["stage"], "call-offered") and (not early_ask or a.force_stage):
         p["stage"] = "call-offered"; p["stage_dates"]["call-offered"] = on
     schedule(p, t, on)
@@ -258,6 +377,8 @@ def cmd_touch(data, a):
         p["notes"].append(a.note)
     if t in INVITES:
         warn += limit_warnings(data, dt.date.fromisoformat(on))
+    if t in DIRECT and dm_warning(dms_on(data, on)):
+        warn.append(dm_warning(dms_on(data, on)))
     return {"logged": t, "id": p["id"], "stage": p["stage"], "next": p["next_action"], "on": p["next_date"],
             **({"warnings": warn} if warn else {})}
 
@@ -265,7 +386,9 @@ def cmd_touch(data, a):
 def cmd_reply(data, a):
     p = find(data, a.id)
     on = today(a).isoformat()
-    p["replies"] = replies_of(p) + [on]
+    rs = replies_of(p)
+    same_day = on in rs
+    p["replies"] = rs if same_day else sorted(rs + [on])
     p["last_interaction"] = on
     p["retention_until"] = plus(on, RETENTION_DAYS)
     if before(p["stage"], "conversation") or p["stage"] in ("nurture", "lost"):
@@ -278,7 +401,18 @@ def cmd_reply(data, a):
     if a.note:
         p["notes"].append(a.note)
     n = len(p["replies"])
-    return {"reply_logged": p["id"], "replies": n, "real_conversation": n >= 2, "stage": p["stage"], "next": p["next_action"]}
+    return {"reply_logged": p["id"], "replies": n, "real_conversation": n >= 2, "stage": p["stage"], "next": p["next_action"],
+            **({"note": "a reply was already logged today: replies count once per person per day"} if same_day else {})}
+
+
+def cmd_connect(data, a):
+    p = find(data, a.id)
+    on = today(a).isoformat()
+    if not before(p["stage"], "connected"):
+        return {"connected": p["id"], "stage": p["stage"], "note": "already at connected or later; nothing changed"}
+    enter(p, "connected", on)
+    p["last_interaction"] = on
+    return {"connected": p["id"], "stage": p["stage"], "next": p["next_action"], "on": p["next_date"]}
 
 
 def cmd_move(data, a):
@@ -289,7 +423,7 @@ def cmd_move(data, a):
     if a.stage == "conversation":   # they replied: that reply counts once
         rs = replies_of(p)
         if on not in rs:
-            p["replies"] = rs + [on]
+            p["replies"] = sorted(rs + [on])
     enter(p, a.stage, on)
     p["last_interaction"] = on
     p["retention_until"] = plus(on, RETENTION_DAYS)
@@ -323,8 +457,22 @@ def cmd_log_post(data, a):
 
 
 def cmd_log_comments(data, a):
+    if a.n < 0:
+        refuse("n must be 0 or more")
     data["comments"].append({"date": today(a).isoformat(), "n": int(a.n)})
     return {"comments_today": sum(c["n"] for c in data["comments"] if c["date"] == today(a).isoformat())}
+
+
+def cmd_log_requests(data, a):
+    """Blank connection requests to people who are not in the pipeline: a count only, no names."""
+    if a.n < 1:
+        refuse("n must be 1 or more")
+    on = today(a)
+    data["cold_requests"].append({"date": on.isoformat(), "n": int(a.n)})
+    pc = pace(data, on, pending=False)
+    return {"cold_requests_logged": int(a.n), "requests_today": pc["invites_today"], "requests_7d": pc["invites_7d"],
+            "note": "counted in pace and the week's connection requests; not in acceptance (no names are stored)",
+            **({"warnings": limit_warnings(data, on)} if limit_warnings(data, on) else {})}
 
 
 def pace(data, on, pending=True):
@@ -339,6 +487,11 @@ def pace(data, on, pending=True):
                 inv_today += d == on
             if t["template"] == "C2" and t["date"].startswith(month):
                 notes_month += 1
+    for x in data.get("cold_requests", []):
+        d = dt.date.fromisoformat(x["date"])
+        inv_week += x["n"] * (week_ago <= d <= on)
+        inv_today += x["n"] * (d == on)
+    dms_today = dms_on(data, on.isoformat())
     warn = []
     if inv_today > WARN["invites_day"]:
         warn.append(f"{inv_today} connection requests today (keep under {WARN['invites_day']})")
@@ -348,12 +501,15 @@ def pace(data, on, pending=True):
     if not data["settings"].get("premium") and notes_month > lim:
         warn.append(f"{notes_month} personalised notes this month (free accounts get about {lim}; LinkedIn's possibly "
                     "stale Help page says 5); send blank requests (C1)")
+    if dm_warning(dms_today):
+        warn.append(dm_warning(dms_today))
     if pending:
         old = [p for p in data["people"] if p["stage"] == "warming" and any(t["template"] in INVITES for t in p["touches"])
                and (on - dt.date.fromisoformat(max(t["date"] for t in p["touches"] if t["template"] in INVITES))).days >= 21]
         if old:
             warn.append(f"{len(old)} invitation(s) pending 3+ weeks: withdraw them (this does not restore quota)")
-    return {"invites_today": inv_today, "invites_7d": inv_week, "notes_this_month": notes_month, "warnings": warn}
+    return {"invites_today": inv_today, "invites_7d": inv_week, "notes_this_month": notes_month, "dms_today": dms_today,
+            "warnings": warn}
 
 
 def cmd_pace(data, a):
@@ -378,8 +534,9 @@ def cmd_due(data, a):
 def cmd_today(data, a):
     on = today(a)
     d = due_list(data, on, retention=True)
-    waiting = [{"id": p["id"], "name": p["name"], "signal": p["signal"], "since": p["signal_date"]}
-               for p in data["people"] if p["stage"] == "signal" and not p["touches"]]
+    waiting = [{"id": p["id"], "name": p["name"], "signal": p["signal"], "since": p["signal_date"],
+                **({"suggest": REACTED_HINT} if p["signal"] == "sig:reacted" else {})}
+               for p in data["people"] if p["stage"] in ("signal", "connected") and not p["touches"]]
     listed = {w["id"] for w in waiting}
     c_today = sum(c["n"] for c in data["comments"] if c["date"] == on.isoformat())
     return {"date": on.isoformat(),
@@ -397,15 +554,25 @@ def cmd_forget(data, a):
 
 
 def week_counts(data, start):
+    """Counts for the Monday–Sunday week from `start`. Acceptance is the mature cohort (see the module docstring)."""
     end = start + dt.timedelta(days=7)
+    last = (end - dt.timedelta(days=1)).isoformat()
     inside = lambda s: bool(s) and start <= dt.date.fromisoformat(s) < end
+    cs, ce = start - dt.timedelta(days=14), start - dt.timedelta(days=7)    # the cohort: the week two weeks before
+    in_cohort = lambda s: cs <= dt.date.fromisoformat(s) < ce
     c = {"from": start.isoformat(), "to": (end - dt.timedelta(days=1)).isoformat(),
          "posts": sum(1 for x in data["posts"] if inside(x["date"])),
          "posts_by_format": {}, "posts_by_pillar": {},
          "comments": sum(x["n"] for x in data["comments"] if inside(x["date"])),
-         "invites": 0, "notes": 0, "invited": 0, "accepted": 0, "dms_started": 0, "dm_replied": 0, "follow_ups": 0,
+         "invites": 0, "cold_requests": 0, "notes": 0, "invited": 0,
+         "cohort_from": cs.isoformat(), "cohort_to": (ce - dt.timedelta(days=1)).isoformat(), "cohort_sent": 0, "cohort_accepted": 0,
+         "dms_started": 0, "dm_replied": 0, "follow_ups": 0,
          "call_asks": 0, "replies": 0, "conversations": 0, "qualified": 0, "calls_booked": 0, "calls_held": 0,
-         "proposals": 0, "won": 0, "won_value": 0, "signals": 0, "signals_by_type": {}}
+         "proposals": 0, "won": 0, "won_value": 0, "signals": 0, "signals_by_type": {}, "signals_timed": 0, "signals_answered": 0}
+    for x in data.get("cold_requests", []):
+        if inside(x["date"]):
+            c["cold_requests"] += x["n"]
+    c["invites"] += c["cold_requests"]
     for x in data["posts"]:
         if inside(x["date"]):
             c["posts_by_format"][x["format"]] = c["posts_by_format"].get(x["format"], 0) + 1
@@ -414,6 +581,10 @@ def week_counts(data, start):
     for p in data["people"]:
         if inside(p["signal_date"]):
             c["signals"] += 1; c["signals_by_type"][p["signal"]] = c["signals_by_type"].get(p["signal"], 0) + 1
+            if p["signal"] != "sig:known":   # a list of people who know the member is worked through, not timed
+                first = min((t["date"] for t in p["touches"]), default=None)
+                c["signals_timed"] += 1
+                c["signals_answered"] += bool(first and first <= plus(p["signal_date"], 2))
         invited = dm_on = None
         for t in p["touches"]:
             if not inside(t["date"]):
@@ -425,10 +596,15 @@ def week_counts(data, start):
                 invited = t["date"]
             if k in FIRST_DM and dm_on is None:
                 dm_on = t["date"]
-        # acceptance: the member's own requests sent this week (a cohort), accepted by any later date; inbound
-        # requests the member accepted are not counted, so the rate cannot pass 100%
-        if invited and p.get("signal") != "sig:inbound-connect":
-            c["invited"] += 1; c["accepted"] += reached(p, "connected")
+        # invited: people the member sent their own request to this week (inbound requests are not theirs)
+        own = p.get("signal") != "sig:inbound-connect"
+        if invited and own:
+            c["invited"] += 1
+        # acceptance: the cohort sent two weeks earlier (every request 14+ days old), accepted by the week's last day
+        if own and any(t["template"] in INVITES and in_cohort(t["date"]) for t in p["touches"]):
+            c["cohort_sent"] += 1
+            co = connected_on(p)
+            c["cohort_accepted"] += bool(co and co <= last)
         rs = replies_of(p)
         if dm_on:
             c["dm_replied"] += any(r >= dm_on for r in rs) or reached(p, "conversation")
@@ -443,31 +619,35 @@ def week_counts(data, start):
         c["proposals"] += inside(sd.get("proposal"))
         if inside(sd.get("won")):
             c["won"] += 1; c["won_value"] += p.get("value") or 0
-    c["acceptance_rate"] = round(c["accepted"] / c["invited"], 3) if c["invited"] else None
+    c["acceptance_rate"] = round(c["cohort_accepted"] / c["cohort_sent"], 3) if c["cohort_sent"] else None
+    c["signals_answered_rate"] = round(c["signals_answered"] / c["signals_timed"], 3) if c["signals_timed"] else None
     c["reply_rate"] = round(c["dm_replied"] / c["dms_started"], 3) if c["dms_started"] else None
     return c
 
 
 def cmd_week(data, a):
-    start = dt.date.fromisoformat(a.start) if a.start else last_full_week(today(a))
+    start = parse_date(a.start, "--from") if a.start else last_full_week(today(a))
     return week_counts(data, start)
 
 
 def read_connections_csv(path):
     """LinkedIn's Connections.csv starts with a few 'Notes:' lines before the header row."""
-    lines = Path(path).read_text(encoding="utf-8-sig").splitlines()
+    try:
+        lines = Path(path).read_text(encoding="utf-8-sig").splitlines()
+    except (OSError, UnicodeDecodeError) as e:
+        refuse(f"cannot read {path}: {e}")
     for i, line in enumerate(lines):
         if re.match(r"\s*\"?first name\"?\s*,", line, re.I):
             return list(csv.DictReader(lines[i:]))
-    raise SystemExit("no header row (First Name, Last Name, URL, ...) found in the connections file")
+    refuse("no header row (First Name, Last Name, URL, ...) found in the connections file")
 
 
 def cmd_import_connections(data, a):
     rows = read_connections_csv(a.csv)
-    by_url = {norm_url(r.get("URL") or r.get("Url") or ""): r for r in rows}
+    by_url = {person_key(r.get("URL") or r.get("Url") or ""): r for r in rows}
     marked = []
     for p in data["people"]:
-        r = by_url.get(norm_url(p["url"]))
+        r = by_url.get(person_key(p["url"]))
         if r and before(p["stage"], "connected"):
             on = today(a).isoformat()
             raw = (r.get("Connected On") or "").strip()
@@ -488,42 +668,84 @@ def tag(name, style):
     return f"{fam}:{val}" if style == "colon" else f"{fam}-{val}"
 
 
-def map_stages(stages):
-    """Each LinkedIn stage from qualified on → a stage of the member's existing pipeline (matched by name)."""
-    low = [s.lower() for s in stages]
-    pick = lambda *keys: next((stages[i] for i, s in enumerate(low) if any(k in s for k in keys)), None)
+# a stage whose name says it went badly is never the target of a positive LinkedIn stage
+NEGATIVE = re.compile(r"\bno\b|\bnoshow\b|\bnot\b|lost|cancel|disqualif|unqualified|\bdead\b|abandon|declin|reject")
+# whole-word patterns per LinkedIn stage, strongest first
+STAGE_WORDS = [("call-booked", [r"\bbook(ed|ing)?\b", r"\b(scheduled|appointment|appt)\b",
+                                r"\b(call|meeting|consult\w*|discovery|demo|strategy session)\b"]),
+               ("call-held", [r"\bshow(ed|n)?\b", r"\b(held|attended|completed?|met)\b"]),
+               ("proposal", [r"\bproposals?\b", r"\b(quoted?|offer( sent| made)?|committed|commit|negotiat\w*|contract( sent)?)\b"]),
+               ("won", [r"\b(won|paid)\b", r"\b(closed won|client|customer|signed|enrolled|sold)\b"])]
+
+
+def stage_words(name):
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", name.lower()).split())
+
+
+def split_stages(values):
+    """--stages as separate names, or one comma-separated string (\"New Lead, Call Booked, Won\")."""
+    if not values:
+        return None
+    if len(values) == 1 and "," in values[0]:
+        values = values[0].split(",")
+    return [" ".join(v.split()) for v in values if v.strip()]
+
+
+def map_stages(stages, style="hyphen"):
+    """Each LinkedIn stage from qualified on → a stage of the member's existing pipeline, matched by whole words,
+    in pipeline order, never onto a negative stage (No Show, Closed Lost, Cancelled ...). Returns (map, unmapped)."""
+    words = [stage_words(s) for s in stages]
+    neg = [bool(NEGATIVE.search(w)) for w in words]
+    ok = [i for i in range(len(stages)) if not neg[i]] or [0]
     m = {"conversation": "stays in the LinkedIn log until qualified"}
-    m["qualified"] = m["call-offered"] = stages[0]
-    last = stages[0]
-    for li, keys in (("call-booked", ("book",)), ("call-held", ("show", "held", "attend", "complete")),
-                     ("proposal", ("proposal", "commit", "offer")), ("won", ("won", "paid", "client", "closed"))):
-        last = pick(*keys) or last
-        m[li] = last
-    m["lost"] = pick("lost") or "mark the opportunity Lost (status, not a stage)"
-    m["nurture"] = pick("nurture") or "tag nurture-90d; leave the opportunity open or mark it Abandoned"
-    return m
+    m["qualified"] = m["call-offered"] = stages[ok[0]]
+    last, unmapped = ok[0], []
+    held = STAGE_WORDS[1][1]
+    for li, pats in STAGE_WORDS:
+        hit = None
+        for pat in pats:
+            hit = next((i for i in ok if i >= last and re.search(pat, words[i])
+                        and not (li == "call-booked" and any(re.search(h, words[i]) for h in held))), None)
+            if hit is not None:
+                break
+        if hit is None:
+            unmapped.append(li)
+        else:
+            last = hit
+        m[li] = stages[last]
+    lost = next((stages[i] for i in range(len(stages)) if re.search(r"\blost\b", words[i])), None) \
+        or next((stages[i] for i in range(len(stages)) if re.search(r"disqualif|unqualified|not interested", words[i])), None)
+    m["lost"] = lost or "mark the opportunity Lost (status, not a stage)"
+    nur = next((stages[i] for i in range(len(stages)) if re.search(r"\bnurtur\w*\b", words[i])), None)
+    m["nurture"] = nur or f"tag {tag('nurture-90d', style)}; leave the opportunity open or mark it Abandoned"
+    return m, unmapped
 
 
 def cmd_ghl_build(data, a):
     style = a.tag_style
     src = (a.source_tag or ("src:linkedin" if style == "colon" else "src-linkedin")).lower()
     tags = [src, *[tag(s, style) for s in SIGNALS], *[tag(f"fit-{x}", style) for x in "abc"],
-            *[tag(f"msg-{x}", style) for x in ("d1", "fu1", "fu2")], "nurture-90d"]
+            *[tag(f"msg-{x}", style) for x in ("d1", "r1", "fu1", "fu2")], tag("nurture-90d", style)]
     out = {"funnel": "LinkedIn Organic", "tags": list(dict.fromkeys(tags)),
            "custom_fields": [{"name": "LinkedIn URL", "dataType": "TEXT"}, {"name": "First LinkedIn signal", "dataType": "DATE"},
                              {"name": "LinkedIn signal link", "dataType": "TEXT"}, {"name": "Offer discussed", "dataType": "TEXT"}],
            "pipeline_mode": a.pipeline, "emails": [], "workflows": []}
     if a.pipeline == "existing":
-        stages = a.stages or GENERIC_STAGES
+        stages = split_stages(a.stages) or GENERIC_STAGES
         name = a.pipeline_name or "Sales Pipeline"
         out["pipeline"] = {"name": name, "stages": stages}
-        out["stage_map"] = map_stages(stages)
-        out["note"] = (f"LinkedIn leads enter your existing pipeline '{name}' at '{stages[0]}' once qualified, tagged {src}, "
+        out["stage_map"], out["unmapped"] = map_stages(stages, style)
+        sm = out["stage_map"]
+        out["note"] = (f"LinkedIn leads enter your existing pipeline '{name}' at '{sm['qualified']}' once qualified, tagged {src}, "
                        "so booked calls and wins stay in the numbers you already track. Pass --pipeline-name and --stages "
-                       "with the exact names from Business File §6 (or --pipeline separate for a LinkedIn-only pipeline).")
+                       "with the member's exact pipeline name and stage names (or --pipeline separate for a LinkedIn-only pipeline).")
+        out["confirm"] = ("Show the member this map and ask them to confirm each line before building: "
+                          + "; ".join(f"{k} → {sm[k]}" for k in ("qualified", "call-booked", "call-held", "proposal", "won", "lost"))
+                          + (f". No stage of '{name}' matched {', '.join(out['unmapped'])}: each falls back to the stage before; "
+                             "ask which stage it should be, or add that stage in GoHighLevel" if out["unmapped"] else ""))
         test_stages = [out["stage_map"][s] for s in ("qualified", "call-booked", "call-held", "won")]
     else:
-        stages = a.stages or SEPARATE_STAGES
+        stages = split_stages(a.stages) or SEPARATE_STAGES
         name = a.pipeline_name or "LinkedIn Organic"
         out["pipeline"] = {"name": name, "stages": stages}
         test_stages = stages
@@ -566,12 +788,15 @@ def main(argv=None):
         s.add_argument("--" + f, required=True)
     s.add_argument("--role"); s.add_argument("--company"); s.add_argument("--link"); s.add_argument("--note")
     s.add_argument("--fit", choices=["A", "B", "C"], default="B")
+    s.add_argument("--connected", action="store_true", help="already 1st-degree: start the record at stage connected")
     s = mk("touch"); s.add_argument("id"); s.add_argument("--template", required=True); s.add_argument("--text"); s.add_argument("--note")
     s.add_argument("--force-stage", action="store_true")
     s = mk("reply"); s.add_argument("id"); s.add_argument("--note")
+    s = mk("connect"); s.add_argument("id")
     s = mk("move"); s.add_argument("id"); s.add_argument("stage"); s.add_argument("--note"); s.add_argument("--value", type=float)
     s = mk("log-post"); s.add_argument("--url"); s.add_argument("--pillar"); s.add_argument("--format", required=True)
     s = mk("log-comments"); s.add_argument("n", type=int)
+    s = mk("log-requests"); s.add_argument("n", type=int)
     mk("today"); s = mk("due"); s.add_argument("--retention", action="store_true"); mk("pace")
     s = mk("forget"); s.add_argument("id")
     s = mk("week"); s.add_argument("--from", "--start", dest="start")
@@ -590,13 +815,16 @@ def main(argv=None):
     a._path = str(path)
     creating = a.cmd in ("settings", "init")
     a._created = creating and not Path(path).exists()
+    today(a)                                   # a bad --date is refused before anything is read or written
+    if getattr(a, "start", None):
+        parse_date(a.start, "--from")
     try:
         data = load(path, create=creating, on=today(a))
     except FileNotFoundError:
         refuse(f"no pipeline at {path}. Create it once with: li_pipeline.py settings {path} --premium yes|no "
                "(or init). If the member's pipeline is elsewhere, pass that path.")
-    fn = {"add": cmd_add, "touch": cmd_touch, "reply": cmd_reply, "move": cmd_move, "log-post": cmd_log_post,
-          "log-comments": cmd_log_comments, "today": cmd_today, "due": cmd_due, "pace": cmd_pace, "forget": cmd_forget,
+    fn = {"add": cmd_add, "touch": cmd_touch, "reply": cmd_reply, "connect": cmd_connect, "move": cmd_move, "log-post": cmd_log_post,
+          "log-comments": cmd_log_comments, "log-requests": cmd_log_requests, "today": cmd_today, "due": cmd_due, "pace": cmd_pace, "forget": cmd_forget,
           "week": cmd_week, "import-connections": cmd_import_connections, "ghl-build": cmd_ghl_build, "list": cmd_list,
           "settings": cmd_settings, "init": cmd_settings}[a.cmd]
     out = fn(data, a)

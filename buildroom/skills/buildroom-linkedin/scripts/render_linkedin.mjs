@@ -2,9 +2,11 @@
 /*
  * LinkedIn Engine renderer: the profile banner, document carousels, post image cards and Featured
  * thumbnails, set in the member's brand fonts and colours with every word taken from the approved spec.
- * Checks text overflow, minimum sizes, contrast (text, accent and muted colours against the background),
+ * Checks text overflow, minimum sizes, contrast (text, accent and muted colours against the background;
+ * an accent below 3:1 FAILs when the accent carries text: kicker, CTA, numerals, swipe hint, list numbers),
  * that every declared brand font actually loaded (FAIL if not), and (banner) that nothing sits under the
- * profile photo.
+ * profile photo. Warns on a card or slide headline over 20 words, a carousel without a document title,
+ * and a card, featured image or carousel without alt text.
  *
  * Usage
  *   node render_linkedin.mjs linkedin/specs/banner.json [more specs...] --out linkedin/renders/ [--overlay]
@@ -18,11 +20,16 @@
  *   card      1200 × 1500 post image        → <id>.png
  *   featured  1200 × 627 Featured thumbnail → <id>.png
  *   carousel  1080 × 1350 per slide         → <id>.pdf (upload as a LinkedIn document) + <id>_01.png … previews
- * Report: <id>.report.json with every check. Exit code 1 if any file fails a check.
+ * Report: <id>.report.json with every check, plus the spec's title and alt text (and, for a carousel, each
+ * slide's kind, numeral and alt), so the file and its upload text travel together. Exit code 1 if any file
+ * fails a check.
  *
  * Spec (paths relative to the spec file)
  * {
  *  "id": "banner", "layout": "banner|card|featured|carousel",
+ *  "title": "Five cash checks for family firms",   (carousel: the document title LinkedIn asks for; warned if missing)
+ *  "alt": "Card: 'Check cash weekly' in white on navy",  (alt text for the image, or the whole slide set; card,
+ *                                                         featured and carousel warn when there is none)
  *  "brand": {"name": "Ruiz Advisory", "display_font": "Fraunces", "body_font": "Source Sans 3",
  *            "font_files": {"display": [{"src": "../brand/fonts/Fraunces-700.ttf", "weight": 700}], "body": [...]},
  *            "bg": "#0f1424", "fg": "#f4f6fa", "accent": "#f97316", "muted": "#a9b2c6", "logo": "brand/logo.png"},
@@ -33,7 +40,9 @@
  *           "swipe": "Swipe"},                                    (carousel hook hint, drawn with an arrow; "" hides it)
  *  "show_sub": false,                         (featured only: true keeps copy.sub, at a larger minimum size)
  *  "slides": [{"kind": "hook", "title": "...", "sub": "...", "swipe": "Swipe"},
- *             {"kind": "point", "n": 1, "title": "...", "body": "..."},   ("n": "" hides the numeral)
+ *             {"kind": "point", "title": "...", "body": "...", "alt": "..."},
+ *                 (numerals count the point slides from 1: the first point after the hook shows 1; "n": 4 sets
+ *                  the numeral shown, "n": "" hides it and that slide is not counted; every slide may carry "alt")
  *             {"kind": "list", "title": "...", "items": ["...", "..."]},
  *             {"kind": "quote", "quote": "...", "who": "..."},
  *             {"kind": "cta", "title": "...", "sub": "..."}],
@@ -95,6 +104,32 @@ function lum(hex) {
   const n = parseInt(m[1], 16), ch = [n >> 16 & 255, n >> 8 & 255, n & 255].map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; });
   return .2126 * ch[0] + .7152 * ch[1] + .0722 * ch[2];
 }
+// numerals for point slides: counted over point slides only (from 1), "n" overrides, "" or false hides
+function pointNumerals(slides) {
+  let k = 0;
+  return slides.map(s => {
+    if (s.kind !== 'point') return null;
+    if (s.n === '' || s.n === false) return '';
+    k++;
+    return s.n ?? k;
+  });
+}
+// where the accent colour carries text (not just bars)
+function accentTextUses(spec, layout) {
+  const c = spec.copy || {}, uses = [];
+  if (layout === 'banner' && c.cta) uses.push('CTA');
+  if ((layout === 'card' || layout === 'featured') && c.kicker) uses.push('kicker');
+  if (layout === 'carousel') {
+    const slides = spec.slides || [], nums = pointNumerals(slides);
+    if (slides.some(s => s.kind === 'hook' && (s.swipe ?? c.swipe ?? 'Swipe'))) uses.push('swipe hint');
+    if (nums.some(x => x !== null && x !== '')) uses.push('point numerals');
+    if (slides.some(s => s.kind === 'list' && (s.items || []).length)) uses.push('list numbers');
+    if (slides.some(s => s.kind === 'quote')) uses.push('quote mark');
+    if (slides.some(s => !['hook', 'point', 'list', 'quote'].includes(s.kind) && s.sub)) uses.push('CTA sub-line');
+  }
+  return uses;
+}
+const words = t => String(t || '').trim().split(/\s+/).filter(Boolean).length;
 const contrast = (a, b) => { const x = lum(a), y = lum(b); if (x == null || y == null) return null; return +(((Math.max(x, y) + .05) / (Math.min(x, y) + .05)).toFixed(2)); };
 const onColor = bg => (contrast('#111111', bg) ?? 0) >= (contrast('#ffffff', bg) ?? 0) ? '#111111' : '#ffffff';
 
@@ -160,7 +195,7 @@ function cardHtml(spec, base, layout) {
   </div>${photo}`);
 }
 
-function slideHtml(spec, base, s, i, n) {
+function slideHtml(spec, base, s, i, n, numeral) {
   const [W, H] = SIZES.carousel, pad = Math.round(W * .085), c = spec.copy || {};
   let body = '';
   if (s.kind === 'hook') {
@@ -169,7 +204,7 @@ function slideHtml(spec, base, s, i, n) {
     const arrow = '<svg viewBox="0 0 56 32" aria-hidden="true"><path d="M2 16h48M36 3l15 13-15 13" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     body = `<div class="d" data-t="s${i}.title" data-fit="124,64">${esc(s.title)}</div>${s.sub ? `<div class="mut" data-t="s${i}.sub" data-fit="54,40" style="margin-top:40px;line-height:1.3">${esc(s.sub)}</div>` : ''}${swipe ? `<div class="acc swipe" data-t="s${i}.swipe" style="margin-top:64px;font-size:42px;font-weight:700"><span>${esc(swipe)}</span>${arrow}</div>` : ''}`;
   } else if (s.kind === 'point') {
-    const num = s.n === '' || s.n === false ? '' : (s.n ?? i);
+    const num = numeral ?? '';
     body = `${num !== '' ? `<div class="acc d" style="font-size:120px;line-height:1;margin-bottom:28px">${esc(num)}</div>` : ''}<div class="d" data-t="s${i}.title" data-fit="84,52">${esc(s.title)}</div>${s.body ? `<div data-t="s${i}.body" data-fit="52,40" style="margin-top:32px;line-height:1.4">${esc(s.body)}</div>` : ''}`;
   } else if (s.kind === 'list') {
     body = `<div class="d" data-t="s${i}.title" data-fit="76,50" style="margin-bottom:48px">${esc(s.title)}</div>${(s.items || []).map((it, k) => `<div data-t="s${i}.item${k}" data-fit="54,40" style="display:flex;gap:26px;margin-bottom:32px;line-height:1.25"><span class="acc" style="font-weight:800">${k + 1}</span><span>${esc(it)}</span></div>`).join('')}`;
@@ -259,27 +294,45 @@ async function renderOne(browser, specPath, outDir, overlay) {
   const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: scale });
   const pg = await ctx.newPage();
   const b = spec.brand || {}, bg = b.bg || '#0f1424', fg = b.fg || onColor(bg);
-  const report = { id, layout, size: [W, H], files: [], checks: [], warnings: [] };
+  const report = { id, layout, size: [W, H], title: spec.title ?? null, alt: spec.alt ?? null, files: [], checks: [], warnings: [] };
   const fail = (what) => report.checks.push({ check: what, result: 'FAIL' });
   const cr = contrast(fg, bg);
   report.checks.push({ check: 'text contrast ≥ 4.5', result: cr == null || cr >= 4.5 ? 'pass' : 'FAIL', detail: cr });
   // accent carries the kicker, CTA, numerals and hints; muted carries proof, subs and bylines
+  const accentUses = accentTextUses(spec, layout);
   for (const [name, col] of [['accent', b.accent || '#f97316'], ['muted', b.muted]]) {
     const r = col ? contrast(col, bg) : null;
     if (r == null) continue;
-    report.checks.push({ check: `${name} contrast`, result: 'pass', detail: r });
-    if (r < 3) report.warnings.push(`${name} ${col} on ${bg} is ${r}:1, below 3:1 even for large text: pick a stronger ${name}`);
+    const fails = name === 'accent' && r < 3 && accentUses.length > 0;
+    report.checks.push({ check: `${name} contrast` + (name === 'accent' && accentUses.length ? ` ≥ 3 (accent carries the ${accentUses.join(', ')})` : ''),
+      result: fails ? 'FAIL' : 'pass', detail: r });
+    if (fails) report.warnings.push(`accent ${col} on ${bg} is ${r}:1, below 3:1, and the accent carries text (${accentUses.join(', ')}): pick a stronger accent`);
+    else if (r < 3) report.warnings.push(`${name} ${col} on ${bg} is ${r}:1, below 3:1 even for large text: pick a stronger ${name}`);
     else if (r < 4.5) report.warnings.push(`${name} ${col} on ${bg} is ${r}:1: fine for large text (${LARGE_PX}px+), below 4.5:1 for small text such as the ${name === 'accent' ? 'kicker and CTA' : 'sub-lines and byline'}`);
   }
   const families = [[b.display_font, (b.font_files || {}).display], [b.body_font, (b.font_files || {}).body]]
     .filter(([f]) => f).map(([family, files]) => ({ family, local: !!(Array.isArray(files) ? files.length : files) }))
     .filter((x, k, all) => all.findIndex(y => y.family === x.family) === k);
   if (layout === 'featured') {
-    const words = String((spec.copy || {}).headline || '').trim().split(/\s+/).filter(Boolean).length;
-    if (words > 6) report.warnings.push(`featured headline is ${words} words; thumbnails display small, so 3 to 5 words read best`);
+    const n = words((spec.copy || {}).headline);
+    if (n > 6) report.warnings.push(`featured headline is ${n} words; thumbnails display small, so 3 to 5 words read best`);
     if ((spec.copy || {}).sub && spec.show_sub !== true) report.warnings.push('featured: the sub-line is left off (unreadable at thumbnail size); set "show_sub": true to keep it');
   }
-  const frames = layout === 'carousel' ? (spec.slides || []).map((s, i, a) => slideHtml(spec, base, s, i + 1, a.length))
+  if (layout === 'card' && words((spec.copy || {}).headline) > 20) report.warnings.push(`card headline is ${words((spec.copy || {}).headline)} words; over about 20 reads as a paragraph: cut it, and move the rest to the sub-line or the post`);
+  const slides = layout === 'carousel' ? (spec.slides || []) : [];
+  const numerals = pointNumerals(slides);
+  slides.forEach((s, i) => {
+    const n = words(s.title);
+    if (n > 20) report.warnings.push(`slide ${i + 1}: headline is ${n} words; over about 20 is hard to read on a phone: cut it, or split the slide`);
+  });
+  if (layout === 'carousel') {
+    report.slides = slides.map((s, i) => ({ n: i + 1, kind: s.kind, numeral: numerals[i] === null || numerals[i] === '' ? null : numerals[i], alt: s.alt ?? null }));
+    if (!String(spec.title || '').trim()) report.warnings.push('no "title": LinkedIn asks for a document title when the PDF is uploaded; add "title" to the spec');
+    if (!String(spec.alt || '').trim() && slides.some(s => !String(s.alt || '').trim())) report.warnings.push('no alt text: add "alt" for the slide set, or "alt" on every slide');
+  } else if ((layout === 'card' || layout === 'featured') && !String(spec.alt || '').trim()) {
+    report.warnings.push('no alt text: add "alt" to the spec (what the image says and shows), to paste in when uploading');
+  }
+  const frames = layout === 'carousel' ? slides.map((s, i, a) => slideHtml(spec, base, s, i + 1, a.length, numerals[i]))
     : [layout === 'banner' ? bannerHtml(spec, base) : cardHtml(spec, base, layout)];
   if (layout === 'carousel' && (frames.length < 3 || frames.length > 12)) report.warnings.push(`${frames.length} slides; 5 to 10 is the usual range (LinkedIn accepts up to 300 pages)`);
   const pdfPages = [];

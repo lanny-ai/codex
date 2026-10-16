@@ -24,13 +24,15 @@ Name · LinkedIn URL · role and company as they show them · the signal (tag an
 `li_pipeline.py` commands (run from the folder that holds the Business File; the pipeline file defaults to `linkedin/pipeline.json`, or pass `--file P`; `li_pipeline.py --help` and the script's header list every option):
 ```
 settings [--premium yes|no] [--notes-limit N] [--pillars "A" "B"] [--basis "..."]   # creates the pipeline (only settings or init does)
-add      --name --url --role --company --signal sig:commented-my-post --fit A [--link URL] [--note "..."]
+add      --name --url --role --company --signal sig:commented-my-post --fit A [--connected] [--link URL] [--note "..."]
+connect  <id>                                   # they are a 1st-degree connection now (or C3 / import-connections)
 touch    <id> --template C2|D1|… --text "the message as sent" [--note "..."]   # logs a message the member sent; schedules the next step
                                                 # --text is what the length checks read (C2 note 200/300, DM 400)
 reply    <id> [--note "..."]                    # they replied; two or more replies make a real conversation
 move     <id> <stage> [--value N] [--note "..."]
 log-post --url <post link> --pillar "<one of the stored pillars>" --format image|carousel|text|video|poll
 log-comments <n>                                # substantive comments written today
+log-requests <n>                                # blank requests to people not in the pipeline (counted for pace, no names kept)
 today                                           # the daily list: follow-ups due, signals waiting, pacing
 due      [--retention]                          # follow-ups due; records past retention
 pace                                            # invitations this week, notes this month, warnings
@@ -67,13 +69,18 @@ Once a conversation reaches `qualified`, it belongs in the CRM too:
 |---|---|---|
 | Posts | 3 | 3 |
 | Substantive comments on others' posts | 25 (5 a weekday) | 25–50 |
+| **Warm signals answered within 48 hours** | all | all |
 | Profile viewers | rising week on week | rising or steady |
-| Connection requests (warm signals, then tier A accounts after a week or two of comments; never cold volume) | 15–30 | 30–50 |
-| Acceptance | ≥ 40% | ≥ 50% |
-| Warm-signal DMs started | 10–15 | 15–25 |
+| Connection requests (warm signals, then tier A accounts after a week or two of comments) | no target; a warning above 50 | no target; a warning above 50 |
+| Acceptance (the requests sent two weeks earlier, so they have had time) | ≥ 40% | ≥ 50% |
+| Warm-signal DMs started | no target: it follows the signals | no target |
 | Reply rate on warm DMs | ≥ 25% | ≥ 30% |
-| Real conversations | 3–5 | 8–12 |
+| Real conversations (two or more replies) | 3–5 | 8–12 |
 | Calls booked | 1–2 | 3–5 |
+
+Volume is never the target: the posts and comments create the signals, and the measure is that none is left unanswered. The scorecard shows at most three things below target and names the first as the one change for the week.
+
+**`linkedin/manual.json`** (typed by the member each week; other keys are ignored with a warning): `profile_viewers`, `saves`, `sends`, `followers_from_posts`, `profile_views_from_posts`.
 
 Published cold-outreach benchmarks are a floor, not a target: about 28.5% acceptance and 10.4% replies (Expandi, 13.2M attempts), 1.3% of connected prospects booking a meeting (Belkins). Warm, hand-written, signal-led outreach should do far better; the member's own four-week numbers replace these.
 
