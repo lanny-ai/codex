@@ -144,7 +144,7 @@ Evidence base: seven runs of Lanny's own free 3-day "Forever Free AI Boot Camp" 
 - Planned: "Lanny Founder · Closer · Stage… [name removed] Ops Lead · Qualification… OS Cortex Concierge… Day-before show-up messages… Harv Eker / SoMM Team List & Distribution" (strategy page).
 - In the room: "Have [name removed] drop the signup link in chat repeatedly" (`K/sales/day3-game-plan-the-close.md`). Volunteer community members ran support and links (audit §8.8).
 - Seminar version: the speaker works the floor in waves, admins process, and reps convert the "hangers" (`K/training/event-floor-closing-system.md`; in-person only).
-- Lanny's own debrief self-criticism: "I didn't do a good enough job of edifying haley" (`ZT/...2026-08-05...` 00:56:56).
+- Lanny's own debrief self-criticism: "I didn't do a good enough job of edifying [name removed]" (`ZT/...2026-08-05...` 00:56:56).
 
 **Chat.** 1,305 chat messages in July (audit §0). Mine the chat for names and builds to call on. Use "Screenshot this one" lines to signal value and move chat (`K/sales/day3-game-plan-the-close.md`). Read aggregate pre-work data back to the room: "308 people with truth/integrity as a core value" (audit §1).
 

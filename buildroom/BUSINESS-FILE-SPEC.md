@@ -1,6 +1,6 @@
 # Build Room Business File — Specification
 
-**Version 1.4 · 2026-10-16** (1.3 · 2026-10-14; 1.2 · 2026-10-14; 1.1 · 2026-09-30; 1.0 · 2026-08-26)
+**Version 1.5 · 2026-10-17** (1.4 · 2026-10-16; 1.3 · 2026-10-14; 1.2 · 2026-10-14; 1.1 · 2026-09-30; 1.0 · 2026-08-26)
 
 ## Why this exists
 
@@ -46,9 +46,10 @@ The Business File moves that discipline into the skills. It is **one markdown do
 | 17 | Founder Compass | Compass (anytime; redo when circumstances change) | — |
 | 18 | Advertising | Ad Studio | §2, §3; best with §4, §7 |
 | 19 | Video | Video Director | §1, §2; best with §3, §4, §17 |
+| 20 | Launches & Events | Event Launcher | §1, §2, §3; best with §4, §6, §16, §17 |
 | 8 | Session Log | every session (append-only) | — |
 
-The **Video Director** writes §19 and, by playbook, a §18 proof vault entry (proof), the §14 content line (content) and a §5 or §15 reference (sales). The **LinkedIn Engine** writes the three LinkedIn lines of §14 (engine, routine, last four weeks) and, when it was empty, §14's content line with LinkedIn as the platform. §1 *Retired lines* (v1.3) binds every skill: a line listed there is never used again in any output. The **Funnel Scorecard** also updates the §18 current-cycle line (winner, next brief) when it reads ad results, on the member's confirmation. Three skills write into sections owned by other sessions, by design: **Audience Insight** writes §2's sourced language, pains, and objections (with provenance tags); **Offer Deep Dive** hardens §3; the **Copy Engine** writes only §8 and, on confirmation, a page status in §5 or §7. Each asks before replacing anything a member or the owning session wrote.
+The **Video Director** writes §19 and, by playbook, a §18 proof vault entry (proof), the §14 content line (content) and a §5 or §15 reference (sales). The **Event Launcher** writes §20 (one current launch, its results and lessons, and a line per past launch) and, when the member keeps an Obsidian vault, a launch note there; the launch's emails, run sheet and tracker live in a `launches/` folder, never in the file. The **LinkedIn Engine** writes the three LinkedIn lines of §14 (engine, routine, last four weeks) and, when it was empty, §14's content line with LinkedIn as the platform. §1 *Retired lines* (v1.3) binds every skill: a line listed there is never used again in any output. The **Funnel Scorecard** also updates the §18 current-cycle line (winner, next brief) when it reads ad results, on the member's confirmation. Three skills write into sections owned by other sessions, by design: **Audience Insight** writes §2's sourced language, pains, and objections (with provenance tags); **Offer Deep Dive** hardens §3; the **Copy Engine** writes only §8 and, on confirmation, a page status in §5 or §7. Each asks before replacing anything a member or the owning session wrote.
 
 **Provenance rule (v1.1).** §2 carries two language banks: *Sourced language*, where every line has a `[client]` or `[web: source]` tag, and *Hypothesis language*, tagged `[hypothesis]`. Downstream skills prefer sourced lines and flag any draft that leans on hypotheses. No skill may move a line from hypothesis to sourced without a source.
 
