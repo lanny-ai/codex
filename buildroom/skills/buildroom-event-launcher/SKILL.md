@@ -51,7 +51,7 @@ Read these before member-facing work, in this order:
 - **Plan** (default; "plan my launch", "I want to run a challenge / bootcamp / workshop / webinar"): Phases 0–4, ending with a plan the member approves, a calendar, the first emails and the gate opened.
 - **Single piece** ("write my launch emails", "build my webinar", "run sheet for day 2", "plan the close"): that phase only, reading §20 and the launch folder.
 - **Gate** ("is my launch ready"): run the gate with the member, item by item; GO or HOLD.
-- **Live** ("we start tomorrow", "it's day 2"): the day's run sheet, the night-before email, today's moderator links, the numbers to log tonight.
+- **Live** ("we start tomorrow", "it's day 1 tonight", "it's day 2"): the day's run sheet, the night-before email, today's moderator links, the numbers to log tonight.
 - **Partners** ("launch partners", "get people to promote my launch"): `launch-partners.md`, from the partner list to the deals in writing.
 - **Debrief** ("how did my launch do"): the tracker report, the ranked leaks, what to protect, the Obsidian write-back and §20.
 - **Demo** ("show me how the event launcher works"): a short labelled walkthrough on the member's file or an obviously hypothetical business: the math, one belief, one invitation email, one run-sheet hour, the gate. Nothing written; say once it was a demo.
