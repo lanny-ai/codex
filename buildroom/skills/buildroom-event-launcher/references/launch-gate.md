@@ -8,6 +8,7 @@ Nothing goes to registrants until the gate's critical items pass: before the fir
 
 **Money**
 - **[checkout_tested] Checkout tested end to end, on a phone, for every tier and the payment plan**, with a real card in live mode (then refunded), the morning of the close as well as before launch. Include the coupon or VIP checkbox if there is one. [founder: "Test every checkout path on the morning of the close day"]
+- **[booking_tested], [backup_booking] In a call close**, the booking path takes the checkout's place: the application or booking link tested end to end on a phone, confirmation and reminder reaching the prospect, the closer's calendar open, and a backup booking link ready. With `--close both`, both pairs apply.
 - **[backup_checkout] A second checkout path ready**: a plain payment link for each tier the moderator can drop in chat if the main checkout fails. [founder's September lesson]
 - **[refund_policy] Refund or guarantee terms shown before payment** and accepted at checkout, in the same words as the sales page and the live close; one guarantee, not two. [FTC; Stripe Checkout terms consent; founder: two contradictory guarantees confused buyers]
 - **[payment_plan_terms] Payment plans are fixed-length and the total is shown** (number of payments × amount) before checkout; the plan does not cancel itself early or run forever. [ROSCA and state auto-renewal laws; Stripe subscription schedules]

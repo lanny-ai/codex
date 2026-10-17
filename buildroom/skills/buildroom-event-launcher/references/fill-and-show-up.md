@@ -75,4 +75,4 @@ LinkedIn posts go through the LinkedIn Engine; ads through the Ad Studio; a shor
 
 ## 6. Logging the fill
 
-Log registrations daily by source (`launch_tracker.py log-reg N --source list|partner:<name>|ads|social`). At the halfway point of the invitation window, compare to the cautious scenario in `plan.json`; if behind, change one thing (a personal send to the hottest segment, a partner's second mailing, a new subject line), not five.
+Log registrations daily by source (`launch_tracker.py log-reg N --source email:<id>|segment:<name>|partner:<name>|ads|social`), so the debrief can say which email filled the room. `launch_tracker.py pace` compares registrations to date with what the list should give by now (registrations bunch up late: about half arrive in the final week and about one in seven on the day itself [data: Livestorm, vendor]). If behind at the halfway point, change one thing (a personal send to the hottest segment, a partner's second mailing, a new subject line), not five.

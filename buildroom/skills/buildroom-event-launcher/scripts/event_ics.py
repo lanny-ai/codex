@@ -5,22 +5,30 @@ Local only. It writes a calendar file and prints links and times; it never sends
 touches Zoom or GoHighLevel. The member pastes the links and sets the workflows in their own tools.
 
 Usage
-  event_ics.py build --spec event.json --out event.ics [--date YYYY-MM-DD]
+  event_ics.py build --spec event.json --out event.ics [--date YYYY-MM-DD] [--recipient-tz IANA ...]
       An RFC 5545 VCALENDAR with one VEVENT per day: times in UTC (Z), a stable UID per day (from the
       title and organizer, or "uid_seed"; it survives a time change, so bump "sequence" when you resend a
       changed file), DTSTAMP (--date replays it as that day 00:00Z), SEQUENCE, a display alarm, escaped
       text and 75-octet folded CRLF lines. Prints a Google Calendar and two Outlook add-links per day.
+      A day's "description" is added to the shared one (the recording notice stays on every day).
+      Merge fields never go into the file or the add-links: when join_url is a merge field such as
+      {{contact.zoom_link}}, the location is "registration_url" (or "location") and the description says
+      the join link is in the confirmation email; real URLs are fully URL-encoded in the links.
       Refused (exit 2): unknown time zone, an end not after its start, days not in date order, a local
       time that does not exist (clocks spring forward). Warned: daylight saving changes between days, any
-      time outside 07:00–21:00 local, a merge-field join link such as {{contact.zoom_link}} (kept verbatim:
-      a static .ics file cannot carry a per-contact link).
+      time outside 07:00–21:00 in the host zone, a session outside 07:00–22:00 in any --recipient-tz, a
+      merge-field join link (with no registration_url to use instead).
   event_ics.py reminders --spec event.json [--recipient-tz IANA ...]
-      The reminder schedule: the day before Day 1, the morning of each day, 15 minutes before, "we're
-      live" at the start, and a night-before recap ahead of Day 2 onwards. Each send has its host-local
-      and UTC time and its local time in every recipient time zone (default: the event's own). SMS sends
-      outside 08:00–21:00 in a recipient zone are flagged (federal TCPA quiet hours, 47 CFR 64.1200);
-      08:00–09:00 and 20:00–21:00 are flagged as caution (the safe default is 09:00–20:00; some states
-      are stricter).
+      The reminder schedule, with ids that match launch_plan.py timeline: prework (3 days before Day 1,
+      "prework_days_before"), day_before, dayN_morning, dayN_15min, dayN_live, dayN_night (the evening of
+      Day N, before Day N+1) and dayN_replay (1–3 hours after the end, "replay_after_end_minutes",
+      default 120). Each send has its host-local and UTC time and its local time in every recipient time
+      zone (default: the event's own); a session outside 07:00–22:00 in a recipient zone is warned.
+      Email only by default. SMS rows only when the spec sets "sms": true (day_before, morning, 15 min,
+      live) or lists the sends; it then prints the consent and A2P 10DLC caveat. SMS quiet hours are
+      labelled by the recipient's zone: US zones outside 08:00–21:00 (TCPA, 47 CFR 64.1200; 08–09 and
+      20–21 caution, some states are stricter); UK zones "UK PECR/ICO guidance; no statutory hours";
+      other zones a neutral "check local rules" note.
   event_ics.py check event.ics
       Parses and validates an .ics: CRLF line endings, 75-octet lines, BEGIN/END nesting, VERSION and
       PRODID, UID and DTSTAMP on every event, DTSTAMP in UTC, DTSTART/DTEND in UTC or with a TZID that has
@@ -31,9 +39,11 @@ event.json
   {"title": "Cash Flow Bootcamp", "organizer": "Dana Ruiz", "organizer_email": "dana@example.com",
    "tz": "America/Los_Angeles", "join_url": "https://zoom.us/j/123" or "{{contact.zoom_link}}",
    "alarm_minutes": 15, "description": "shown on every day", "sequence": 0, "uid_seed": "optional",
-   "days": [{"date": "2026-11-10", "start": "14:00", "end": "17:00", "title": "optional", "description": "optional"}],
-   "reminders": {"morning_time": "08:00", "recap_after_end_minutes": 60,
-                 "sms": ["day_before", "morning_of", "15_min", "live_now"]}}
+   "registration_url": "https://example.com/register (the location when join_url is a merge field)",
+   "days": [{"date": "2026-11-10", "start": "14:00", "end": "17:00", "title": "optional",
+             "description": "optional, added to the shared one"}],
+   "reminders": {"morning_time": "08:00", "recap_after_end_minutes": 60, "replay_after_end_minutes": 120,
+                 "prework_days_before": 3, "sms": false | true | ["day_before", "morning_of", "15_min", "live_now"]}}
 
 Standard library only (zoneinfo for time zones).
 """
@@ -50,13 +60,23 @@ PLACEHOLDER = re.compile(r"\{\{.*?\}\}")
 DAY_HOURS = (dt.time(7, 0), dt.time(21, 0))
 SMS_FEDERAL = (dt.time(8, 0), dt.time(21, 0))    # 47 CFR 64.1200(c)(1): not before 8 a.m. or after 9 p.m. local
 SMS_SAFE = (dt.time(9, 0), dt.time(20, 0))       # research safe default (stricter states)
-REMINDER_KINDS = ["day_before", "morning_of", "night_before_recap", "15_min", "live_now"]
-DEFAULT_SMS = ["day_before", "morning_of", "15_min", "live_now"]
+REMINDER_KINDS = ["prework", "day_before", "morning_of", "night_before_recap", "15_min", "live_now", "replay"]
+DEFAULT_SMS = ["day_before", "morning_of", "15_min", "live_now"]      # only with "sms": true
+RECIPIENT_HOURS = (dt.time(7, 0), dt.time(22, 0))
+SMS_CAVEAT = ("SMS needs prior express written consent (a separate, unchecked box) and, for US numbers, an approved "
+              "A2P 10DLC brand and campaign before GoHighLevel will send; without both, send email only")
+US_ZONES = {"America/New_York", "America/Detroit", "America/Chicago", "America/Menominee", "America/Denver",
+            "America/Boise", "America/Phoenix", "America/Los_Angeles", "America/Anchorage", "America/Juneau",
+            "America/Sitka", "America/Metlakatla", "America/Yakutat", "America/Nome", "America/Adak",
+            "Pacific/Honolulu", "America/Puerto_Rico"}
+UK_ZONES = {"Europe/London", "Europe/Belfast", "Europe/Guernsey", "Europe/Jersey", "Europe/Isle_of_Man"}
 SOURCES = {
     "RFC 5545": "iCalendar: CRLF lines folded at 75 octets, UID and DTSTAMP on every VEVENT, UTC times end in Z, "
                 "a TZID needs a matching VTIMEZONE",
     "TCPA 47 CFR 64.1200": "no telephone solicitations (texts included) before 8 a.m. or after 9 p.m. in the "
                            "recipient's local time; some states are stricter (Florida is reported as 8 p.m.)",
+    "UK PECR/ICO": "UK PECR: marketing texts need prior consent; the ICO gives guidance on considerate timing but "
+                   "there are no statutory sending hours",
     "GHL help 2026": "HighLevel's 'Set Event Start Date' workflow action uses the account time zone even when the "
                      "workflow is set to the contact's time zone",
     "Build Room founder run Jul 2026": "the Day 2 'we're live' email fired about 4 hours early, twice; there was no "
@@ -140,7 +160,8 @@ def resolve_days(spec):
         n = len(spec["days"])
         summary = d.get("title") or (f"{spec['title']} - Day {i}" if n > 1 else spec["title"])
         days.append({"n": i, "date": date, "start": s, "end": e, "start_utc": s.astimezone(UTC), "end_utc": e.astimezone(UTC),
-                     "summary": summary, "description": d.get("description") or spec.get("description") or ""})
+                     "summary": summary,
+                     "description": "\n\n".join(x for x in (d.get("description"), spec.get("description")) if x)})
     if not days:
         refuse("\"days\" is empty")
     for a, b in zip(days, days[1:]):
@@ -195,35 +216,49 @@ def organizer(spec):
     return o or "", spec.get("organizer_email") or ""
 
 
+def merge(s):
+    return bool(PLACEHOLDER.search(str(s or "")))
+
+
+def location(spec):
+    """The location written to the file and the links: never a merge field."""
+    for k in ("location", "join_url", "registration_url"):
+        v = spec.get(k) or ""
+        if v and not merge(v):
+            return v
+    return ""
+
+
 def full_description(spec, d):
     name, _ = organizer(spec)
     parts = [d["description"]] if d["description"] else []
-    if spec.get("join_url"):
-        parts.append(f"Join: {spec['join_url']}")
+    j = spec.get("join_url") or ""
+    if j and not merge(j):
+        parts.append(f"Join: {j}")
+    elif j:
+        parts.append("Your join link is in your confirmation email"
+                     + (f"; event page: {spec['registration_url']}" if spec.get("registration_url") and
+                        not merge(spec["registration_url"]) else ""))
     if name:
         parts.append(f"Host: {name}")
-    return "\n\n".join(parts)
+    return PLACEHOLDER.sub("", "\n\n".join(parts))
 
 
-def qkeep(s, safe=""):
-    """URL-encode, but keep merge fields such as {{contact.zoom_link}} verbatim so the CRM can fill them."""
-    out, last = [], 0
-    for m in PLACEHOLDER.finditer(s):
-        out.append(quote(s[last:m.start()], safe=safe)); out.append(m.group(0)); last = m.end()
-    out.append(quote(s[last:], safe=safe))
-    return "".join(out)
+def q(s):
+    """Full URL encoding for a query value (an & or ? in a real URL never ends the parameter)."""
+    return quote(str(s), safe="")
 
 
 def links(spec, d):
     desc = full_description(spec, d)
-    loc = spec.get("location") or spec.get("join_url") or ""
+    loc = location(spec)
     s, e = utc_stamp(d["start_utc"]), utc_stamp(d["end_utc"])
     g = ("https://calendar.google.com/calendar/render?action=TEMPLATE"
-         f"&text={qkeep(d['summary'])}&dates={s}/{e}&details={qkeep(desc)}&location={qkeep(loc)}")
+         f"&text={q(d['summary'])}&dates={s}/{e}&details={q(desc)}&location={q(loc)}")
     iso = lambda t: t.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     tail = (f"/calendar/deeplink/compose?path=/calendar/action/compose&rru=addevent"
-            f"&startdt={iso(d['start_utc'])}&enddt={iso(d['end_utc'])}&subject={qkeep(d['summary'])}"
-            f"&body={qkeep(desc)}&location={qkeep(loc)}")
+            f"&startdt={iso(d['start_utc'])}&enddt={iso(d['end_utc'])}&subject={q(d['summary'])}"
+            f"&body={q(desc)}&location={q(loc)}")
     return {"google": g, "outlook": "https://outlook.live.com" + tail, "outlook_365": "https://outlook.office.com" + tail}
 
 
@@ -231,7 +266,7 @@ def ics_bytes(spec, days, stamp):
     name, email = organizer(spec)
     alarm = int(spec.get("alarm_minutes", 15))
     seq = int(spec.get("sequence", 0))
-    loc = spec.get("location") or spec.get("join_url") or ""
+    loc = location(spec)
     lines = ["BEGIN:VCALENDAR", "VERSION:2.0", f"PRODID:{PRODID}", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
              f"X-WR-CALNAME:{esc(spec['title'])}"]
     for d in days:
@@ -261,18 +296,36 @@ def common_warnings(spec):
     j = spec.get("join_url") or ""
     if not j:
         w.append("no join_url: the calendar entries have no link to the session; add it, or send it in the reminders")
-    elif PLACEHOLDER.search(j):
-        w.append(f"join_url {j} is a merge field: it is written verbatim. A static .ics file is the same for everyone and "
-                 "cannot carry a per-contact link: put the registration page or a shared link in the file (\"location\" "
-                 "and join_url in the spec) and send each person's own link in the emails and texts, where the CRM "
-                 "fills the field. The add-links printed below keep the field, so they work inside CRM emails")
+    elif merge(j):
+        loc = location(spec)
+        w.append(f"join_url {j} is a merge field: it is kept out of the .ics file and the add-links (a static file is "
+                 "the same for everyone, and a filled-in link with & or ? would break the add-link). "
+                 + (f"The location is {loc}; " if loc else "There is no location: add \"registration_url\" (the event "
+                    "page) to the spec; ")
+                 + "send each person's own join link in the emails and texts, where the CRM fills the field")
+    return w
+
+
+def recipient_hours(days, zones):
+    """Warnings for any session outside 07:00–22:00 in a recipient zone."""
+    w = []
+    for z in zones:
+        for d in days:
+            s, e = d["start_utc"].astimezone(z), d["end_utc"].astimezone(z)
+            late = e.time() > RECIPIENT_HOURS[1] or e.date() > s.date()
+            if s.time() < RECIPIENT_HOURS[0] or s.time() > RECIPIENT_HOURS[1] or late:
+                w.append(f"day {d['n']} runs {s.strftime('%H:%M')}–{e.strftime('%H:%M')}"
+                         + (f" (ends {e.date()})" if e.date() > s.date() else "")
+                         + f" in {z.key}: outside 07:00–22:00 there; consider a second session or a replay plan "
+                         "for that zone")
     return w
 
 
 def cmd_build(a):
     spec = load_spec(a.spec)
     tz, days, warnings = resolve_days(spec)
-    warnings = common_warnings(spec) + warnings
+    zones = [zone(z, "--recipient-tz") for z in (a.recipient_tz or [])]
+    warnings = common_warnings(spec) + warnings + recipient_hours(days, zones)
     try:
         alarm = int(spec.get("alarm_minutes", 15))
         int(spec.get("sequence", 0))
@@ -314,22 +367,73 @@ def window_flag(t, window):
     return t < window[0] or t >= window[1]
 
 
+def jurisdiction(z):
+    k = z.key
+    if k in US_ZONES or k.startswith(("US/", "America/Indiana/", "America/Kentucky/", "America/North_Dakota/")):
+        return "US"
+    if k in UK_ZONES:
+        return "UK"
+    return "EU" if k.startswith("Europe/") else "other"
+
+
+def sms_flag(t, where):
+    if where == "US":
+        if window_flag(t, SMS_FEDERAL):
+            return "outside 08:00–21:00 local: TCPA quiet hours (47 CFR 64.1200); do not text this zone then"
+        if window_flag(t, SMS_SAFE):
+            return "caution: outside the 09:00–20:00 safe window (some states are stricter)"
+        return None
+    if not window_flag(t, SMS_SAFE):
+        return None
+    if where == "UK":
+        return "outside 09:00–20:00 local: UK PECR/ICO guidance; no statutory hours. Avoid texting then"
+    return ("outside 09:00–20:00 local: no single statutory rule here (national rules vary); check local rules and "
+            "avoid texting then")
+
+
+def sms_kinds(cfg):
+    v = cfg.get("sms", False)
+    if v is True:
+        return list(DEFAULT_SMS)
+    if v in (False, None, [], ""):
+        return []
+    if not isinstance(v, list):
+        refuse("reminders.sms must be true, false or a list of sends")
+    bad = [k for k in v if k not in REMINDER_KINDS]
+    if bad:
+        refuse(f"reminders.sms lists unknown sends {bad}; choose from {REMINDER_KINDS}")
+    return list(v)
+
+
+def send_id(kind, n):
+    return {"prework": "prework", "day_before": "day_before", "morning_of": f"day{n}_morning",
+            "night_before_recap": f"day{n - 1}_night", "15_min": f"day{n}_15min", "live_now": f"day{n}_live",
+            "replay": f"day{n}_replay"}[kind]
+
+
 def cmd_reminders(a):
     spec = load_spec(a.spec)
     tz, days, warnings = resolve_days(spec)
     cfg = spec.get("reminders") or {}
     morning = hhmm(cfg.get("morning_time", "08:00"), "reminders.morning_time")
-    recap_after = int(cfg.get("recap_after_end_minutes", 60))
-    sms = cfg.get("sms", DEFAULT_SMS)
-    bad = [k for k in sms if k not in REMINDER_KINDS]
-    if bad:
-        refuse(f"reminders.sms lists unknown sends {bad}; choose from {REMINDER_KINDS}")
+    try:
+        recap_after = int(cfg.get("recap_after_end_minutes", 60))
+        replay_after = int(cfg.get("replay_after_end_minutes", 120))
+        pre_days = int(cfg.get("prework_days_before", 3))
+    except (TypeError, ValueError):
+        refuse("reminders.recap_after_end_minutes, replay_after_end_minutes and prework_days_before must be whole numbers")
+    if not 60 <= replay_after <= 180:
+        warnings.append(f"replay_after_end_minutes is {replay_after}: replays work best 1–3 hours after the end")
+    sms = sms_kinds(cfg)
     zones = [zone(z, "--recipient-tz") for z in (a.recipient_tz or [spec["tz"]])]
     sends = []
     def add(kind, day, when, purpose, note=None):
         sends.append({"kind": kind, "day": day["n"], "when": when, "purpose": purpose, **({"note": note} if note else {})})
     for d in days:
         if d["n"] == 1:
+            if pre_days >= 2:
+                add("prework", d, d["start"] - dt.timedelta(days=pre_days),
+                    "the one pre-work action and why being live matters; same clock time as the start")
             add("day_before", d, d["start"] - dt.timedelta(days=1),
                 "how to prepare, the calendar file, the one pre-work action; same clock time as the start")
         m = localize(d["date"], morning, tz, "reminders.morning_time", warnings)
@@ -346,8 +450,11 @@ def cmd_reminders(a):
                 f"Day-{prev['n']}-night recap and the Day-{d['n']} payoff (founder lesson: without it people drift away)")
         add("15_min", d, d["start"] - dt.timedelta(minutes=15), "starting in 15 minutes, with the link")
         add("live_now", d, d["start"], "we're live now, with the link")
+        add("replay", d, d["end"] + dt.timedelta(minutes=replay_after),
+            f"the Day {d['n']} replay and when it comes down" + (" (with the offer and the real deadline)" if last else ""))
     sends.sort(key=lambda s: (s["when"].astimezone(UTC), REMINDER_KINDS.index(s["kind"])))
     flags, out = [], []
+    labels = set()
     for s in sends:
         ch = ["email"] + (["sms"] if s["kind"] in sms else [])
         u = s["when"].astimezone(UTC)
@@ -356,18 +463,20 @@ def cmd_reminders(a):
             lt = u.astimezone(z)
             r = {"tz": z.key, "local": lt.strftime("%Y-%m-%d %H:%M (%a)")}
             if "sms" in ch:
-                if window_flag(lt.time(), SMS_FEDERAL):
-                    r["sms_flag"] = "outside 08:00–21:00 local: federal TCPA quiet hours; do not text this zone then"
-                elif window_flag(lt.time(), SMS_SAFE):
-                    r["sms_flag"] = "caution: outside the 09:00–20:00 safe window (some states are stricter)"
-                if "sms_flag" in r:
-                    flags.append(f"{s['kind']} day {s['day']} SMS at {r['local']} {z.key}: {r['sms_flag']}")
+                where = jurisdiction(z)
+                f = sms_flag(lt.time(), where)
+                if f:
+                    r["sms_flag"] = f
+                    labels.add(where)
+                    flags.append(f"{send_id(s['kind'], s['day'])} SMS at {r['local']} {z.key}: {f}")
             if s["kind"] == "morning_of" and lt.date() != s["when"].date():
                 r["note"] = f"arrives on {lt.date()} in this zone, not the event's morning"
             rec.append(r)
-        out.append({"id": f"day{s['day']}-{s['kind']}", "kind": s["kind"], "day": s["day"], "channels": ch,
+        out.append({"id": send_id(s["kind"], s["day"]), "kind": s["kind"], "day": s["day"], "channels": ch,
                     "local": s["when"].strftime("%Y-%m-%d %H:%M %Z (%a)"), "utc": u.strftime("%Y-%m-%dT%H:%M:%SZ"),
                     "purpose": s["purpose"], "recipients": rec})
+    if a.recipient_tz:
+        warnings += recipient_hours(days, zones)
     warnings += [
         f"GoHighLevel: 'Set Event Start Date' uses the account time zone, even in a workflow set to the contact's time "
         f"zone. Set the account time zone to {tz.key} (or build the waits from the UTC times above) and dry-run every "
@@ -375,8 +484,16 @@ def cmd_reminders(a):
         "reminders that fire hours early lose the room (founder Jul 2026: the Day 2 'we're live' email fired about 4 "
         "hours early, twice); check each send's UTC time in the workflow, not just the clock time",
     ]
-    res = {"tz": tz.key, "recipient_tz": [z.key for z in zones], "sends": out, "sms_flags": flags, "warnings": warnings,
-           "sources": {k: SOURCES[k] for k in ("TCPA 47 CFR 64.1200", "GHL help 2026", "Build Room founder run Jul 2026")}}
+    res = {"tz": tz.key, "recipient_tz": [z.key for z in zones], "sms": bool(sms), "sms_sends": sms,
+           "sends": out, "sms_flags": flags, "warnings": warnings,
+           "sources": {k: SOURCES[k] for k in ("GHL help 2026", "Build Room founder run Jul 2026")}}
+    if sms:
+        res["sms_caveat"] = SMS_CAVEAT
+        res["sources"]["TCPA 47 CFR 64.1200"] = SOURCES["TCPA 47 CFR 64.1200"]
+        if "UK" in labels or any(jurisdiction(z) == "UK" for z in zones):
+            res["sources"]["UK PECR/ICO"] = SOURCES["UK PECR/ICO"]
+    else:
+        res["channels_note"] = "email only (set \"sms\": true in reminders to plan texts, with consent and A2P 10DLC)"
     return res, 0
 
 
@@ -570,7 +687,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("build"); s.add_argument("--spec", required=True); s.add_argument("--out", required=True)
-    s.add_argument("--date")
+    s.add_argument("--date"); s.add_argument("--recipient-tz", nargs="+")
     s = sub.add_parser("reminders"); s.add_argument("--spec", required=True); s.add_argument("--recipient-tz", nargs="+")
     s = sub.add_parser("check"); s.add_argument("ics")
     a = ap.parse_args(argv)

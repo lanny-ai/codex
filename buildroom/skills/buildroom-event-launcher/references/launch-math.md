@@ -1,6 +1,6 @@
 # Launch math: from the goal back to the list
 
-Work backwards from the goal, in three scenarios, before choosing anything else. The math is the honest conversation: it shows whether the list can carry the goal, and which single number matters most.
+Work backwards from the goal before choosing anything else. The math is the honest conversation: it shows whether the list can carry the goal, and which single number matters most.
 
 `python3 <skill>/scripts/launch_plan.py math --price P (or --tiers …) --goal-buyers N and/or --goal-cash X --list-size L --format bootcamp3|challenge5|workshop|webinar [--close checkout|call|both] [--paid-event] [--history-… R]` prints the typical path, how far each single stage could move it, the verdict against the goal, and the biggest lever. `launch_plan.py --help` lists the history flags; from the second launch on, use the member's own rates. Every constant it uses names its source.
 
@@ -28,7 +28,7 @@ A free 3-day boot camp, a $1 personalised brief, then a $997 program (or 12 × $
 
 ## Reading the result with the member
 
-- **Show the three scenarios side by side**, with the registrants each needs. "Typical" is not a forecast; it is the middle of published ranges.
+- **Show the typical path and the gap to the goal**: what the list should give, what the goal needs, and how far each single stage could move it (its cautious and strong value with everything else typical). "Typical" is not a forecast; it is the middle of published ranges. The verdict: the typical path reaches the goal (reachable), 60–99% of it (stretch), or under 60% (not from this list alone).
 - **Name the biggest lever.** The script names the stage where moving from typical to strong adds the most buyers, leaving out stages that rest only on an assumption. In practice it is often show-up or conversion; the founder's July show-up was 39% against a 65% target, and 51 people paid $1 and never saw the offer. The member's own history sharpens it from the second launch.
 - **If the goal is out of reach from this list**, say it in one sentence and offer four choices: lower the goal, add partners (`launch-partners.md`), add ads (Ad Studio), or a longer runway with list building first.
 - **Service businesses selling on calls:** the conversion event is a booked call. Track calls booked, held and closed separately; about 10–20% of attendees booking and 10–25% closing are vendor and agency figures, weak [data: vendors].

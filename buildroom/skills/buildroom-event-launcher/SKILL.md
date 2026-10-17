@@ -34,7 +34,7 @@ Read these before member-facing work, in this order:
 11. **`references/kern-framework.md`** and **`references/halbert-writing-system.md`** — every word an attendee reads goes through one of them (byte-identical to the Copy Engine's). Kern for invitations, reminders, close and follow-up emails; Halbert for a long story email or a sales page. **Their patterns are structure only here:** proof, scarcity, risk reversal, guarantees and numbers come only from `close.md` and the classified proof bank, and the launch gate overrides any example in them (proof stacks, big guarantees, "limited" offers, invented figures).
 12. **`references/business-file-protocol.md`** — how you read and write the Business File. Follow it exactly.
 
-`references/source-credit.md` records whose methods this skill adapts and how. `references/launch-folder.md` gives the shape of every file in the launch folder.
+`references/source-credit.md` records whose methods this skill adapts and how. **`references/launch-folder.md`** gives the shape of every file in the launch folder; read it before writing any of them.
 
 ## Prerequisites
 
@@ -68,12 +68,12 @@ Follow the protocol. Read §1–§8 and §13–§20 (§8 for what earlier sessio
 2. **Note the lists that bind every word** before anything is drafted: §1 *Retired lines* (and paraphrases), §18 *Never-say claims*, every offer element still open in §3 or §13 (an unsigned guarantee, an unset number of places, a price not yet confirmed). None appears in anything this skill drafts until the member confirms it in this session.
 3. Ask, one at a time, only what the file and vault do not hold: the goal (buyers and cash, by when); the list (size and how warm, honestly); any partners; dates the member can host live, in their time zone; who helps (a moderator at minimum); the budget for tools and ads; anything they will not do.
 
-Then the **plan on one screen**: the goal, the math (`launch_plan.py math`, three scenarios), the recommended format and why, the dates, the offer at the close, and what this session will produce. State the two honest truths: the list decides what is possible (for offers under about $2,000, 1 to 5% of a list buying is normal to strong; for call-closed offers, say it as calls booked per 100 attendees), and the event will lose people every day, so the plan engineers show-up daily.
+Then the **plan on one screen**: the goal, the math (`launch_plan.py math`: the typical path and the gap to the goal), the recommended format and why, the dates, the offer at the close, and what this session will produce. State the two honest truths: the list decides what is possible (for offers under about $2,000, 1 to 5% of a list buying is normal to strong; for call-closed offers, say it as calls booked per 100 attendees), and the event will lose people every day, so the plan engineers show-up daily.
 
 ### Phase 1 — Decide
 
 1. **Format** from `format-chooser.md`, chosen with the member. Confirm the day count, length per day, live or live-ish, free or paid entry, and community or none.
-2. **The math.** Run `launch_plan.py math` with the goal, price and list; show the three scenarios and the single biggest lever. If the goal is not reachable from this list, say so and offer the choices: lower the goal, add partners (Phase 3), add ads (**Ad Studio**), or a longer runway.
+2. **The math.** Run `launch_plan.py math` with the goal, price or doors, list and close mode; show the typical path, how far each single stage could move it, and the biggest lever. If the goal is not reachable from this list, say so and offer the choices: lower the goal, add partners (Phase 3), add ads (**Ad Studio**), or a longer runway.
 3. **The offer at the close** from §3 (`the-close.md` §1): checkout, call or both; tiers (no more than three doors); prices; a small first step or not; **the deadline decision**: name an honest deadline now (a cohort or install start date, a live bonus session, a price that genuinely changes) or choose the no-deadline window on purpose; a payment plan that does not punish; the guarantee as signed off. Anything unresolved goes to the member now, not on Day 3.
 4. **The one belief** and its three supports (opportunity, identity, mechanism), written in the buyer's words from §2 (`launch-principles.md`, `fill-and-show-up.md` §1). Write `belief.md`.
 5. **The first-win tool** registrants finish before Day 1: what it is, how long it takes (measure it, do not guess), where it lives. The first question must be easy.
@@ -81,7 +81,7 @@ Then the **plan on one screen**: the goal, the math (`launch_plan.py math`, thre
 
 ### Phase 2 — Build (one asset per message)
 
-Registration page (Kern; or hand to **Offer Page Copy** / **Lead Capture** for the page build) → confirmation page and email (join link, add-to-calendar, time-zone table, the one pre-work action) → `event.json` and the calendar file (`event_ics.py build`, then `event_ics.py check`) → the reminder schedule (`event_ics.py reminders --recipient-tz …`) → the proof bank, classified (`run-the-room.md` §4) → checkout for every tier and the payment plan → follow-up workflows in the CRM (**Decision Machine** builds them in GoHighLevel; this skill writes the words and the branches). Open the tracker: `launch_tracker.py init --name "…" --format … --days N --tz … --event-date … --goal-buyers N --goal-cash X --plan launches/<slug>/plan.json` (`launch_plan.py math --out` and `timeline --out` write that `plan.json`). Open the gate: `launch_tracker.py gate`.
+Registration page (Kern; or hand to **Offer Page Copy** / **Lead Capture** for the page build) → confirmation page and email (join link, add-to-calendar, time-zone table, the one pre-work action) → `event.json` and the calendar file (`event_ics.py build`, then `event_ics.py check`) → the reminder schedule (`event_ics.py reminders --recipient-tz …`) → the proof bank, classified (`run-the-room.md` §4) → checkout for every tier and the payment plan → follow-up workflows in the CRM (**Decision Machine** builds them in GoHighLevel; this skill writes the words and the branches). Open the tracker: `launch_tracker.py init --name "…" --format … --days N --tz … --event-date … --goal-buyers N --goal-cash X --close checkout|call|both --list-size L --plan launches/<slug>/` (`launch_plan.py math --out` and `timeline --out` write that `plan.json`). Open the gate: `launch_tracker.py gate`.
 
 ### Phase 3 — Fill
 
@@ -89,7 +89,7 @@ Registration page (Kern; or hand to **Offer Page Copy** / **Lead Capture** for t
 2. **Segments.** Hot, warm and cold, with a value-only path for the cold list and a personal touch for the hottest few.
 3. **Partners** if any (`launch-partners.md`): the partner kit, disclosures, the leaderboard if there is one, and a sending check (who sends, when, from whose account).
 4. **Other channels:** LinkedIn posts through the **LinkedIn Engine**, ads through the **Ad Studio**, a short invite video through the **Video Director**.
-5. **Log registrations** daily (`launch_tracker.py log-reg`) and compare to the plan; if registrations run below the cautious scenario at the halfway point, say so and pick one lever.
+5. **Log registrations** daily by source (`launch_tracker.py log-reg N --source email:<id>|segment:<name>|partner:<name>|…`) and run `launch_tracker.py pace`: ahead, on pace or behind the curve the list should give. If behind at the halfway point, say so and pick one lever.
 
 ### Phase 4 — Show-up engineering
 
@@ -143,4 +143,4 @@ Morning of the close: `launch_tracker.py gate --close-morning`; the money and fo
 
 ## When the Session Is Complete
 
-For a plan session, the member has: the launch math in three scenarios, a chosen format and dates, the one belief, the offer at the close, a timeline, the first emails approved, the calendar file, the reminder schedule, the run-of-show outline, the tracker and the gate opened, and an updated Business File. For a debrief, they have the numbers against the plan, the three leaks with fixes, what to protect, the vault note, and §20 moved to *Past launches*. They know what happens next and when.
+For a plan session, the member has: the launch math (the typical path and the gap to the goal), a chosen format and dates, the one belief, the offer at the close, a timeline, the first emails approved, the calendar file, the reminder schedule, the run-of-show outline, the tracker and the gate opened, and an updated Business File. For a debrief, they have the numbers against the plan, the three leaks with fixes, what to protect, the vault note, and §20 moved to *Past launches*. They know what happens next and when.

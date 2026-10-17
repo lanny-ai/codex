@@ -4,13 +4,36 @@
  "organizer_email": "dana@example.com",
  "tz": "America/Los_Angeles",
  "join_url": "https://zoom.us/j/1234567890?pwd=abc",
+ "registration_url": "https://example.com/register",
  "alarm_minutes": 15,
  "description": "Bring your numbers, a laptop; no slides.\nDay by day: clarity, revenue, momentum. Ümlauts and émojis 🎉 make sure the fold never splits a character across the 75-octet line boundary.",
  "days": [
-  {"date": "2026-11-10", "start": "14:00", "end": "17:00"},
-  {"date": "2026-11-11", "start": "14:00", "end": "17:00", "description": "Day 2: proof, then your first sale plan"},
-  {"date": "2026-11-12", "start": "14:00", "end": "17:15", "title": "Cash Flow Bootcamp - Day 3 (close day)"}
+  {
+   "date": "2026-11-10",
+   "start": "14:00",
+   "end": "17:00"
+  },
+  {
+   "date": "2026-11-11",
+   "start": "14:00",
+   "end": "17:00",
+   "description": "Day 2: proof, then your first sale plan"
+  },
+  {
+   "date": "2026-11-12",
+   "start": "14:00",
+   "end": "17:15",
+   "title": "Cash Flow Bootcamp - Day 3 (close day)"
+  }
  ],
- "reminders": {"morning_time": "08:00", "recap_after_end_minutes": 60,
-               "sms": ["day_before", "morning_of", "15_min", "live_now"]}
+ "reminders": {
+  "morning_time": "08:00",
+  "recap_after_end_minutes": 60,
+  "sms": [
+   "day_before",
+   "morning_of",
+   "15_min",
+   "live_now"
+  ]
+ }
 }
