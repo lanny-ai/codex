@@ -18,8 +18,8 @@ Usage
       conversion band is set by the share-weighted average price. Rates (--history-*) take 0.12, 12 or 12%.
       Prints the needed registrants and list size per scenario, the expected buyers from --list-size, a
       verdict (reachable / stretch / not from this list alone: add partners/ads or lower the goal) and the
-      single biggest lever. --md prints a markdown table instead of JSON (--md FILE writes it and prints
-      the JSON). --out DIR writes (or updates) DIR/plan.json, which launch_tracker.py init --plan reads.
+      single biggest lever (stages resting only on a Build Room assumption are left out of that
+      comparison). --md prints a markdown table instead of JSON (--md FILE writes it and prints the JSON). --out DIR writes (or updates) DIR/plan.json, which launch_tracker.py init --plan reads.
 
   launch_plan.py timeline --event-date YYYY-MM-DD --days N --tz IANA [--partners] [--paid-event]
                           [--cart-days 3] [--rush] [--out DIR] [--date YYYY-MM-DD]
@@ -36,7 +36,7 @@ Standard library only. Exit code 2 on a refused action (bad or missing input, im
 """
 import sys
 sys.dont_write_bytecode = True  # noqa: E402  (keeps __pycache__ out of the installed skill folder)
-import argparse, datetime as dt, json, math, os, re, tempfile  # noqa: E402
+import argparse, datetime as dt, json, math, os, tempfile  # noqa: E402
 from pathlib import Path  # noqa: E402
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError  # noqa: E402
 
@@ -58,7 +58,7 @@ SOURCES = {
     "Build Room founder run Jul 2026": "Founder's free 3-day bootcamp, Jul 2026: 969 registered, 380 / 257 / 133 live, "
                                        "67 at the very end; Day-1 show-up 39.2%; 380 to 133 over two days is about "
                                        "59% a day; 56% of those who saw the price bought (23 of 41, after a $1 "
-                                       "first purchase); about $25.6 cash and $54 booked per registrant",
+                                       "first purchase)",
     "Build Room founder runs 2025–26": "Founder's earlier free bootcamps: Day-1 show-up averaged about 33% of registrants",
     "Build Room founder rule of thumb": "Founder, Aug 2026 debrief: Day 2 is about 80% of Day 1 and Day 3 about 80% "
                                         "of Day 2 (his July data ran lower; the audit says earlier camps ran about "
@@ -207,10 +207,6 @@ def band_for(price):
     return next(b for b in BANDS if b["max"] is None or price < b["max"])
 
 
-def triple(vals, scenario):
-    return vals[SCENARIOS.index(scenario)]
-
-
 def rates_for(fmt, days, paid, price, hist_reg=None, hist_show=None):
     """{stage: {cautious, typical, strong, source(s)}} for the funnel steps of this event."""
     kind = "paid" if paid else "free"
@@ -307,10 +303,18 @@ def sources_used(obj):
     return {k: SOURCES[k] for k in sorted(keys) if k in SOURCES}
 
 
+def assumption_only(v):
+    src = v["source"]
+    return set(src.values() if isinstance(src, dict) else [src]) == {"Build Room assumption"}
+
+
 def biggest_lever(rates, days):
-    gains = {}
+    gains, skipped = {}, []
     for k, v in rates.items():
         if not v["typical"]:
+            continue
+        if assumption_only(v):
+            skipped.append(k)
             continue
         g = v["strong"] / v["typical"]
         if k == "retention":
@@ -319,7 +323,9 @@ def biggest_lever(rates, days):
     best = max(gains, key=lambda k: (gains[k], k))
     return {"stage": best, "gain_if_strong": round(gains[best], 2), "how": LEVERS[best],
             "all_gains": {k: round(v, 2) for k, v in sorted(gains.items(), key=lambda kv: -kv[1])},
-            "note": "the stage whose move from typical to strong adds the most buyers, everything else held at typical"}
+            "note": "the stage whose move from typical to strong adds the most buyers, everything else held at typical; "
+                    "stages resting only on a Build Room assumption are left out (their range is uncertainty, not "
+                    "leverage): " + (", ".join(skipped) or "none")}
 
 
 def verdict(list_size, needed):

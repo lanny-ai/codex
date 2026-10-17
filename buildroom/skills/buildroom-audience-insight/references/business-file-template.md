@@ -334,6 +334,26 @@ _Built by: Video Director · Requires: §1, §2; best with §3, §4, §17_
 
 ---
 
+## 20. Launches & Events
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: Event Launcher · Requires: §1, §2, §3; best with §4, §6, §16, §17_
+
+- **Current launch** (name · format · dates and time zone · goal in buyers and cash · status):
+- **The one belief** (and the three that support it):
+- **First-win tool** (what registrants finish before the event · where):
+- **The close** (tiers and prices · real deadline · payment plans · checkout or application · VIP):
+- **Fill plan** (list segments · invitation sequence · partners · ads · registration target):
+- **Show-up plan** (calendar file · reminder schedule · pre-work · moderator):
+- **Launch gate** (checkout tested end to end · follow-up workflows on · reminders timed · proof classified · date passed):
+- **Results** (registered · live Day 1 / 2 / 3 · at the close · buyers by tier · cash · booked · refunds):
+- **Lessons for next time** (top three leaks · what to protect):
+- **Past launches** (name · date · registered · buyers · cash — one line each):
+  - —
+- **Launch folder:** [launches/YYYY-MM-name/]
+
+---
+
 ## 8. Session Log
 
 | Date | Session | Outputs produced | Status | Rating (1–5) | Notes |

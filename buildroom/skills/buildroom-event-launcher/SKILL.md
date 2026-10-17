@@ -58,7 +58,7 @@ Read these before member-facing work, in this order:
 
 ## Session Flow
 
-Work in `launches/YYYY-MM-<slug>/` next to the Business File: `plan.md`, `plan.json`, `calendar.md`, `belief.md`, `emails/` (one file per email), `proof-bank.md`, `event.json`, `event.ics`, `runsheet.json`, `run-sheet.md`, `close.md`, `follow-up.md`, `tracker.json`, `debrief.md`. Run scripts from the folder that holds the Business File: `python3 <skill>/scripts/launch_plan.py …`. If the member keeps an Obsidian vault (§1 tools line, or the Business File lives in one), the launch folder lives inside the vault and the debrief is written there too.
+Work in `launches/YYYY-MM-<name>/` next to the Business File (`launch_tracker.py init --name …` creates the slug): `plan.md`, `plan.json`, `calendar.md`, `belief.md`, `emails/` (one file per email), `proof-bank.md`, `event.json`, `event.ics`, `runsheet.json`, `run-sheet.md`, `close.md`, `follow-up.md`, `tracker.json`, `debrief.md`. Run scripts from the folder that holds the Business File: `python3 <skill>/scripts/launch_plan.py …`. If the member keeps an Obsidian vault (§1 tools line, or the Business File lives in one), the launch folder lives inside the vault and the debrief is written there too.
 
 ### Phase 0 — Where things stand
 
@@ -80,7 +80,7 @@ Then the **plan on one screen**: the goal, the math (`launch_plan.py math`, thre
 
 ### Phase 2 — Build (one asset per message)
 
-Registration page (Kern; or hand to **Offer Page Copy** / **Lead Capture** for the page build) → confirmation page and email (join link, add-to-calendar, time-zone table, the one pre-work action) → `event.json` and the calendar file (`event_ics.py build`, then `event_ics.py check`) → the reminder schedule (`event_ics.py reminders --recipient-tz …`) → the proof bank, classified (`run-the-room.md` §4) → checkout for every tier and the payment plan → follow-up workflows in the CRM (**Decision Machine** builds them in GoHighLevel; this skill writes the words and the branches). Open the tracker: `launch_tracker.py init …`. Open the gate: `launch_tracker.py gate`.
+Registration page (Kern; or hand to **Offer Page Copy** / **Lead Capture** for the page build) → confirmation page and email (join link, add-to-calendar, time-zone table, the one pre-work action) → `event.json` and the calendar file (`event_ics.py build`, then `event_ics.py check`) → the reminder schedule (`event_ics.py reminders --recipient-tz …`) → the proof bank, classified (`run-the-room.md` §4) → checkout for every tier and the payment plan → follow-up workflows in the CRM (**Decision Machine** builds them in GoHighLevel; this skill writes the words and the branches). Open the tracker: `launch_tracker.py init --name "…" --format … --days N --tz … --event-date … --goal-buyers N --goal-cash X --plan launches/<slug>/plan.json` (`launch_plan.py math --out` and `timeline --out` write that `plan.json`). Open the gate: `launch_tracker.py gate`.
 
 ### Phase 3 — Fill
 

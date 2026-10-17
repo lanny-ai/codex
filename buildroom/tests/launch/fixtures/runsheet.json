@@ -1,0 +1,45 @@
+{
+ "title": "Cash Flow Bootcamp",
+ "allow_early_pitch": false,
+ "roles": {"host": "Dana", "moderator": "Sam", "tech": "Lee", "closer": "Dana"},
+ "links": {
+  "workbook": "https://example.com/workbook",
+  "checkout": "https://example.com/checkout",
+  "backup_stream": "https://example.com/backup-room",
+  "replay": "https://example.com/replay"
+ },
+ "days": [
+  {"date": "2026-11-10", "start": "14:00", "end": "17:00", "tz": "America/Los_Angeles",
+   "segments": [
+    {"min": 5, "title": "Welcome and recording notice", "kind": "welcome", "owner": "host", "links": ["workbook"]},
+    {"min": 40, "title": "The one belief: cash is a weekly habit", "kind": "teach", "owner": "host"},
+    {"min": 40, "title": "Build your 13-week cash view", "kind": "build", "owner": "host", "notes": "first guaranteed win"},
+    {"min": 10, "title": "Break", "kind": "break", "owner": "moderator"},
+    {"min": 45, "title": "Build: your three numbers", "kind": "build", "owner": "host"},
+    {"min": 30, "title": "Q&A", "kind": "qa", "owner": "Sam"},
+    {"min": 10, "title": "Recap and tomorrow's payoff", "kind": "recap", "owner": "host"}
+   ]},
+  {"date": "2026-11-11", "start": "14:00", "end": "17:00", "tz": "America/Los_Angeles",
+   "segments": [
+    {"min": 5, "title": "Welcome back, recording notice", "kind": "welcome", "owner": "host"},
+    {"min": 40, "title": "A past client walks through her numbers", "kind": "proof", "owner": "host",
+     "notes": "proof class: paid-program result, consent on file"},
+    {"min": 40, "title": "Build: price one offer", "kind": "build", "owner": "host"},
+    {"min": 10, "title": "Break", "kind": "break", "owner": "moderator"},
+    {"min": 50, "title": "Build: your first sale plan", "kind": "build", "owner": "host", "links": ["workbook"]},
+    {"min": 25, "title": "Q&A", "kind": "qa", "owner": "moderator"},
+    {"min": 10, "title": "Recap and the close-day cliffhanger", "kind": "recap", "owner": "host"}
+   ]},
+  {"date": "2026-11-12", "start": "14:00", "end": "17:15", "tz": "America/Los_Angeles",
+   "segments": [
+    {"min": 5, "title": "Welcome, recording notice", "kind": "welcome", "owner": "host"},
+    {"min": 40, "title": "Finish yesterday's build live", "kind": "build", "owner": "host"},
+    {"min": 5, "title": "Tech: checkout open check", "kind": "break", "owner": "tech", "notes": "phone, payment plan, coupon"},
+    {"min": 40, "title": "Wins from the room", "kind": "proof", "owner": "host"},
+    {"min": 10, "title": "Break", "kind": "break", "owner": "moderator"},
+    {"min": 30, "title": "The offer", "kind": "pitch", "owner": "closer", "links": ["checkout"]},
+    {"min": 20, "title": "Which one are you", "kind": "close", "owner": "closer", "links": ["checkout"]},
+    {"min": 40, "title": "Q&A as objection handling", "kind": "qa", "owner": "host", "links": ["replay"]}
+   ]}
+ ]
+}

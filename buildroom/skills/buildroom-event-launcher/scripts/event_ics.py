@@ -263,8 +263,9 @@ def common_warnings(spec):
         w.append("no join_url: the calendar entries have no link to the session; add it, or send it in the reminders")
     elif PLACEHOLDER.search(j):
         w.append(f"join_url {j} is a merge field: it is written verbatim. A static .ics file is the same for everyone and "
-                 "cannot carry a per-contact link, so attach a file with the shared link (or none) and send each "
-                 "person's own link in the email or SMS, where the CRM fills the field")
+                 "cannot carry a per-contact link: put the registration page or a shared link in the file (\"location\" "
+                 "and join_url in the spec) and send each person's own link in the emails and texts, where the CRM "
+                 "fills the field. The add-links printed below keep the field, so they work inside CRM emails")
     return w
 
 
@@ -332,8 +333,10 @@ def cmd_reminders(a):
             add("day_before", d, d["start"] - dt.timedelta(days=1),
                 "how to prepare, the calendar file, the one pre-work action; same clock time as the start")
         m = localize(d["date"], morning, tz, "reminders.morning_time", warnings)
+        last = d["n"] == len(days) and len(days) > 1
         if m <= d["start"] - dt.timedelta(minutes=30):
-            add("morning_of", d, m, f"today is Day {d['n']}: what happens, the start time in a few zones, the link")
+            add("morning_of", d, m, "close day: today's promise and the reminder that the offer is today, the link"
+                if last else f"today is Day {d['n']}: what happens, the start time in a few zones, the link")
         else:
             warnings.append(f"day {d['n']}: the morning reminder ({morning.strftime('%H:%M')}) is not at least 30 minutes "
                             "before the start, so it is left out; the 15-minute reminder covers it")
@@ -540,7 +543,8 @@ def cmd_check(a):
                 if t is None:
                     warnings.append(f"line {ln}: TZID {params.get('TZID')} is not an IANA name this checker knows")
             times[k] = t
-        if times.get("DTSTART") and times.get("DTEND") and times["DTEND"] <= times["DTSTART"]:
+        aware = [times.get(k) for k in ("DTSTART", "DTEND")]
+        if all(t is not None and t.tzinfo for t in aware) and aware[1] <= aware[0]:
             problems.append(f"{label}: DTEND is not after DTSTART")
         if "DTEND" not in pr and "DURATION" not in pr:
             warnings.append(f"{label} has no DTEND or DURATION")
