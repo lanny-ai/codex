@@ -1,6 +1,6 @@
 ---
 type: transcript
-speaker: Amber Spears
+speaker: Guest Speaker
 tags: [launch, event, flight-club]
 date: 2018-03-10
 ---

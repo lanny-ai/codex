@@ -1,14 +1,13 @@
 # Give a first win before the event, earn attendance every day, and close on a real deadline
 
-A small service business launches best with a short live event that does three jobs in order. It gives people a first win before Day 1. It earns attendance again on every day. And it closes on a real deadline, through a checkout tested that morning. Show-up is the biggest lever and the most measured number. Livestorm's 2026 report puts average show-up at **51.3%** across 33,786 sessions ([Livestorm](https://livestorm.co/webinar-benchmark-report-2026)), but ad-fed creator funnels run nearer **25% live** ([Scale For Impact](https://scaleforimpact.co/webinar-conversion-rate-benchmarks-what-to-expect-at-every-price-point/)). Price sets conversion: the same agency's 114 webinars show **8–15%** of attendees buying at $97–497, **5–10%** at $500–1,500 and **1–4%** at $2,000 and up. Sales cluster at the deadline: **40%** of one launch's sales came in the final two days ([Denise Duffield-Thomas](https://www.denisedt.com/blog/launch-debrief-part2)). Charging for entry helps less than folklore says: free in-person events have a median **28%** no-show against **17%** for paid ([Pheedloop](https://pheedloop.com/blog/event-data-lab-report-5)). Reminders help modestly: a Cochrane review of SMS reminders found an attendance ratio of **1.14** ([ainora.lt](https://ainora.lt/ai-webinar-attendance)). The founder's July 2026 free three-day boot camp is the best-documented run in the notes: 969 registered, 380, 257 and 133 live on Days 1 to 3, and 67 at the very end. About 500 people finished a free self-serve tool before Day 1, at 92% completion. Then 102 paid $1, and 21 of them bought the $997 program. Its leaks were operational. Reminders misfired two days running, checkout broke at peak intent, there was no structured close, and the follow-up never went live, so 51 dollar-buyers never saw the price while **56%** of those who did see it bought. Amber Spears adds partner discipline: 90 days to recruit, proof before partners, written deals. The rules make honesty mandatory. The FTC lists fake countdown timers as dark patterns ([FTC staff report](https://www.ftc.gov/system/files/ftc_gov/pdf/P214800+Dark+Patterns+Report+9.14.2022+-+FINAL.pdf)), the UK CMA can fine up to **10% of global turnover** ([CMA](https://www.gov.uk/government/news/cma-to-boost-consumer-and-business-confidence-as-new-consumer-protection-regime-comes-into-force)), and fake testimonials risk up to **$53,088 per violation** ([FTC](https://www.ftc.gov/news-events/news/press-releases/2025/12/ftc-warns-10-companies-about-possible-violations-agencys-new-consumer-review-rule)). And **65%** of US consumers say brands produce too much AI content ([Gartner](https://www.gartner.com/en/newsroom/press-releases/2026-09-22-gartner-marketing-survuey-finds-35-percent-of-consumers-rely-on-influencers-less-due-to-ai)), so AI belongs behind the scenes. The design that follows is an eight-phase launch, a calculator built on labelled ranges, a seven-check gate drawn from the founder's own failures, and a launch folder in the member's vault that each new launch reads first and writes to last.
+A small service business launches best with a short live event that does three jobs in order. It gives people a first win before Day 1. It earns attendance again on every day. And it closes on a real deadline, through a checkout tested that morning. Show-up is the biggest lever and the most measured number. Livestorm's 2026 report puts average show-up at **51.3%** across 33,786 sessions ([Livestorm](https://livestorm.co/webinar-benchmark-report-2026)), but ad-fed creator funnels run nearer **25% live** ([Scale For Impact](https://scaleforimpact.co/webinar-conversion-rate-benchmarks-what-to-expect-at-every-price-point/)). Price sets conversion: the same agency's 114 webinars show **8–15%** of attendees buying at $97–497, **5–10%** at $500–1,500 and **1–4%** at $2,000 and up. Sales cluster at the deadline: **40%** of one launch's sales came in the final two days ([Denise Duffield-Thomas](https://www.denisedt.com/blog/launch-debrief-part2)). Charging for entry helps less than folklore says: free in-person events have a median **28%** no-show against **17%** for paid ([Pheedloop](https://pheedloop.com/blog/event-data-lab-report-5)). Reminders help modestly: a Cochrane review of SMS reminders found an attendance ratio of **1.14** ([ainora.lt](https://ainora.lt/ai-webinar-attendance)). The founder's July 2026 free three-day boot camp is the best-documented run in the notes: 969 registered, 380, 257 and 133 live on Days 1 to 3, and 67 at the very end. About 500 people finished a free self-serve tool before Day 1, at 92% completion. Then 102 paid $1, and 21 of them bought the $997 program. Its leaks were operational. Reminders misfired two days running, checkout broke at peak intent, there was no structured close, and the follow-up never went live, so 51 dollar-buyers never saw the price while **56%** of those who did see it bought. Partner launches add their own discipline: a long runway, proof before partners, written deals. The rules make honesty mandatory. The FTC lists fake countdown timers as dark patterns ([FTC staff report](https://www.ftc.gov/system/files/ftc_gov/pdf/P214800+Dark+Patterns+Report+9.14.2022+-+FINAL.pdf)), the UK CMA can fine up to **10% of global turnover** ([CMA](https://www.gov.uk/government/news/cma-to-boost-consumer-and-business-confidence-as-new-consumer-protection-regime-comes-into-force)), and fake testimonials risk up to **$53,088 per violation** ([FTC](https://www.ftc.gov/news-events/news/press-releases/2025/12/ftc-warns-10-companies-about-possible-violations-agencys-new-consumer-review-rule)). And **65%** of US consumers say brands produce too much AI content ([Gartner](https://www.gartner.com/en/newsroom/press-releases/2026-09-22-gartner-marketing-survuey-finds-35-percent-of-consumers-rely-on-influencers-less-due-to-ai)), so AI belongs behind the scenes. The design that follows is an eight-phase launch, a calculator built on labelled ranges, a seven-check gate drawn from the founder's own failures, and a launch folder in the member's vault that each new launch reads first and writes to last.
 
 ## No web page was read in full, and the founder's numbers come from one run
 
-The research environment could not open any web page. WebFetch failed on DNS and the egress proxy refused the hosts. Every web claim here rests on **search-engine extracts**, including the FTC, FCC, Stripe, Zoom and GoHighLevel pages, every benchmark report, and every page about Amber Spears today. The only pages read in full were two community GitHub documents on calendar links.
+The research environment could not open any web page. WebFetch failed on DNS and the egress proxy refused the hosts. Every web claim here rests on **search-engine extracts**, including the FTC, FCC, Stripe, Zoom and GoHighLevel pages, every benchmark report, and every page about partner launches. The only pages read in full were two community GitHub documents on calendar links.
 
 Four more limits matter.
 
-- **Amber Spears' talks are from 2018 and 2019, and they cover partner recruitment, not event delivery.** They say nothing about cart windows, show-up, run-of-show or closing.
 - **The founder's numbers come from one well-documented run.** July 2026 has a full audit, a production-data analysis, a debrief and all three transcripts. Other runs are thin. His vault also disagrees with itself on attendance, retention history, buyer counts and revenue per registrant. Each conflict is named below.
 - **Most benchmarks are vendor-funded.** Livestorm, ON24, Univid, Contrast, Goldcast, EasyWebinar and WebinarNinja sell webinar software, mostly to B2B. Scale For Impact reports its own portfolio. The independent figures are the Cochrane review (healthcare), Pheedloop (in-person events) and the Gartner and Klaviyo trust surveys.
 - **No source measures small service businesses directly.** Applying any of this to a coach with 1,000 names is extrapolation.
@@ -27,7 +26,6 @@ Strength is tagged in words: **platform/vendor data**, **independent data**, **p
 | Founder: 21 buyers at $997 | Three internal sources say 12, 21 and 31 |
 | Founder: revenue per registrant | He said about $50 cash and $70 total; the ledger gives about $25.6 and $54 |
 | Founder: "80% of Day 1 shows on Day 2" | His audit says prior camps ran about 50% |
-| Amber Spears' career figures | Self-reported; $28.3M (host) vs 28.7M (her); later $530M+ and about $550M |
 | FTC coaching earnings-claim proposal | Not final; may never have reached the Federal Register |
 | FCC revoke-all revision, Sept 2026 | Adopted 9 or 30 September; not yet published |
 | Florida texting hours; Zoom Events attendee cap | 8 or 9 p.m.; 50,000 or 100,000 |
@@ -35,7 +33,7 @@ Strength is tagged in words: **platform/vendor data**, **independent data**, **p
 
 ## A launch event accelerates a funnel that already works, and the sale decides the format
 
-For a small service business a launch event is a time-bound reason for a list to pay attention, learn, decide and buy. The founder's first rule is that **the event is the accelerant, not the funnel** (founder's own). In July the funnel was a free self-serve tool producing a personal plan, then a $1 brief, then the $997 program. The event concentrated attention on it. Amber Spears asks the partner-side version: decide what the launch is for (list, cash, back-end high ticket or brand) and accept its cost (practitioner).
+For a small service business a launch event is a time-bound reason for a list to pay attention, learn, decide and buy. The founder's first rule is that **the event is the accelerant, not the funnel** (founder's own). In July the funnel was a free self-serve tool producing a personal plan, then a $1 brief, then the $997 program. The event concentrated attention on it. The partner-side version asks: decide what the launch is for (list, cash, back-end high ticket or brand) and accept its cost (practitioner).
 
 The founder's format rule: "Pick the pattern by where the actual sale happens." Webinar funnels end in a booked call; live events end in seats for a stage close. A service business that sells a high-ticket program or retainer usually needs a calls track.
 
@@ -101,22 +99,22 @@ Derived: 21 buyers are about 2.2% of registrants and 5.5% of Day 1 attendees, th
 
 July's Day 2→3 retention of **51.8%** equals the only external day-over-day figure: a paid bootcamp that kept **51.8%** from Day 1 to Day 5 (practitioner, Heart, Soul & Hustle). Two points, not a norm.
 
-## Amber Spears' partner method scales down to six habits
+## Partner launches scale down to six habits
 
-Credit: **Amber Spears, Flight Club 2018/2019**. She is an affiliate-recruitment and partner-management specialist from the docuseries era, not a webinar or closing specialist. Today she mainly hosts a mastermind: her LinkedIn headline reads "Four Rooms Mastermind" ([LinkedIn](https://www.linkedin.com/in/amberspears/)), its Whole Entrepreneur Summit is listed for 12–15 November 2026 in San Diego ([Four Rooms](https://fourroomsmastermind.com/events-2026/)), and her agency "is no longer serving new clients" ([East 5th Avenue](https://east5thavenue.com/who-we-are/)). These are search extracts.
+Partner launches (borrowing another expert's audience) have their own discipline, taught widely across launch communities. It covers recruiting and managing partners, not running the event or closing.
 
-Her principles, paraphrased (practitioner):
+The practice, in brief (practitioner consensus):
 
 1. **Give recruitment 90 days, ideally six months,** because good partners book their calendars early. Check their launch calendars for collisions.
-2. **Never take an untested offer to partners.** Beta-test and bring proof. Her 2018 bar was about $1 per click or $2 per lead.
+2. **Never take an untested offer to partners.** Beta-test and bring proof.
 3. **Recruit in waves by leverage:** own network, then the biggest partners one-on-one, then introductions from each yes, then partners' wider lists, then a referral contest.
-4. **Agree what a good result is before anyone promotes,** and write it down. Her lesson: a partner earned $25K and vanished, having expected $50K.
+4. **Agree what a good result is before anyone promotes,** and write it down.
 5. **Put every deal in writing:** dates, volume, lead ownership, and what happens if it goes well or badly.
 6. **Protect reputation above any launch.** Disclose weaknesses, make partners whole, and pay quickly ([DigitalMarketer](https://www.digitalmarketer.com/blog/build-affiliate-marketing-program/)).
 
-She also wants the tech ready before day one ("Every launch I've ever done, I have broken a server"), segmentation at opt-in, and leaderboards that reward referred momentum. The founder's July run shows why. The partner's team controlled sending and reminders, every email was in the partner's voice, and five minutes into Day 1 an attendee asked why the partner was not presenting. Her "set the table" habit and written terms would have caught both.
+Partner launches also need the tech ready before day one, segmentation at opt-in, and leaderboards that reward referred momentum. The founder's July run shows why. The partner's team controlled sending and reminders, every email was in the partner's voice, and five minutes into Day 1 an attendee asked why the partner was not presenting. Setting expectations with the partner in writing would have caught both.
 
-| Her principle | For a coach with 500–5,000 names |
+| Practice | For a coach with 500–5,000 names |
 |---|---|
 | 90-day runway | Plan 8–12 weeks out; guest slots book 4–8 weeks ahead |
 | Test first | A pilot cohort or small paid workshop for a conversion number |
@@ -324,9 +322,9 @@ A work-in-progress version of the skill now sits in `/home/user/codex/buildroom/
 | Phase | Output | Evidence |
 |---|---|---|
 | 0. Read the past | Last launch's numbers, top three leaks, what to protect | Founder's debrief rules |
-| 1. Decide | Goal in buyers and cash; format; one belief plus three; every price, plan and date written | Founder's own; Amber Spears |
+| 1. Decide | Goal in buyers and cash; format; one belief plus three; every price, plan and date written | Founder's own; launch practice |
 | 2. Build | First-win tool spec (easy first question, honest time); pages; calendar file; classified proof bank | Founder's own; Sugarman; RFC 5545 |
-| 3. Fill | Pre-frame and invitation emails with one call to action; partner kit and agreement | Founder's own; Amber Spears |
+| 3. Fill | Pre-frame and invitation emails with one call to action; partner kit and agreement | Founder's own; launch practice |
 | 4. Show-up | Reminder stack, evening emails, pre-work, consented SMS | Cochrane; July's misfires |
 | 5. Run | Day-by-day arc, run-of-show, roles (host, chat watcher, blocker catcher), buy link from Day 1 | Founder's own |
 | 6. Close | One-screen offer, one guarantee, modest plan, real deadline, live close plus deadline close | Practitioner data; FTC, CMA |
@@ -356,7 +354,6 @@ Worked example, every input assumed: 2,000 warm names at 20% registration gives 
 
 - The method (first win before the event, event as accelerant, small commitment purchase, three-day arc, follow-up by state, debrief, gate) is credited to Lanny Morton and AI Momentum Labs. The skill does not reuse his product names (Navigator, Compass, Architect, Build Brief) or his 22 questions as the member's.
 - "Big domino" is credited to Russell Brunson, the greased slide to Joe Sugarman, and value-equation ideas to Alex Hormozi.
-- Partner material is credited as "Amber Spears, Flight Club 2018/2019" and taught as principles in the skill's own words: no slides, scorecards, contest copy or scripts, no use of her numbers as the skill's results, no implied endorsement.
 - Seminar-era closing scripts and any partner's frameworks, page inventories and offer names stay structure only, credited as the vault's credit table directs.
 - Attendee stories appear only as anonymised patterns.
 
@@ -366,12 +363,6 @@ Web sources were seen through search-engine extracts on 17 October 2026 unless n
 
 **Founder's own (local vault, read-only; summarised in `research_notes/World class event launches/lanny_vault_method.md`)**
 - July 2026 audit `knowledge/forever-free-evergreen-audit.md`; follow-up data analysis `knowledge/forever-free-followup-redesign.md`; debrief transcript of 5 August 2026; the three July day transcripts; planning brief, proof bank, belief framework, invitation sequences and calendar files under `playbooks/`; `knowledge/sales/day3-game-plan-the-close.md`; `knowledge/events/2026-09-20-liftoff-offer-workshop-prep.md`; `feedback/patterns.md` and `feedback/knowledge-gaps.md`.
-
-**Amber Spears (practitioner; summarised in `research_notes/World class event launches/amber_spears.md`)**
-- Flight Club transcripts, March 2018 ("8-Figure Launches") and July 2019 (affiliate marketing), local vault, read in full.
-- Today: https://www.linkedin.com/in/amberspears/ ; https://www.ambermspears.com/ ; https://fourroomsmastermind.com/membership/ ; https://fourroomsmastermind.com/events-2026/ ; https://events.fourroomsmastermind.com/sandiego26-twes ; https://podcasts.apple.com/us/podcast/four-rooms-podcast-mastering-entrepreneurship-holistically/id1772311209
-- Agency and programs: https://east5thavenue.com/who-we-are/ ; https://east5thavenue.com/service-spears-method-10k-program/ ; https://east5thavenue.com/certification-for-affiliate-accelerator-page/ ; https://dynamitejobs.com/company/east5thavenue
-- Interviews: https://www.digitalmarketer.com/blog/build-affiliate-marketing-program/ ; https://www.digitalmarketer.com/podcast/digitalmarketer/affiliate-marketing/ ; https://www.conquerlocal.com/podcast/partnering-for-profits-how-to-build-powerful-affiliate-relationships/ ; https://hustleandflowchart.com/amber-spears-super-affiliates/ ; https://www.youtube.com/watch?v=oyktL5K-ohE
 
 **Platform and vendor data**
 - ON24: https://www.marketingprofs.com/charts/2025/52917/b2b-webinar-benchmarks-conversion-attendance-personalization ; https://www.businesswire.com/news/home/20250311690144/en/ON24-Unveils-2025-Digital-Engagement-Benchmarks-Report-Finding-AI-Generated-Content-and-Personalization-are-Key-for-Revenue-Acceleration ; https://www.on24.com/resources/asset/digital-engagement-benchmarks-report

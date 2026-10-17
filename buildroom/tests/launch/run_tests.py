@@ -478,9 +478,9 @@ def plan_tests(work):
     ok, out, _ = run([PY, PLAN, "timeline", "--event-date", "2027-02-01", "--days", "5", "--tz", "Europe/London",
                       "--partners", "--date", "2026-10-17", "--cart-days", "3", "--out", "planP"], w)
     ms = {m["id"]: m for m in pj(out).get("milestones", [])}
-    check("timeline --partners: recruitment 12 weeks out (Amber Spears' 90-day rule), deals in writing, partner kit",
-          ms.get("partner_recruit", {}).get("date") == "2026-11-09" and ms["partner_recruit"]["source"] == "Amber Spears 2018"
-          and "partner_terms" in ms and "partner_kit" in ms and "Amber Spears 2018" in pj(out)["sources"], ms.get("partner_recruit"))
+    check("timeline --partners: recruitment 12 weeks out (partners book months ahead), deals in writing, partner kit",
+          ms.get("partner_recruit", {}).get("date") == "2026-11-09" and ms["partner_recruit"]["source"] == "Launch practice: partners"
+          and "partner_terms" in ms and "partner_kit" in ms and "Launch practice: partners" in pj(out)["sources"], ms.get("partner_recruit"))
     calp = (w / "planP/calendar.md").read_text()
     check("m18: calendar.md shows empty weeks too", "(no milestones this week)" in calp, calp[:400])
     ok, out, _ = run([PY, PLAN, "timeline", "--event-date", "2026-12-21", "--days", "3", "--tz", "America/Chicago",
@@ -488,7 +488,7 @@ def plan_tests(work):
     d = pj(out); ms = {m["id"]: m for m in d.get("milestones", [])}
     check("timeline --partners at 9 weeks: recruitment starts today, flagged compressed and warned",
           ok and ms["partner_recruit"].get("compressed") and ms["partner_recruit"]["date"] == "2026-10-17"
-          and any("90-day" in x for x in d.get("warnings", [])), d.get("warnings"))
+          and any("months ahead" in x for x in d.get("warnings", [])), d.get("warnings"))
     ok, out, _ = run([PY, PLAN, "timeline", "--event-date", "2026-11-25", "--days", "3", "--tz", "America/Chicago",
                       "--partners", "--date", "2026-10-17", "--cart-days", "3"], w, ok_codes=(2,))
     check("timeline --partners refuses under 8 weeks", ok and "at least 56 days" in out, out[-300:])

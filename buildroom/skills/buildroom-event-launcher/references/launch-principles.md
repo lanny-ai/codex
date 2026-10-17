@@ -1,6 +1,6 @@
 # Launch events in 2026: what the evidence says
 
-The rulebook behind every recommendation. Each line is tagged: **[founder]** (the Build Room founder's own method and data, from eight runs of his free 3-day boot camp and his seminar years), **[Amber Spears]** (her Flight Club talks, March 2018 and July 2019, paraphrased with credit), **[data: who, sample]** (a third-party dataset; vendor data says so), **[practitioner: who]** (a named expert's method or self-report), **[folklore]** (repeated widely, no traceable source). Say which kind a claim is when you tell the member.
+The rulebook behind every recommendation. Each line is tagged: **[founder]** (the Build Room founder's own method and data, from eight runs of his free 3-day boot camp and his seminar years), **[launch practice]** (widely taught partner-launch practice, no single source), **[data: who, sample]** (a third-party dataset; vendor data says so), **[practitioner: who]** (a named expert's method or self-report), **[folklore]** (repeated widely, no traceable source). Say which kind a claim is when you tell the member.
 
 Full sources and dates are kept by the Build Room team (the research notes and report behind this skill); ask for them if a number matters to a decision. Research done in October 2026 from search extracts; re-check any number on its source before it goes in front of members.
 
@@ -39,17 +39,17 @@ Full sources and dates are kept by the Build Room team (the research notes and r
 - **Access is the acceptance test.** A sale is delivered when the buyer has reached the thing, not when they have paid. [founder]
 - **Feedback is a gift.** Debrief in two passes, what worked first, the person self-assesses first, push for specifics. [founder]
 
-## Amber Spears' rules (credited, paraphrased)
+## Partner-launch practice
 
-From her Flight Club talks (March 2018 "8-Figure Launches", July 2019 "Affiliate Marketing"). Her method is about recruiting and managing launch partners; she does not cover running the event or the close.
-- **Prove the offer before you scale it** with a small test; partners need data. [Amber Spears]
-- **Start early**: she needs 90 days to recruit because the best partners book up; for a small business, 8–12 weeks. [Amber Spears]
-- **Recruit in waves by leverage**, biggest relationships first, one-to-one, then introductions from every yes. [Amber Spears]
-- **Ask every partner what a good result looks like for them**, and follow up against that. [Amber Spears]
-- **Put every deal in writing**, including what happens if it goes badly. [Amber Spears]
-- **Have the tech and tests ready before launch day**; launches break servers. [Amber Spears]
-- **Your list and customers come first**; disclose weaknesses up front and make partners whole. [Amber Spears]
-- **Track daily activity**, not only results. [Amber Spears]
+How to recruit and manage launch partners; it does not cover running the event or the close.
+- **Prove the offer before you scale it** with a small test; partners need data. [launch practice]
+- **Start early**: big partners book up months ahead; for a small business, 8–12 weeks. [launch practice]
+- **Recruit in waves by leverage**, biggest relationships first, one-to-one, then introductions from every yes. [launch practice]
+- **Ask every partner what a good result looks like for them**, and follow up against that. [launch practice]
+- **Put every deal in writing**, including what happens if it goes badly. [launch practice]
+- **Have the tech and tests ready before launch day**; launches break servers. [launch practice]
+- **Your list and customers come first**; disclose weaknesses up front and make partners whole. [launch practice]
+- **Track daily activity**, not only results. [launch practice]
 
 ## Folklore: do not repeat as fact
 

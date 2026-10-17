@@ -61,7 +61,7 @@ Usage
       them the timeline is refused.
       Milestones: sending_domain (a sending subdomain with SPF, DKIM and DMARC set up and warmed 2–4 weeks,
       28 days before the first list email), decide (the offer tested), partner recruitment (--partners: 12
-      weeks out, 8 weeks minimum, Amber Spears' 90-day rule), sms_registration (--sms: A2P 10DLC, weeks
+      weeks out, 8 weeks minimum; big partners book months ahead), sms_registration (--sms: A2P 10DLC, weeks
       ahead), the first-win tool (build, time it, promote it), proof bank, pages, then the four gate stages
       (launch_tracker.py gate --stage): gate_pre_invite before the first belief email, gate_day_before on
       Day 1 −1, gate_close_morning on the close morning, gate_cart before the first cart (or follow-up)
@@ -140,8 +140,8 @@ SOURCES = {
                              "assumption. Replace it with your own numbers after one run",
     "Member history": "The member's own number from a past event (--history-*); cautious and strong are 80% and "
                       "120% of it",
-    "Amber Spears 2018": "Amber Spears, Flight Club Mar 2018: 'I need 90 days to recruit… the big people are "
-                         "booked'; never launch an untested offer; recruit in waves, biggest first",
+    "Launch practice: partners": "Partner-launch practice: big partners book their promotion calendars months ahead, so "
+                                 "plan 12 weeks (8 minimum); never launch an untested offer; recruit in waves, biggest first",
     "Build Room founder method": "Founder's method (vault notes): belief before the invite, a first-win tool before "
                                  "the event, proof on Day 2, a night-before email for every day after Day 1, test "
                                  "the money path on the close morning, replays about 7 days, follow-up by segment "
@@ -1071,14 +1071,14 @@ def milestone_specs(days, partners, paid, cart_days, invites=7, deadline=True, c
          ("decide", decide, 1, "task", "Decide and test the offer",
           "Decide the offer, the one belief, the format, the close (checkout or call) and the deadline (a real one, "
           "or none on purpose); test the offer with a pilot, past clients or a small paid beta before anyone "
-          "promotes it", "Amber Spears 2018")]
+          "promotes it", "Launch practice: partners")]
     if partners:
         m += [("partner_recruit", -84, 1, "task", "Partner recruitment starts",
                "12 weeks out (8 weeks at the latest): own network first, then partners one-on-one biggest first, then "
-               "ask each yes for an introduction; ask each what a good result looks like", "Amber Spears 2018"),
+               "ask each yes for an introduction; ask each what a good result looks like", "Launch practice: partners"),
               ("partner_terms", -56, 1, "task", "Partner deals in writing",
                "Dates, what they promote, commission or swap, who owns the leads, what happens if it underperforms; "
-               "partners disclose their commission", "Amber Spears 2018"),
+               "partners disclose their commission", "Launch practice: partners"),
               ("partner_kit", i0 - 14, 1, "task", "Partner kit out",
                "Two emails, two posts, tracking links, disclosure wording; copy names who teaches live",
                "Build Room founder method")]
@@ -1289,7 +1289,7 @@ def cmd_timeline(a):
     if lead < 0:
         refuse(f"--event-date {ev} is in the past (today is {on})")
     minimum = 56 if a.partners else (28 if a.paid_event else 21)
-    why = ("8 weeks to recruit partners (Amber Spears: 90 days; big partners are booked months ahead)" if a.partners
+    why = ("8 weeks to recruit partners (big partners are booked months ahead; 12 weeks is better)" if a.partners
            else "28 days for a paid event's ticket sales and the belief emails before them" if a.paid_event
            else "21 days: three belief emails, the first-win tool emails and about 14 days of invitations")
     if lead < minimum and not a.rush:
@@ -1351,7 +1351,7 @@ def cmd_timeline(a):
         if sr and sr.get("compressed"):
             warnings.append("sms_registration: A2P 10DLC approval can take weeks; until it is approved, send email only")
     if a.partners and lead < 84:
-        warnings.append(f"partner recruitment has {lead} days, under the 12 weeks planned (Amber Spears' 90-day rule): "
+        warnings.append(f"partner recruitment has {lead} days, under the 12 weeks planned (big partners book months ahead): "
                         "expect fewer and smaller partner slots")
     for m in ms:
         if m["kind"] == "event" and m.get("weekend"):
