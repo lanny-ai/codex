@@ -20,7 +20,7 @@ Full sources and dates are kept by the Build Room team (the research notes and r
 
 7. **Sales cluster at a real deadline.** 40% of one launch's sales landed in the final two days [practitioner: Denise Duffield-Thomas]; affiliate data puts 40–60% on the last day [practitioner: Matt McWilliams, 2016]. "Half of all sales on the last day" as a universal rule is [folklore]. → Plan the final day's live touch and emails, and make the deadline real; fake scarcity is now enforced against in the US, UK, EU and Australia [rules research].
 
-8. **A tiny first purchase makes the bigger one easy.** In July 2026, 102 people paid $1 for a personalised brief, which made the $997 a one-click upgrade; 56% of those who saw the price bought, and 51 paid $1 and never saw the offer [founder]. → If the member uses a small commitment step, make sure everyone who takes it sees the offer.
+8. **A tiny first purchase makes the bigger one easy.** In July 2026, 102 people paid $1 for a personalised brief, which made the core program a one-click upgrade; 21 of the 102 bought it, and in his follow-up analysis 23 of the 41 known to have seen the price bought (56%), while 51 paid $1 and never saw the offer [founder]. → If the member uses a small commitment step, make sure everyone who takes it sees the offer.
 
 9. **Follow-up is where the money leaks.** The founder's ten follow-up workflows sat unpublished after July with 2,181 people waiting in them [founder]. Replays are about half of webinar viewing [data: ON24, Contrast; vendors], and promoting the replay to non-attendees adds about 15% more viewers [practitioner, via Demio]. → Follow up by where each person stopped, the same day, with one next step each.
 

@@ -22,12 +22,13 @@ Send the replay within 1–3 hours of each day ending [data: WebinarNinja, vendo
 
 ## 3. Buyers first
 
-A sale is delivered when the buyer has reached the thing they paid for, not when they paid. [founder] Every buyer gets their login, their first step and a welcome within 24 hours, and someone checks that they got in. The founder's vault records thirteen named customers who could not reach what they had bought; it was his most expensive pattern. [founder]
+A sale is delivered when the buyer has reached the thing they paid for, not when they paid. [founder] Every buyer gets their login, their first step and a welcome within 24 hours, and someone checks that they got in. The founder's own records show a recurring list of customers who could not reach what they had bought; he calls it his most expensive pattern. [founder]
 
 ## 4. The debrief
 
-Once the cart closes and the follow-up has run:
-1. **The numbers.** `python3 <skill>/scripts/launch_tracker.py report --md launches/<slug>/debrief.md`: every step against the plan, day-over-day retention, the share who saw the price and bought, cash and booked, refunds, revenue per registrant, and the three biggest shortfalls with one fix each. Reconcile buyers and revenue to one number first.
+Once the cart closes and the follow-up has run, send a three-question survey to everyone who came (what helped most, what got in the way, what would have made you buy or buy sooner); the answers go into the debrief.
+
+1. **The numbers.** `python3 <skill>/scripts/launch_tracker.py report --md` (writes `launches/<slug>/debrief-numbers.md`; never the member's own `debrief.md`): every step against the plan, day-over-day retention, the share who saw the price and bought, cash and booked, refunds, revenue per registrant, and the three biggest shortfalls with one fix each. Reconcile buyers and revenue to one number first.
 2. **Feedback as a gift, in two passes** [founder]: what worked (protect these), then what could be better. The member self-assesses first; push for specifics ("which email, which minute").
 3. **The three leaks**, ranked by money lost, each with one change for next time.
 4. **What to protect**: the things that worked and must survive the next launch's changes.
@@ -39,5 +40,12 @@ Once the cart closes and the follow-up has run:
 - The member's Obsidian vault, if they keep one: `launch_tracker.py obsidian --vault <path>` writes `launches/YYYY-MM-<slug>.md` with light frontmatter and appends a line to `launches/_index.md` (`obsidian-launch-memory.md`). It never overwrites an existing note without `--force`.
 - §20 *Results*, *Lessons for next time*, and one line under *Past launches*.
 - A §13 row for each thing to build before the next launch (a consented case study, a replay index, a cohort calendar, a price page).
+
+## 6. What comes next (decide two weeks after the cart closes)
+
+- **Run it again** as a next cohort with the lessons applied (the usual choice after a first launch).
+- **Turn it into an evergreen version** (a recorded or "just-in-time" event that runs on its own) only once a live run has converted well; expect roughly half the live conversion [practitioner: Porterfield about 9% live vs 5–6% evergreen; vendor figures similar]. The live host can still run the Q&A and close.
+- **Pause** and build what the debrief said was missing (proof, a page, a list).
+The non-buyers go back into the member's regular nurture, not into silence; the people who said "not now" get the next cohort date.
 
 The next launch's Phase 0 reads all of this before it plans anything.

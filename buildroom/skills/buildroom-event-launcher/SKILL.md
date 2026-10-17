@@ -1,7 +1,7 @@
 ---
 name: buildroom-event-launcher
 description: |
-  Plan, fill, run, close and follow up a live launch event that sells: a 3-day bootcamp, a 5-day challenge, a paid workshop, a live webinar or a founding-member launch, for a service business, coach, consultant or agency. Built on the Build Room founder's own method from eight runs of his free 3-day boot camp (a free first-win tool before the event, one belief installed before the invite, belief on Day 1, proof on Day 2, the offer on Day 3, follow-up by where each person stopped, a debrief that ranks the leaks), Amber Spears' partner-launch principles (Flight Club 2018/2019, credited), and October 2026 research on show-up, conversion, honest urgency and the rules. It does the launch math backwards from the goal, picks the format, writes the invitation, reminder, close and follow-up emails one at a time through Kern, builds the calendar file and the run-of-show, holds a launch gate that every critical item must pass (checkout tested, workflows on, reminders timed, proof classified, deadlines real), tracks registrations, attendance and sales day by day, and debriefs into the member's Obsidian vault so every launch teaches the next. Use whenever a member wants to run a challenge, bootcamp, workshop, webinar, masterclass or launch, fill an event, get people to show up, sell at the end of an event, plan a launch calendar, bring in launch partners, or review how a launch went. Trigger on phrases like "plan my launch," "help me run a challenge," "I want to do a 3-day bootcamp," "build my webinar," "fill my workshop," "how do I get people to show up," "write my launch emails," "plan the close," "run sheet for day 2," "launch partners," "is my launch ready," or "how did my launch do." Reads the Build Room Business File (§1–§7, §13–§20); writes §20 Launches & Events, §13 and §8.
+  Plan, fill, run, close and follow up a live launch event that sells (3-day bootcamp, 5-day challenge, paid workshop, webinar, roundtable) for a service business, coach or consultant. Built on the Build Room founder's own boot camp method, Amber Spears' partner principles (credited) and October 2026 research. Launch math from the goal back, the one belief, emails one at a time through Kern, calendar files, run-of-show, an honest close, a staged launch gate (checkout tested, follow-up on, reminders timed, proof consented, deadlines real), a tracker, and a debrief written into the member's Obsidian vault. Trigger on "plan my launch," "help me run a challenge," "I want to do a 3-day bootcamp," "build my webinar," "fill my workshop," "how do I get people to show up," "write my launch emails," "plan the close," "run sheet for day 2," "launch partners," "is my launch ready," or "how did my launch do." Reads the Business File (§1–§8, §13–§20); writes §20, §13 and §8.
 ---
 
 # Build Room — Event Launcher
@@ -81,7 +81,8 @@ Then the **plan on one screen**: the goal, the math (`launch_plan.py math`: the 
 
 ### Phase 2 — Build (one asset per message)
 
-Registration page (Kern; or hand to **Offer Page Copy** / **Lead Capture** for the page build) → confirmation page and email (join link, add-to-calendar, time-zone table, the one pre-work action) → `event.json` and the calendar file (`event_ics.py build`, then `event_ics.py check`) → the reminder schedule (`event_ics.py reminders --recipient-tz …`) → the proof bank, classified (`run-the-room.md` §4) → checkout for every tier and the payment plan → follow-up workflows in the CRM (**Decision Machine** builds them in GoHighLevel; this skill writes the words and the branches). Open the tracker: `launch_tracker.py init --name "…" --format … --days N --tz … --event-date … --goal-buyers N --goal-cash X --close checkout|call|both --list-size L --plan launches/<slug>/` (`launch_plan.py math --out` and `timeline --out` write that `plan.json`). Open the gate: `launch_tracker.py gate`.
+**Before anything else in this phase, if the list is not already sending well:** the sending domain (SPF, DKIM, DMARC) set up at least four weeks out, and SMS registration started weeks ahead if texts are planned (`timeline` adds both). Then: registration page (Kern; or hand to **Offer Page Copy** / **Lead Capture** for the page build) → confirmation page and email (join link, add-to-calendar, time-zone table, the one pre-work action) → `event.json` and the calendar file (`event_ics.py build`, then `event_ics.py check`) → the reminder schedule (`event_ics.py reminders --recipient-tz …`) → the proof bank, classified (`run-the-room.md` §4) → checkout for every tier and the payment plan → follow-up workflows in the CRM (**Decision Machine** builds them in GoHighLevel; this skill writes the words and the branches). Open the tracker (from the second launch on, pass `--slug <folder>` to every tracker command, or the tracker picks the launch whose date is nearest and says which):
+ `launch_tracker.py init --name "…" --format … --days N --tz … --event-date … --goal-buyers N --goal-cash X --close checkout|call|both --list-size L --plan launches/<slug>/` (`launch_plan.py math --out` and `timeline --out` write that `plan.json`). The gate runs in four stages (`launch-gate.md`): `gate --stage pre_invite` must say GO before the first email goes out.
 
 ### Phase 3 — Fill
 
@@ -93,23 +94,23 @@ Registration page (Kern; or hand to **Offer Page Copy** / **Lead Capture** for t
 
 ### Phase 4 — Show-up engineering
 
-Confirmation → pre-work nudges → the day-before "how to prepare" email → the morning email → the 15-minute email (and SMS only with consent and A2P approval) → the **night-before email for every day after Day 1** → a reason to be there live that does not gate the content. Verify the send times in the recipient's time zone against the reminder schedule, and dry-run every reminder 24 hours before Day 1 (gate item).
+Confirmation → pre-work nudges → the day-before "how to prepare" email → the morning email → the 15-minute email (and SMS only with consent and A2P approval) → the **night-after email for every day except the last, written and scheduled before Day 1** → a reason to be there live that does not gate the content. `gate --stage day_before` 24 hours before Day 1: the reminder dry run in the recipient's time zone, the night emails scheduled, the moderator's links, the live tech.
 
 ### Phase 5 — Run (each live day)
 
 1. The day's run-of-show (`run_sheet.py build`), with the moderator's link drops and the tech checks (`run-the-room.md`).
 2. The first hour: everyone builds or decides something.
 3. Day 2: proof, classified and consented, and the economics or the method in action.
-4. Each night: log the day (`launch_tracker.py log-day`), draft the night-before email for tomorrow, and fix one thing.
+4. Each night, with the energy a 3–4-hour live day leaves: the moderator logs the day (`launch_tracker.py log-day --day N --live <unique attendees> --peak <peak at once>`); the pre-written night email goes out as scheduled, with at most a two-line edit for what happened; the host fixes one thing and stops. Plan a hard stop each day and a rest block before the close day.
 
 ### Phase 6 — Close
 
-Morning of the close: `launch_tracker.py gate --close-morning`; the money and follow-up items must pass again today (checkout or booking path tested on a phone, payment plan, the backup link ready, follow-up on). Then the close as planned (`the-close.md`): the offer shape, the doors, the real deadline, the guarantee, the payment plan, the VIP checkbox only after the main sale. Log the close and sales (`log-close`, `log-sale`). Cart emails for the cart window: with a deadline, the final-day cadence and the deadline closes when it says it does; without one, the no-deadline window (`the-close.md` §4). For calls: book from the chat and the application, hold calls within 48 hours, log them (`launch_tracker.py log-calls`).
+Morning of the close: `launch_tracker.py gate --stage close_morning`; the money and follow-up items must pass again today (checkout or booking path tested on a phone, payment plan, the backup link ready, follow-up on). Then the close as planned (`the-close.md`): the offer shape, the doors, the real deadline, the guarantee, the payment plan, the VIP checkbox only after the main sale. Log the close and sales (`log-close`, `log-sale`). Before the cart emails, `gate --stage cart` (proof and chat-quote consents re-checked, the deadline real). Cart emails for the cart window: with a deadline, the final-day cadence and the deadline closes when it says it does; without one, the no-deadline window (`the-close.md` §4). For calls: book from the chat and the application, hold calls within 48 hours, log them (`launch_tracker.py log-calls`).
 
 ### Phase 7 — Follow up and debrief
 
 1. **Follow-up by where each person stopped** (`follow-up-and-debrief.md` §1): no-shows get the tool and the shortest useful replay; attendees who did not buy get the reason-finding email and the next cohort date; failed checkouts get a personal email the same day; buyers get their first win within 24 hours and access they can prove.
-2. **The debrief** once the cart closes: `launch_tracker.py report`, then the feedback-as-gift method (what worked first, then what could be better), the three biggest leaks with one fix each, and what to protect.
+2. **The debrief** once the cart closes: a three-question attendee survey (what helped most, what got in the way, what would have made you buy or buy sooner) sent with the last follow-up; `launch_tracker.py report --md` (writes `debrief-numbers.md`); then the feedback-as-gift method (what worked first, then what could be better), the three biggest leaks with one fix each, and what to protect.
 3. **Write it where the next launch will read it:** `launch_tracker.py obsidian --vault <path>` if the member keeps a vault; always the launch folder's `debrief.md`.
 
 ### Phase 8 — Business File update
@@ -121,7 +122,7 @@ Morning of the close: `launch_tracker.py gate --close-morning`; the money and fo
    - **§8 Session Log** — one row per working session (plan, build, live week, debrief), not one per email; ask for the 1–5 rating.
    - **Size check:** over about 2,500 words, say so and offer to distil.
 3. Emit the entire updated file in one code block with the "what changed" summary.
-4. Close: the next three dates on the launch calendar, and what to say next ("Is my launch ready?" before invitations go out; "How did my launch do?" after the cart closes).
+4. Close: the next three dates on the launch calendar, the decision due two weeks after the cart closes (run it again as a next cohort, turn it into an evergreen version once a live run converts well, or pause), and what to say next ("Is my launch ready?" before invitations go out; "How did my launch do?" after the cart closes).
 
 ## Voice & Style Rules
 
@@ -138,7 +139,7 @@ Morning of the close: `launch_tracker.py gate --close-morning`; the money and fo
 - Let partner or guest copy imply someone will appear who will not, or omit a partner's commission disclosure.
 - Use a countdown that resets, a "live" label on a recording, or a deadline that does not close.
 - Make income or earnings claims beyond what a typical buyer achieves, with proof.
-- Reproduce another teacher's scripts or slides (Harv Eker's, Tony Natoli's, Amber Spears' and others' are credited structures only; `source-credit.md`).
+- Reproduce another teacher's scripts or slides (Amber Spears', Tony Natoli's and others' are credited structures only; partners' own course material is never used; `source-credit.md`).
 - Build the CRM workflows itself (**Decision Machine**), the sales page (**Offer Page Copy**), ads (**Ad Studio**) or videos (**Video Director**); it briefs them.
 
 ## When the Session Is Complete

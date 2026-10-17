@@ -14,7 +14,7 @@ A founder Day 3 run-of-show, as a shape to adapt [founder]: warm open (5 min) �
 - **Moderator** (essential from about 30 attendees): welcomes by name, drops every link at the planned times (and again), answers access problems, flags questions and wins for the host, drops the second checkout link if the main one fails.
 - **Tech** (can be the moderator for small events): recording on with notice, backup host link, the checkout tested before the close, the replay posted the same day.
 - **Closer or concierge** (for call-based offers): books calls from the chat and the application during the close.
-Name each person on the run sheet; the founder's debrief faulted himself for not introducing his ops lead properly to the room. [founder]
+**At least two people** for any event over about 30 attendees: the host cannot also be the moderator and fix tech while teaching. Name each person on the run sheet; the founder's debrief faulted himself for not introducing his ops lead properly to the room. [founder]
 
 ## 3. The first hour
 
@@ -55,7 +55,11 @@ AI can make the recap (the founder's AI-made Day 3 recap from the Day 1–2 tran
 
 Anything new (breakout rooms, a live app, polls, music) is tried with five people before the event or not used: untried breakout rooms cost the founder about 45 minutes. Host apps on cloud infrastructure, not office internet. Keep a backup host link and a plain payment link ready. [founder]
 
-## 9. Each night
+## 9. Accessibility
+
+Turn on live captions (Zoom's automatic captions or a captioner), keep slides high-contrast with large text, say aloud what is on screen when you point at it, and post links in chat as well as on screen. The founder's rooms skew 45–70+; many attendees are on a laptop with reading glasses, not a big monitor.
+
+## 10. Each night
 
 1. Log the day: `launch_tracker.py log-day --day N --live <the peak number live at once>`.
 2. Draft the night-after email (tomorrow's promise; "tomorrow is the one" before the final day).

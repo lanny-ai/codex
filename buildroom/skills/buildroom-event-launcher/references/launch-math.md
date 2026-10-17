@@ -10,7 +10,7 @@ List → registrants → live on Day 1 → each following day → present at the
 
 | Step | Planning range | Source and strength |
 |---|---|---|
-| List → registrants | **No published benchmark.** Use the member's own history. Otherwise: warm, engaged list 10–30% (a Build Room assumption, said as one); a large cold or partner list far lower (the founder's July camp registered about 0.6% of a very large partner-sent list) | Assumption; founder's run |
+| List → registrants | **No published benchmark.** Use the member's own history. Otherwise: warm, engaged list 10–30% (a Build Room assumption, said as one); a large cold or partner list far lower (a large partner-sent list registers well under 1% in the founder's experience) | Assumption; founder's run |
 | Registration page conversion (visitors → registrants) | Warm traffic 35–50%, cold or social 15–30% | [data: ON24 25–30%, vendor, B2B; practitioner: Scale For Impact target about 40%] |
 | Registrants → live Day 1 | Free event to a warm list 30–45%; free challenge 15–35%; paid $27–$97 event 50–70% | Derived from [data: Livestorm 51%, Univid 49%, Goldcast 33%, vendors; practitioner: Scale For Impact about 25% for creator funnels]; founder July 2026: 39% |
 | Day-over-day retention | 50–80% of the previous day | [founder: rule of thumb about 80%; July 2026 measured 68% then 52%]; [practitioner: HSH 51.8% Day 1 → Day 5] |
@@ -24,7 +24,7 @@ List → registrants → live on Day 1 → each following day → present at the
 
 ## The founder's July 2026 run, as one data point
 
-A free 3-day boot camp, a $1 personalised brief, then a $997 program (or 12 × $137): 969 registered; 380 / 257 / 133 live on Days 1–3; 67 at the very end; 102 bought the $1 brief; 21 bought the program (13 in full, 8 on the plan); 56% of those who saw the price bought. [founder: corrected ledger in his audit] Use it as one real example of the shape, not a promise: his list came through a large partner, and the format and offer were his.
+A free 3-day boot camp, a $1 personalised brief, then a core program: 969 registered; 380 / 257 / 133 live on Days 1–3; 67 at the very end; 102 bought the $1 brief; 21 of those bought the program; in his follow-up analysis, 23 of the 41 people known to have seen the price bought (56%), while 51 brief buyers never saw it. [founder: his audit and follow-up analysis] Use it as one real example of the shape, not a promise: his list came through a large partner, and the format and offer were his.
 
 ## Reading the result with the member
 

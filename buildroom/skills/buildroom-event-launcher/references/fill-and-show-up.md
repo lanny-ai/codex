@@ -18,9 +18,10 @@ The order is deliberate: "want it, then qualify yourself in, then believe it is 
 A pre-frame first, then invitations: "Do not lead with the register link. Earn the click with the pre-frame." [founder]
 
 **The default sequence** (send dates from `launch_plan.py timeline`, counted back from Day 1):
+- Four or more weeks out: the sending domain set up and warmed (SPF, DKIM, DMARC), and SMS registration started if texts are planned.
 - Days −21 to −19: three belief emails, one a day.
 - Days −18 to −15: the first-win tool, two or three emails whose only call to action is the free tool.
-- Day −16: the launch gate passes (before any invitation).
+- Before the first belief email: the gate's `pre_invite` stage passes (`timeline` places it).
 - Days −14 to −1: the invitations, five for a small list (jobs 1, 2, 4, 5, 7 below) or seven for a large one, every other day, then daily in the last three days.
 - Then the confirmation, the reminders (§4) and the night-after emails.
 The founder's July 2026 camp ran 7 value emails pointing to the free tool, then 7 invitations, then event-day emails [founder]; the default is a smaller version of the same shape.
@@ -38,6 +39,8 @@ The founder's July 2026 camp ran 7 value emails pointing to the free tool, then 
 - **Every call to action is the same: save the free seat, then show up live.** "One decision, repeated." [founder]
 - **Tease the offer only**: "at the end, I'll make an offer for those who want to go further with me." Answer "why is it free" honestly. [founder]
 - **No replay promises in the invitation.** "The replay watchers mean well, and most of them never press play." [founder]
+
+**A waitlist first (optional, strong for small lists).** Before the invitations, a short "put your hand up" email: people who want first word on the offer join a waitlist. They get the invitation first and the offer first when the cart opens. Waitlists convert far higher than a cold list [practitioner: Nicola Moors, 34.9%]. `timeline --waitlist` adds it.
 
 **Segments.** Hot (past buyers, recent replies, engaged) get a personal note from the member for the top few; warm get the full sequence; cold get value-only emails first with engagement scoring and only then the invitation. Send from a warmed subdomain, ramp volume, and drop the unengaged before the launch. [founder; bulk-sender rules]
 

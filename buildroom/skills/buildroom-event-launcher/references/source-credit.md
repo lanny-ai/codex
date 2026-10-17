@@ -11,7 +11,6 @@ Whose methods this skill adapts, and how. Structures and principles are taught i
 | **Jeff Walker** (Product Launch Formula) | Cart-window length; launch sequencing | Credited |
 | **Joe Sugarman** | The greased slide: the first question must be easy | Credited |
 | **Tony Natoli, David Lindahl** (real-estate seminar training, through the founder) | Offer a plan, not a discount; the order of the stage close; in-person floor roles | Structure only, credited; scripts not reproduced |
-| **T. Harv Eker** (through the founder's partnership) | Nothing directly. His Sell From Stage material and HEI campaign copy belong to HEI | Not used |
 | **Alex Hormozi, Sam Ocean** | Offer quality checks (cited in the founder's notes) | Credited |
 | **Data sources** | ON24, Livestorm, Univid, Goldcast, Contrast (vendors); Pheedloop event data; Cochrane review on reminders; Scale For Impact; Denise Duffield-Thomas, Nicola Moors, Heart, Soul & Hustle, Amy Porterfield, Matt McWilliams (practitioner self-reports); Gartner and Klaviyo (AI trust) | Cited with their strength in `launch-principles.md` and `launch-math.md` |
 | **Rules** | FTC (earnings claims, Consumer Reviews and Testimonials Rule, Endorsement Guides, dark patterns), ROSCA and state auto-renewal laws, CAN-SPAM, Gmail/Yahoo/Microsoft sender rules, TCPA and carrier SMS rules, UK DMCC Act, EU and Australian enforcement | Summarised in `launch-gate.md`; not legal advice |
