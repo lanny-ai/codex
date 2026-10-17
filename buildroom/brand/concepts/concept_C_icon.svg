@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><defs><linearGradient id="Cgoldx" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE7A3"/><stop offset=".5" stop-color="#FFB547"/><stop offset="1" stop-color="#F97316"/></linearGradient><filter id="Cglow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="10" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><radialGradient id="Ccore" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#1C2756"/><stop offset="1" stop-color="#0A0F24"/></radialGradient></defs>
+    <circle cx="256" cy="262" r="186" fill="url(#Ccore)"/>
+    <path d="M446.2 200.2 A200 200 0 1 1 330.9 76.6" fill="none" stroke="url(#Cgoldx)" stroke-width="28" stroke-linecap="round"/>
+    <path d="M413.6 234.2 A160 160 0 1 1 336.0 123.4" fill="none" stroke="#FFB547" stroke-opacity=".28" stroke-width="3" stroke-dasharray="2 12" stroke-linecap="round"/>
+    <g filter="url(#Cglow)">
+      <polyline points="140.0,372.0 214.0,298.0 262.0,330.0 392.0,172.0" fill="none" stroke="url(#Cgoldx)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M352 150 L448 92 L432 200 Z" fill="#FFB547" stroke="#FFB547" stroke-width="10" stroke-linejoin="round"/>
+    </g>
+    <g stroke="#4FE3FF" stroke-width="4" fill="none" opacity=".8"><polyline points="214.0,298.0 214.0,238.0 186.0,214.0"/><polyline points="262.0,330.0 300.0,360.0 300.0,396.0"/></g>
+    <g fill="#4FE3FF"><circle cx="186" cy="214" r="7"/><circle cx="300" cy="396" r="7"/></g>
+    <g fill="#FFFFFF"><circle cx="140" cy="372" r="13"/><circle cx="214" cy="298" r="11"/><circle cx="262" cy="330" r="11"/></g></svg>

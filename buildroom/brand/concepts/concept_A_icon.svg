@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><defs><linearGradient id="Agold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE7A3"/><stop offset=".45" stop-color="#FFB547"/><stop offset="1" stop-color="#F97316"/></linearGradient><filter id="Aglow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="10" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <linearGradient id="Afl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1E2A5C"/><stop offset="1" stop-color="#0B1129"/></linearGradient>
+    <linearGradient id="Afr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A3A7A"/><stop offset="1" stop-color="#101838"/></linearGradient>
+    <linearGradient id="Abeam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FFC861" stop-opacity=".55"/><stop offset="1" stop-color="#FFC861" stop-opacity="0"/></linearGradient>
+    <radialGradient id="Atop" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#FFD27A" stop-opacity=".95"/><stop offset="1" stop-color="#F97316" stop-opacity=".15"/></radialGradient></defs>
+    <polygon points="138.0,244.0 256.0,312.0 256.0,448.0 138.0,380.0" fill="url(#Afl)"/>
+    <polygon points="256.0,312.0 374.0,244.0 374.0,380.0 256.0,448.0" fill="url(#Afr)"/>
+    <g stroke="#4FE3FF" stroke-width="3" fill="none" opacity=".75"><polyline points="160.0,300.0 190.0,318.0 190.0,352.0 222.0,370.0"/><polyline points="165.0,340.0 165.0,372.0 200.0,392.0"/></g><g fill="#4FE3FF"><circle cx="222" cy="370" r="5"/><circle cx="200" cy="392" r="5"/><circle cx="160" cy="300" r="5"/></g><g stroke="#4FE3FF" stroke-width="3" fill="none" opacity=".45"><polyline points="300.0,350.0 330.0,332.0 352.0,344.0"/></g>
+    <polygon points="256.0,176.0 374.0,244.0 256.0,312.0 138.0,244.0" fill="url(#Atop)"/>
+    <path d="M206 244 L222 60 L290 60 L306 244 Z" fill="url(#Abeam)"/>
+    <g filter="url(#Aglow)">
+      <path d="M232 244 L232 118 L196 118 L256 40 L316 118 L280 118 L280 244 Z" fill="url(#Agold)"/>
+    </g>
+    <polygon points="256.0,176.0 374.0,244.0 374.0,380.0 256.0,448.0 138.0,380.0 138.0,244.0" fill="none" stroke="url(#Agold)" stroke-width="9" stroke-linejoin="round"/>
+    <polyline points="138.0,244.0 256.0,312.0 374.0,244.0" fill="none" stroke="url(#Agold)" stroke-width="6" stroke-linejoin="round"/>
+    <line x1="256" y1="312" x2="256" y2="448" stroke="#FFA23A" stroke-width="6"/>
+    <g fill="#FFE7A3"><path d="M330 120 l7 -14 l7 14 l-7 14 z" opacity=".9"/><path d="M178 92 l5 -10 l5 10 l-5 10 z" opacity=".7"/><path d="M352 64 l4 -8 l4 8 l-4 8 z" opacity=".55"/><circle cx="160" cy="146" r="4" opacity=".6"/><circle cx="312" cy="40" r="3" opacity=".5"/></g></svg>
