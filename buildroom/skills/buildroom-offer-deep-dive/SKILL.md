@@ -1,7 +1,7 @@
 ---
 name: buildroom-offer-deep-dive
 description: |
-  Harden a service business's Signature Offer into an irresistible, seven-figure-capable offer through a twelve-question coaching interview, one question at a time, and a full synthesis: the one belief in the sixteen-word format, the named core offer and transformation, a value stack of three to six premiums with honest standalone values, the offer math and price justification, a specific risk reversal, real urgency, the common enemy, the proof elements to lead with, a ninety-second pitch, and the honest math on how this reaches a million. Use whenever a user wants to build a high-ticket or flagship offer, make an offer irresistible, add bonuses or premiums, structure a guarantee or risk reversal, justify a price, fix an offer that isn't converting, or says sales are slow and suspects the offer. Trigger on phrases like "my offer isn't landing," "how do I justify the price," "what bonuses should I add," "make my offer a no-brainer," "value stack," "flagship offer," or "million dollar offer." An alternate, deeper path into the Signature Offer section of the Build Room Business File: reads what the offer session already built, asks only what's missing, and writes the hardened offer back.
+  Hardens the offer through a twelve-question interview: one belief, value stack, offer math, risk reversal, honest urgency, pitch (§3). Use for "make my offer a no-brainer," "my offer isn't landing," "what bonuses should I add," "value stack," or "flagship offer."
 ---
 
 # Build Room — Offer Deep Dive

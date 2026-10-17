@@ -1,7 +1,7 @@
 ---
 name: buildroom-source-watcher
 description: |
-  Generate a complete automated source watcher that pulls content from any external source (podcasts, YouTube, Twitter, newsletters, RSS, Reddit, blogs, Substack) and adds high-signal content to an Obsidian.md knowledge base while protecting proprietary user-generated notes. Produces a runnable Python project with feed checker, content fetcher, LLM importance scorer, knowledge extractor, and safe Obsidian writer. Use whenever a user wants to build a watcher, monitor a source, automate KB ingestion, set up a content pipeline into Obsidian, create a feed monitor, or expand their second brain automatically. Trigger on phrases like "watch this source," "monitor my podcasts," "auto-capture from Twitter," "feed my Obsidian," or "build me a source watcher." Includes 8 recommended filter templates (Tactical Only, Frameworks Only, Case Studies with Numbers, Counter-Conventional, etc.) and built-in proprietary content protection. Build Room elective: works standalone, and when a Build Room Business File is present it pre-fills the interests profile from the member's business and records the watcher as a Build Plan row.
+  Generates a watcher that pulls podcasts, YouTube, newsletters or feeds into an Obsidian vault through filters, without touching the member's own notes. Elective. Use for "build me a source watcher," "watch this source," "monitor my podcasts," or "feed my Obsidian."
 ---
 
 # Build Room Master Source Watcher Generator

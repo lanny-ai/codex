@@ -1,7 +1,7 @@
 ---
 name: buildroom-sales-script
 description: |
-  Build a stage-by-stage consultative sales script for the member's actual offer and actual prospect, then rehearse it: seven stages (connection, situation, problem awareness, consequence, solution vision, qualifying and transition, commitment) written as psychology-first questions in the member's voice, an objection set with responses, tonality notes per stage, and an interactive role-play mode where the assistant plays a realistic prospect and coaches between exchanges. Use whenever a user wants a sales script, discovery call script, call framework, closing sequence, objection handling, help preparing for a sales call, a cold call or outbound script, an inbound consult script, or to practice selling through role-play. Trigger on phrases like "help me with my sales call," "I freeze on discovery calls," "how do I close," "write my sales script," "they always say it's too expensive," "role play a prospect with me," or "what should I ask on the call." Reads the Build Room Business File (ICA, offer, positioning, objections) so the script is built from the member's real business, and writes the Sales Conversations section back.
+  Builds a seven-stage consultative sales script with objection handling, then role-plays a prospect (§15). Use for "help me with my sales call," "write my sales script," "how do I close," "they say it's too expensive," or "role play a prospect with me."
 ---
 
 # Build Room — Sales Conversations

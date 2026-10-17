@@ -1,7 +1,7 @@
 ---
 name: buildroom-event-launcher
 description: |
-  Plan, fill, run, close and follow up a live launch event that sells (3-day bootcamp, 5-day challenge, paid workshop, webinar, roundtable) for a service business, coach or consultant. Built on the Build Room founder's own boot camp method, proven partner-launch practice and October 2026 research. Launch math from the goal back, the one belief, emails one at a time through Kern, calendar files, run-of-show, an honest close, a staged launch gate (checkout tested, follow-up on, reminders timed, proof consented, deadlines real), a tracker, and a debrief written into the member's Obsidian vault. Trigger on "plan my launch," "help me run a challenge," "I want to do a 3-day bootcamp," "build my webinar," "fill my workshop," "how do I get people to show up," "write my launch emails," "plan the close," "run sheet for day 2," "launch partners," "is my launch ready," or "how did my launch do." Reads the Business File (§1–§8, §13–§20); writes §20, §13 and §8.
+  Plans, fills, runs, closes and debriefs a live launch event (bootcamp, challenge, workshop, webinar, roundtable): launch math, emails, calendar files, run-of-show, the close, a staged launch gate, debrief to Obsidian (§20). Use for "plan my launch," "help me run a challenge," "I want to do a 3-day bootcamp," "write my launch emails," "plan the close," "is my launch ready," or "how did my launch do."
 ---
 
 # Build Room — Event Launcher

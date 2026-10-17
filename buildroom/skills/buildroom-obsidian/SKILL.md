@@ -1,7 +1,7 @@
 ---
 name: buildroom-obsidian
 description: |
-  Set up and run the Build Room second brain: an Obsidian vault on the member's own machine with Claude Code (or Codex) working inside it. Walks the install (Obsidian desktop, a local vault, Claude Code, the optional Terminal plugin), writes the standing instructions file and light note templates, runs the first fill from the member's drives, email, meetings and videos with quality gates, sets up the growth routines (morning briefing, ask-your-brain, weekly synthesis, connection sweep, expert hats, saved commands, watchers), and makes the vault the member's Build Room workspace by keeping the Business File in it. Use whenever a user mentions Obsidian, a second brain, a knowledge base for Claude, "Claude keeps forgetting my business," "get my data out of the cloud," "set up my vault," "put Claude Code inside Obsidian," "my brain," a morning briefing, or wants their notes, transcripts, and documents to be something Claude reads before answering. Elective: reads the Build Room Business File for context and writes only the §1 tools line, one §13 Build Plan row, and §8.
+  Sets up the second brain: an Obsidian vault on the member's computer with Claude inside, first fill, routines, the Business File kept there. Elective. Use for "set up my second brain," "set up my vault," "Obsidian," or "Claude keeps forgetting my business."
 ---
 
 # Build Room — The Second Brain (Obsidian + Claude Code)

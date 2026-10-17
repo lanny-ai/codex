@@ -1,7 +1,7 @@
 ---
 name: buildroom-training-docs
 description: |
-  Turn documented SOPs and a role scorecard into a complete Training Handbook in one guided session: a training map designed backward from outcomes, a TWI job breakdown sheet and practice-built module per SOP, checkout sheets with observable pass criteria, escalation drills, a 30-day onboarding calendar, a day-one welcome page, a living FAQ, and the maintenance rule that keeps it current. Use whenever a user wants to train a new hire, onboard a VA or team member, write training documentation or an onboarding plan, build a training manual or handbook, hand off work without it coming back wrong, or stop reviewing every output. Trigger on phrases like "how do I train them," "onboarding plan," "write the training doc," "my new hire starts Monday," "they keep getting it wrong," "training manual," or "how do I know they've got it." Third session of the Operations & SOPs sequence — reads the SOPs and scorecard from the Build Room Business File and writes the Training & Onboarding section.
+  Builds a training handbook: modules per SOP, checkouts, a 30-day onboarding calendar (§11). Use for "help me train my new hire," "onboarding plan," "training manual," or "they keep getting it wrong."
 ---
 
 # Build Room — Team Training Doc Builder

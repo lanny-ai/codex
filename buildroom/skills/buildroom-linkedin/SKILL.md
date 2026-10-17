@@ -1,7 +1,7 @@
 ---
 name: buildroom-linkedin
 description: |
-  Build and run a member's organic LinkedIn engine, account-safe: the profile rebuilt as a landing page (headline, rendered banner, About, Featured), two or three content pillars, three posts a week drafted from the member's own stories, document carousels, a daily 20-minute routine of substantive comments and warm-signal messages, a local pipeline to booked calls, and a weekly scorecard from LinkedIn's own export. Grounded in October 2026 research with every claim tagged by evidence. The skill drafts, queues and counts; the member posts, comments, connects and messages by hand; no automation, scraping, pods or bait. Trigger on "build my LinkedIn engine," "help me get clients from LinkedIn," "fix my LinkedIn profile," "write my LinkedIn posts," "plan my LinkedIn week," "make me a LinkedIn carousel," "who should I message on LinkedIn today," "how is my LinkedIn doing," "I posted it," or "show me how the LinkedIn engine works." Reads the Business File (§1–§7, §13–§19); writes §14 LinkedIn lines, §13 and §8.
+  Organic LinkedIn engine, done by hand: profile as a landing page, pillars, three posts a week in the member's words, carousels, a daily comment-and-message routine, pipeline, weekly scorecard (§14). Use for "build my LinkedIn engine," "help me get clients from LinkedIn," "fix my LinkedIn profile," "write my LinkedIn posts," "plan my LinkedIn week," "who should I message on LinkedIn today," or "how is my LinkedIn doing."
 ---
 
 # Build Room — LinkedIn Engine

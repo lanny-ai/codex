@@ -1,7 +1,7 @@
 ---
 name: buildroom-funnel-scorecard
 description: |
-  Build the member's funnel scorecard and the recurring leak finder that runs on it: one row per failure point in the funnel from §6 (entered, converted, rate, change against the prior window, source), the pipeline stages to create if nothing is measured yet, a "what moved" line (stage moves, revenue, untouched leads), the top three leaks ranked by revenue at risk, two or three proposed fixes per leak tagged automation, messaging, offer, UX, training, or traffic fit and routed to the Build Room session or Decision Machine campaign that owns them, approve-skip-edit on every fix, and, only on the member's explicit yes, the scheduled routine that re-runs the scorecard weekly, proposes fixes, applies nothing, and fails loud. Use whenever a user asks where their funnel is leaking, wants funnel KPIs or a conversion dashboard, a weekly funnel check, step-by-step conversion rates, to know why leads don't become calls or calls don't become clients, or says "run the funnel test," "how did my ads do," "where am I losing people," "what's my conversion rate at each step," or "set up a recurring funnel analysis." Reads §6 and the CRM; writes the §6 scorecard lines, §13 rows for approved fixes, §12 metric rows, the §18 current-cycle line when it reads ad results, and §8.
+  Measures every funnel step, ranks the top three leaks with fixes the member approves, and can re-run weekly (§6). Use for "where is my funnel leaking," "how did my ads do," "what's my conversion rate at each step," or "run the funnel test."
 ---
 
 # Build Room — Funnel Scorecard + Leak Finder

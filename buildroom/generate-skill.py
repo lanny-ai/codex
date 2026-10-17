@@ -121,7 +121,7 @@ If a prerequisite is missing, follow the protocol's two-path fallback: recommend
     skill_md = f"""---
 name: {a.name}
 description: |
-  {title}: guided Build Room session covering {kb_topics}. TODO-REVIEW: rewrite this description in the house style — what it builds, who it's for, and 6-10 member trigger phrases ("help me...", "I need..."). Reads the member's Build Room Business File and writes the {wl} section when the session ends.
+  {title}: guided Build Room session covering {kb_topics}. TODO-REVIEW: rewrite this description in the house style, under about 400 characters (Claude Code drops descriptions that overflow its skill-listing budget): what it builds in one line, the § it writes, then 4-6 member trigger phrases ("help me...", "I need..."). Reads the member's Build Room Business File and writes the {wl} section when the session ends.
 ---
 
 # Build Room — {title}

@@ -1,7 +1,7 @@
 ---
 name: buildroom-leadgen
 description: |
-  Build a complete lead generation engine for a service business across four modules — warm network activation (contact audit, tiered network map, outreach messages, this-week activation plan), the cold outreach machine (prospect targeting, core message templates, the 5-touch follow-up sequence, response and objection handling), the referral system (trigger map, ask-script library, referral partner strategy, handling referred leads), and the content lead engine plus pipeline system (content calendar, pipeline tracker, four-channel integration map, weekly review) — with trackers, scorecards, and 30-day targets. Use whenever a user wants more leads, more clients, more discovery calls, to activate their warm network, write outreach or cold messages, build follow-up sequences, ask for referrals, set up referral partners, create a content pipeline for leads, build a pipeline tracker, or fix an empty calendar. Trigger on phrases like "I need more leads," "help me get clients," "my pipeline is empty," "how do I ask for referrals," "write my outreach messages," "cold email," "LinkedIn outreach," "follow-up sequence," "content that gets clients," or "build my lead gen system." Runs one module or all four; reads the Build Room Business File so the member never re-explains their business, and writes the Lead Generation Engine section back.
+  Lead Gen Machine, four modules: warm network, cold outreach, referrals, content and pipeline (§14). Use for "help me get more leads," "my pipeline is empty," "write my outreach messages," "how do I ask for referrals," or "build my lead gen system."
 ---
 
 # Build Room — Lead Gen Machine

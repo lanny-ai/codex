@@ -1,7 +1,7 @@
 ---
 name: buildroom-funnel-map
 description: |
-  Map and build a member's first complete funnel in one guided session: funnel audit, value ladder map, complete funnel map with one conversion event, a fully written email follow-up sequence, landing page copy draft, and an automation trigger map with a prioritized implementation plan. Use whenever a user wants to build a funnel, map their customer journey, fix where leads drop off, set up automated follow-up, create an email sequence, automate lead nurture, or connect their offer to a system that converts strangers into booked calls. Trigger on phrases like "build my funnel," "map my funnel," "I lose leads after they find me," "set up my email sequence," "automate my follow-up," "value ladder," or "people find me but don't book." First session of the Automation & Funnels sequence — reads the ICA and offer from the Build Room Business File and writes the Funnel & Automation section the Lead Capture session builds on.
+  Maps the funnel: traffic strategy, value ladder, one conversion event, follow-up emails, automation map (§6). Use for "help me map my funnel," "build my funnel," "people find me but don't book," or "value ladder."
 ---
 
 # Build Room — Funnel Map & First Automation

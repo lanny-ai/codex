@@ -1,7 +1,7 @@
 ---
 name: buildroom-sop-creator
 description: |
-  Turn the processes living in a business owner's head into working documented systems in one guided session: a ranked process inventory, 2-4 complete SOPs written for someone who has never seen the business, a one-page checklist for each, a delegation handoff pack, and a maintained SOP library. Use whenever a user wants to write an SOP, document a process, create standard operating procedures, build a process checklist, systemize their business, stop being the bottleneck, prepare to delegate or hire, get things out of their head, or make the business run without them. Trigger on phrases like "help me document my process," "write an SOP," "I'm the bottleneck," "everything depends on me," "I need to delegate but," "systemize my business," "create a checklist for," "get this out of my head," or "nothing happens unless I do it." First session of the Operations & SOPs sequence — reads the Build Room Business File and writes the Operations & SOPs section that the hiring, training, and dashboard sessions build on.
+  Turns processes in the owner's head into SOPs, checklists and a delegation pack (§9). Use for "help me document my processes," "write an SOP," "I'm the bottleneck," "systemize my business," or "get this out of my head."
 ---
 
 # Build Room — SOP Creator System

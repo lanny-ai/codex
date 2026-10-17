@@ -1,7 +1,7 @@
 ---
 name: buildroom-ops-dashboard
 description: |
-  Put a whole small service business on one weekly page in one guided session: choose 5–9 metrics read straight from the Build Room Business File (each with an owner, a goal, a two-minute source, and its leading/lagging pair), build the six-block one-page dashboard for the member's tool with a 13-week history, design the 30-minute weekly ops meeting with facilitation rules and a decision log, name the current constraint and apply the five focusing steps, seed the issues list, write the maintenance rule, and — only on the member's explicit yes — set up the scheduled routine that assembles the page every week. Use whenever a user wants a business dashboard, a weekly scorecard, KPIs or metrics to track, a weekly ops meeting or L10-style meeting, to know if the business is on track before the bank balance says so, to stop running on gut feel, to see whether delegation is actually working, or to automate a weekly report or Monday check-in. Trigger on phrases like "what numbers should I track," "build me a dashboard," "weekly scorecard," "KPIs for my business," "I find out too late," "weekly review," "ops meeting," "am I on track," "automate my Monday report," or "set up a scheduled routine." Fourth and closing session of the Operations & SOPs sequence — reads the funnel, SOP, hiring, and training sections of the Business File and writes the Weekly Ops section.
+  One-page weekly dashboard: 5–9 metrics with owners, a 30-minute ops meeting, an optional Monday routine (§12). Use for "what numbers should I be watching every week," "build me a dashboard," "KPIs," "weekly scorecard," or "am I on track."
 ---
 
 # Build Room — Weekly Ops Dashboard

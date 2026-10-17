@@ -1,7 +1,7 @@
 ---
 name: buildroom-brainstorm-capture
 description: |
-  Turn a raw brainstorm — a Brainstorm Board export, a call transcript, typed notes, or the owner's memory — into outcomes that get built: every candidate extracted (never invented), typed as decision / process / build / experiment / parked, given one owner, and written as a decision record with its reasons, a proto-SOP in the SOP Creator's shape, a build brief cut to its smallest worthwhile version, or an experiment card; then at most three outcomes scheduled with a first step and a date, the rest scheduled later or parked with a reason, and the Build Plan section of the Build Room Business File updated so the navigator can read it. Use whenever a user has just finished a brainstorm, idea session, strategy call, whiteboard session, or planning meeting and wants to capture what was decided, turn ideas into a plan, write up decisions, get action items with owners, stop losing ideas, or feed brainstorm outcomes into SOPs and the build plan. Trigger on phrases like "capture what we decided," "we just had a brainstorm," "here's the transcript, what did we decide," "turn this into a plan," "write up the meeting," "what were the action items," "add this to the build plan," or "I had an idea." Anytime tool — no prerequisites; reads the whole Business File and writes §13 Build Plan.
+  Turns a brainstorm, transcript or notes into owned, dated outcomes: decisions, proto-SOPs, build briefs, experiments (§13). Use for "capture what we decided," "we just had a brainstorm," "turn this into a plan," "what were the action items," or "I had an idea."
 ---
 
 # Build Room — Brainstorm Capture

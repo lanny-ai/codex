@@ -1,7 +1,7 @@
 ---
 name: buildroom-hiring-kit
 description: |
-  Turn documented SOPs into a complete hiring kit in one guided session: a role scorecard (mission, measurable outcomes, competencies, 90-day standard), a filter-style hiring ad with a screening question and posting plan, a screening-call script, a paid work sample with rubric, a structured interview guide with scoring sheet and red flags, a reference-call script, decision matrix, offer, and a first-week plan. Use whenever a user wants to hire, write a job ad or job description, find a VA or operator, define a role, interview candidates, build interview questions, check references, decide between contractor and employee, or make their first hire without getting burned. Trigger on phrases like "I need to hire someone," "write my job ad," "help me interview," "I want a VA," "define this role," "how do I hire," "my last hire didn't work out," or "who should I hire first." Second session of the Operations & SOPs sequence — reads the SOPs from the Build Room Business File and writes the Team & Hiring section.
+  Builds a hiring kit from the SOPs: role scorecard, job ad, screening and interview scripts, work sample, first-week plan (§10). Use for "help me hire for this role," "help me hire someone," "write my job ad," "I want a VA," or "help me interview."
 ---
 
 # Build Room — Hiring Ad + Interview Kit

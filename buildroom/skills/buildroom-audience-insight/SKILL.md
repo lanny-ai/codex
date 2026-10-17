@@ -1,7 +1,7 @@
 ---
 name: buildroom-audience-insight
 description: |
-  Mine the real voice of the member's customers and put sourced language into their Business File: a research sweep across six angles (demand pain, operational pain, objections and distrust, category shifts, FAQs and skepticism, buying-signal language) over accessible web sources plus any client emails, reviews, call notes, or community threads the member pastes; then a cited Audience Playbook with ranked pain points, an exact-words swipe file, an objection table with reframes, a content idea pipeline, and a lead-spotting guide. Use whenever a user wants audience research, customer or market research, voice-of-customer insight, pain-point mining, to know what their customers actually say, real quotes for their copy, objection research, content ideas for a niche, or to replace guessed customer language with sourced language. Trigger on phrases like "what do my customers care about," "what are they complaining about," "find the words my clients use," "research my market," "I don't have real customer quotes," "what objections do buyers have," or "content ideas for my niche." Reads the Build Room Business File and writes the Ideal Client Avatar section's sourced language, pains, and objections back with provenance, so nothing generated ever gets mistaken for something a client said.
+  Researches what the member's clients really say: ranked pains, exact words, objections, content ideas, all sourced (§2 sourced language). Use for "find the words my clients actually use," "research my market," "what objections do buyers have," or "I don't have real customer quotes."
 ---
 
 # Build Room — Audience Insight

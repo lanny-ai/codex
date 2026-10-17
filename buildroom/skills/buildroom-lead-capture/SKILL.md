@@ -1,7 +1,7 @@
 ---
 name: buildroom-lead-capture
 description: |
-  Build a complete launch-ready lead capture system in one guided session: landing page, lead magnet, thank you page, opt-in form, delivery automation, and GoHighLevel setup instructions. Use whenever a user wants to build an opt-in page, create a landing page, design a lead magnet, set up an opt-in form, capture leads, build the front door of their funnel, or connect a landing page to an automated follow-up sequence. Also trigger on phrases like "I need a landing page," "help me build my opt-in," lead magnet creation, list building, or conversion optimization for opt-ins. Pairs strategic conversion architecture with Frank Kern's persuasion-first copywriting framework, producing landing page copy in Kern's signature bold, proof-driven voice rather than generic marketing language. Best for service businesses, coaches, consultants, and agencies who have an offer and want a complete automated front door to their funnel. Reads the member's Build Room Business File to pre-fill the ICA and offer extraction, and writes the Lead Capture section back when the session ends.
+  Builds the opt-in: landing page or application, lead magnet, thank-you page, delivery automation, GoHighLevel setup (§7). Use for "help me build my opt-in page," "I need a landing page," "lead magnet," or "I want an application."
 ---
 
 # Build Room Lead Capture System

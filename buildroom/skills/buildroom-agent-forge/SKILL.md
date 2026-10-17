@@ -1,7 +1,7 @@
 ---
 name: buildroom-agent-forge
 description: |
-  Forge an agent from the founder's thirteen elements: basics, outcome, identity, context, knowledge and sources, memory, tools, workflow, boundaries, escalation, verification, metrics, review. Three ways in, as in the founder's Agent Forge app: start from scratch (a guided walk with intelligent defaults, one question at a time), start from a template (appointment booking, lead qualifying, customer support, client onboarding, sales follow-up, or any §9 automation candidate), or describe what you need in plain language and get a proposal; plus refine an existing agent or skill, including a safety scan and clean rebuild of anything downloaded from a stranger. Produces one markdown agent definition that installs as a Claude Code or Codex skill or hands off as a build brief, and records it in the Build Plan. Use whenever a user wants to build an agent, an assistant, a bot, an automation that decides things, says "make me an agent that," "turn this process into an agent," "is this skill safe to install," "scrub this skill," or has a Go or Partial automation candidate in §9. Elective: reads §1, §9 and §13; writes one §13 row and §8.
+  Builds an agent definition from thirteen elements (from scratch, a template or a plain description), installable as a skill; also safety-scans downloaded skills. Elective. Use for "make me an agent," "turn this process into an agent," or "is this skill safe to install."
 ---
 
 # Build Room — Agent Forge

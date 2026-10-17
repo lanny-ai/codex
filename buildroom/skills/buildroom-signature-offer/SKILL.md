@@ -1,7 +1,7 @@
 ---
 name: buildroom-signature-offer
 description: |
-  Package expertise into a fully structured, premium signature offer in one guided session: offer architecture built on the Hormozi Value Equation, obstacle-mapped deliverables, value stack and pricing architecture, transformation promise, guarantee, and a 60-second pitch. Use whenever a user wants to build, structure, price, or rename their offer; create a signature offer, high-ticket offer, premium package, or productized service; figure out what to charge, raise their prices, add a guarantee, or stop selling hours; or turn "what I do" into "what clients get." Trigger on phrases like "help me build my offer," "what should I charge," "package my services," "my offer isn't converting," "price my program," or "create my signature program." Second session of the Build Room sequence — reads the Ideal Client Avatar from the Build Room Business File and writes the Signature Offer section every later session depends on.
+  Packages expertise into a priced signature offer: deliverables, value stack, guarantee, 60-second pitch (§3). Use for "help me build my signature offer," "what should I charge," "package my services," "price my program," or "create my signature program."
 ---
 
 # Build Room — Signature Offer Builder

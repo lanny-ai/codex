@@ -1,7 +1,7 @@
 ---
 name: buildroom-offer-page-copy
 description: |
-  Write a complete, publication-ready offer page in one guided session: headline system (10 options via Caples' structures), problem-agitation-solution core, offer presentation with value stack, social proof and credibility section, FAQ, and call to action — assembled into one flowing conversion-focused page. Use whenever a user wants to write a sales page, offer page, services page, program page, or landing page for a paid offer; turn their offer into copy that converts; or fix a page that isn't converting. Trigger on phrases like "write my sales page," "I need an offer page," "copy for my program," "my page isn't converting," "write the page for my offer," or "help me sell this on my website." Fourth session and payoff of the Build Room April sequence — pre-fills its entire input from the ICA, Signature Offer, and Messaging Bible sections of the Build Room Business File, so the member's whole month becomes one page.
+  Writes a publication-ready offer or sales page from the avatar, offer and messaging (§5). Use for "write my offer page," "write my sales page," "copy for my program," or "my page isn't converting."
 ---
 
 # Build Room — Offer Page Copy Generator

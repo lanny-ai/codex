@@ -1,7 +1,7 @@
 ---
 name: buildroom-copy-engine
 description: |
-  Write any piece of persuasive copy for a Build Room member from their Business File instead of a blank brief: sales emails and sequences, ads, social posts, landing and offer page sections, webinar pitches, advertorials, VSL scripts, and long-form sales letters. Two voices, chosen by the job: Frank Kern's persuasion-first framework (objective, argument, audience, counter-beliefs, tone, credibility, structure, call to action) for emails, pages, and short pieces, and Gary Halbert's direct-response system (starving crowd, the greased slide, fascination bullets, the A-pile letter, proof stacks) for long-form letters and anything that has to carry a cold reader to the order form. Use whenever a user asks to write, rewrite, or improve any marketing or sales copy, or says things like "write me an email," "I need a sales letter," "make this more persuasive," "write the ad," "punch up this page," "write my launch emails," or "this copy isn't converting." Reads the Ideal Client Avatar, offer, positioning, offer page, and lead capture sections so every draft uses the member's real prospect, real offer, real proof, and real customer language; writes nothing to the file except the Session Log and a reference to the deliverable.
+  Writes any persuasive copy from the Business File in Kern (short) or Halbert (long-form) voice: emails, ads, posts, page sections, letters. Use for "write me the email," "write me a sales letter," "write the ad," "make this more persuasive," or "this copy isn't converting."
 ---
 
 # Build Room — Copy Engine

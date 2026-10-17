@@ -1,7 +1,7 @@
 ---
 name: buildroom-compass
 description: |
-  Build the member's Compass: a one-to-two-page personal clarity document that says who they are at a deep level (core values, life philosophy, personality pattern, zone of genius, spark zone and drain zone, motivational core, hidden opportunities, blind spots, a unique truth) and ends in a Compass Statement, produced through a warm one-question-at-a-time interview of about nineteen questions with a reflection after every answer and an insight after every section, then written into the Build Room Business File as §17 Founder Compass so every other session can read the member's voice, energy constraints, and fit filter without asking. Use whenever a user wants clarity on direction, asks "is this right for me," says they feel misaligned or drained by their own business, wants an AI that sounds like them, mentions the Compass, the Navigator, the Magic Wand, a North Star, values, spark zone, or zone of genius, or is starting from scratch and doesn't know what to build. Anytime session: requires nothing; writes §17, one §13 row if a direction emerges, and §8.
+  Builds the Founder Compass: values, zone of genius, spark and drain zones, blind spots and a Compass Statement through a warm one-question interview (§17). Use for "build my compass," "is this right for me," "I feel misaligned," or "my zone of genius."
 ---
 
 # Build Room — The Compass

@@ -1,7 +1,7 @@
 ---
 name: buildroom-os
 description: |
-  The Build Room's front desk and navigator. Orients members in the program, reads their Build Room Business File to show progress, and recommends exactly one next session with the trigger phrase to start it — checking prerequisites and routing goal-first ("I want a sales page" gets the path: avatar, offer, positioning, page). Use whenever a Build Room member asks where to start, what to do next, which session to run, whether they're on track, or what the Build Room is; wants a progress check, a program overview, or help picking between sessions; is new and needs onboarding; or mentions the Build Room, their Business File, or the roadmap without naming a specific build. Trigger on phrases like "where do I start," "what should I work on next," "what's next in the Build Room," "show my progress," "am I on track," "I'm new here," "set me up," or "what is this program." Routes to build sessions; never runs them itself.
+  Build Room navigator: shows progress from the Business File and names the one next session to run. Use when a member asks "where do I start," "what should I work on next," "show my progress," "am I on track," "I'm new here," "set me up," or "what is the Build Room."
 ---
 
 # Build Room OS

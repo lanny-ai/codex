@@ -1,7 +1,7 @@
 ---
 name: buildroom-brainstorm
 description: |
-  Facilitate a brainstorm that ends in a decision, not a list — alongside the Build Room's Brainstorm Board page or entirely in chat. Reads the Build Room Business File first (the current constraint, last session's open questions, parked ideas), gets the member to one tested framing question, runs silent brainwriting with a timer, serves SCAMPER lenses and constraint prompts when the room stalls, clusters by the job each idea does, runs a silent dot-vote, pushes the top three through the decision filter (thing or choice · addresses the constraint · smallest worthwhile version · one owner and a dated first step), offers to prototype a small winning build in the room, and produces the export block that Brainstorm Capture reads. Use whenever a user wants to brainstorm, run an idea session, think through options, figure out what to build or give away next, hold a planning or strategy session with their team, get unstuck on a problem, or asks "what should we do about X" with no answer yet. Trigger on phrases like "let's brainstorm," "I need ideas for," "help me think through," "what could we do about," "planning session," "idea session," "what should we build next," or "I'm stuck on." Anytime tool — no prerequisites; writes only the Session Log and the last-brainstorm line, and hands off to Brainstorm Capture for the Build Plan.
+  Facilitates a brainstorm that ends in a decision: one framing question, silent ideas, clusters, a dot vote, the top three filtered. Use for "let's brainstorm," "I need ideas for," "help me think through," "what should we build next," or "I'm stuck on."
 ---
 
 # Build Room — The Brainstorm Session

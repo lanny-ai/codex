@@ -1,7 +1,7 @@
 ---
 name: buildroom-positioning-messaging
 description: |
-  Build a complete positioning and messaging system in one guided session using April Dunford's 5-component method: competitive alternative analysis, differentiation excavation, positioning statement, market category, value proposition, tagline, villain statement, and a "for you if / not for you if" anti-audience definition — assembled into a full Messaging Bible. Use whenever a user wants to position their business, stand out from competitors, differentiate, define their niche or category, write a value proposition or tagline, clarify their message, or answer "why choose us." Trigger on phrases like "help me position my business," "I sound like everyone else," "what makes me different," "write my value prop," "I need a tagline," "messaging strategy," or "how do I stand out." Third session of the Build Room sequence — reads the ICA and Signature Offer from the Build Room Business File and writes the Positioning & Messaging section that all copy sessions depend on.
+  Builds positioning and a Messaging Bible: alternatives, differentiation, value proposition, tagline, who it's not for (§4). Use for "help me position my business," "I sound like everyone else," "what makes me different," or "write my value prop."
 ---
 
 # Build Room — Positioning & Messaging System

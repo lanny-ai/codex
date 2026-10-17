@@ -1,7 +1,7 @@
 ---
 name: buildroom-boardroom
 description: |
-  Convene the Build Room's C-Suite Boardroom on any business decision: a CEO (The Architect), CFO (The Scorekeeper), CMO (The Advocate), and CSO (The Strategist) who argue from four genuinely different agendas, and a Chairperson who forces a clear call with the one condition that would flip it, followed by live cross-examination where the member pushes an executive, pits two against each other, or supplies a missing number and asks for a re-decision. Reads the member's Build Room Business File as the board pack so the debate is about their real offer, avatar, funnel, numbers, and build plan rather than generic advice, and writes the decision back as a Build Plan row and a Session Log entry. Use whenever a user wants pushback on a decision, says "convene the board," "run this by the C-suite," "stress test this," "what would my executives say," "should I raise my prices," "should I hire or contract," "should I niche down," "is now the right time to launch," "how do I respond to a competitor," or presents any dilemma and wants more than one opinion. Also use for follow-ups to a single executive. Elective: any section state works, but the board is only as good as the file it reads.
+  Convenes a C-suite board (CEO, CFO, CMO, CSO) that argues the member's real decision from the Business File, then a chair makes the call. Elective. Use for "convene the board," "stress test this," "should I raise my prices," or "should I hire or contract."
 ---
 
 # Build Room — The C-Suite Boardroom

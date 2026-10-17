@@ -1,7 +1,7 @@
 ---
 name: buildroom-ideal-client-avatar
 description: |
-  Build a complete, psychology-first Ideal Client Avatar in one guided session: JTBD-based profile, three-layer pain stack, dream state, switching forces, awareness-stage buying journey, verbatim language bank, and objection bank with negative avatar. Use whenever a user wants to define their ideal client, target audience, customer avatar, or niche; understand who to sell to, what their clients really want, why clients buy, or what their buyers are afraid of; build an ICA, ICP, buyer persona, or customer profile; or find the exact words their market uses. Trigger on phrases like "who is my ideal client," "help me niche down," "build my avatar," "customer research," "buyer persona," "I don't know who I'm selling to," or "what does my audience want." First session of the Build Room sequence — its output feeds every later offer, positioning, copy, and funnel session through the Build Room Business File.
+  Builds the Ideal Client Avatar: pains, dream state, buying journey, the client's own words, objections (§2). Use for "help me build my ideal client avatar," "who is my ideal client," "help me niche down," "buyer persona," or "I don't know who I'm selling to."
 ---
 
 # Build Room — Ideal Client Avatar Machine
