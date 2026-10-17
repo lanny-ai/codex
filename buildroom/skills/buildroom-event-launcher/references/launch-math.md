@@ -22,7 +22,7 @@ List → registrants → live on Day 1 → each following day → present at the
 
 ## The founder's July 2026 run, as one data point
 
-A free 3-day boot camp, a $1 personalised brief, then a $997 program (or 12 × $137): 969 registered; 380 / 257 / 133 live on Days 1–3; 67 at the very end; 102 bought the $1 brief; 21 bought the program (13 in full, 8 on the plan); 56% of those who saw the price bought; $24,831 cash and $52,705 booked. [founder: corrected ledger in his audit] Use it as one real example of the shape, not a promise: his list came through a large partner, and the format and offer were his.
+A free 3-day boot camp, a $1 personalised brief, then a $997 program (or 12 × $137): 969 registered; 380 / 257 / 133 live on Days 1–3; 67 at the very end; 102 bought the $1 brief; 21 bought the program (13 in full, 8 on the plan); 56% of those who saw the price bought. [founder: corrected ledger in his audit] Use it as one real example of the shape, not a promise: his list came through a large partner, and the format and offer were his.
 
 ## Reading the result with the member
 
