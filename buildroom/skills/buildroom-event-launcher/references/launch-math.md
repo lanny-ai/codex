@@ -2,7 +2,7 @@
 
 Work backwards from the goal, in three scenarios, before choosing anything else. The math is the honest conversation: it shows whether the list can carry the goal, and which single number matters most.
 
-`python3 <skill>/scripts/launch_plan.py math --goal-buyers N (or --goal-cash X --price P) --list-size L --format bootcamp3|challenge5|workshop|webinar [--paid-event] [--history-reg-rate R --history-showup S]` prints the three scenarios, the registrants and list size each needs, a verdict against the member's list, and the biggest lever. Every constant it uses names its source.
+`python3 <skill>/scripts/launch_plan.py math --price P (or --tiers …) --goal-buyers N and/or --goal-cash X --list-size L --format bootcamp3|challenge5|workshop|webinar [--close checkout|call|both] [--paid-event] [--history-… R]` prints the typical path, how far each single stage could move it, the verdict against the goal, and the biggest lever. `launch_plan.py --help` lists the history flags; from the second launch on, use the member's own rates. Every constant it uses names its source.
 
 ## The chain
 
@@ -14,9 +14,10 @@ List → registrants → live on Day 1 → each following day → present at the
 | Registration page conversion (visitors → registrants) | Warm traffic 35–50%, cold or social 15–30% | [data: ON24 25–30%, vendor, B2B; practitioner: Scale For Impact target about 40%] |
 | Registrants → live Day 1 | Free event to a warm list 30–45%; free challenge 15–35%; paid $27–$97 event 50–70% | Derived from [data: Livestorm 51%, Univid 49%, Goldcast 33%, vendors; practitioner: Scale For Impact about 25% for creator funnels]; founder July 2026: 39% |
 | Day-over-day retention | 50–80% of the previous day | [founder: rule of thumb about 80%; July 2026 measured 68% then 52%]; [practitioner: HSH 51.8% Day 1 → Day 5] |
-| Saw the price | Those present at the close, plus the people who see it later in the replay and cart emails (the script assumes 1.1–1.4×, a labelled Build Room assumption) | Assumption |
+| Saw the price | Those present at the close; the people reached later by the replay and cart emails are added only if the member sets an uplift from their own history | Member history |
 | Present at the close | The final day's live count, minus those who leave before the offer (plan on half to two-thirds staying to the end) | [founder: 133 live on Day 3, 67 at the very end] |
-| Buyers | By price, of live attendees: $97–497 8–15%; $500–1,500 5–10%; $2,000+ 1–4% (then sold on calls) | [practitioner: Scale For Impact, 114 webinars] |
+| Buyers | Of those who **saw the price** (live at the close, plus those reached by the replay and cart emails): $97–497 8–15%; $500–1,500 5–10%; $2,000+ 1–4% (then sold on calls). Each door is modelled at its own price | [practitioner: Scale For Impact, 114 webinars, measured on webinar attendees, the closest available base] |
+| Calls (call close) | About 10–20% of attendees book; plan on most booked calls being held; 10–25% of held calls close | [data: vendor and agency figures, weak; held-rate is a Build Room assumption] |
 | Buyers as a share of the list | 1–2% normal, about 5% strong | [practitioner: Denise Duffield-Thomas; Nicola Moors] |
 | VIP or upgrade (multi-day events) | 4–15% of registrants | [practitioner: Brunson secondhand 3.84%; Scale For Impact model] |
 | Share of sales in the final 24–48 hours | 35–60% | [practitioner: Denise Duffield-Thomas 40% in final two days; McWilliams 40–60% affiliate sales last day] |

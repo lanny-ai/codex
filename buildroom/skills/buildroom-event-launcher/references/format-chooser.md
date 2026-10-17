@@ -9,7 +9,8 @@ Pick the format by where the sale happens and what the member can sustain. "Webi
 | List under 1,000, no ad budget, offer under $1,000 | **Paid workshop or 3-day bootcamp ($27–$97 entry)**, or a **live webinar run two or three times** | Paid entry brings committed people and covers costs [practitioner: Heart, Soul & Hustle; Brunson's $100 three-day workshop]; a repeated webinar is the least work |
 | No product built yet, or a recurring/community offer, a few hundred warm contacts | **Founding-member launch**: a short live session to warm contacts, founding price, build it with them | A small audience is enough [practitioner: Stu McLaren, secondhand]; waitlists convert far higher [practitioner: Nicola Moors, 34.9%] |
 | List 1,000–5,000 warm, offer $300–$3,000, the offer needs belief shifted | **Free 3-day bootcamp** (the founder's format) or a **5-day challenge** | Days to build belief and let people experience a win [founder; practitioner: Alina Vincent found 5 days beat 7, 10 and 30] |
-| Offer $2,000+ (consulting, done-for-you, high-touch coaching) | **Workshop or webinar that closes on an application or call** | Checkout conversion at $2,000+ is 1–4% of attendees [practitioner: Scale For Impact]; the call does the selling |
+| Offer $2,000+ (consulting, done-for-you, high-touch coaching), list under 1,000 | **Workshop or webinar that closes on an application or call** | Checkout conversion at $2,000+ is 1–4% of attendees [practitioner: Scale For Impact]; the call does the selling |
+| Offer $2,000+, warm list of 1,000–5,000, the offer needs belief shifted | **Multi-day event closing on calls**: a free 3-day bootcamp whose close is an application and a booked call, with a concierge booking calls from the chat | The founder's own shape for high-touch offers; plan in calls booked per 100 attendees, and track booked, held and closed (`launch_tracker.py log-calls`) |
 | Partners with bigger lists than the member's | **The format the partner's audience trusts** (usually a free multi-day event), plus `launch-partners.md` | Partners bring the reach; the event must earn their trust [Amber Spears] |
 | Low energy or time for live hosting | **Live-ish**: recorded teaching, live Q&A and a live close | Live converts better [practitioner: Porterfield, about 9% live vs 5–6% evergreen; HSH non-live launch made about a seventh of its live ones]; live-ish keeps the human where it counts |
 
@@ -21,7 +22,7 @@ Ask the member how they like to host. A format they dread will be hosted badly.
 
 ## 2. The 3-day bootcamp (the founder's format)
 
-About 2–3 hours a day, live on Zoom (Webinars for 100+ attendees, Q&A and a practice session), replays for about 7 days. [founder]
+About 3–4½ hours a day, live on Zoom (the founder's July days ran a little over 4 hours; plan the offer to start by hour 3 of the last day, before people drift) (Webinars for 100+ attendees, Q&A and a practice session), replays for about 7 days. [founder]
 - **Day 1, belief and a first build.** Open with energy and a pattern interrupt; say who this is for; name the one belief; within 20 minutes everyone builds or decides something using the first-win tool they finished before; read the room's pre-work back to them in aggregate; end with the cliffhanger for Day 2.
 - **Day 2, proof and revenue.** Pay off Day 1's cliffhanger; the method in action (the economics, a live demonstration, a timed action challenge where attendees try the thing); a past success tells their own story live, classified and consented; set up Day 3's promise. Name the people who showed up again.
 - **Day 3, momentum and the offer.** A short recap (an AI-made recap is fine, labelled); finish the build promised the day before; the biggest live demonstration; the emotional peak; then the clean offer (`the-close.md`), the doors, the real deadline, Q&A as objection handling, and stop talking at the close.
@@ -46,4 +47,4 @@ A 45–60 minute live session (or a personal email) to 20–200 warm contacts: t
 
 ## 7. Timing
 
-Midweek, in the buyers' working hours (or evening for consumers). A 2 p.m. Pacific start reaches US time zones in the afternoon and the UK in the evening [founder's camps]. State the time with the right zone name (Pacific Daylight vs Standard) or just "Pacific", and give a time-zone table in the confirmation. [founder]
+Midweek, in the buyers' working hours (or evening for consumers). A 2 p.m. Pacific start reaches US time zones in the afternoon; in London it is 10 p.m. and a long day ends after 1 a.m., so a member with a European audience should add an earlier session or a Europe-friendly replay [founder's camps]. State the time with the right zone name (Pacific Daylight vs Standard) or just "Pacific", and give a time-zone table in the confirmation. [founder]

@@ -32,7 +32,10 @@ The proof bank (`launches/<slug>/proof-bank.md`) classifies every story before i
 - **C** a freedom or impact story;
 - **D** a paid-program result (never presented as what the free event produces);
 - **E** an outside example (someone else's public result);
-- **U** uncertain (not used until confirmed).
+- **U** uncertain (not used until confirmed);
+- **H** the host's own counts and results ("308 of you finished the tool"; the host's own business numbers, with the typical result beside them);
+- **X** a composite or illustration already in the member's file (never presented as proof, always labelled as an example);
+- **R** retired (on the §1 list, or a paraphrase of something on it): never used.
 
 Each entry: the person's own words, the class, the consent on file (and date), and where it may be used. On Day 2, a past success tells their own story live, introduced honestly: "this is not a testimonial… I want you to see what it looks like to take this and execute." [founder] Earnings figures carry the typical result next to them, or are not used. A featured attendee agrees in writing first.
 
@@ -54,7 +57,7 @@ Anything new (breakout rooms, a live app, polls, music) is tried with five peopl
 
 ## 9. Each night
 
-1. Log the day: `launch_tracker.py log-day --day N --live <peak live> [--peak …]`.
+1. Log the day: `launch_tracker.py log-day --day N --live <the peak number live at once>`.
 2. Draft the night-after email (tomorrow's promise; "tomorrow is the one" before the final day).
 3. Fix one thing for tomorrow (a link, a segment, a timing).
 4. Update the proof bank with anything that happened today and the consents gathered.

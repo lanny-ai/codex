@@ -1,7 +1,7 @@
 ---
 name: buildroom-event-launcher
 description: |
-  Plan, fill, run, close and follow up a live launch event that sells: a 3-day bootcamp, a 5-day challenge, a paid workshop, a live webinar or a founding-member launch, for a service business, coach, consultant or agency. Built on the Build Room founder's own method from seven runs of his free 3-day boot camp (a free first-win tool before the event, one belief installed before the invite, belief on Day 1, proof on Day 2, the offer on Day 3, follow-up by where each person stopped, a debrief that ranks the leaks), Amber Spears' partner-launch principles (Flight Club 2018/2019, credited), and October 2026 research on show-up, conversion, honest urgency and the rules. It does the launch math backwards from the goal, picks the format, writes the invitation, reminder, close and follow-up emails one at a time through Kern, builds the calendar file and the run-of-show, holds a launch gate that every critical item must pass (checkout tested, workflows on, reminders timed, proof classified, deadlines real), tracks registrations, attendance and sales day by day, and debriefs into the member's Obsidian vault so every launch teaches the next. Use whenever a member wants to run a challenge, bootcamp, workshop, webinar, masterclass or launch, fill an event, get people to show up, sell at the end of an event, plan a launch calendar, bring in launch partners, or review how a launch went. Trigger on phrases like "plan my launch," "help me run a challenge," "I want to do a 3-day bootcamp," "build my webinar," "fill my workshop," "how do I get people to show up," "write my launch emails," "plan the close," "run sheet for day 2," "launch partners," "is my launch ready," or "how did my launch do." Reads the Build Room Business File (§1–§7, §13–§20); writes §20 Launches & Events, §13 and §8.
+  Plan, fill, run, close and follow up a live launch event that sells: a 3-day bootcamp, a 5-day challenge, a paid workshop, a live webinar or a founding-member launch, for a service business, coach, consultant or agency. Built on the Build Room founder's own method from eight runs of his free 3-day boot camp (a free first-win tool before the event, one belief installed before the invite, belief on Day 1, proof on Day 2, the offer on Day 3, follow-up by where each person stopped, a debrief that ranks the leaks), Amber Spears' partner-launch principles (Flight Club 2018/2019, credited), and October 2026 research on show-up, conversion, honest urgency and the rules. It does the launch math backwards from the goal, picks the format, writes the invitation, reminder, close and follow-up emails one at a time through Kern, builds the calendar file and the run-of-show, holds a launch gate that every critical item must pass (checkout tested, workflows on, reminders timed, proof classified, deadlines real), tracks registrations, attendance and sales day by day, and debriefs into the member's Obsidian vault so every launch teaches the next. Use whenever a member wants to run a challenge, bootcamp, workshop, webinar, masterclass or launch, fill an event, get people to show up, sell at the end of an event, plan a launch calendar, bring in launch partners, or review how a launch went. Trigger on phrases like "plan my launch," "help me run a challenge," "I want to do a 3-day bootcamp," "build my webinar," "fill my workshop," "how do I get people to show up," "write my launch emails," "plan the close," "run sheet for day 2," "launch partners," "is my launch ready," or "how did my launch do." Reads the Build Room Business File (§1–§7, §13–§20); writes §20 Launches & Events, §13 and §8.
 ---
 
 # Build Room — Event Launcher
@@ -31,15 +31,16 @@ Read these before member-facing work, in this order:
 8. **`references/follow-up-and-debrief.md`** — follow-up by where each person stopped, replay, no-shows, buyers' first win, the cart close, the debrief, and the Obsidian write-back.
 9. **`references/launch-partners.md`** — Amber Spears' partner method, scaled down for a small business: waves, expectations, deals in writing, swaps instead of cash, disclosures.
 10. **`references/obsidian-launch-memory.md`** — how the skill reads past launches and lessons from the member's vault before planning and writes the launch back after.
-11. **`references/kern-framework.md`** and **`references/halbert-writing-system.md`** — every word an attendee reads goes through one of them (byte-identical to the Copy Engine's). Kern for invitations, reminders, close and follow-up emails; Halbert for a long story email or a sales page.
+11. **`references/kern-framework.md`** and **`references/halbert-writing-system.md`** — every word an attendee reads goes through one of them (byte-identical to the Copy Engine's). Kern for invitations, reminders, close and follow-up emails; Halbert for a long story email or a sales page. **Their patterns are structure only here:** proof, scarcity, risk reversal, guarantees and numbers come only from `close.md` and the classified proof bank, and the launch gate overrides any example in them (proof stacks, big guarantees, "limited" offers, invented figures).
 12. **`references/business-file-protocol.md`** — how you read and write the Business File. Follow it exactly.
 
-`references/source-credit.md` records whose methods this skill adapts and how.
+`references/source-credit.md` records whose methods this skill adapts and how. `references/launch-folder.md` gives the shape of every file in the launch folder.
 
 ## Prerequisites
 
 **Requires §1 (Snapshot), §2 (Ideal Client Avatar) and §3 (Signature Offer). Substantially better with §4 (Positioning), §6 (Funnel), §16 (Follow-Up Engine) and §17 (Compass).** An event sells something; without §3 there is nothing to close on.
 
+- §3 present but with open elements (a price not confirmed, a guarantee not signed off, a number of places not set): plan the launch, mark each open element PENDING in `close.md`, and the gate's `single_source` item stays failed until the member confirms them. Phase 1 asks for each decision, one at a time.
 - §3 missing or unpriced: stop and route to **Signature Offer** (or **Offer Deep Dive**). An event without a decided offer, price, guarantee and next step is a free class, and the member should know that before spending three days on it.
 - §2 missing: follow the protocol's two-path fallback (recommend the ICA session; or a provisional interview, and mark §20 `provisional`).
 - No list and no audience at all: say so plainly. The launch math will show it. Offer a smaller first step: a founding-member launch to 20 to 50 warm contacts, or **Lead Gen Machine** and **LinkedIn Engine** first, with the event in six to eight weeks.
@@ -54,26 +55,26 @@ Read these before member-facing work, in this order:
 - **Live** ("we start tomorrow", "it's day 1 tonight", "it's day 2"): the day's run sheet, the night-before email, today's moderator links, the numbers to log tonight.
 - **Partners** ("launch partners", "get people to promote my launch"): `launch-partners.md`, from the partner list to the deals in writing.
 - **Debrief** ("how did my launch do"): the tracker report, the ranked leaks, what to protect, the Obsidian write-back and §20.
-- **Demo** ("show me how the event launcher works"): a short labelled walkthrough on the member's file or an obviously hypothetical business: the math, one belief, one invitation email, one run-sheet hour, the gate. Nothing written; say once it was a demo.
+- **Demo** ("show me how the event launcher works"): a short labelled walkthrough on the member's file or an obviously hypothetical business: the math, one belief, one invitation email, one run-sheet hour, the gate. Nothing written to the Business File; any tracker made for it uses `init --test` so its numbers never count as history; say once it was a demo.
 
 ## Session Flow
 
-Work in `launches/YYYY-MM-<name>/` next to the Business File (`launch_tracker.py init --name …` creates the slug): `plan.md`, `plan.json`, `calendar.md`, `belief.md`, `emails/` (one file per email), `proof-bank.md`, `event.json`, `event.ics`, `runsheet.json`, `run-sheet.md`, `close.md`, `follow-up.md`, `tracker.json`, `debrief.md`. Run scripts from the folder that holds the Business File: `python3 <skill>/scripts/launch_plan.py …`. If the member keeps an Obsidian vault (§1 tools line, or the Business File lives in one), the launch folder lives inside the vault and the debrief is written there too.
+Work in `launches/YYYY-MM-<name>/` (`launch_tracker.py slug --name … --event-date …` prints the folder name; `init` creates it): `plan.md`, `plan.json`, `calendar.md`, `belief.md`, `emails/` (one file per email), `proof-bank.md`, `event.json`, `event.ics`, `runsheet.json`, `run-sheet.md`, `close.md`, `follow-up.md`, `tracker.json`, `debrief.md`. Run scripts from the **vault root** when the member keeps an Obsidian vault (§1 tools line, or the Business File lives in one), so `launches/` lands inside the vault; otherwise from the folder that holds the Business File: `python3 <skill>/scripts/launch_plan.py …`.
 
 ### Phase 0 — Where things stand
 
-Follow the protocol. Read §1–§7 and §13–§20. Then:
+Follow the protocol. Read §1–§8 and §13–§20 (§8 for what earlier sessions shipped and any rules recorded there). Then:
 1. **Read the past.** If the member has an Obsidian vault, run `launch_tracker.py obsidian-read --vault <path>` and read every past launch's results and lessons, plus any vault notes on events, webinars, proof and wins/losses (`obsidian-launch-memory.md`). Say in two lines what last time taught. If there is no vault, ask: "Have you run an event before? What happened, in numbers if you have them?"
 2. **Note the lists that bind every word** before anything is drafted: §1 *Retired lines* (and paraphrases), §18 *Never-say claims*, every offer element still open in §3 or §13 (an unsigned guarantee, an unset number of places, a price not yet confirmed). None appears in anything this skill drafts until the member confirms it in this session.
 3. Ask, one at a time, only what the file and vault do not hold: the goal (buyers and cash, by when); the list (size and how warm, honestly); any partners; dates the member can host live, in their time zone; who helps (a moderator at minimum); the budget for tools and ads; anything they will not do.
 
-Then the **plan on one screen**: the goal, the math (`launch_plan.py math`, three scenarios), the recommended format and why, the dates, the offer at the close, and what this session will produce. State the two honest truths: small lists can launch (1 to 5% of a list buying is normal to strong), and the event will lose people every day, so the plan engineers show-up daily.
+Then the **plan on one screen**: the goal, the math (`launch_plan.py math`, three scenarios), the recommended format and why, the dates, the offer at the close, and what this session will produce. State the two honest truths: the list decides what is possible (for offers under about $2,000, 1 to 5% of a list buying is normal to strong; for call-closed offers, say it as calls booked per 100 attendees), and the event will lose people every day, so the plan engineers show-up daily.
 
 ### Phase 1 — Decide
 
 1. **Format** from `format-chooser.md`, chosen with the member. Confirm the day count, length per day, live or live-ish, free or paid entry, and community or none.
 2. **The math.** Run `launch_plan.py math` with the goal, price and list; show the three scenarios and the single biggest lever. If the goal is not reachable from this list, say so and offer the choices: lower the goal, add partners (Phase 3), add ads (**Ad Studio**), or a longer runway.
-3. **The offer at the close** from §3: tiers (no more than three doors), prices, the real deadline (a cohort start, a live bonus session, a price that genuinely changes), a payment plan that does not punish, the guarantee as signed off, checkout or application. Anything unresolved goes to the member now, not on Day 3.
+3. **The offer at the close** from §3 (`the-close.md` §1): checkout, call or both; tiers (no more than three doors); prices; a small first step or not; **the deadline decision**: name an honest deadline now (a cohort or install start date, a live bonus session, a price that genuinely changes) or choose the no-deadline window on purpose; a payment plan that does not punish; the guarantee as signed off. Anything unresolved goes to the member now, not on Day 3.
 4. **The one belief** and its three supports (opportunity, identity, mechanism), written in the buyer's words from §2 (`launch-principles.md`, `fill-and-show-up.md` §1). Write `belief.md`.
 5. **The first-win tool** registrants finish before Day 1: what it is, how long it takes (measure it, do not guess), where it lives. The first question must be easy.
 6. **The timeline.** `launch_plan.py timeline --event-date … --days … --tz …` (with `--partners` if Phase 3 applies). Write `plan.md`, `plan.json`, `calendar.md`.
@@ -84,7 +85,7 @@ Registration page (Kern; or hand to **Offer Page Copy** / **Lead Capture** for t
 
 ### Phase 3 — Fill
 
-1. **Belief emails** (three, one per supporting belief), then the **invitation sequence** (`fill-and-show-up.md` §2), one email per output, through Kern, each approved before the next. Every invitation names who teaches live. The only call to action: save the seat, show up live.
+1. **The default sequence** (`fill-and-show-up.md` §2, with send dates from `launch_plan.py timeline`): three belief emails, the first-win tool emails, then the invitations, one email per output, through Kern, each approved before the next. Every invitation names who teaches live. The only call to action: save the seat, show up live.
 2. **Segments.** Hot, warm and cold, with a value-only path for the cold list and a personal touch for the hottest few.
 3. **Partners** if any (`launch-partners.md`): the partner kit, disclosures, the leaderboard if there is one, and a sending check (who sends, when, from whose account).
 4. **Other channels:** LinkedIn posts through the **LinkedIn Engine**, ads through the **Ad Studio**, a short invite video through the **Video Director**.
@@ -103,7 +104,7 @@ Confirmation → pre-work nudges → the day-before "how to prepare" email → t
 
 ### Phase 6 — Close
 
-Morning of the close: re-run the gate's money items (checkout tested on a phone, payment plan, second checkout path ready). Then the close as planned (`the-close.md`): the offer shape, the doors, the real deadline, the guarantee, the payment plan, the VIP checkbox only after the main sale. Log the close and sales (`log-close`, `log-sale`). Cart emails for the cart window; the final-day cadence; the deadline closes when it says it does.
+Morning of the close: `launch_tracker.py gate --close-morning`; the money and follow-up items must pass again today (checkout or booking path tested on a phone, payment plan, the backup link ready, follow-up on). Then the close as planned (`the-close.md`): the offer shape, the doors, the real deadline, the guarantee, the payment plan, the VIP checkbox only after the main sale. Log the close and sales (`log-close`, `log-sale`). Cart emails for the cart window: with a deadline, the final-day cadence and the deadline closes when it says it does; without one, the no-deadline window (`the-close.md` §4). For calls: book from the chat and the application, hold calls within 48 hours, log them (`launch_tracker.py log-calls`).
 
 ### Phase 7 — Follow up and debrief
 
@@ -115,8 +116,8 @@ Morning of the close: re-run the gate's money items (checkout tested on a phone,
 
 1. Deliver the launch folder with a one-screen summary.
 2. Update per the protocol:
-   - **§20 Launches & Events** — the current launch line, the one belief, the first-win tool, the close, the fill plan, the show-up plan, the gate status and date, the results (real numbers only), the lessons; move the launch to *Past launches* once the debrief is done. Status `complete` after the debrief; `provisional` while the launch is running or if §2 or §3 was provisional.
-   - **§13 Build Plan** — one `captured` row per missing asset (a consented case study, a cohort calendar, a replay index, a price ladder page, a privacy notice, SMS registration), updating an existing row for the same asset instead of adding another.
+   - **§20 Launches & Events** — about 200 words at most: each line one short summary pointing to the launch folder for detail (the current launch line, the one belief, the first-win tool, the close, the fill plan, the show-up plan, the gate status and date, the results in real numbers only, the lessons); move the launch to *Past launches* once the debrief is done. Status `complete` after the debrief; `provisional` while the launch is running or if §2 or §3 was provisional.
+   - **§13 Build Plan** — one `captured` row per missing asset (a consented case study, a cohort calendar, a replay index, a price ladder page, a privacy notice, SMS registration), each a single line that points to the launch folder; update an existing row for the same asset instead of adding another.
    - **§8 Session Log** — one row per working session (plan, build, live week, debrief), not one per email; ask for the 1–5 rating.
    - **Size check:** over about 2,500 words, say so and offer to distil.
 3. Emit the entire updated file in one code block with the "what changed" summary.

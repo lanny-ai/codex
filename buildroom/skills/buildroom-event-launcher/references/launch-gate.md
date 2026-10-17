@@ -26,6 +26,9 @@ Nothing goes to registrants until the gate's critical items pass: before the fir
 
 **Consent and sending**
 - **[email_compliance] Email sending is compliant**: a sending subdomain with SPF, DKIM and DMARC aligned, one-click unsubscribe plus a visible link, a postal address in the footer, spam complaints watched. [CAN-SPAM; Gmail and Yahoo bulk-sender rules since 2024, Gmail enforcement ramping from November 2025; Microsoft Outlook since May 2025]
+- **[renewal_terms] Anything that renews is disclosed and easy to cancel**: a subscription, membership or annual plan shows its renewal terms before payment, takes express consent (no pre-ticked box), and can be cancelled online as easily as it was bought. `na` with a note when nothing renews. [ROSCA; state auto-renewal laws such as California's, amended July 2025]
+- **[retired_lines] Every email, page and slide checked against the Business File**: nothing from §1 *Retired lines* (or a paraphrase of one) and nothing on §18's *Never-say* list. [Business File protocol rule 5]
+- **[claims_substantiated] Other performance claims are typical and backed**: "save 20 hours a week", "launch in a weekend" and the like are what a typical buyer gets, with evidence, or they come out. [FTC substantiation]
 - **[partner_disclosure] Partners disclose their commission** in every promotion that pays them. [FTC Endorsement Guides, 2023 revision]
 
 ## Advisory items (strongly recommended; HOLD is not required)
@@ -42,6 +45,6 @@ Nothing goes to registrants until the gate's critical items pass: before the fir
 
 ## How to run the gate with a member
 
-Item by item, one message each, starting with money. For each: what to test, how to test it in their tools, then "tell me what happened". Record the result with a note (who tested, on what device, when). Re-run the money and follow-up items on the morning of the close. If something fails on the close morning, the moderator has the second checkout path and the member says so on air; a transparent fix costs less than a silent failure.
+Item by item, one message each, starting with money. For each: what to test, how to test it in their tools, then "tell me what happened". Record the result with a note (who tested, on what device, when). On the morning of the close, `launch_tracker.py gate --close-morning` lists the money and follow-up items; each must pass again that day before the close goes ahead. In a call close, the checkout items become the booking path and a backup booking link. If something fails on the close morning, the moderator has the second checkout path and the member says so on air; a transparent fix costs less than a silent failure.
 
 This is not legal advice. Members in regulated sectors (finance, health, law) follow their regulator's marketing rules as well.

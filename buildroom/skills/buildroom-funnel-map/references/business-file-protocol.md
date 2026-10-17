@@ -40,7 +40,7 @@ Open every session with (adapt wording to the skill's voice):
 
 ## During the session
 
-- When a prompt in `references/prompt-system.md` says to pull from a Week-N document ("Pull this from your Week 1 ICA document"), pull it from the corresponding Business File section instead. The file is the canonical carrier of prior work.
+- When a prompt in the skill's `references/prompt-system.md` (if it has one) says to pull from a Week-N document ("Pull this from your Week 1 ICA document"), pull it from the corresponding Business File section instead. The file is the canonical carrier of prior work.
 - If the member contradicts the file mid-session ("actually we raised our price"), use the new fact and note it for the end-of-session update.
 
 ## Session end — the update

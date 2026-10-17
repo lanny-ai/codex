@@ -1,8 +1,8 @@
 # Launch events in 2026: what the evidence says
 
-The rulebook behind every recommendation. Each line is tagged: **[founder]** (the Build Room founder's own method and data, from seven runs of his free 3-day boot camp and his seminar years), **[Amber Spears]** (her Flight Club talks, March 2018 and July 2019, paraphrased with credit), **[data: who, sample]** (a third-party dataset; vendor data says so), **[practitioner: who]** (a named expert's method or self-report), **[folklore]** (repeated widely, no traceable source). Say which kind a claim is when you tell the member.
+The rulebook behind every recommendation. Each line is tagged: **[founder]** (the Build Room founder's own method and data, from eight runs of his free 3-day boot camp and his seminar years), **[Amber Spears]** (her Flight Club talks, March 2018 and July 2019, paraphrased with credit), **[data: who, sample]** (a third-party dataset; vendor data says so), **[practitioner: who]** (a named expert's method or self-report), **[folklore]** (repeated widely, no traceable source). Say which kind a claim is when you tell the member.
 
-Full sources: `research_notes/World class event launches/` and `reports/World class event launches.md` in the Build Room repository. Research done in October 2026 from search extracts; re-check any number on its source before it goes in front of members.
+Full sources and dates are kept by the Build Room team (the research notes and report behind this skill); ask for them if a number matters to a decision. Research done in October 2026 from search extracts; re-check any number on its source before it goes in front of members.
 
 ## The ten things that matter
 

@@ -17,11 +17,19 @@ The order is deliberate: "want it, then qualify yourself in, then believe it is 
 
 A pre-frame first, then invitations: "Do not lead with the register link. Earn the click with the pre-frame." [founder]
 
-**Shape** (the founder's July 2026 camp ran 7 value emails pointing to the free first-win tool, then 7 invitation emails, then event-day emails [founder]; a small list can run 3 + 5):
+**The default sequence** (send dates from `launch_plan.py timeline`, counted back from Day 1):
+- Days −21 to −19: three belief emails, one a day.
+- Days −18 to −15: the first-win tool, two or three emails whose only call to action is the free tool.
+- Day −16: the launch gate passes (before any invitation).
+- Days −14 to −1: the invitations, five for a small list (jobs 1, 2, 4, 5, 7 below) or seven for a large one, every other day, then daily in the last three days.
+- Then the confirmation, the reminders (§4) and the night-after emails.
+The founder's July 2026 camp ran 7 value emails pointing to the free tool, then 7 invitations, then event-day emails [founder]; the default is a smaller version of the same shape.
+
+**The jobs, in order:**
 - **The first-win tool first**, if there is one: the only call to action is the free tool; the event is mentioned at the end of the run.
 - **Invitation emails**, a day apart, each doing one job:
   1. What happens on each day, and what they walk out with.
-  2. One proof story, classified and consented, in the person's own words with an honest qualifier.
+  2. One proof story, classified and consented, in the person's own words with an honest qualifier. If no consented story exists, the host's own story with a damaging admission.
   3. The repeat-attendee objection ("You may have seen me run this before").
   4. The time objection ("Three days is a lot"), with what each day gives them.
   5. Who it is for and who it is not for.

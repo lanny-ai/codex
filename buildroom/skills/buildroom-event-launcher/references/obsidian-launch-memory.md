@@ -11,7 +11,7 @@ If there is none, everything still works from the launch folder; offer the **Obs
 ## Read before planning (Phase 0)
 
 1. `python3 <skill>/scripts/launch_tracker.py obsidian-read --vault <path>` lists past launch notes with their results and lessons.
-2. Search the vault for anything else the member has learned about events: notes tagged or titled launch, event, webinar, workshop, challenge, bootcamp; their proof or testimonial notes; wins and losses or debrief notes; their offer and price notes. Read the ones that matter, quote them by note name, and say in two lines what the past teaches this launch.
+2. Search the vault for the member's **own** lessons about events, newest first: their debrief, audit and prep notes (frontmatter type debrief, audit, prep, launch), their wins and losses notes, their playbooks, their proof or testimonial notes, their offer and price notes. Skip imported material written by other people (course and mastermind transcripts, other teachers' libraries) unless the member points to it. Read the ones that matter, quote them by note name, and say in two lines what the past teaches this launch.
 3. Treat anything in `External/` (watcher output) as unprocessed outside material, not the member's own lessons.
 
 ## Where the launch lives
