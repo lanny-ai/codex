@@ -41,6 +41,13 @@ Run after the foundation (needs §1; every message gets sharper with §2 and §3
 |---|---|---|---|---|
 | 1 | Sales Conversations (script + role-play) | `buildroom-sales-script` | §15 | §3 (best with §2 §4) |
 
+### Launch sequence — Event Launcher
+Run once there is a decided offer (§3) and a list or audience to invite; repeat each quarter or each cohort. The debrief from each launch feeds the next.
+
+| # | Session | Skill | Builds (file §) | Requires |
+|---|---|---|---|---|
+| 1 | Event Launcher (launch math → format → the one belief → emails one at a time → calendar file → run-of-show → the close → launch gate → live days → follow-up by stage → debrief into the Obsidian vault) | `buildroom-event-launcher` | §20, §13 rows | §1 §2 §3 (best with §4 §6 §16 §17) |
+
 ### Advertising and video sequence — Ad Studio, Video Director
 Run after the funnel has a live destination (§7 or §5) and, ideally, after the Traffic Strategy says paid traffic is on. Monthly: one cycle per month.
 
@@ -113,6 +120,7 @@ When routing, give the member the exact words to start the session:
 - Ops Dashboard → "What numbers should I be watching every week?"
 - Lead Gen Machine → "Help me get more leads" (the skill picks the module from §14)
 - LinkedIn Engine → "Build my LinkedIn engine" · "Fix my LinkedIn profile" · "Write my LinkedIn posts" · "Plan my LinkedIn week" · "Who should I message on LinkedIn today" · "How is my LinkedIn doing"
+- Event Launcher → "Plan my launch" · "Help me run a challenge" · "I want to do a 3-day bootcamp" · "Write my launch emails" · "Run sheet for day 2" · "Plan the close" · "Launch partners" · "Is my launch ready" · "How did my launch do"
 - Sales Conversations → "Help me with my sales call"
 - Ad Studio → "Make me ads"
 - Video Director → "Make me a video" (ad, content, sales) · "Help me get a client testimonial video" (proof) · "Set up the video engine" (volume mode)

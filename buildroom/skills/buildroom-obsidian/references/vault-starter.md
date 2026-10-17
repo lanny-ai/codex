@@ -18,6 +18,7 @@ Brain/                          the vault, a plain folder on local disk (never O
     frameworks/                 named methods the member uses
     sops/                       the Operations Pack lives here once §9 exists
     prompts/                    reusable prompts and routines
+  launches/                     one folder per launch event, plus a debrief note each and _index.md (the Event Launcher reads these before planning the next one)
   External/                     what watchers write; never edited by hand until promoted
   memory/                       session logs, tasks/open, tasks/done
   templates/                    the note templates below
