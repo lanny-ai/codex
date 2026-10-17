@@ -77,7 +77,7 @@ Then the **plan on one screen**: the goal, the math (`launch_plan.py math`: the 
 3. **The offer at the close** from §3 (`the-close.md` §1): checkout, call or both; tiers (no more than three doors); prices; a small first step or not; **the deadline decision**: name an honest deadline now (a cohort or install start date, a live bonus session, a price that genuinely changes) or choose the no-deadline window on purpose; a payment plan that does not punish; the guarantee as signed off. Anything unresolved goes to the member now, not on Day 3.
 4. **The one belief** and its three supports (opportunity, identity, mechanism), written in the buyer's words from §2 (`launch-principles.md`, `fill-and-show-up.md` §1). Write `belief.md`.
 5. **The first-win tool** registrants finish before Day 1: what it is, how long it takes (measure it, do not guess), where it lives. The first question must be easy.
-6. **The timeline.** `launch_plan.py timeline --event-date … --days … --tz …` (with `--partners` if Phase 3 applies). Write `plan.md`, `plan.json`, `calendar.md`.
+6. **The timeline.** `launch_plan.py timeline --event-date … --days … --tz … --cart-days N` (or `--deadline-date …`, or `--no-deadline`, matching the deadline decision; add `--partners`, `--waitlist`, `--sms` as they apply; `--country` if the holidays are not the host time zone's). Write `plan.md`, `plan.json`, `calendar.md`.
 
 ### Phase 2 — Build (one asset per message)
 

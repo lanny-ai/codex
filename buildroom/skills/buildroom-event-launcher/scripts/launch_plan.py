@@ -9,7 +9,8 @@ with the result, with a one-line description under "sources".
 Usage
   launch_plan.py math --goal-buyers N | --goal-cash X   (one or both; both: the larger buyer count wins)
                       --price P | --tiers "Name:price:share[:checkout|call]" [...]
-                      --list-size L --format bootcamp3|challenge5|workshop|webinar [--days N] [--paid-event]
+                      --list-size L --format bootcamp3|challenge5|workshop|webinar|roundtable [--days N]
+                      [--paid-event [--ticket-price T]] [--vip-price V [--vip-rate R]]
                       [--close checkout|call|both] [--replay-uplift X]
                       [--history-reg-rate R] [--history-showup R] [--history-retention R] [--history-stay R]
                       [--history-conversion R] [--history-booked R] [--history-held R] [--history-closed R]
@@ -25,13 +26,22 @@ Usage
       about 70–80% of booked calls are held (Build Room assumption), 10–25% of held calls close
       (vendor/agency, weak). --close both: tiers of $2,000 and up close on a call, the rest at checkout
       (or say so per tier with :checkout / :call).
+      --format roundtable: an invite-only session (one day) for a few hand-picked people from a small warm
+      list, closing on individual calls. --list-size is the number of people invited personally. Every rate
+      is a Build Room assumption for personal invitations (not cold webinar rates), said as one.
       --tiers: each door is modelled on its own. share is the share of those who saw the offer who weigh
-      that door (0.7, 70 or 70%; shares add up to 100%); each tier converts at the band for ITS price (or
-      the call chain), and buyers and money are summed. A cash goal is turned into buyers at the typical
-      mix's average price.
-      Rates: a value ending in % is always a percent ("0.61%" = 0.0061, "1%" = 0.01); a bare number of 1
-      or less is a fraction ("0.5" = 50%), above 1 a percent ("35" = 35%). Outside 0–100% is refused.
+      that door (0.7, 70 or 70%; shares add up to 100%, which catches a slip); each tier converts at the
+      band for ITS price (or the call chain), and buyers and money are summed. A cash goal is turned into
+      buyers at the typical mix's average price (less the event's own ticket and VIP cash, below).
+      Rates (--history-*, --vip-rate) follow one rule: a value ending in % is a percent ("2%" = 0.02,
+      "0.5%" = 0.005); a value with no % must be a fraction strictly between 0 and 1 ("0.35" = 35%).
+      Anything else (a bare 1, 35 or 0) is refused with a request for "35%" or "0.35". An unusually high
+      history rate (registration over 60%, show-up over 90%, conversion over 40%) is warned.
       Member history (--history-*) replaces a benchmark stage; its cautious and strong are 80% and 120%.
+      Paid event: --ticket-price T counts ticket cash (every registrant bought a ticket); --vip-price V
+      counts a VIP upgrade bought by a share of registrants (--vip-rate R; default the labelled practitioner
+      range 4–15%, typical 8%). Ticket and VIP cash are reported under "event_revenue" and count toward a
+      --goal-cash goal.
       Prints the typical path (needed for the goal and expected from --list-size), a single-stage
       sensitivity (each stage alone at its cautious and its strong value, everything else typical), the
       verdict from the typical path's share of the goal (100% and up reachable; 60–99% stretch; under 60%
@@ -41,21 +51,40 @@ Usage
       writes (or updates) DIR/plan.json, which launch_tracker.py init --plan reads. --out also takes a
       launch slug (YYYY-MM-name): it writes to launches/<slug>/ (see launch_tracker.py slug).
 
-  launch_plan.py timeline --event-date YYYY-MM-DD --days N --tz IANA [--partners] [--paid-event]
-                          [--invites 5|7] [--cart-days 3 | --no-deadline] [--close checkout|call|both]
+  launch_plan.py timeline --event-date YYYY-MM-DD --days N --tz IANA
+                          (--cart-days N | --deadline-date YYYY-MM-DD | --no-deadline)
+                          [--partners] [--paid-event] [--invites 5|7] [--close checkout|call|both]
+                          [--format F] [--sms] [--waitlist] [--country US|UK|CA|AU|IE|none]
                           [--rush] [--out DIR|SLUG] [--date YYYY-MM-DD]
-      Backward schedule from Day 1: decide and test the offer, partner recruitment (--partners: 12 weeks
-      out, 8 weeks minimum, Amber Spears' 90-day rule), the first-win tool (build, time it, promote it),
-      proof bank, pages, the launch gate BEFORE the first send, then one dated row per email of the
-      default sequence: belief ×3, first-win tool emails, invitations ×7 (or ×5 with --invites 5),
-      confirmation, pre-work, day-before, each day's morning email, a night-before recap for every day
-      after Day 1, each day's replay, the close-morning gate and email, cart emails and the cart close
-      (none with --no-deadline), follow-up (no-shows from the night of Day 1, failed checkouts the same
-      day, non-buyers the day after the close), the replay window (never after the deadline) and the
-      debrief. Sends and events on a weekend, on a US federal holiday, in Thanksgiving week or over Black
-      Friday–Cyber Monday are flagged. Each milestone has its date and weekday.
-      Refused (exit 2) when Day 1 is closer than the plan's minimum (14 days; 21 paid; 8 weeks with
-      --partners) unless --rush, which compresses the late milestones to today and says so.
+      Backward schedule from Day 1. The deadline is never assumed: give --cart-days N (the cart closes N
+      days after the final day), --deadline-date (the cart-close date) or --no-deadline; with none of
+      them the timeline is refused.
+      Milestones: sending_domain (a sending subdomain with SPF, DKIM and DMARC set up and warmed 2–4 weeks,
+      28 days before the first list email), decide (the offer tested), partner recruitment (--partners: 12
+      weeks out, 8 weeks minimum, Amber Spears' 90-day rule), sms_registration (--sms: A2P 10DLC, weeks
+      ahead), the first-win tool (build, time it, promote it), proof bank, pages, then the four gate stages
+      (launch_tracker.py gate --stage): gate_pre_invite before the first belief email, gate_day_before on
+      Day 1 −1, gate_close_morning on the close morning, gate_cart before the first cart (or follow-up)
+      email. One dated row per email of the default sequence: belief ×3, first-win tool emails, invitations
+      ×7 (or ×5 with --invites 5), confirmation, pre-work, day-before, each day's morning email, a
+      night-before recap for every day after Day 1, each day's replay, the cart emails, a mid-cart live Q&A
+      (cart of 2 days or more) and the cart close (none with --no-deadline: an optional office hour
+      instead). Follow-up: no-shows from the night of Day 1 (one-day event: the replay), failed checkouts
+      the same day, non-buyers after the cart closes (after the last cart email), follow-up ends 10 days
+      after the close; nurture_resume (+11) and next_cohort_or_evergreen_decision (+14 days after the close),
+      the debrief (+12). --close call|both adds calls_held_48h and call_noshow_followup. --waitlist adds
+      waitlist_open (a hand-raiser email before the invitations), waitlist_invite (the waitlist is invited
+      first) and waitlist_offer (the waitlist hears the offer first when the cart opens). --format roundtable
+      (one day) turns the invitations into personal invitations.
+      Holidays: --country picks the public holidays flagged (default from --tz: US or Canadian zones → US
+      or CA, Europe/London → UK, Europe/Dublin → IE, Australia/* → AU, anything else none). Thanksgiving
+      week and Black Friday–Cyber Monday are flagged for US only; late December (24–31 Dec) and the Easter
+      weekend are soft flags for every country. Sends and events on a weekend or a flagged day are listed.
+      Lead time: refused (exit 2) when Day 1 is closer than 21 days (28 for a paid event, 8 weeks with
+      --partners) unless --rush. --rush compresses the plan proportionally into the days left (the last
+      three days keep their dates), never puts more than 2 list sends on one day (belief and tool emails
+      are dropped first when they cannot fit, and listed), and flags every moved row (compressed, planned).
+      Without --rush, tasks planned before today move to today and are flagged.
       --out writes plan.json (merged with math) and calendar.md (every week, empty ones too).
       --date replays "today".
 
@@ -68,7 +97,7 @@ from pathlib import Path  # noqa: E402
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError  # noqa: E402
 
 PLAN_SCHEMA = "buildroom-event-launcher/plan-1"
-FORMATS = {"bootcamp3": 3, "challenge5": 5, "workshop": 1, "webinar": 1}
+FORMATS = {"bootcamp3": 3, "challenge5": 5, "workshop": 1, "webinar": 1, "roundtable": 1}
 SCENARIOS = ("cautious", "typical", "strong")
 CLOSE_MODES = ("checkout", "call", "both")
 CALL_PRICE = 2000          # --close both: tiers at or above this close on a call
@@ -83,16 +112,21 @@ SOURCES = {
     "Scale For Impact 2026": "Scale For Impact webinar benchmarks (agency data, 114 webinars, $100M+ sales, course "
                              "creators): about 25% live show-up; attendee-to-buyer 8–15% at $97–497, 5–10% at "
                              "$500–1,500, 1–4% at $2,000+",
-    "Pheedloop 2026": "Pheedloop Event Data Lab #05 (1,070+ in-person events): median no-show 28% free vs 17% paid",
+    "Pheedloop 2026 (in-person events)": "Pheedloop Event Data Lab #05 (1,070+ IN-PERSON events): median no-show 28% "
+                                         "free vs 17% paid; in-person data, used for virtual paid events only as an "
+                                         "upper reference",
     "HSH 2025": "Heart, Soul & Hustle paid bootcamp (practitioner self-report): 51.8% retained Day 1 to Day 5 "
                 "(144 of 278), about 85% a day; 17.66–19.2% of paid participants bought the membership",
-    "Build Room founder run Jul 2026": "Founder's free 3-day bootcamp, Jul 2026: 969 registered, 380 / 257 / 133 live "
-                                       "(Day 1→2 67.6%, Day 2→3 51.8%, about 59% a day), 67 at the very end; "
-                                       "Day-1 show-up 39.2%; 21 bought the program (buyers of the run)",
-    "Build Room founder follow-up analysis Jul 2026": "Founder's follow-up analysis of the same run: 56% of those "
-                                                      "who saw the price in the follow-up app bought (23 of 41), "
-                                                      "after a $1 first purchase. A different count from the 21 "
-                                                      "program buyers, and not a live-close conversion",
+    "Build Room founder run Jul 2026": "Founder's free 3-day bootcamp, Jul 2026: 380 / 257 / 133 live on Days 1–3 "
+                                       "(Day 1→2 67.6%, Day 2→3 51.8%), 67 at the very end (stay to the close about "
+                                       "50%); Day-1 show-up 39.2% of registrants; 21 program buyers after a $1 first "
+                                       "step",
+    "Build Room founder follow-up analysis Jul 2026": "Founder's follow-up analysis of the same run: 56% of 41 people "
+                                                      "who saw the price after a $1 first step bought (23 of 41, "
+                                                      "follow-up analysis). A different count from the 21 program "
+                                                      "buyers, and not a live-close conversion",
+    "Build Room founder audit 2026": "Founder's 2026 audit of his earlier free bootcamps: about 50% of Day-1 attendees "
+                                     "came back live on Day 2",
     "Build Room founder runs 2025–26": "Founder's earlier free bootcamps: Day-1 show-up averaged about 33% of registrants",
     "Build Room founder rule of thumb": "Founder, Aug 2026 debrief: Day 2 is about 80% of Day 1 and Day 3 about 80% "
                                         "of Day 2 (his July data ran lower; the audit says earlier camps ran about "
@@ -115,16 +149,35 @@ SOURCES = {
     "GHL help 2026": "HighLevel help: A2P 10DLC brand and campaign must be approved before US texting",
     "US federal holidays": "US federal holidays (5 U.S.C. 6103; observed on the Friday or Monday when they fall on "
                            "a weekend), plus Thanksgiving week and Black Friday–Cyber Monday, when inboxes are full",
+    "UK bank holidays": "UK bank holidays (England and Wales, GOV.UK), with the substitute weekday when one falls on "
+                        "a weekend; computed, Easter included",
+    "Ireland public holidays": "Irish public holidays (citizensinformation.ie), with the following weekday when one "
+                               "falls on a weekend; computed, Easter Monday included",
+    "Canada public holidays": "Canadian federal statutory holidays plus Family Day and the Civic Holiday (most "
+                              "provinces); provinces differ, so check yours; computed, Good Friday included",
+    "Australia public holidays": "Australian national public holidays plus the King's Birthday (most states), with "
+                                 "substitute weekdays; states differ, so check yours; computed, Easter included",
+    "Holiday soft flags": "Late December (24–31 Dec) and the Easter weekend (Good Friday to Easter Monday): many "
+                          "people are away or offline whatever the country (Build Room assumption)",
+    "Bulk-sender rules 2024": "Gmail, Yahoo and Microsoft bulk-sender rules: SPF, DKIM and DMARC aligned, one-click "
+                              "unsubscribe; a new sending domain is warmed up gradually over 2–4 weeks (deliverability "
+                              "practice) before a large send",
+    "VIP upgrade range (practitioner)": "Practitioner figures for a VIP or upgrade at a multi-day event: 4–15% of "
+                                        "registrants (Brunson secondhand 3.84%; Scale For Impact model); weak evidence",
 }
 
 # The founder's Jul 2026 figures, reconciled (they measure different things; never mix them):
 FOUNDER_REFERENCE = {
-    "program_buyers": {"value": 21, "what": "people who bought the program from the run",
+    "program_buyers": {"value": 21, "what": "21 program buyers after a $1 first step",
                        "source": "Build Room founder run Jul 2026"},
     "saw_price_conversion": {"value": 0.56, "counts": "23 of 41",
-                             "what": "of those who saw the price in the follow-up app (after a $1 first purchase)",
+                             "what": "of 41 people who saw the price after a $1 first step (follow-up analysis)",
                              "source": "Build Room founder follow-up analysis Jul 2026"},
-    "note": "a reference, not a benchmark: the 56% follows a $1 first step and is not a live-close rate",
+    "show_up": {"value": 0.392, "what": "Day-1 show-up of registrants", "source": "Build Room founder run Jul 2026"},
+    "retention": {"value": [0.676, 0.518], "what": "Day 1→2 and Day 2→3 live retention",
+                  "source": "Build Room founder run Jul 2026"},
+    "note": "a reference, not a benchmark: the 56% follows a $1 first step and is not a live-close rate; the "
+            "run's registration rate is not given (his list came through a partner)",
 }
 
 
@@ -136,21 +189,23 @@ def rng(c, t, s, source, note=""):
 REG_RATE = {
     "free": rng(.10, .20, .30, "Build Room assumption",
                 "share of the member's own list that registers; the research planning band is 10–30% for a warm "
-                "list. The founder's partner-sent run was about 0.6% of a very large, mostly cold list"),
+                "list. A large partner-sent, mostly cold list registers far lower (founder's experience)"),
     "paid": rng(.03, .06, .10, "Build Room assumption", "share of the list that buys a ticket"),
 }
-SHOW_UP = {
-    ("free", "multi"): {"bootcamp3": [(.25, "Scale For Impact 2026"), (.33, "Build Room founder runs 2025–26"),
-                                      (.39, "Build Room founder run Jul 2026")],
+SHOW_UP = {   # free event to a warm list 30/38/45 (references/launch-math.md); free challenge 15–35%
+    ("free", "multi"): {"bootcamp3": [(.30, "Build Room planning range 2026"), (.38, "Build Room planning range 2026"),
+                                      (.45, "Build Room planning range 2026")],
                         "challenge5": [(.15, "Build Room planning range 2026"), (.25, "Build Room planning range 2026"),
                                        (.35, "Build Room planning range 2026")]},
     ("free", "single"): [(.30, "Build Room planning range 2026"), (.38, "Build Room planning range 2026"),
                          (.45, "Build Room planning range 2026")],
     ("paid", None): [(.50, "Build Room planning range 2026"), (.60, "Build Room planning range 2026"),
-                     (.70, "Pheedloop 2026")],
+                     (.70, "Pheedloop 2026 (in-person events)")],
 }
+SHOW_UP_NOTE = {"bootcamp3": "; the founder's own free bootcamps ran about 33% (earlier runs) and 39% (Jul 2026), inside "
+                             "this band (Scale For Impact reports about 25% for creator funnels)"}
 RETENTION = {   # share of yesterday's live attendees who come back live today
-    "free": [(.59, "Build Room founder run Jul 2026"), (.70, "Build Room assumption"),
+    "free": [(.50, "Build Room founder audit 2026"), (.70, "Build Room assumption"),
              (.80, "Build Room founder rule of thumb")],
     "paid": [(.70, "Build Room assumption"), (.85, "HSH 2025"), (.90, "Build Room assumption")],
 }
@@ -191,8 +246,8 @@ LEVERS = {
                      "session inside the planned length",
     "saw_price": "Seeing the offer: switch on the follow-up that shows the offer to every attendee (replay with the "
                  "offer, follow-up emails) before the event starts",
-    "conversion": "Conversion at checkout: the money path tested on a phone the morning of the close, a real "
-                  "deadline, a clear 'which one are you' ladder, let ready buyers buy",
+    "conversion": "Conversion at checkout: the money path tested on a phone the morning of the close, an honest "
+                  "deadline only if one is true, a clear 'which one are you' ladder, let ready buyers buy",
     "booked": "Calls booked: make the call or application the one next step at the offer, booking link on screen "
               "and in chat from the pitch onwards, someone in chat helping people book live",
     "held": "Calls held: book within 48 hours, a confirmation and a reminder the day before and the hour before, a "
@@ -205,6 +260,23 @@ STAGE_LABELS = [("registration", "Registration rate of list"), ("show_up", "Day-
                 ("saw_price", "Saw the price (× present)"), ("conversion", "Conversion of those who saw the price"),
                 ("booked", "Booked a call (of those who saw the offer)"), ("held", "Calls held (of booked)"),
                 ("closed", "Calls closed (of held)")]
+# --format roundtable: personal invitations to a few hand-picked people; every rate is a labelled assumption
+ROUNDTABLE = {
+    "registration": rng(.20, .35, .50, "Build Room assumption",
+                        "roundtable: share of the people invited personally who accept (personal-invitation rate, not "
+                        "a webinar registration rate)"),
+    "show_up": rng(.70, .80, .90, "Build Room assumption", "roundtable: share of those who accepted who attend"),
+    "stay_to_close": rng(.85, .90, .95, "Build Room assumption", "roundtable: share still there when the offer is made"),
+    "conversion": [.10, .20, .30],
+    "booked": rng(.30, .50, .70, "Build Room assumption", "roundtable: share of attendees who book an individual call"),
+    "held": rng(.80, .85, .90, "Build Room assumption", "roundtable: share of booked calls that happen"),
+    "closed": rng(.20, .30, .40, "Build Room assumption",
+                  "roundtable: share of held calls that buy; ask the member's own close rate on calls first "
+                  "(--history-closed)"),
+}
+VIP_RATE = (.04, .08, .15)
+PLAUSIBLE = {"reg": (.60, "registration over 60% of the list"), "show": (.90, "show-up over 90% of registrants"),
+             "conversion": (.40, "conversion over 40% of those who saw the price")}
 HISTORY_FLAGS = {"reg": "registration", "show": "show_up", "retention": "retention", "stay": "stay_to_close",
                  "conversion": "conversion", "booked": "booked", "held": "held", "closed": "closed"}
 
@@ -243,19 +315,39 @@ def money(s, what):
 
 
 def rate(s, what):
-    """'0.61%' → 0.0061 (a trailing % always means percent); a bare 0.5 → 0.5 (1 or less is a fraction);
-    a bare 35 → 0.35 (above 1 is a percent). Refused outside 0–100% (and at 0)."""
+    """One unambiguous rule: a trailing % is a percent ('2%' → 0.02, '0.5%' → 0.005, '100%' → 1.0); a value with
+    no % must be a fraction strictly between 0 and 1 ('0.35' → 0.35). Anything else is refused."""
     raw = str(s).strip()
+    ask = f"write it as a percent with the sign (\"35%\") or as a fraction between 0 and 1 (\"0.35\")"
     pct_sign = raw.endswith("%")
     try:
         v = float(raw[:-1].strip() if pct_sign else raw)
     except ValueError:
-        refuse(f"{what} must be a rate such as 0.12, 12 or 12% (got {s!r})")
-    if pct_sign or v > 1:
+        refuse(f"{what} must be a rate (got {s!r}): {ask}")
+    if v != v:                                            # NaN
+        refuse(f"{what} must be a rate (got {s!r}): {ask}")
+    if pct_sign:
+        v /= 100
+        if not 0 < v <= 1:
+            refuse(f"{what} must be more than 0% and at most 100% (got {s!r}): {ask}")
+    elif not 0 < v < 1:
+        refuse(f"{what} {s!r} is ambiguous or out of range: a value without % must be a fraction strictly between 0 "
+               f"and 1; {ask}")
+    return round(v, 10)
+
+
+def share(s, what):
+    """A tier share: '70%' or a fraction ('0.7', '1' = all of it), or a bare whole percent ('70'). Shares must add
+    up to 100%, which catches a slip either way."""
+    raw = str(s).strip()
+    try:
+        v = float(raw[:-1].strip() if raw.endswith("%") else raw)
+    except ValueError:
+        refuse(f"{what} must be a share such as 0.7 or 70% (got {s!r})")
+    if raw.endswith("%") or v > 1:
         v /= 100
     if not 0 < v <= 1:
-        refuse(f"{what} must be more than 0 and at most 100% (got {s!r}; '0.61%' is 0.61 percent, '0.5' is 50%, "
-               "'35' is 35%)")
+        refuse(f"{what} must be more than 0 and at most 100% (got {s!r})")
     return round(v, 10)
 
 
@@ -288,7 +380,7 @@ def parse_tiers(items):
         if len(parts) != 3 or not parts[0].strip():
             refuse(f"--tiers takes \"Name:price:share\" or \"Name:price:share:checkout|call\" (got {t!r})")
         tiers.append({"name": parts[0].strip(), "price": money(parts[1], f"tier {parts[0]} price"),
-                      "share": rate(parts[2], f"tier {parts[0]} share"), **({"channel": channel} if channel else {})})
+                      "share": share(parts[2], f"tier {parts[0]} share"), **({"channel": channel} if channel else {})})
     total = sum(x["share"] for x in tiers)
     if abs(total - 1) > .02:
         refuse(f"tier shares add up to {total:.0%}; each is the share of those who saw the offer who weigh that door, "
@@ -324,11 +416,14 @@ def rates_for(fmt, days, paid, tiers, history=None, replay_uplift=None):
     history = {k: v for k, v in (history or {}).items() if v}
     kind = "paid" if paid else "free"
     multi = days > 1
+    rt = fmt == "roundtable"
     out = {}
     out["registration"] = hist_rng(history["reg"], "share of the list that registered last time") \
-        if "reg" in history else REG_RATE[kind]
+        if "reg" in history else dict(ROUNDTABLE["registration"]) if rt else REG_RATE[kind]
     if "show" in history:
         out["show_up"] = hist_rng(history["show"], "registrants who came live on Day 1 last time")
+    elif rt:
+        out["show_up"] = dict(ROUNDTABLE["show_up"])
     else:
         if paid:
             vals = SHOW_UP[("paid", None)]
@@ -336,14 +431,15 @@ def rates_for(fmt, days, paid, tiers, history=None, replay_uplift=None):
             vals = SHOW_UP[("free", "multi")].get(fmt, SHOW_UP[("free", "multi")]["challenge5"])
         else:
             vals = SHOW_UP[("free", "single")]
-        out["show_up"] = per_value(vals, "registrants who come live on Day 1" + (
-            "; ON24 2025 and Livestorm 2026 report 50–60%, counted on wider definitions" if not paid and not multi else ""))
+        out["show_up"] = per_value(vals, "registrants who come live on Day 1 (unique attendees)" + (
+            "; ON24 2025 and Livestorm 2026 report 50–60%, counted on wider definitions" if not paid and not multi else "")
+            + ("" if paid or not multi else SHOW_UP_NOTE.get(fmt, "")))
     if multi:
         out["retention"] = hist_rng(history["retention"], f"day-over-day retention last time, applied {days - 1} times") \
             if "retention" in history else \
             per_value(RETENTION[kind], f"each day's live share of the day before, applied {days - 1} times")
     out["stay_to_close"] = hist_rng(history["stay"], "final-day live attendees still there at the offer last time") \
-        if "stay" in history else per_value(STAY_TO_CLOSE["multi" if multi else "single"],
+        if "stay" in history else dict(ROUNDTABLE["stay_to_close"]) if rt else per_value(STAY_TO_CLOSE["multi" if multi else "single"],
                                             "final-day live attendees still there when the offer is made")
     if replay_uplift:
         out["saw_price"] = rng(1.0, replay_uplift, replay_uplift, "Build Room assumption",
@@ -356,12 +452,18 @@ def rates_for(fmt, days, paid, tiers, history=None, replay_uplift=None):
         s_co = sum(t["share"] for t in co)
         for t in co:
             b = band_for(t["price"])
-            t["band"] = b["band"]
-            t["band_rates"] = None if "conversion" in history else dict(zip(SCENARIOS, b[kind]))
+            t["band"] = "roundtable (personal invitation)" if rt else b["band"]
+            t["band_rates"] = None if "conversion" in history else dict(zip(SCENARIOS, ROUNDTABLE["conversion"] if rt
+                                                                            else b[kind]))
         if "conversion" in history:
             out["conversion"] = hist_rng(history["conversion"], "of those who saw the price, the share who bought last "
                                          "time (applied to every checkout tier)")
             out["conversion"]["band"] = "member history"
+        elif rt:
+            out["conversion"] = rng(*ROUNDTABLE["conversion"], "Build Room assumption",
+                                    "applies to those who saw the price. roundtable: personal-invitation assumption for "
+                                    "a small hand-picked room, not a webinar band")
+            out["conversion"]["band"] = "roundtable (personal invitation)"
         else:
             bands = list(dict.fromkeys(t["band"] for t in co))
             blend = {s: sum(t["share"] * t["band_rates"][s] for t in co) / s_co for s in SCENARIOS}
@@ -376,7 +478,8 @@ def rates_for(fmt, days, paid, tiers, history=None, replay_uplift=None):
             out["conversion"]["band"] = bands[0] if len(bands) == 1 else "mixed: " + " + ".join(bands)
     if any(t["channel"] == "call" for t in tiers):
         for k in ("booked", "held", "closed"):
-            out[k] = hist_rng(history[k], CALL_RATES[k]["note"] + " (last time)") if k in history else dict(CALL_RATES[k])
+            out[k] = hist_rng(history[k], CALL_RATES[k]["note"] + " (last time)") if k in history else \
+                dict(ROUNDTABLE[k]) if rt else dict(CALL_RATES[k])
     return out
 
 
@@ -514,8 +617,31 @@ def verdict(expected_buyers, goal_buyers):
     return v, round(share, 3)
 
 
+def event_cash_rates(ticket_price, vip_price, vip_rate):
+    """{"vip_rate": rng or None, "per_registrant": cash per registrant at the typical VIP rate}."""
+    vr = None
+    if vip_price:
+        vr = (rng(round(vip_rate * .8, 4), vip_rate, round(min(1, vip_rate * 1.2), 4), "Member history",
+                  "--vip-rate: share of registrants who buy the VIP upgrade") if vip_rate else
+              rng(*VIP_RATE, "VIP upgrade range (practitioner)", "share of registrants who buy the VIP upgrade "
+                  "(default: the practitioner range 4–15%, typical 8%; weak evidence)"))
+    per = (ticket_price or 0) + (vr["typical"] * vip_price if vr else 0)
+    return vr, per
+
+
+def event_counts(regs, ticket_price, vip_price, vr):
+    out = {}
+    if ticket_price:
+        out.update({"tickets": regs, "ticket_cash": regs * ticket_price})
+    if vr:
+        out.update({"vip_buyers": regs * vr["typical"], "vip_cash": regs * vr["typical"] * vip_price})
+    out["event_cash"] = out.get("ticket_cash", 0) + out.get("vip_cash", 0)
+    return out
+
+
 def compute_math(goal_buyers=None, goal_cash=None, price=None, tiers=None, list_size=None, fmt="bootcamp3",
-                 days=None, paid=False, history=None, close="checkout", replay_uplift=None):
+                 days=None, paid=False, history=None, close="checkout", replay_uplift=None, ticket_price=None,
+                 vip_price=None, vip_rate=None):
     """The math result as a dict (also used by launch_tracker.py when no plan.json is given)."""
     if fmt not in FORMATS:
         refuse(f"--format must be one of {sorted(FORMATS)}")
@@ -524,6 +650,12 @@ def compute_math(goal_buyers=None, goal_cash=None, price=None, tiers=None, list_
     days = days or FORMATS[fmt]
     if days < 1:
         refuse("--days must be 1 or more")
+    if fmt == "roundtable" and days != 1:
+        refuse("--format roundtable is a one-day session (--days 1)")
+    if ticket_price and not paid:
+        refuse("--ticket-price needs --paid-event (a free event sells no tickets)")
+    if vip_rate and not vip_price:
+        refuse("--vip-rate needs --vip-price (the price of the VIP upgrade)")
     if not tiers and not price:
         refuse("a price is needed: --price P or --tiers \"Name:price:share\" (the price sets the conversion band)")
     if not goal_buyers and not goal_cash:
@@ -535,7 +667,10 @@ def compute_math(goal_buyers=None, goal_cash=None, price=None, tiers=None, list_
     rates = rates_for(fmt, days, paid, tiers, history, replay_uplift)
     g = g_for(rates, tiers)
     avg = g["_value"] / g["_buy"]
-    from_cash = math.ceil(round(goal_cash / avg, 6)) if goal_cash else None
+    vr, ev_per_reg = event_cash_rates(ticket_price, vip_price, vip_rate)
+    regs_per_buyer = reverse(1, g, days, tiers)["registrants"]
+    per_buyer_cash = avg + ev_per_reg * regs_per_buyer       # offer money plus the event's own cash, per buyer
+    from_cash = math.ceil(round(goal_cash / per_buyer_cash, 6)) if goal_cash else None
     buyers = max(x for x in (goal_buyers, from_cash) if x)
     binds = "goal-cash" if from_cash and (goal_buyers is None or from_cash > goal_buyers) else "goal-buyers"
     need = reverse(buyers, g, days, tiers)
@@ -555,7 +690,9 @@ def compute_math(goal_buyers=None, goal_cash=None, price=None, tiers=None, list_
                       "replay_uplift": replay_uplift,
                       "history": {HISTORY_FLAGS[k]: v for k, v in history.items()}},
            "goal": {"buyers": buyers, "binding": binds, "average_price": round(avg, 2),
-                    "booked_at_goal": round(buyers * avg, 2)},
+                    "booked_at_goal": round(buyers * avg, 2),
+                    **({"cash_at_goal_with_event_revenue": round(buyers * avg + ev_per_reg * need["registrants"], 2)}
+                       if ev_per_reg else {})},
            "price_band": rates["conversion"]["band"] if "conversion" in rates else "call close",
            "tiers": [{"name": t["name"], "price": t["price"], "share": round(t["share"], 4), "channel": t["channel"],
                       **({"band": t["band"]} if t.get("band") else {}),
@@ -564,6 +701,34 @@ def compute_math(goal_buyers=None, goal_cash=None, price=None, tiers=None, list_
                       **({"expected_buyers": typical["expected_from_list"]["buyers_by_tier"][t["name"]]} if list_size else {})}
                      for t, p in zip(tiers, g["_per_tier"])],
            "rates": rates, "typical": typical}
+    if ticket_price or vip_price:
+        er = {"ticket_price": ticket_price, "vip_price": vip_price, "vip_rate": vr,
+              "needed_for_goal": round_all(event_counts(need["registrants"], ticket_price, vip_price, vr)),
+              "note": "every registrant of a paid event bought a ticket; VIP buyers are a share of registrants; this "
+                      "cash counts toward --goal-cash"}
+        if list_size:
+            er["expected_from_list"] = round_all(event_counts(typical["expected_from_list"]["registrants"],
+                                                              ticket_price, vip_price, vr))
+            er["expected_cash_total"] = round(typical["expected_from_list"]["booked_value"]
+                                              + er["expected_from_list"]["event_cash"], 2)
+        out["event_revenue"] = er
+    elif paid:
+        warnings.append("--paid-event without --ticket-price: ticket cash is not counted; give --ticket-price T")
+    if fmt == "roundtable":
+        warnings.append("roundtable: every rate is a Build Room assumption for personal invitations to a small warm "
+                        "list, not a webinar benchmark (vendor webinar call rates understate warm, referred prospects). "
+                        "Ask the member's own close rate on calls first and give it as --history-closed")
+        if list_size and list_size > 300:
+            warnings.append(f"roundtable with --list-size {list_size}: a roundtable invites 8–20 hand-picked people "
+                            "from a list under about 300; --list-size is the number you will invite personally")
+        if list_size and typical["expected_from_list"]["day_live"][0] > 20:
+            warnings.append(f"roundtable: about {typical['expected_from_list']['day_live'][0]:.0f} attendees expected, "
+                            "more than the 8–20 a roundtable holds: invite fewer, or run two rooms")
+    for k, (lim, what) in PLAUSIBLE.items():
+        if k in history and history[k] > lim:
+            warnings.append(f"--history-{ {'reg': 'reg-rate', 'show': 'showup'}.get(k, k)} {history[k]:.0%} is "
+                            f"unusually high ({what}): check it was a rate, not a count, and written as \"35%\" or "
+                            "\"0.35\"")
     sens = sensitivity(rates, tiers, days, buyers, base_list)
     out["sensitivity"] = sens
     out["sensitivity_note"] = ("each stage alone at its cautious and strong value, every other stage typical; "
@@ -596,7 +761,7 @@ def compute_math(goal_buyers=None, goal_cash=None, price=None, tiers=None, list_
     out["founder_reference"] = FOUNDER_REFERENCE
     if warnings:
         out["warnings"] = warnings
-    out["sources"] = sources_used(out["rates"])
+    out["sources"] = sources_used({"r": out["rates"], "v": vr} if vr else out["rates"])
     for x in ("Build Room founder run Jul 2026", "Build Room founder follow-up analysis Jul 2026"):
         out["sources"][x] = SOURCES[x]
     return out
@@ -659,6 +824,19 @@ def math_md(r):
         lines.append(f"| {lab[k]}{' (assumption)' if v['assumption_only'] else ''} | {f(v['cautious']['rate'])} → "
                      f"{num(v['cautious']['expected_buyers'])} | {f(v['strong']['rate'])} → {num(v['strong']['expected_buyers'])} | "
                      f"{num(v['buyer_swing'])} |")
+    er = r.get("event_revenue")
+    if er:
+        lines += ["", "## Event revenue (tickets and VIP)", "", "| | Needed for the goal | Expected from the list |", "|---|---|---|"]
+        exp_er = er.get("expected_from_list") or {}
+        for k, label in (("tickets", "Tickets"), ("ticket_cash", "Ticket cash"), ("vip_buyers", "VIP buyers"),
+                         ("vip_cash", "VIP cash"), ("event_cash", "**Event cash**")):
+            if k in er["needed_for_goal"]:
+                f = (lambda x: f"${x:,.0f}") if "cash" in k else num
+                lines.append(f"| {label} | {f(er['needed_for_goal'][k])} | {f(exp_er[k]) if k in exp_er else '–'} |")
+        if er.get("vip_rate"):
+            v = er["vip_rate"]
+            lines.append(f"\nVIP rate {pct(v['cautious'])} / {pct(v['typical'])} / {pct(v['strong'])} of registrants "
+                         f"({v['source']})")
     if r.get("verdict"):
         vd = r["verdict_detail"]
         lines += ["", f"**Verdict:** {r['verdict']} (the typical path gives {num(vd['expected_buyers_typical'])} of "
@@ -700,6 +878,37 @@ def update_plan(folder, key, value):
 
 # ---------------- holidays ----------------
 
+COUNTRIES = ("US", "UK", "CA", "AU", "IE", "none")
+COUNTRY_SOURCE = {"US": "US federal holidays", "UK": "UK bank holidays", "CA": "Canada public holidays",
+                  "AU": "Australia public holidays", "IE": "Ireland public holidays"}
+US_TZ = {"America/New_York", "America/Detroit", "America/Chicago", "America/Menominee", "America/Denver",
+         "America/Boise", "America/Phoenix", "America/Los_Angeles", "America/Anchorage", "America/Juneau",
+         "America/Sitka", "America/Metlakatla", "America/Yakutat", "America/Nome", "America/Adak",
+         "Pacific/Honolulu", "America/Puerto_Rico"}
+CA_TZ = {"America/Toronto", "America/Montreal", "America/Vancouver", "America/Edmonton", "America/Winnipeg",
+         "America/Regina", "America/Halifax", "America/St_Johns", "America/Moncton", "America/Glace_Bay",
+         "America/Goose_Bay", "America/Whitehorse", "America/Yellowknife", "America/Iqaluit", "America/Dawson",
+         "America/Dawson_Creek", "America/Fort_Nelson", "America/Creston", "America/Cambridge_Bay",
+         "America/Rankin_Inlet", "America/Resolute", "America/Swift_Current", "America/Atikokan", "America/Nipigon",
+         "America/Thunder_Bay", "America/Rainy_River", "America/Inuvik", "America/Pangnirtung", "America/Blanc-Sablon"}
+UK_TZ = {"Europe/London", "Europe/Belfast", "Europe/Guernsey", "Europe/Jersey", "Europe/Isle_of_Man", "GB"}
+
+
+def default_country(tz):
+    tz = str(tz)
+    if tz in US_TZ or tz.startswith(("US/", "America/Indiana/", "America/Kentucky/", "America/North_Dakota/")):
+        return "US"
+    if tz in CA_TZ or tz.startswith("Canada/"):
+        return "CA"
+    if tz in UK_TZ:
+        return "UK"
+    if tz in ("Europe/Dublin", "Eire"):
+        return "IE"
+    if tz.startswith("Australia/"):
+        return "AU"
+    return "none"
+
+
 def nth_weekday(y, m, wd, n):
     d = dt.date(y, m, 1)
     d += dt.timedelta(days=(wd - d.weekday()) % 7)
@@ -709,6 +918,31 @@ def nth_weekday(y, m, wd, n):
 def last_weekday(y, m, wd):
     d = dt.date(y, m + 1, 1) - dt.timedelta(days=1) if m < 12 else dt.date(y, 12, 31)
     return d - dt.timedelta(days=(d.weekday() - wd) % 7)
+
+
+def easter(y):
+    """Easter Sunday (Gregorian; the anonymous algorithm)."""
+    a, (b, c) = y % 19, divmod(y, 100)
+    d, e = divmod(b, 4)
+    g = (b - (b + 8) // 25 + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = divmod(c, 4)
+    l_ = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * l_) // 451
+    mo, day = divmod(h + l_ - 7 * m + 114, 31)
+    return dt.date(y, mo, day + 1)
+
+
+def with_substitutes(h, names):
+    """Add a substitute weekday for each named fixed-date holiday that falls on a weekend (UK, IE, AU, CA style):
+    the next weekday that is not already a holiday."""
+    for day, name in sorted((d, n) for d, n in h.items() if n in names):
+        if day.weekday() >= 5:
+            s = day + dt.timedelta(days=7 - day.weekday())
+            while s in h or s.weekday() >= 5:
+                s += dt.timedelta(days=1)
+            h[s] = f"{name} (substitute day)"
+    return h
 
 
 def us_holidays(year):
@@ -737,26 +971,107 @@ def us_holidays(year):
     return h
 
 
-def holiday(d):
-    return us_holidays(d.year).get(d)
+def uk_holidays(year):
+    e = easter(year)
+    h = {dt.date(year, 1, 1): "New Year's Day", e - dt.timedelta(days=2): "Good Friday",
+         e + dt.timedelta(days=1): "Easter Monday", nth_weekday(year, 5, 0, 1): "Early May bank holiday",
+         last_weekday(year, 5, 0): "Spring bank holiday", last_weekday(year, 8, 0): "Summer bank holiday",
+         dt.date(year, 12, 25): "Christmas Day", dt.date(year, 12, 26): "Boxing Day"}
+    return with_substitutes(h, {"New Year's Day", "Christmas Day", "Boxing Day"})
+
+
+def ie_holidays(year):
+    feb1 = dt.date(year, 2, 1)
+    h = {dt.date(year, 1, 1): "New Year's Day",
+         (feb1 if feb1.weekday() == 4 else nth_weekday(year, 2, 0, 1)): "St Brigid's Day",
+         dt.date(year, 3, 17): "St Patrick's Day", easter(year) + dt.timedelta(days=1): "Easter Monday",
+         nth_weekday(year, 5, 0, 1): "May bank holiday", nth_weekday(year, 6, 0, 1): "June bank holiday",
+         nth_weekday(year, 8, 0, 1): "August bank holiday", last_weekday(year, 10, 0): "October bank holiday",
+         dt.date(year, 12, 25): "Christmas Day", dt.date(year, 12, 26): "St Stephen's Day"}
+    return with_substitutes(h, {"New Year's Day", "St Patrick's Day", "Christmas Day", "St Stephen's Day"})
+
+
+def ca_holidays(year):
+    v = dt.date(year, 5, 24)
+    while v.weekday() != 0:
+        v -= dt.timedelta(days=1)
+    jul1 = dt.date(year, 7, 1)
+    h = {dt.date(year, 1, 1): "New Year's Day", nth_weekday(year, 2, 0, 3): "Family Day (most provinces)",
+         easter(year) - dt.timedelta(days=2): "Good Friday", v: "Victoria Day",
+         (jul1 + dt.timedelta(days=1) if jul1.weekday() == 6 else jul1): "Canada Day",
+         nth_weekday(year, 8, 0, 1): "Civic Holiday (most provinces)", nth_weekday(year, 9, 0, 1): "Labour Day",
+         dt.date(year, 9, 30): "National Day for Truth and Reconciliation (federal)",
+         nth_weekday(year, 10, 0, 2): "Thanksgiving (Canada)", dt.date(year, 11, 11): "Remembrance Day (most provinces)",
+         dt.date(year, 12, 25): "Christmas Day", dt.date(year, 12, 26): "Boxing Day"}
+    return with_substitutes(h, {"New Year's Day", "Christmas Day", "Boxing Day"})
+
+
+def au_holidays(year):
+    e = easter(year)
+    jan26 = dt.date(year, 1, 26)
+    h = {dt.date(year, 1, 1): "New Year's Day",
+         (jan26 + dt.timedelta(days=7 - jan26.weekday()) if jan26.weekday() >= 5 else jan26): "Australia Day",
+         e - dt.timedelta(days=2): "Good Friday", e - dt.timedelta(days=1): "Easter Saturday",
+         e + dt.timedelta(days=1): "Easter Monday", dt.date(year, 4, 25): "Anzac Day",
+         nth_weekday(year, 6, 0, 2): "King's Birthday (most states)",
+         dt.date(year, 12, 25): "Christmas Day", dt.date(year, 12, 26): "Boxing Day"}
+    return with_substitutes(h, {"New Year's Day", "Christmas Day", "Boxing Day"})
+
+
+HOLIDAYS = {"US": us_holidays, "UK": uk_holidays, "CA": ca_holidays, "AU": au_holidays, "IE": ie_holidays}
+
+
+def soft_flag(d):
+    """Soft flags for every country: late December and the Easter weekend (Good Friday to Easter Monday)."""
+    if d.month == 12 and d.day >= 24:
+        return "late December (holiday season)"
+    e = easter(d.year)
+    if e - dt.timedelta(days=2) <= d <= e + dt.timedelta(days=1):
+        return "Easter weekend"
+    return None
+
+
+def holiday(d, country="US"):
+    """(name, soft): a public holiday of the country (soft False), else a soft flag (soft True), else (None, False)."""
+    fn = HOLIDAYS.get(country)
+    name = fn(d.year).get(d) if fn else None
+    if name:
+        return name, False
+    s = soft_flag(d)
+    return (s, True) if s else (None, False)
 
 
 # ---------------- timeline ----------------
 
 INVITE_OFFSETS = {(False, 7): [-14, -11, -8, -5, -3, -2, -1], (False, 5): [-14, -8, -3, -2, -1],
                   (True, 7): [-21, -17, -13, -9, -5, -2, -1], (True, 5): [-21, -12, -5, -2, -1]}
+LIST_SEND_IDS = ("belief_", "invite_", "first_win_emails", "waitlist_open")
+RUSH_DROP_ORDER = ["belief_3", "belief_2", "waitlist_open", "first_win_emails", "belief_1"]
+MAX_LIST_SENDS_A_DAY = 2
 
 
-def milestone_specs(days, partners, paid, cart_days, invites=7, deadline=True, close="checkout"):
+def is_list_send(mid):
+    return mid.startswith(LIST_SEND_IDS)
+
+
+def milestone_specs(days, partners, paid, cart_days, invites=7, deadline=True, close="checkout", sms=False,
+                    waitlist=False, fmt=None):
     """(id, offset in days from Day 1, slot 0 morning / 1 day / 2 evening, kind task|send|event, title, detail,
     source)."""
     inv = INVITE_OFFSETS[(bool(paid), invites)]
     i0 = inv[0]
+    first_send = i0 - 7                                  # belief_1: the first email to the list
     decide = -98 if partners else (-49 if paid else -42)
     path = {"checkout": "checkout", "call": "booking path", "both": "checkout and booking path"}[close]
-    m = [("decide", decide, 1, "task", "Decide and test the offer",
-          "Decide the offer, the one belief, the format and the close (checkout or call); test the offer with a "
-          "pilot, past clients or a small paid beta before anyone promotes it", "Amber Spears 2018")]
+    rt = fmt == "roundtable"
+    m = [("sending_domain", first_send - 28, 1, "task", "Sending domain set up and warming",
+          "Set up and verify a sending subdomain (SPF, DKIM and DMARC aligned, one-click unsubscribe) at least 28 "
+          "days before the first launch email, and warm it up for 2–4 weeks with your most engaged contacts. Skip "
+          "if the list already sends well from a warmed domain", "Bulk-sender rules 2024"),
+         ("decide", decide, 1, "task", "Decide and test the offer",
+          "Decide the offer, the one belief, the format, the close (checkout or call) and the deadline (a real one, "
+          "or none on purpose); test the offer with a pilot, past clients or a small paid beta before anyone "
+          "promotes it", "Amber Spears 2018")]
     if partners:
         m += [("partner_recruit", -84, 1, "task", "Partner recruitment starts",
                "12 weeks out (8 weeks at the latest): own network first, then partners one-on-one biggest first, then "
@@ -767,11 +1082,14 @@ def milestone_specs(days, partners, paid, cart_days, invites=7, deadline=True, c
               ("partner_kit", i0 - 14, 1, "task", "Partner kit out",
                "Two emails, two posts, tracking links, disclosure wording; copy names who teaches live",
                "Build Room founder method")]
+    if sms:
+        m.append(("sms_registration", i0 - 28, 1, "task", "SMS registration (A2P 10DLC) submitted",
+                  "A2P 10DLC brand and campaign submitted now: approval can take weeks, and GoHighLevel will not send "
+                  "US texts without it. The registration form gets a separate, unchecked SMS consent box",
+                  "GHL help 2026"))
     m += [("first_win_build", i0 - 21, 1, "task", "First-win tool built",
            "The free tool or pre-work that gives a first win before the event (and fills the invitation sequence)",
            "Build Room founder method"),
-          ("a2p", i0 - 21, 1, "task", "SMS registration (only if you will text)",
-           "A2P 10DLC brand and campaign submitted; approval can take weeks. Skip if email only", "GHL help 2026"),
           ("first_win_timed", i0 - 14, 1, "task", "First-win tool timed",
            "Three people use it while you time them; the emails state the measured time, not a guess",
            "Build Room founder method"),
@@ -781,28 +1099,42 @@ def milestone_specs(days, partners, paid, cart_days, invites=7, deadline=True, c
           ("pages_built", i0 - 11, 1, "task", "Pages and money path built",
            f"Registration and thank-you page with the calendar file, the {path} with its terms, replay page, "
            "follow-up workflows drafted", "Build Room founder method"),
-          ("launch_gate", i0 - 9, 1, "task", "Launch gate (before the first send)",
-           "launch_tracker.py gate shows GO before the first email of any kind (sending domain, unsubscribe and "
-           "postal address checked before the belief emails)", "Build Room founder method")]
+          ("gate_pre_invite", i0 - 9, 0, "task", "Gate: pre_invite (before the first belief email)",
+           "launch_tracker.py gate --stage pre_invite shows GO before the first email of any kind: sending, truth, "
+           "one source of truth, partners, terms, the registration path tested", "Build Room founder method")]
+    if waitlist:
+        m.append(("waitlist_open", i0 - 2, 1, "send", "Waitlist: hand-raiser email",
+                  "A short 'put your hand up' email before the invitations: people who want first word on the offer "
+                  "join the waitlist (log them: log-reg N --source segment:waitlist)", "Build Room founder method"))
     for n, off in enumerate((i0 - 7, i0 - 6, i0 - 5), 1):
         m.append((f"belief_{n}", off, 1, "send", f"Belief email {n} of 3",
                   ("opportunity", "identity", "mechanism")[n - 1] + " belief; no offer yet", "Build Room founder method"))
     m.append(("first_win_emails", i0 - 4, 1, "send", "First-win tool emails start",
-              f"The tool phase: one email a day from {i0 - 4} to {i0 - 1} days out, the tool as the only call to action",
-              "Build Room founder method"))
+              f"The tool phase: one email a day from {-(i0 - 4)} to {-(i0 - 1)} days out, the tool as the only call to "
+              "action", "Build Room founder method"))
     m.append(("confirmation", i0, 0, "send", "Confirmation email live",
               "Sent on registration from the first invitation: the calendar file, the date in a few zones, the pre-work",
               "Build Room founder method"))
+    if waitlist:
+        m.append(("waitlist_invite", i0 - 1, 1, "send", "Waitlist invited first",
+                  "The waitlist gets the invitation a day before everyone else", "Build Room founder method"))
+    word = "Personal invitation" if rt else "Invitation"
     for n, off in enumerate(inv, 1):
-        m.append((f"invite_{n}", off, 1, "send", f"Invitation {n} of {len(inv)}",
-                  ("About 14 days out (21 for a paid event); " if n == 1 else "") +
-                  "keep promoting through Day 1: about half of registrations arrive in the final week and 15% on the day",
-                  "Livestorm 2026"))
+        m.append((f"invite_{n}", off, 1, "send", f"{word} {n} of {len(inv)}",
+                  ("A personal note or message to each hand-picked person, then a reminder to those who have not "
+                   "answered" if rt else
+                   ("About 14 days out (21 for a paid event); " if n == 1 else "") +
+                   "keep promoting through Day 1: about half of registrations arrive in the final week and 15% on the "
+                   "day"), "Livestorm 2026"))
     m += [("prework", -3, 1, "send", "Pre-work nudge",
            "To registrants: the one pre-work action and why being live matters", "Build Room founder method"),
           ("reminder_dry_run", -1, 0, "task", "Reminder dry run",
            "Send every reminder to a test contact in the recipient's time zone (event_ics.py reminders) and check "
            "the times; reminders fired hours early in the founder's July run", "Build Room founder run Jul 2026"),
+          ("gate_day_before", -1, 0, "task", "Gate: day_before (24 hours before Day 1)",
+           "launch_tracker.py gate --stage day_before: the reminder dry run done, every night email pre-written and "
+           "scheduled, the moderator's links, the live tech, the checkout or booking path tested end to end, the "
+           "replay release", "Build Room founder method"),
           ("day_before", -1, 1, "send", "Day-before email", "How to prepare, the calendar file again, the one pre-work action",
            "Build Room founder method")]
     f = days - 1
@@ -815,39 +1147,113 @@ def milestone_specs(days, partners, paid, cart_days, invites=7, deadline=True, c
                   "15-minute and 'we're live' reminders; recording notice at the start", "Build Room founder method"))
         if k < days:
             m.append((f"day{k}_night", k - 1, 2, "send", f"Day-{k}-night recap",
-                      f"Recap of Day {k} plus the Day-{k + 1} payoff; the founder's July run had none and lost people",
-                      "Build Room founder run Jul 2026"))
+                      f"Recap of Day {k} plus the Day-{k + 1} payoff, pre-written before Day 1 (at most a two-line edit "
+                      "on the night); the founder's July run had none and lost people", "Build Room founder run Jul 2026"))
         m.append((f"day{k}_replay", k - 1, 2, "send", f"Day {k} replay out",
                   "Replay within 1–3 hours of the end" + ("; buyers get access and a welcome within 24 hours" if last else ""),
                   "Build Room founder method"))
-    m += [("followup_noshow", 0, 2, "send", "No-show follow-up starts (night of Day 1)",
-           "Registrants who missed Day 1: the Day-1 replay or the tool, and why to come live tomorrow",
-           "Build Room founder method"),
-          ("close_morning_gate", f, 0, "task", "Close-morning gate",
-           f"launch_tracker.py gate --close-morning: the {path}, backup link, terms and follow-up re-tested today on a phone",
-           "Build Room founder run Jul 2026"),
+    m.append(("followup_noshow", 0, 2, "send", "No-show follow-up starts (night of Day 1)",
+              "Registrants who missed Day 1: the Day-1 replay or the tool, and why to come live tomorrow" if days > 1 else
+              "Registrants who missed the session: the replay with the offer, and one next step",
+              "Build Room founder method"))
+    if waitlist:
+        m.append(("waitlist_offer", f, 0, "send", "Waitlist hears the offer first (cart opens)",
+                  "The waitlist gets the offer first when the cart opens, with what they get for being early (only if "
+                  "it is true)", "Build Room founder method"))
+    m += [("gate_close_morning", f, 0, "task", "Gate: close_morning",
+           f"launch_tracker.py gate --stage close_morning: the {path}, backup link, terms and follow-up re-tested "
+           "today on a phone", "Build Room founder run Jul 2026"),
           ("followup_failed", f, 2, "send", "Failed-checkout / unbooked follow-up (same day)",
            "Anyone who started the checkout or booking and did not finish: a personal note and the backup link",
            "Build Room founder method"),
-          ("followup_nonbuyers", f + 1, 1, "send", "Non-buyer follow-up starts (day after the close)",
-           "Attended and didn't buy, by segment: five emails over ten days, then stop", "Build Room founder method")]
+          ("gate_cart", f + 1, 0, "task", "Gate: cart (before the cart and follow-up emails)",
+           "launch_tracker.py gate --stage cart: proof and chat-quote consents re-checked for the cart and follow-up "
+           "emails, claims typical, the deadline real (or none)", "Build Room founder method")]
+    if close in ("call", "both"):
+        m += [("call_noshow_followup", f + 1, 2, "send", "Call no-shows followed up the same day",
+               "From the first calls on: a personal note and a rebooking link to every no-show, the same day",
+               "Build Room founder method"),
+              ("calls_held_48h", f + 2, 1, "task", "Calls booked at the event held within 48 hours",
+               "Every call booked at the close is held within 48 hours (confirmation, reminders the day before and the "
+               "hour before); log-calls as they happen", "Build Room founder method")]
     end_replay = f + 7
+    c = f
     if deadline:
         cd = max(cart_days, 0)
+        c = f + cd
         for n in range(1, cd + 1):
             m.append((f"cart_{n}", f + n, 1, "send", f"Cart email {n} of {cd}" + (" (three sends on the final day)" if n == cd else ""),
                       "The offer, the real deadline, answers to the main objections", "Build Room founder method"))
-        m.append(("cart_close", f + cd, 2, "task", "Cart closes",
+        if cd >= 2:
+            m.append(("cart_live_qa", f + (cd + 1) // 2, 1, "event", "Mid-cart live Q&A",
+                      "A live Q&A or office hour for people deciding, with the close replay cut to the offer section",
+                      "Build Room founder method"))
+        m.append(("cart_close", c, 2, "task", "Cart closes",
                   "A real deadline, the same for everyone (or honest per-person timers); no reopen", "Build Room founder method"))
-        end_replay = min(end_replay, f + cd)
+        end_replay = min(end_replay, c)
+    else:
+        m.append(("office_hour", f + 3, 1, "event", "Live office hour (optional)",
+                  "A live office hour for people deciding, if you can; no countdown, no 'last chance'",
+                  "Build Room founder method"))
+    m.append(("followup_nonbuyers", c + 1, 1, "send",
+              "Non-buyer follow-up starts (after the cart closes)" if deadline else "Non-buyer follow-up starts (day after the close)",
+              "Attended and didn't buy, by segment, after the last cart email: five emails over ten days, then stop",
+              "Build Room founder method"))
     m.append(("replay_closes", end_replay, 2, "task", "Replay window closes",
               "Replays run about 7 days and never past the deadline (or the replay page says the offer has closed)",
               "Build Room founder method"))
-    m.append(("followup_end", f + 10, 1, "send", "Follow-up ends",
-              "The last email says so ('I'll stop asking'); no deadline means no fake one", "Build Room founder method"))
-    m.append(("debrief", f + 12, 1, "task", "Debrief",
-              "launch_tracker.py report, then launch_tracker.py obsidian to file the lessons", "Build Room founder method"))
+    m.append(("followup_end", c + 10, 1, "send", "Follow-up ends",
+              "The last email says so ('I'll stop asking about this'), then stop" + ("" if deadline else
+                                                                                     "; no deadline means no fake one"),
+              "Build Room founder method"))
+    m.append(("nurture_resume", c + 11, 1, "task", "Non-buyers back into regular nurture",
+              "Non-buyers return to the regular newsletter, not silence; the people who said 'not now' get the next "
+              "cohort date", "Build Room founder method"))
+    m.append(("debrief", c + 12, 1, "task", "Debrief",
+              "launch_tracker.py report --md (debrief-numbers.md), the member's debrief.md, then launch_tracker.py "
+              "obsidian to file the lessons", "Build Room founder method"))
+    m.append(("next_cohort_or_evergreen_decision", c + 14, 1, "task", "Decide: next cohort, evergreen or pause",
+              "Two weeks after the close: run it again as a next live cohort, turn it into an evergreen version only "
+              "once a live run converted well (expect about half the live rate), or pause", "Build Room founder method"))
     return m
+
+
+def rush_layout(specs, lead):
+    """--rush: offsets compressed proportionally into the days left (the last three days keep their dates), then
+    list sends spaced at most MAX_LIST_SENDS_A_DAY a day (Day 1 included). Returns ({id: offset}, dropped ids)."""
+    off = {s[0]: s[1] for s in specs}
+    pre = [o for o in off.values() if o < 0]
+    earliest = min(pre) if pre else 0
+    if -earliest <= lead:
+        return off, []
+    k = min(3, lead)
+    lo, hi = -lead, -k - 1
+    for mid, o in list(off.items()):
+        if o >= -k:
+            continue
+        src = (-k - 1) - earliest
+        off[mid] = lo if hi < lo or src <= 0 else lo + round((o - earliest) * (hi - lo) / src)
+    order = {s[0]: i for i, s in enumerate(specs)}
+    slot = {s[0]: s[2] for s in specs}
+    sends = sorted([m for m in off if is_list_send(m)], key=lambda m: (off[m], slot[m], order[m]))
+    days_open = list(range(-lead, 1))
+    cap = MAX_LIST_SENDS_A_DAY * len(days_open)
+    dropped = []
+    drops = RUSH_DROP_ORDER + [m for m in sends if m.startswith("invite_")][1:-1]
+    for m in drops:
+        if len(sends) <= cap:
+            break
+        if m in sends:
+            sends.remove(m); dropped.append(m); off.pop(m)
+    slots = [d for d in days_open for _ in range(MAX_LIST_SENDS_A_DAY)]
+    idx = -1
+    for i, m in enumerate(sends):
+        want = next((j for j, d in enumerate(slots) if d >= off[m]), len(slots) - 1)
+        j = min(max(idx + 1, want), len(slots) - (len(sends) - i))
+        off[m], idx = slots[j], j
+    if "invite_1" in off and "confirmation" in off:
+        off["confirmation"] = off["invite_1"]          # live from the first invitation, as planned
+    return off, dropped
 
 
 def cmd_timeline(a):
@@ -856,42 +1262,97 @@ def cmd_timeline(a):
     check_tz(a.tz)
     if a.days < 1:
         refuse("--days must be 1 or more")
-    if a.cart_days < 0:
+    if a.format and a.format not in FORMATS:
+        refuse(f"--format must be one of {sorted(FORMATS)}")
+    if a.format == "roundtable" and a.days != 1:
+        refuse("--format roundtable is a one-day session (--days 1)")
+    final = ev + dt.timedelta(days=a.days - 1)
+    given = [x for x in ("--cart-days" if a.cart_days is not None else None,
+                         "--deadline-date" if a.deadline_date else None, "--no-deadline" if a.no_deadline else None) if x]
+    if not given:
+        refuse("say how the cart closes: --cart-days N (the cart closes N days after the final day), --deadline-date "
+               "YYYY-MM-DD, or --no-deadline (no deadline, chosen on purpose). There is no default deadline")
+    if len(given) > 1:
+        refuse(f"give one of --cart-days, --deadline-date or --no-deadline (got {', '.join(given)})")
+    cart_days = a.cart_days
+    if a.deadline_date:
+        dd = parse_date(a.deadline_date, "--deadline-date")
+        cart_days = (dd - final).days
+        if cart_days < 0:
+            refuse(f"--deadline-date {dd} is before the final day ({final})")
+    if cart_days is not None and cart_days < 0:
         refuse("--cart-days must be 0 or more")
+    country = a.country or default_country(a.tz)
+    if country not in COUNTRIES:
+        refuse(f"--country must be one of {', '.join(COUNTRIES)} (got {a.country!r})")
     lead = (ev - on).days
     if lead < 0:
         refuse(f"--event-date {ev} is in the past (today is {on})")
-    minimum = 56 if a.partners else (21 if a.paid_event else 14)
+    minimum = 56 if a.partners else (28 if a.paid_event else 21)
     why = ("8 weeks to recruit partners (Amber Spears: 90 days; big partners are booked months ahead)" if a.partners
-           else "21 days for a paid event's ticket sales" if a.paid_event else "about 14 days of invitations")
+           else "28 days for a paid event's ticket sales and the belief emails before them" if a.paid_event
+           else "21 days: three belief emails, the first-win tool emails and about 14 days of invitations")
     if lead < minimum and not a.rush:
         refuse(f"Day 1 ({ev}) is {lead} days away; this plan needs at least {minimum} days ({why}). Move the date, or "
-               f"pass --rush to compress the plan (milestones before today move to today)")
+               f"pass --rush to compress the plan (at most {MAX_LIST_SENDS_A_DAY} list sends a day; belief and tool "
+               "emails dropped first)")
     deadline = not a.no_deadline
-    specs = milestone_specs(a.days, a.partners, a.paid_event, a.cart_days, a.invites, deadline, a.close)
+    specs = milestone_specs(a.days, a.partners, a.paid_event, cart_days or 0, a.invites, deadline, a.close, a.sms,
+                            a.waitlist, a.format)
+    offsets, dropped = rush_layout(specs, lead) if lead < minimum else ({s[0]: s[1] for s in specs}, [])
     ms, warnings = [], []
-    for mid, off, slot, kind, title, detail, src in specs:
+    soft_used, hard_used = False, False
+    for mid, off0, slot, kind, title, detail, src in specs:
+        if mid in dropped:
+            continue
+        off = offsets[mid]
         d = ev + dt.timedelta(days=off)
+        planned = ev + dt.timedelta(days=off0)
         row = {"id": mid, "date": d.isoformat(), "weekday": d.strftime("%a"), "days_from_day1": off, "kind": kind,
                "title": title, "detail": detail, "source": src}
         if d < on:
-            row.update({"date": on.isoformat(), "weekday": on.strftime("%a"), "compressed": True, "planned": d.isoformat()})
-        dd = dt.date.fromisoformat(row["date"])
+            d = on
+            row.update({"date": on.isoformat(), "weekday": on.strftime("%a"), "days_from_day1": -lead})
+        if d != planned:
+            row.update({"compressed": True, "planned": planned.isoformat()})
         if kind in ("send", "event"):
-            h = holiday(dd)
+            h, soft = holiday(d, country)
             if h:
                 row["holiday"] = h
-            if dd.weekday() >= 5:
+                if soft:
+                    row["holiday_soft"] = True
+                soft_used, hard_used = soft_used or soft, hard_used or not soft
+            if d.weekday() >= 5:
                 row["weekend"] = True
         ms.append(row)
     comp = [m["id"] for m in ms if m.get("compressed")]
-    if comp:
+    if comp and lead < minimum:
+        warnings.append(f"--rush: {lead} days is under the {minimum}-day minimum ({why}); compressed proportionally "
+                        f"(planned dates kept on each row): {', '.join(comp)}")
+    elif comp:
         warnings.append(f"compressed to today ({on}): {', '.join(comp)}; these were due earlier")
+    if dropped:
+        warnings.append(f"--rush: not enough days for every list email at {MAX_LIST_SENDS_A_DAY} a day; left out: "
+                        f"{', '.join(dropped)}")
+    per_day = {}
+    for m in ms:
+        if m["kind"] == "send" and is_list_send(m["id"]):
+            per_day.setdefault(m["date"], []).append(m["id"])
+    crowded = {d: v for d, v in per_day.items() if len(v) > MAX_LIST_SENDS_A_DAY}
+    if crowded:
+        warnings.append("more than two list sends on one day: " + "; ".join(f"{d}: {', '.join(v)}" for d, v in crowded.items()))
+    sd = next((m for m in ms if m["id"] == "sending_domain"), None)
+    if sd and sd.get("compressed"):
+        first = next((m["date"] for m in ms if is_list_send(m["id"])), None)
+        warnings.append(f"sending domain: under 28 days before the first list email ({first}). If the list does not "
+                        "already send well from a warmed domain, warm one now (2–4 weeks) or expect the spam folder")
+    if a.sms:
+        sr = next((m for m in ms if m["id"] == "sms_registration"), None)
+        if sr and sr.get("compressed"):
+            warnings.append("sms_registration: A2P 10DLC approval can take weeks; until it is approved, send email only")
     if a.partners and lead < 84:
         warnings.append(f"partner recruitment has {lead} days, under the 12 weeks planned (Amber Spears' 90-day rule): "
                         "expect fewer and smaller partner slots")
-    if lead < minimum:
-        warnings.append(f"--rush: {lead} days is under the {minimum}-day minimum ({why})")
     for m in ms:
         if m["kind"] == "event" and m.get("weekend"):
             warnings.append(f"{m['title']} falls on a {m['weekday']}: check your audience can make a weekend session")
@@ -911,18 +1372,23 @@ def cmd_timeline(a):
                         "deadline (a start date, a cohort, a price change) usually helps the close")
     order = {s[0]: i for i, s in enumerate(specs)}
     slots = {s[0]: s[2] for s in specs}
-    ms.sort(key=lambda m: (m["date"], m.get("planned", m["date"]), slots[m["id"]], order[m["id"]]))
-    final = ev + dt.timedelta(days=a.days - 1)
+    ms.sort(key=lambda m: (m["date"], slots[m["id"]], m.get("planned", m["date"]), order[m["id"]]))
+    cart_close = (final + dt.timedelta(days=cart_days)).isoformat() if deadline else None
     out = {"event_date": ev.isoformat(), "days": a.days, "tz": a.tz, "final_day": final.isoformat(),
-           "deadline": deadline, "cart_close": (final + dt.timedelta(days=a.cart_days)).isoformat() if deadline else None,
-           "invites": a.invites, "close": a.close, "today": on.isoformat(),
-           "lead_days": lead, "minimum_lead_days": minimum, "partners": bool(a.partners), "paid_event": bool(a.paid_event),
-           "milestones": ms}
+           "deadline": deadline, "cart_close": cart_close, "deadline_date": cart_close,
+           "cart_days": cart_days if deadline else None, "invites": a.invites, "close": a.close,
+           "format": a.format, "sms": bool(a.sms), "waitlist": bool(a.waitlist), "country": country,
+           "today": on.isoformat(), "lead_days": lead, "minimum_lead_days": minimum, "rush": lead < minimum,
+           "partners": bool(a.partners), "paid_event": bool(a.paid_event), "milestones": ms}
+    if dropped:
+        out["dropped"] = dropped
     if warnings:
         out["warnings"] = warnings
     out["sources"] = sources_used(ms)
-    if any(m.get("holiday") for m in ms):
-        out["sources"]["US federal holidays"] = SOURCES["US federal holidays"]
+    if hard_used and country in COUNTRY_SOURCE:
+        out["sources"][COUNTRY_SOURCE[country]] = SOURCES[COUNTRY_SOURCE[country]]
+    if soft_used:
+        out["sources"]["Holiday soft flags"] = SOURCES["Holiday soft flags"]
     if a.out:
         folder = out_dir(a.out)
         out["folder"] = str(folder)
@@ -982,7 +1448,11 @@ def cmd_math(a):
             uplift = float(a.replay_uplift)
         except ValueError:
             refuse(f"--replay-uplift must be a number such as 1.25 (got {a.replay_uplift!r})")
-    r = compute_math(a.goal_buyers, cash, price, tiers, a.list_size, a.format, a.days, a.paid_event, hist, a.close, uplift)
+    ticket = money(a.ticket_price, "--ticket-price") if a.ticket_price else None
+    vip = money(a.vip_price, "--vip-price") if a.vip_price else None
+    vrate = rate(a.vip_rate, "--vip-rate") if a.vip_rate else None
+    r = compute_math(a.goal_buyers, cash, price, tiers, a.list_size, a.format, a.days, a.paid_event, hist, a.close, uplift,
+                     ticket, vip, vrate)
     if a.out:
         folder = out_dir(a.out)
         r["folder"] = str(folder)
@@ -1006,6 +1476,7 @@ def main(argv=None):
     s.add_argument("--tiers", nargs="+"); s.add_argument("--list-size", type=int)
     s.add_argument("--format", required=True, choices=sorted(FORMATS)); s.add_argument("--days", type=int)
     s.add_argument("--paid-event", action="store_true")
+    s.add_argument("--ticket-price"); s.add_argument("--vip-price"); s.add_argument("--vip-rate")
     s.add_argument("--close", choices=CLOSE_MODES, default="checkout"); s.add_argument("--replay-uplift")
     for k in ("reg-rate", "showup", "retention", "stay", "conversion", "booked", "held", "closed"):
         s.add_argument(f"--history-{k}")
@@ -1013,9 +1484,13 @@ def main(argv=None):
     s = sub.add_parser("timeline")
     s.add_argument("--event-date", required=True); s.add_argument("--days", type=int, required=True)
     s.add_argument("--tz", required=True); s.add_argument("--partners", action="store_true")
-    s.add_argument("--paid-event", action="store_true"); s.add_argument("--cart-days", type=int, default=3)
-    s.add_argument("--no-deadline", action="store_true"); s.add_argument("--invites", type=int, choices=[5, 7], default=7)
-    s.add_argument("--close", choices=CLOSE_MODES, default="checkout")
+    s.add_argument("--paid-event", action="store_true"); s.add_argument("--cart-days", type=int)
+    s.add_argument("--deadline-date"); s.add_argument("--no-deadline", action="store_true")
+    s.add_argument("--invites", type=int, choices=[5, 7], default=7)
+    s.add_argument("--close", choices=CLOSE_MODES, default="checkout"); s.add_argument("--format")
+    s.add_argument("--sms", action="store_true", help="texts are planned: adds sms_registration (A2P 10DLC)")
+    s.add_argument("--waitlist", action="store_true", help="adds the waitlist milestones")
+    s.add_argument("--country", help="US, UK, CA, AU, IE or none (default from --tz)")
     s.add_argument("--rush", action="store_true"); s.add_argument("--out"); s.add_argument("--date")
     a = ap.parse_args(argv)
     today(a)

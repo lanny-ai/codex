@@ -61,7 +61,7 @@ Turn on live captions (Zoom's automatic captions or a captioner), keep slides hi
 
 ## 10. Each night
 
-1. Log the day: `launch_tracker.py log-day --day N --live <the peak number live at once>`.
+1. Log the day: `launch_tracker.py log-day --day N --live <unique attendees that day> --peak <the most live at once>`.
 2. Draft the night-after email (tomorrow's promise; "tomorrow is the one" before the final day).
 3. Fix one thing for tomorrow (a link, a segment, a timing).
 4. Update the proof bank with anything that happened today and the consents gathered.

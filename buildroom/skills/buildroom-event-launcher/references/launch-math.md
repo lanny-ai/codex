@@ -24,7 +24,7 @@ List → registrants → live on Day 1 → each following day → present at the
 
 ## The founder's July 2026 run, as one data point
 
-A free 3-day boot camp, a $1 personalised brief, then a core program: 969 registered; 380 / 257 / 133 live on Days 1–3; 67 at the very end; 102 bought the $1 brief; 21 of those bought the program; in his follow-up analysis, 23 of the 41 people known to have seen the price bought (56%), while 51 brief buyers never saw it. [founder: his audit and follow-up analysis] Use it as one real example of the shape, not a promise: his list came through a large partner, and the format and offer were his.
+A free 3-day boot camp, a $1 personalised brief, then a core program: 39% of registrants live on Day 1, then 68% and 52% of the previous day (380 / 257 / 133 people); 67 at the very end; 102 bought the $1 brief; 21 of those bought the program; in his follow-up analysis, 23 of the 41 people known to have seen the price bought (56%), while 51 brief buyers never saw it. [founder: his audit and follow-up analysis] Use it as one real example of the shape, not a promise: his list came through a large partner, and the format and offer were his.
 
 ## Reading the result with the member
 

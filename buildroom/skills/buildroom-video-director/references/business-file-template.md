@@ -342,11 +342,11 @@ _Built by: Event Launcher · Requires: §1, §2, §3; best with §4, §6, §16, 
 - **Current launch** (name · format · dates and time zone · goal in buyers and cash · status):
 - **The one belief** (and the three that support it):
 - **First-win tool** (what registrants finish before the event · where):
-- **The close** (tiers and prices · real deadline · payment plans · checkout or application · VIP):
+- **The close** (checkout, call or both · tiers and prices · the real deadline, or none and when the window ends · payment plans · first step · VIP):
 - **Fill plan** (list segments · invitation sequence · partners · ads · registration target):
 - **Show-up plan** (calendar file · reminder schedule · pre-work · moderator):
-- **Launch gate** (checkout tested end to end · follow-up workflows on · reminders timed · proof classified · date passed):
-- **Results** (registered · live Day 1 / 2 / 3 · at the close · buyers by tier · cash · booked · refunds):
+- **Launch gate** (pre-invite · day before · close morning · cart — each GO or HOLD with its date):
+- **Results** (registered · live Day 1 / 2 / 3 · at the close · buyers by tier or calls booked, held, closed · cash · booked · refunds):
 - **Lessons for next time** (top three leaks · what to protect):
 - **Past launches** (name · date · registered · buyers · cash — one line each):
   - —

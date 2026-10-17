@@ -5,12 +5,15 @@ Local only. It reads the member's own plan of segments and writes a markdown run
 Zoom, the checkout, the booking calendar or the CRM.
 
 Usage
-  run_sheet.py build --spec runsheet.json --out run-sheet.md [--event event.json]
+  run_sheet.py build --spec runsheet.json --out run-sheet.md [--event event.json] [--plan plan.json]
       Writes the run-of-show for each day with clock times, then a checklist per role (host, moderator
       with every link drop and its time, tech with the recording notice, the backup stream and the
       money-path check before the pitch, closer), then the checks. Prints the checks as JSON.
       --event cross-checks the days, dates, start and end times and the time zone against event_ics.py's
-      event.json (check event_match).
+      event.json (check event_match; an event.json day with "sessions" matches any of its sessions).
+      The closer's line names a deadline only when there is one: "deadline" in runsheet.json (or in
+      event.json, or the plan's timeline cart close, --plan); without one it says "no deadline: say when
+      follow-up ends".
       Exit 0 when every "must" check passes (PASS), 1 when one fails (FAIL; the sheet is still written),
       2 when the spec is refused (unreadable, an unknown segment kind, a bad time or length).
 
@@ -30,9 +33,11 @@ Checks (must unless marked should)
   event_match            (with --event) the run sheet and event.json agree on days, dates, times and zone
   proof_day2 (should)    a multi-day event has a proof segment on Day 2 (belief Day 1, proof Day 2, ascension Day 3)
   lobby (should)         each day opens with a lobby segment before the start (people arriving, music, chat prompt)
+  link_kinds (should)    no link whose key looks like a close or backup link was left as kind other
 
 runsheet.json
   {"title": "Cash Flow Bootcamp", "allow_early_pitch": false, "close": "checkout|call|both (optional)",
+   "deadline": "2026-11-15 23:59 America/Los_Angeles (optional; leave it out or null when there is none)",
    "roles": {"host": "Dana", "moderator": "Sam", "tech": "Lee", "closer": "Dana"},
    "links": {"workbook": "https://...", "checkout": "https://...", "backup_stream": "https://...",
              "install_call": {"url": "https://...", "kind": "booking"}},
@@ -43,10 +48,14 @@ runsheet.json
   kinds: lobby welcome teach build proof break qa pitch close recap. Lobby segments come first and run
   before the start time. owner: a role (host, moderator, tech, closer) or the person's name. links: names
   from "links", or full URLs. A link is a URL, or {"url", "kind"} with kind checkout | booking |
-  application | backup | other; without a kind, a key with a word starting checkout, book or call,
-  or appl/apply is that kind (install_call, book_now, apply), and one with a backup word is a backup.
+  application | backup | other. Without a kind, only an exact key name sets it: checkout (also buy,
+  buy_now, pay, payment_link, order), booking (also book, book_call, booking_link, schedule_call),
+  application (also apply, apply_now), backup (also backup_link, backup_checkout, backup_booking,
+  backup_stream, backup_room). Any other key is "other": nothing is guessed from part of a name, so
+  zoom_call or booklet stay other; give "kind" for anything else.
   The moderator drops close links (checkout, booking, application) only from the first pitch of the day
-  onwards, and backup links only if the main link fails.
+  onwards, every one of them every 10 minutes through the pitch and close, and backup links only if the
+  main link fails.
 
 Standard library only.
 """
@@ -61,6 +70,11 @@ ROLES = ["host", "moderator", "tech", "closer"]
 SELLING = {"pitch", "close"}
 CLOSE_KINDS = {"checkout", "booking", "application"}
 LINK_KINDS = CLOSE_KINDS | {"backup", "other"}
+KEY_KINDS = {**{k: "checkout" for k in ("checkout", "buy", "buy_now", "pay", "payment_link", "order", "checkout_link")},
+             **{k: "booking" for k in ("booking", "book", "book_call", "booking_link", "schedule_call", "call_booking")},
+             **{k: "application" for k in ("application", "apply", "apply_now", "application_link")},
+             **{k: "backup" for k in ("backup", "backup_link", "backup_checkout", "backup_booking", "backup_stream",
+                                      "backup_room", "backup_payment_link")}}
 BREAK_EVERY = 90
 FIRST_BUILD = (20, 30)
 EMPTY = re.compile(r"^\s*(|tbd|tba|todo|xxx+|\?+|none|n/a)\s*$", re.I)
@@ -122,11 +136,8 @@ def norm_links(spec):
         else:
             url, kind = ("" if v is None else str(v)), ""
         if not kind:
-            words = [x for x in re.split(r"[^a-z]+", k.lower()) if x]
-            has = lambda *p: any(x.startswith(p) for x in words)
-            kind = ("backup" if has("backup") else "checkout" if has("checkout") else
-                    "booking" if has("book", "call") else "application" if has("appl", "apply") else "other")
-        out[k] = {"url": url, "kind": kind}
+            kind = KEY_KINDS.get(re.sub(r"[\s-]+", "_", k.strip().lower()), "other")
+        out[k] = {"url": url, "kind": kind, "inferred": not (isinstance(v, dict) and v.get("kind"))}
     return out
 
 
@@ -280,8 +291,8 @@ def run_checks(spec, days, event=None):
     problems = []
     sell_days = [d for d in days if any(s["kind"] in SELLING for s in d["segments"])]
     if sell_days and not co:
-        problems.append("no close link in links (a checkout, booking or application link: name it with that word in "
-                        "its key, or give it \"kind\")")
+        problems.append("no close link in links (a checkout, booking or application link: key it exactly checkout, "
+                        "booking or application, or give it \"kind\")")
     words = ("checkout", "booking", "book", "application", "payment link")
     for d in sell_days:
         first = next(s for s in d["segments"] if s["kind"] in SELLING)
@@ -313,6 +324,13 @@ def run_checks(spec, days, event=None):
            "no backup link: add a backup stream and a second checkout or booking link to links (kind backup, or a key "
            "containing 'backup')"), level)
 
+    vague = [k for k, v in links.items() if v["kind"] == "other" and v.get("inferred")
+             and set(re.split(r"[^a-z]+", k.lower())) & {"checkout", "buy", "pay", "payment", "book", "booking", "call",
+                                                          "apply", "application", "order", "backup", "stripe", "cart"}]
+    check("link_kinds", not vague, "every close and backup link has a clear kind" if not vague else
+          "kind left as other (nothing is guessed from part of a name): " + ", ".join(vague) + ". If one is a checkout, "
+          "booking, application or backup link, give it {\"url\": …, \"kind\": …}", "should")
+
     if event is not None:
         mism = event_mismatches(event, days)
         check("event_match", not mism, "run sheet and event.json agree on days, dates, times and zone" if not mism
@@ -338,21 +356,34 @@ def event_mismatches(ev, days):
         n = d["n"]
         if str(e.get("date", "")).strip() != d["date"].isoformat():
             out.append(f"day {n} date {d['date']} vs {e.get('date')}")
-        if e.get("start") and hhmm(e["start"], f"event day {n} start") != d["t0"].time():
-            out.append(f"day {n} start {d['t0'].strftime('%H:%M')} vs {e['start']}")
-        if e.get("end") and d["end"] and hhmm(e["end"], f"event day {n} end") != d["end"].time():
-            out.append(f"day {n} end {d['end'].strftime('%H:%M')} vs {e['end']}")
+        sessions = e.get("sessions") if isinstance(e.get("sessions"), list) and e.get("sessions") else [e]
+        starts = [hhmm(x["start"], f"event day {n} start") for x in sessions if x.get("start")]
+        if starts and d["t0"].time() not in starts:
+            out.append(f"day {n} start {d['t0'].strftime('%H:%M')} vs {', '.join(x.strftime('%H:%M') for x in starts)}")
+        match = next((x for x in sessions if x.get("start") and hhmm(x["start"], "start") == d["t0"].time()), sessions[0])
+        if match.get("end") and d["end"] and hhmm(match["end"], f"event day {n} end") != d["end"].time():
+            out.append(f"day {n} end {d['end'].strftime('%H:%M')} vs {match['end']}")
         if d["tz"] and ev.get("tz") and d["tz"] != ev["tz"]:
             out.append(f"day {n} tz {d['tz']} vs {ev['tz']}")
     return out
 
 
-def checklists(spec, days):
+def deadline_text(spec, event=None, plan=None):
+    """The deadline said at the close, or None: from runsheet.json, else event.json, else the plan's timeline."""
+    for src in (spec, event or {}):
+        if src.get("deadline"):
+            return str(src["deadline"])
+    tl = (plan or {}).get("timeline") or {}
+    if tl.get("deadline") and tl.get("cart_close"):
+        return f"the cart closes {tl['cart_close']}"
+    return None
+
+
+def checklists(spec, days, deadline=None):
     """{role: [item, ...]} in clock order; each item starts with the day and the time."""
     roles = spec.get("roles") or {}
     links = norm_links(spec)
     close_links = [k for k, v in links.items() if v["kind"] in CLOSE_KINDS]
-    co = close_links[0] if close_links else None
     bk = [k for k, v in links.items() if v["kind"] == "backup"]
     items = {r: [] for r in ROLES}
     url = lambda k: link_value(k, links) or "NO VALUE"
@@ -365,10 +396,12 @@ def checklists(spec, days):
             if r == "closer" and blank(roles.get("closer")):
                 r = "host"
             add(r, d, s["start_min"], f"{s['title']} ({s['kind']}, until {s['until']})")
-            selling = s["kind"] in SELLING and co
+            selling = s["kind"] in SELLING and close_links
+            named_close = [n for n in s["links"] if n in links and links[n]["kind"] in CLOSE_KINDS]
+            doors = named_close or close_links          # every close link, not only the first
             for name in s["links"]:
                 kind = links[name]["kind"] if name in links else "other"
-                if selling and name == co:
+                if selling and name in doors:
                     continue                      # dropped below, as the price is shown and every 10 minutes
                 if kind == "backup":
                     continue                      # backups only if the main link fails (below)
@@ -379,8 +412,9 @@ def checklists(spec, days):
                 add("moderator", d, s["start_min"], f"drop {name}: {url(name)}")
             if selling:
                 for m in range(0, s["min"], 10):
-                    add("moderator", d, s["start_min"] + m, f"drop {co}: {url(co)}"
-                        + (" (again)" if m else " (as the price is shown)" if s["kind"] == "pitch" else ""))
+                    for co in doors:
+                        add("moderator", d, s["start_min"] + m, f"drop {co}: {url(co)}"
+                            + (" (again)" if m else " (as the price is shown)" if s["kind"] == "pitch" else ""))
         if sell and bk:
             add("moderator", d, sell["start_min"], "if a link fails: drop the backup "
                 + ", ".join(f"{k} {url(k)}" for k in bk) + " (only then)")
@@ -391,12 +425,15 @@ def checklists(spec, days):
         add("tech", d, open_at, "backup stream ready: " + (", ".join(f"{k} {url(k)}" for k in bk)
                                                            if bk else "NOT SET (add a backup link)"))
         if sell:
-            add("tech", d, sell["start_min"] - 10, f"{'checkout' if not co or links[co]['kind'] == 'checkout' else links[co]['kind']} "
-                f"open check before \"{sell['title']}\" at {sell['at']}: open {co or 'the checkout'} on a phone, test "
-                "every path (full pay, the payment plan, a coupon; or the booking form and its confirmation); keep the "
-                "backup link ready")
+            kinds = "/".join(dict.fromkeys(links[k]["kind"] for k in close_links)) or "checkout"
+            add("tech", d, sell["start_min"] - 10, f"{kinds} open check before \"{sell['title']}\" at {sell['at']}: open "
+                + (", ".join(close_links) if close_links else "the checkout") + " on a phone, test every path (full "
+                "pay, the payment plan, a coupon; or the booking form and its confirmation); keep the backup link ready")
             add("closer" if not blank(roles.get("closer")) else "host", d, sell["start_min"],
-                "the offer: price on screen, payment options, refund terms, the real deadline; Q&A after as objection handling")
+                "the offer: price on screen, payment options, refund terms, "
+                + (f"the deadline ({deadline}), the same for everyone" if deadline else
+                   "no deadline: say when follow-up ends, and never imply one")
+                + "; Q&A after as objection handling")
     out = {r: [x[3] for x in sorted(v)] for r, v in items.items()}
     if blank(roles.get("closer")):
         out.pop("closer")
@@ -437,14 +474,26 @@ def cmd_build(a):
     spec = load(a.spec)
     days = resolve(spec)
     event = load(a.event, "event spec") if a.event else None
+    plan = None
+    if a.plan:
+        pp = Path(a.plan)
+        pp = pp / "plan.json" if pp.is_dir() else pp
+        if not pp.exists():
+            refuse(f"no plan at {a.plan}")
+        try:
+            plan = json.loads(pp.read_text(encoding="utf-8"))
+        except (ValueError, UnicodeDecodeError) as e:
+            refuse(f"{a.plan} is not readable JSON ({e})")
     checks = run_checks(spec, days, event)
     result = "PASS" if all(c["ok"] for c in checks if c["level"] == "must") else "FAIL"
-    lists = checklists(spec, days)
+    deadline = deadline_text(spec, event, plan)
+    lists = checklists(spec, days, deadline)
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     Path(a.out).write_text(render(spec, days, checks, lists, result), encoding="utf-8")
     out = {"written": a.out, "result": result,
            "days": [{"day": d["n"], "date": d["date"].isoformat(), "start": d["t0"].strftime("%H:%M"),
                      "ends": clock(d["t0"], d["total"]), "minutes": d["total"], "lobby_minutes": d["lobby"]} for d in days],
+           "deadline": deadline, "links": norm_links(spec),
            "checks": checks, "failed": [c["id"] for c in checks if not c["ok"] and c["level"] == "must"],
            "warnings": [c["id"] for c in checks if not c["ok"] and c["level"] == "should"],
            "checklists": lists, "sources": SOURCES}
@@ -455,7 +504,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("build"); s.add_argument("--spec", required=True); s.add_argument("--out", required=True)
-    s.add_argument("--event")
+    s.add_argument("--event"); s.add_argument("--plan", help="plan.json (its timeline's cart close is the deadline)")
     a = ap.parse_args(argv)
     out, code = {"build": cmd_build}[a.cmd](a)
     print(json.dumps(out, indent=1, ensure_ascii=False))

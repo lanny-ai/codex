@@ -1,59 +1,80 @@
 #!/usr/bin/env python3
-"""Event Launcher tracker: the launch ledger, the launch gate, pacing, the debrief and the Obsidian note.
+"""Event Launcher tracker: the launch ledger, the staged launch gate, pacing, the debrief and the Obsidian note.
 
 Local only. It stores what the member tells it (counts, prices, gate answers) in one JSON file per
 launch. It never contacts Zoom, GoHighLevel or Stripe, and import-csv keeps counts only: no names,
-emails or phone numbers from the export are stored.
+emails or phone numbers from the export are stored. Sources such as partner:NAME, email:ID or
+segment:NAME are the member's own labels (a short code or a first name is enough); they are stored
+in the ledger and printed in the debrief and the Obsidian note, so use a code when a partner should
+not be named in the vault.
 
 Usage
   The ledger is launches/<slug>/tracker.json under the current folder; init makes the slug YYYY-MM-<name>
-  from the event date and the name (or --slug S). Pick a ledger with --slug S or --file P;
-  with neither, the only tracker under ./launches/ is used (two or more: refused, name one). Only init
-  creates a ledger; every other command refuses when it is missing. --date YYYY-MM-DD replays "today".
+  from the event date and the name (or --slug S). Pick a ledger with --slug S or --file P; with neither,
+  the only tracker under ./launches/ is used; with several, the one whose event is the nearest upcoming
+  (or running), else the most recent past, and the output says which ("ledger"). Only init creates a
+  ledger; every other command refuses when it is missing. --date YYYY-MM-DD replays "today".
 
   launch_tracker.py slug --name "Cash Flow Bootcamp" --event-date YYYY-MM-DD
       prints the slug and the launch folder init will use, without creating anything (so plan.json can be
       written there first: launch_plan.py math --out <slug>).
-  launch_tracker.py init --name "Cash Flow Bootcamp" --format bootcamp3|challenge5|workshop|webinar --days N
-                         --tz IANA --event-date YYYY-MM-DD --goal-buyers N --goal-cash X [--paid-event]
-                         [--close checkout|call|both] [--list-size L] [--plan plan.json] [--slug S] [--test]
+  launch_tracker.py init --name "Cash Flow Bootcamp" --format bootcamp3|challenge5|workshop|webinar|roundtable
+                         --days N --tz IANA --event-date YYYY-MM-DD --goal-buyers N --goal-cash X [--paid-event]
+                         [--close checkout|call|both] [--list-size L] [--plan plan.json] [--sms]
+                         [--event event.json] [--slug S] [--test]
       --plan reads launch_plan.py's plan.json: the typical path is the plan. It stores what the goal NEEDS
       (needed_for_goal) and what the list should give (expected_from_list) separately; leaks are judged
       against the expected path and the goal gap is shown on its own. Without --plan the plan is the
       typical path of the Build Room benchmarks (with --list-size for an expected path). --close (default:
       the plan's close, else checkout) picks the gate's money items and the funnel's close stages.
-      --test marks the ledger as test/synthetic data: report and the Obsidian note say TEST, and
-      obsidian-read skips it. Prints the slug and the folder.
+      SMS is planned when --sms is given, the plan's timeline was made with --sms, or event.json (--event,
+      or the launch folder's event.json) sets reminders.sms; then sms_compliance is a critical gate item,
+      otherwise it is na ("email only"). --test marks the ledger as test/synthetic data: report and the
+      Obsidian note say TEST, and obsidian-read skips it. Prints the slug and the folder.
   launch_tracker.py log-reg N [--source list|ads|social|partner:NAME|email:ID|segment:NAME] [--date]
-  launch_tracker.py log-day --day 1 --live N [--unique N] [--date]
-      --live is the PEAK CONCURRENT live count that day (--peak is the same flag); --unique (optional) is
-      the unique attendees from the Zoom report, stored for reference.
+  launch_tracker.py log-day --day 1 --live N [--peak N] [--source-count SOURCE=N ...] [--date]
+      --live is the UNIQUE attendees that day (the Zoom participant report, one row per person), the
+      same definition as the show-up and retention benchmarks and as import-csv. --peak (optional) is the
+      peak concurrent count, stored separately for reference. Show-up, retention and stay to the close are
+      measured on unique attendees. --source-count partner:Jo=40 (repeatable) records attendees by source.
   launch_tracker.py log-close --present N --saw-price N [--date]
       present: in the room when the offer was made; saw the price: everyone who saw it, live or later
-  launch_tracker.py log-sale --tier NAME --price P --count N [--payment full|plan --booked TOTAL] [--via checkout|call] [--date]
+  launch_tracker.py log-sale --tier NAME --price P --count N [--payment full|plan --booked TOTAL] [--via checkout|call]
+                             [--source SOURCE] [--date]
       full: cash and booked are price × count. plan: --price is what each buyer has paid so far (the
       first instalment) and --booked is the total contract value of these N sales (required).
       --via call: cash collected on deals closed on a call; it adds cash only (buyers and booked value of
-      call deals come from log-calls).
-  launch_tracker.py log-calls --booked N --held N --closed N --value X [--tier NAME] [--date]
+      call deals come from log-calls). --source partner:NAME attributes the sale to a partner.
+  launch_tracker.py log-calls --booked N --held N --closed N --value X [--tier NAME] [--source SOURCE] [--date]
       calls (or applications) booked, held and closed since the last entry; --value is the booked value of
       the deals closed. Totals must keep closed ≤ held ≤ booked.
-  launch_tracker.py log-refund --tier NAME --count N --amount TOTAL [--booked-cancelled X] [--date]
+  launch_tracker.py log-refund --tier NAME --count N --amount TOTAL [--booked-cancelled X] [--source SOURCE] [--date]
       amount: cash refunded (never more than the cash collected for that tier, less earlier refunds);
       --booked-cancelled: unpaid instalments cancelled with the refund
+  launch_tracker.py log-tickets --count N --price T [--vip-count N --vip-price V] [--source SOURCE] [--date]
+      a paid event's tickets (tier "Tickets") and VIP upgrades (tier "VIP upgrade"): cash and booked, never
+      counted as buyers of the offer; log-refund --tier Tickets refunds them.
+  launch_tracker.py partner --name NAME --rate R      (--commission-rate R is the same flag)
+      the commission rate for partner:NAME ("30%" or 0.3); the report shows, per partner, registrations,
+      attendees (if logged by source), buyers, cash, refunds and the commission due on net cash, paid after
+      the refund window.
   launch_tracker.py import-csv FILE --map registered=TAG,day1=TAG,day2=TAG,present=TAG,saw_price=TAG [--replace]
       counts rows of a CRM export (GoHighLevel contacts CSV) whose tags column holds each tag (TAG * counts
-      every row). Only the mapped fields change. A count that would lower or overwrite a logged number
-      different from it is refused unless --replace (then registrations become one "import" entry, never
-      a negative one; a day's other fields are kept). Prints a before/after table. Only counts and the
-      file name are stored.
-  launch_tracker.py gate [--set ITEM pass|fail|na|open ["note"] ...] [--note "..."] [--reset ITEM ...]
-                         [--close-morning]
-      the launch gate. Statuses: open (untested) / pass / fail / na. GO only when every critical item is
-      pass (or na with a note); otherwise HOLD with the list. Each item keeps its own note and tested_at
-      (shown). --set ITEM STATUS "note" gives one item its note; --note works only with a single --set.
-      --reset ITEM puts an item back to open. --close-morning lists the money and follow-up items and
-      prints GO for the close only when each one passed today (or on --date), or is na.
+      every row). A day count is unique tagged contacts, the same definition as log-day --live. Only the
+      mapped fields change. A count that would lower or overwrite a logged number different from it is
+      refused unless --replace (then registrations become one "import" entry, never a negative one; a
+      day's other fields are kept). Prints a before/after table. Only counts and the file name are stored.
+  launch_tracker.py gate [--stage pre_invite|day_before|close_morning|cart] [--set ITEM pass|fail|na|open "note" ...]
+                         [--reset ITEM ...] [--close-morning]
+      the launch gate in four stages: pre_invite (before the first email of any kind), day_before (24 hours
+      before Day 1), close_morning (the money and follow-up, that morning) and cart (before the cart and
+      follow-up emails). --stage S shows and judges only that stage's items; without --stage every item is
+      shown with GO/HOLD per stage. A stage is GO when each of its critical items passes (or is na with a
+      note). A critical item set to pass or na needs a note (what was tested, by whom, on what device).
+      Each entry records its stage and tested_at. An item judged again at a later stage (the terms at
+      close_morning, proof and claims at cart) needs a pass recorded at that stage; close_morning passes
+      must be dated today (or --date). --set without --stage records the item's first stage not yet
+      passed. --reset ITEM puts an item back to open. --close-morning is --stage close_morning.
   launch_tracker.py pace [--date]
       registrations to date against the expected path's pacing curve across the invitation window (from
       the plan's first invitation, else 14 days out; 21 for a paid event) to Day 1. The curve has the
@@ -62,39 +83,59 @@ Usage
       whether it is below the cautious registration rate's curve.
   launch_tracker.py report [--md [FILE]] [--force]
       funnel against the expected path (and what the goal needed), day-over-day retention, the close
-      stages (checkout conversion; calls booked, held and closed), cash vs booked, refunds, revenue per
-      registrant, registrations by source, benchmark ranges with sources (the plan's member history when it
-      had one), the top three leaks ranked by buyers lost against the expected path with a fix for each,
-      the goal gap, and what to protect. --md writes the markdown to the launch folder's
-      debrief-numbers.md (or FILE); a file the report did not write is never overwritten without --force.
+      stages (checkout conversion; calls booked, held and closed), cash vs booked (tickets and VIP
+      included), refunds, revenue per registrant, registrations by source, partners, benchmark ranges with
+      sources (the plan's member history when it had one), the top three leaks ranked by buyers lost
+      against the expected path with a fix for each, the goal gap, and what to protect. --md writes the
+      markdown to the launch folder's debrief-numbers.md (or FILE) between start and end markers. It never
+      writes a file named debrief.md (the member's own debrief), and never overwrites a file it did not
+      write, or one with text added outside its markers, without --force.
   launch_tracker.py obsidian --vault PATH [--force] [--no-obsidian-check] [--status S] [--lesson "..." ...]
       writes the debrief to <vault>/launches/YYYY-MM-<slug>.md (light frontmatter; the slug already
       starts with YYYY-MM) and adds one line to <vault>/launches/_index.md (created if missing, and
-      back-filled with older launch notes it lacks). An existing note is never overwritten without
-      --force. Refused when the vault folder is missing or has no .obsidian folder (--no-obsidian-check
-      writes anyway, with a warning). --lesson (repeatable) is kept in the ledger, so a later --force
-      rewrite keeps it. A test ledger's note says TEST and carries test: true.
-  launch_tracker.py obsidian-read --vault PATH [--no-obsidian-check] [--include-test]
-      lists past launch notes, newest first, so the plan can start from earlier lessons. A note counts
-      when its frontmatter type is launch / debrief / event, its tags hold launch, event or debrief, or
-      (directly in launches/) its file name looks like a launch (launch, event, bootcamp, camp, webinar,
-      challenge, workshop, intensive, debrief). Headings are matched loosely: results (Results, Numbers,
-      Metrics, Scoreboard, Funnel), lessons (Lessons, What broke, What went wrong, Debrief, Takeaways),
-      protect (What to protect, What worked, What went well, Keep). Looks in launches/ first, then the
-      whole vault by frontmatter. Warns, naming where it looked, when nothing is found or a note has none
-      of those headings (it then returns the start of the body). Test notes are skipped. Needs no tracker.
+      back-filled with older launch notes it lacks). The index lines it writes end in a hidden marker
+      (<!-- launch_tracker -->); it updates only those, appends new ones at the end and never re-sorts or
+      changes a line the member wrote. An existing note is never overwritten without --force. Refused when
+      the vault folder is missing or has no .obsidian folder (--no-obsidian-check writes anyway, with a
+      warning). --lesson (repeatable) is kept in the ledger, so a later --force rewrite keeps it. A test
+      ledger's note says TEST and carries test: true.
+  launch_tracker.py obsidian-read --vault PATH [--no-obsidian-check] [--include-test] [--author NAME ...]
+      lists the member's past launch notes, newest first (frontmatter date, else a date in the file name;
+      undated last), so the plan can start from earlier lessons. A note counts when its frontmatter type is
+      launch, debrief, event, audit, retro, review, post-mortem or prep; when its tags (inline [a, b],
+      a YAML block list or a comma list; whole tags only) hold launch, debrief, event, retro, post-mortem
+      or audit; when its file name or title says debrief, retro, post-mortem, launch review or audit
+      (anywhere in the vault, frontmatter or not); or, directly in launches/, when its file name looks like
+      a launch. Left out: templates (a folder named templates, Templates or "99 Templates", or a note
+      holding {{date}} / {{title}}), imported material (External, Sources, Readwise, Clippings,
+      transcripts, Flight Club and similar folders; a note whose frontmatter type is source, transcript,
+      clipping, reference or podcast, or whose source/url points to a web page, or whose author/speaker is
+      someone other than --author), client notes (type: client, a client tag, or a clients/ folder), work
+      folders inside launches/ and test notes. Headings are matched case-insensitively at any level by the
+      words they contain: results (Results, Numbers, Metrics, Scoreboard, Funnel, Outcome), lessons
+      (Lessons, Key lessons, Lessons learned, What broke, What went wrong, Leaks, Takeaways, Next time,
+      What I'd change), protect (What to protect, Protect, What worked, What went well, Wins, Keep). A
+      section runs to the next heading of the same or a higher level, so ### sub-headings stay inside it.
+      Email addresses and phone numbers are redacted from everything returned. Warns, naming where it
+      looked, when nothing is found or a note has none of those headings (it then returns the start of
+      the body, redacted). Needs no tracker.
 
-Gate items (references/launch-gate.md)
-  critical  money: checkout_tested backup_checkout (checkout/both) booking_tested backup_booking (call/both)
-                   refund_policy payment_plan_terms renewal_terms
-            follow-up: followup_on reminder_tz night_emails (na for a single-day event, set at init)
-            truth: proof_classified earnings_claims claims_substantiated retired_lines partner_copy_true
-                   real_deadlines single_source
-            sending: email_compliance partner_disclosure
-  advisory  sms_compliance recording_notice testimonial_permission privacy_notice moderator_links
-            first_win_timed live_tech_rehearsed refund_commissions chargeback_ready
-  Close morning (gate --close-morning): the money path items for the close mode, refund_policy,
-  payment_plan_terms, renewal_terms, followup_on.
+Gate items (references/launch-gate.md); C critical, A advisory; stage first, then any later re-check
+  pre_invite     C registration_path_tested email_compliance partner_disclosure partner_copy_true single_source
+                   proof_classified (+cart) earnings_claims (+cart) claims_substantiated (+cart) retired_lines
+                   real_deadlines (+cart) refund_policy (+close_morning) payment_plan_terms (+close_morning)
+                   renewal_terms (+close_morning) recording_notice sms_compliance (critical when SMS is planned,
+                   else na)
+                 A privacy_notice first_win_timed
+  day_before     C reminder_tz night_emails (na for a single-day event) followup_on (+close_morning)
+                   replay_release (na with a note when there is no replay) checkout_tested backup_checkout
+                   (checkout/both; +close_morning) booking_tested backup_booking (call/both; +close_morning)
+                 A moderator_links live_tech_rehearsed
+  close_morning  C the money path for the close mode, refund_policy payment_plan_terms renewal_terms followup_on
+                 A chargeback_ready
+  cart           C testimonial_permission, and the re-checks of proof_classified earnings_claims
+                   claims_substantiated real_deadlines
+                 A refund_commissions
 
 Standard library only. Exit code 2 on a refused action (missing ledger, bad input, existing note).
 """
@@ -111,6 +152,9 @@ ROOT = "launches"
 SRC_RE = re.compile(r"^(list|ads|social|import|partner:[\w .&'-]+|email:[\w.@-]+|segment:[\w .&'-]+)$", re.I)
 CLOSE_MODES = launch_plan.CLOSE_MODES
 MARKER = "<!-- written by launch_tracker.py report: re-running the report replaces this file -->"
+END_MARKER = "<!-- end of launch_tracker.py report: anything below this line stops the report from overwriting -->"
+INDEX_MARK = "<!-- launch_tracker -->"
+LIVE_DEF = "unique attendees (Zoom participant report)"
 STATUSES = ("open", "pass", "fail", "na")
 
 SOURCES = dict(launch_plan.SOURCES)
@@ -145,80 +189,96 @@ SOURCES.update({
 
 ALL = set(CLOSE_MODES)
 CHECKOUT, CALL = {"checkout", "both"}, {"call", "both"}
-# id, critical, group, what must be true, source, close modes it applies to (references/launch-gate.md holds the
-# same list in prose)
+STAGES = ("pre_invite", "day_before", "close_morning", "cart")
+STAGE_WHEN = {"pre_invite": "before the first email of any kind", "day_before": "24 hours before Day 1",
+              "close_morning": "the morning of the close, on a phone", "cart": "before the cart and follow-up emails"}
+PI, DB, CM, CA = STAGES
+# id, critical, group, what must be true, source, close modes it applies to, stages (first stage, then re-checks).
+# references/launch-gate.md holds the same list in prose. sms_compliance is critical only when SMS is planned.
 GATE = [
-    ("checkout_tested", True, "money", "Checkout tested end to end on a phone for every tier, the payment plan and the "
-     "coupon or VIP checkbox (real card, then refunded); again on the close morning", "Build Room founder run Jul 2026",
-     CHECKOUT),
-    ("backup_checkout", True, "money", "A second checkout path ready: a plain payment link per tier the moderator can drop "
-     "in chat", "Build Room founder run Jul 2026", CHECKOUT),
-    ("booking_tested", True, "money", "Booking path tested end to end on a phone: the booking or application link, the "
-     "calendar or form, the confirmation and reminder, and the payment link sent within the hour after a yes; again on "
-     "the close morning", "Build Room founder run Jul 2026", CALL),
-    ("backup_booking", True, "money", "A backup booking link (a second calendar or application form, or a direct "
-     "contact) the moderator can drop in chat", "Build Room founder run Jul 2026", CALL),
+    ("registration_path_tested", True, "sending", "Registration page, thank-you page (with the calendar file) and the "
+     "confirmation email tested end to end with a test contact on a phone", "Build Room founder method", ALL, (PI,)),
+    ("email_compliance", True, "sending", "CAN-SPAM footer (postal address), one-click unsubscribe plus a visible link; "
+     "SPF, DKIM and DMARC aligned on a sending subdomain", "CAN-SPAM and bulk-sender rules", ALL, (PI,)),
+    ("partner_disclosure", True, "sending", "Partners disclose their commission in every promotion that pays them (na if "
+     "no partners)", "FTC Endorsement Guides 2023", ALL, (PI,)),
+    ("partner_copy_true", True, "truth", "Who teaches live is named in every invitation; partner and guest copy never "
+     "implies someone will appear who won't", "Build Room founder run Jul 2026", ALL, (PI,)),
+    ("single_source", True, "truth", "One source of truth (close.md) for prices, terms, dates, replay links and expiry",
+     "Build Room founder method", ALL, (PI,)),
+    ("proof_classified", True, "truth", "Proof classified (free-event result / paid-program result / outside example) and "
+     "every person's consent on file; at the cart stage, again for every story and quote the cart and follow-up "
+     "emails use", "FTC 16 CFR 465", ALL, (PI, CA)),
+    ("earnings_claims", True, "truth", "Earnings claims are typical results, or there are none", "FTC earnings claims", ALL,
+     (PI, CA)),
+    ("claims_substantiated", True, "truth", "Non-earnings performance claims (time saved, results, speed: 'save 20+ hours "
+     "a week') are typical and backed by evidence, or removed", "FTC substantiation", ALL, (PI, CA)),
+    ("retired_lines", True, "truth", "Every email, page and slide checked against the Business File's §1 Retired lines "
+     "(paraphrases included) and §18 Never-say claims", "Business File protocol", ALL, (PI,)),
+    ("real_deadlines", True, "truth", "Deadlines are real and the same for everyone, or honest per-person timers, or "
+     "there is none: no resetting countdowns, no fake 'doors close', no 'live' label on a recording",
+     "FTC dark patterns 2022", ALL, (PI, CA)),
     ("refund_policy", True, "money", "Refund or guarantee terms shown before payment and accepted at checkout, in the same "
-     "words as the sales page and the live close (one guarantee, not two)", "Refund disclosure", ALL),
+     "words as the sales page and the live close (one guarantee, not two)", "Refund disclosure", ALL, (PI, CM)),
     ("payment_plan_terms", True, "money", "Payment plans are fixed-length and the total (payments × amount) is shown before "
-     "checkout (na if there is no plan)", "Payment plan rules", ALL),
+     "checkout (na if there is no plan)", "Payment plan rules", ALL, (PI, CM)),
     ("renewal_terms", True, "money", "Anything that renews (subscription, membership, annual plan) has its renewal terms "
      "disclosed before payment, express consent to them, and online cancellation as easy as sign-up (na with a note "
-     "when nothing renews)", "Auto-renewal rules", ALL),
+     "when nothing renews)", "Auto-renewal rules", ALL, (PI, CM)),
+    ("recording_notice", True, "consent", "Recording announced on the registration page and at the start of each day; "
+     "Zoom's recording notice on", "Recording consent", ALL, (PI,)),
+    ("sms_compliance", True, "consent", "SMS only with written consent (a separate, unchecked box) and an approved A2P "
+     "10DLC brand and campaign, sent 9 a.m.–8 p.m. in the contact's zone (critical when SMS is planned; na when the "
+     "launch is email only)", "TCPA and A2P 10DLC", ALL, (PI,)),
+    ("privacy_notice", False, "consent", "Privacy notice on the registration page (what, why; for EU/UK the lawful basis "
+     "and a separate marketing consent)", "Privacy notice", ALL, (PI,)),
+    ("first_win_timed", False, "live", "The first-win tool timed: the invitation states the measured time, not a guess",
+     "Build Room founder run Jul 2026", ALL, (PI,)),
+    ("reminder_tz", True, "follow-up", "Reminder send times verified in the recipient's time zone and the whole schedule "
+     "dry-run 24 hours before Day 1 (GoHighLevel's 'Set Event Start Date' uses the account time zone)", "GHL help 2026",
+     ALL, (DB,)),
+    ("night_emails", True, "follow-up", "A night-before email pre-written and scheduled for every day after Day 1 "
+     "(Day-1-night, Day-2-night…)", "Build Room founder run Jul 2026", ALL, (DB,)),
     ("followup_on", True, "follow-up", "Every follow-up workflow switched ON (checked in the CRM) and tested with a test "
      "contact: confirmation, reminders, night-before, replay, no-show, cart, failed checkout, buyer welcome",
-     "Build Room founder run Jul 2026", ALL),
-    ("reminder_tz", True, "follow-up", "Reminder send times verified in the recipient's time zone and the whole schedule "
-     "dry-run 24 hours before Day 1 (GoHighLevel's 'Set Event Start Date' uses the account time zone)", "GHL help 2026", ALL),
-    ("night_emails", True, "follow-up", "A night-before email scheduled for every day after Day 1 (Day-1-night, Day-2-night…)",
-     "Build Room founder run Jul 2026", ALL),
-    ("proof_classified", True, "truth", "Proof classified (free-event result / paid-program result / outside example) and "
-     "every person's consent on file", "FTC 16 CFR 465", ALL),
-    ("earnings_claims", True, "truth", "Earnings claims are typical results, or there are none", "FTC earnings claims", ALL),
-    ("claims_substantiated", True, "truth", "Non-earnings performance claims (time saved, results, speed: 'save 20+ hours "
-     "a week') are typical and backed by evidence, or removed", "FTC substantiation", ALL),
-    ("retired_lines", True, "truth", "Every email, page and slide checked against the Business File's §1 Retired lines "
-     "(paraphrases included) and §18 Never-say claims", "Business File protocol", ALL),
-    ("partner_copy_true", True, "truth", "Who teaches live is named in every invitation; partner and guest copy never "
-     "implies someone will appear who won't", "Build Room founder run Jul 2026", ALL),
-    ("real_deadlines", True, "truth", "Deadlines are real and the same for everyone, or honest per-person timers: no "
-     "resetting countdowns, no fake 'doors close', no 'live' label on a recording", "FTC dark patterns 2022", ALL),
-    ("single_source", True, "truth", "One source of truth (close.md) for prices, terms, dates, replay links and expiry",
-     "Build Room founder method", ALL),
-    ("email_compliance", True, "sending", "CAN-SPAM footer (postal address), one-click unsubscribe plus a visible link; "
-     "SPF, DKIM and DMARC aligned on a sending subdomain", "CAN-SPAM and bulk-sender rules", ALL),
-    ("partner_disclosure", True, "sending", "Partners disclose their commission in every promotion that pays them (na if "
-     "no partners)", "FTC Endorsement Guides 2023", ALL),
-    ("sms_compliance", False, "consent", "SMS only with written consent (a separate, unchecked box) and an approved A2P "
-     "10DLC brand and campaign, sent 9 a.m.–8 p.m. in the contact's zone; otherwise email only", "TCPA and A2P 10DLC", ALL),
-    ("recording_notice", False, "consent", "Recording announced on the registration page and at the start of each day; "
-     "Zoom's recording notice on", "Recording consent", ALL),
-    ("testimonial_permission", False, "consent", "Written permission before reusing anyone's chat comment or live words as "
-     "a testimonial", "FTC 16 CFR 465", ALL),
-    ("privacy_notice", False, "consent", "Privacy notice on the registration page (what, why; for EU/UK the lawful basis "
-     "and a separate marketing consent)", "Privacy notice", ALL),
+     "Build Room founder run Jul 2026", ALL, (DB, CM)),
+    ("replay_release", True, "consent", "People shown on camera or named in the replay agreed (registration terms and the "
+     "on-air notice), or are cut, blurred or unnamed before it goes out (na with a note when there is no replay)",
+     "Recording consent", ALL, (DB,)),
+    ("checkout_tested", True, "money", "Checkout tested end to end on a phone for every tier, the payment plan and the "
+     "coupon or VIP checkbox (real card, then refunded); again on the close morning", "Build Room founder run Jul 2026",
+     CHECKOUT, (DB, CM)),
+    ("backup_checkout", True, "money", "A second checkout path ready: a plain payment link per tier the moderator can drop "
+     "in chat", "Build Room founder run Jul 2026", CHECKOUT, (DB, CM)),
+    ("booking_tested", True, "money", "Booking path tested end to end on a phone: the booking or application link, the "
+     "calendar or form, the confirmation and reminder, and the payment link sent within the hour after a yes; again on "
+     "the close morning", "Build Room founder run Jul 2026", CALL, (DB, CM)),
+    ("backup_booking", True, "money", "A backup booking link (a second calendar or application form, or a direct "
+     "contact) the moderator can drop in chat", "Build Room founder run Jul 2026", CALL, (DB, CM)),
     ("moderator_links", False, "live", "A moderator assigned, with every link they will drop and when, and a backup host "
-     "link", "Build Room founder method", ALL),
-    ("first_win_timed", False, "live", "The first-win tool timed: the invitation states the measured time, not a guess",
-     "Build Room founder run Jul 2026", ALL),
+     "link", "Build Room founder method", ALL, (DB,)),
     ("live_tech_rehearsed", False, "live", "Anything new (breakout rooms, a live app, polls) tried with five people first, "
-     "or not used", "Build Room founder run Jul 2026", ALL),
-    ("refund_commissions", False, "money", "Refunds reverse partner commissions (GoHighLevel does not do it automatically)",
-     "GHL help 2026", ALL),
+     "or not used", "Build Room founder run Jul 2026", ALL, (DB,)),
     ("chargeback_ready", False, "money", "Chargeback exposure understood: a clear refund path (Visa's US 'excessive' ratio "
-     "is 1.5% from April 2026)", "Card network rules 2026", ALL),
+     "is 1.5% from April 2026)", "Card network rules 2026", ALL, (CM,)),
+    ("testimonial_permission", True, "consent", "Written permission before reusing anyone's chat comment or live words as "
+     "a testimonial in the cart and follow-up emails (na with a note when none are quoted)", "FTC 16 CFR 465", ALL, (CA,)),
+    ("refund_commissions", False, "money", "Refunds reverse partner commissions (GoHighLevel does not do it automatically)",
+     "GHL help 2026", ALL, (CA,)),
 ]
 GATE_BY_ID = {g[0]: g for g in GATE}
-CLOSE_MORNING = ["checkout_tested", "backup_checkout", "booking_tested", "backup_booking", "refund_policy",
-                 "payment_plan_terms", "renewal_terms", "followup_on"]
 
 
 def gate_ids(mode):
     return [g[0] for g in GATE if mode in g[5]]
 
 
+def stage_ids(mode, stage):
+    return [g[0] for g in GATE if mode in g[5] and stage in g[6]]
+
+
 def close_morning_ids(mode):
-    return [i for i in CLOSE_MORNING if mode in GATE_BY_ID[i][5]]
+    return stage_ids(mode, CM)
 
 
 STAGE_FIX = {
@@ -232,8 +292,8 @@ STAGE_FIX = {
                      "session inside the planned length",
     "saw_price": "Attendees who never saw the price: switch on the follow-up that shows the offer to everyone who "
                  "attended (replay with the offer, follow-up emails); the founder's July run lost sales this way",
-    "conversion": "Price-viewers who didn't buy: test the checkout on a phone the morning of the close, a real deadline, "
-                  "a clear 'which one are you' ladder, let ready buyers buy early",
+    "conversion": "Price-viewers who didn't buy: test the checkout on a phone the morning of the close, an honest "
+                  "deadline only if one is true, a clear 'which one are you' ladder, let ready buyers buy early",
     "booked": "Few calls booked: make the call the one next step at the offer, the booking link on screen and in chat "
               "from the pitch onwards, someone in chat booking people live",
     "held": "Booked calls that didn't happen: book within 48 hours, a confirmation and reminders, a short pre-call form, "
@@ -294,6 +354,21 @@ def load(path):
         refuse(f"{path} is not an Event Launcher tracker file")
     data.setdefault("close_mode", "checkout")
     data.setdefault("calls", [])
+    data.setdefault("partners", {})
+    older = "sms" not in data                             # ledgers written before SMS was tracked
+    data.setdefault("sms", False)
+    if data.get("live_definition") != "unique":           # ledgers written when --live was the peak count
+        for e in (data.get("days_live") or {}).values():
+            if "unique" in e:
+                e["peak"], e["live"] = e["live"], e.pop("unique")
+            elif not e.get("imported"):
+                e["definition"] = "peak concurrent (older ledger)"
+        data["live_definition"] = "unique"
+    gate = data.setdefault("gate", {})
+    for gid in gate_ids(data["close_mode"]):
+        gate.setdefault(gid, {"status": "open"})
+    if older and gate.get("sms_compliance", {}).get("status") == "open":
+        gate["sms_compliance"] = {"status": "na", "note": "email only: no SMS planned", "auto": True}
     plan = data.get("plan") or {}
     if plan and "needed" not in plan and "registered" in plan:          # ledgers written before plan v2
         data["plan"] = {"needed": {"registrants": plan["registered"], "day_live": plan.get("day_live"),
@@ -318,7 +393,27 @@ def tracker_path(a):
     if not found:
         refuse(f"no launch tracker at ./{ROOT}/<slug>/tracker.json. Create one with: launch_tracker.py init --name ... "
                "(or pass --file / --slug if the ledger is elsewhere)")
-    refuse(f"{len(found)} launch trackers under ./{ROOT}/ ({', '.join(p.parent.name for p in found)}): pass --slug")
+    on = today(a)
+    dated = []
+    for p in found:
+        try:
+            d = json.loads(p.read_text(encoding="utf-8"))
+            start = dt.date.fromisoformat(d["event_date"])
+            end = start + dt.timedelta(days=int(d.get("days", 1)) - 1)
+        except (ValueError, KeyError, TypeError, OSError, UnicodeDecodeError):
+            continue
+        dated.append((p, start, end))
+    if not dated:
+        refuse(f"{len(found)} launch trackers under ./{ROOT}/ and none readable: pass --slug")
+    upcoming = sorted((x for x in dated if x[2] >= on), key=lambda x: (x[1], str(x[0])))
+    past = sorted((x for x in dated if x[2] < on), key=lambda x: (x[2], str(x[0])), reverse=True)
+    pick = (upcoming or past)[0]
+    a._ledger_note = {"used": pick[0].parent.name, "event_date": pick[1].isoformat(),
+                      "why": ("the nearest upcoming (or running) event" if upcoming else "the most recent past event")
+                      + f" of {len(found)} ledgers under ./{ROOT}/",
+                      "others": [p.parent.name for p in found if p != pick[0]],
+                      "note": "pass --slug to use another"}
+    return pick[0]
 
 
 def nonneg(n, what):
@@ -354,6 +449,38 @@ def plan_from_math(m, days, timeline=None):
     return plan
 
 
+def event_sms(path):
+    """True when an event.json sets reminders.sms (true or a non-empty list)."""
+    try:
+        ev = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError, UnicodeDecodeError):
+        return False
+    v = ((ev or {}).get("reminders") or {}).get("sms") if isinstance(ev, dict) else None
+    return bool(v) and v is not False
+
+
+def sms_planned(data, path=None):
+    """(planned, why): SMS is planned by init --sms (or the plan or event.json at init), or by the launch folder's
+    event.json now."""
+    if data.get("sms"):
+        return True, data.get("sms_why") or "init --sms"
+    if path:
+        ev = Path(path).parent / "event.json"
+        if ev.exists() and event_sms(ev):
+            return True, f"{ev} sets reminders.sms"
+    return False, "email only"
+
+
+def parse_source(src, what="--source", allow_import=False):
+    src = src or "list"
+    if not SRC_RE.match(src) or (src.lower() == "import" and not allow_import):
+        refuse(f"{what} must be list, ads, social, partner:NAME, email:ID or segment:NAME (got {src!r})")
+    if ":" in src:
+        k, v = src.split(":", 1)
+        return f"{k.lower()}:{v.strip()}"
+    return src.lower()
+
+
 def cmd_slug(a):
     s = launch_plan.launch_slug(a.name, a.event_date)
     folder = Path(ROOT) / s
@@ -375,7 +502,7 @@ def cmd_init(path, a):
     if a.list_size is not None and a.list_size < 1:
         refuse("--list-size must be 1 or more")
     cash = launch_plan.money(a.goal_cash, "--goal-cash")
-    warnings, plan, src = [], None, None
+    warnings, plan, src, pj = [], None, None, {}
     if a.plan:
         pp = Path(a.plan)
         if pp.is_dir():
@@ -409,6 +536,14 @@ def cmd_init(path, a):
         if pj.get("timeline") and pj["timeline"].get("event_date") != ev.isoformat():
             warnings.append(f"the plan's timeline is for Day 1 {pj['timeline']['event_date']}, not {ev}")
     mode = a.close or (plan or {}).get("close") or "checkout"
+    sms_why = "init --sms" if a.sms else None
+    if not sms_why and a.plan and (pj.get("timeline") or {}).get("sms"):
+        sms_why = f"{a.plan}: timeline made with --sms"
+    ev_path = Path(a.event) if a.event else path.parent / "event.json"
+    if a.event and not ev_path.exists():
+        refuse(f"no event spec at {a.event}")
+    if not sms_why and ev_path.exists() and event_sms(ev_path):
+        sms_why = f"{ev_path} sets reminders.sms"
     if plan is None:
         m = launch_plan.compute_math(goal_buyers=a.goal_buyers, goal_cash=cash, price=cash / a.goal_buyers,
                                      list_size=a.list_size, fmt=a.format, days=a.days, paid=a.paid_event, close=mode)
@@ -420,10 +555,14 @@ def cmd_init(path, a):
     gate = {g: {"status": "open"} for g in gate_ids(mode)}
     if a.days == 1:
         gate["night_emails"] = {"status": "na", "note": "single-day event", "date": today(a).isoformat(),
-                                "tested_at": today(a).isoformat()}
+                                "tested_at": today(a).isoformat(), "stage": DB}
+    if not sms_why:
+        gate["sms_compliance"] = {"status": "na", "note": "email only: no SMS planned", "auto": True,
+                                  "date": today(a).isoformat(), "stage": PI}
     data = {"schema": SCHEMA, "created": today(a).isoformat(), "name": a.name, "slug": path.parent.name,
             "format": a.format, "days": a.days, "tz": a.tz, "event_date": ev.isoformat(), "paid_event": bool(a.paid_event),
-            "close_mode": mode, "test": bool(a.test),
+            "close_mode": mode, "test": bool(a.test), "live_definition": "unique", "sms": bool(sms_why),
+            **({"sms_why": sms_why} if sms_why else {}), "partners": {},
             "goal": {"buyers": a.goal_buyers, "cash": cash}, "plan": plan, "plan_source": src,
             "registrations": [], "days_live": {}, "close": None, "sales": [], "calls": [], "refunds": [], "imports": [],
             "gate": gate}
@@ -432,6 +571,8 @@ def cmd_init(path, a):
                                             if not isinstance(v, dict)}
     out = {"created": str(path), "name": a.name, "slug": data["slug"], "folder": str(path.parent), "close_mode": mode,
            "test": bool(a.test), "plan_source": src,
+           "sms": ("planned: sms_compliance is a critical gate item (" + sms_why + ")") if sms_why else
+                  "email only: sms_compliance is na (init --sms if texts are planned)",
            "plan": {"needed_for_goal": show(plan["needed"], lambda x: math.ceil(round(x, 6))),
                     "expected_from_list": show(plan.get("expected"), lambda x: round(x, 1))}}
     if a.test:
@@ -447,14 +588,7 @@ def total_regs(data, until=None):
 
 def cmd_log_reg(data, a):
     nonneg(a.n, "N")
-    src = a.source or "list"
-    if not SRC_RE.match(src) or src.lower() == "import":
-        refuse(f"--source must be list, ads, social, partner:NAME, email:ID or segment:NAME (got {src!r})")
-    if ":" in src:
-        k, v = src.split(":", 1)
-        src = f"{k.lower()}:{v.strip()}"
-    else:
-        src = src.lower()
+    src = parse_source(a.source)
     data["registrations"].append({"date": today(a).isoformat(), "n": a.n, "source": src})
     return {"logged": a.n, "source": src, "registered_total": total_regs(data)}
 
@@ -463,16 +597,29 @@ def cmd_log_day(data, a):
     if not 1 <= a.day <= data["days"]:
         refuse(f"--day must be between 1 and {data['days']} for this {data['days']}-day event")
     nonneg(a.live, "--live")
-    if a.unique is not None:
-        nonneg(a.unique, "--unique")
+    if a.peak is not None:
+        nonneg(a.peak, "--peak")
+    by_source = {}
+    for item in a.source_count or []:
+        if "=" not in item:
+            refuse(f"--source-count takes SOURCE=N, for example partner:Jo=40 (got {item!r})")
+        k, v = item.rsplit("=", 1)
+        try:
+            n = int(v)
+        except ValueError:
+            refuse(f"--source-count {item!r}: N must be a whole number")
+        by_source[parse_source(k.strip(), "--source-count")] = nonneg(n, "--source-count N")
+    if sum(by_source.values()) > a.live:
+        refuse(f"--source-count adds up to {sum(by_source.values())}, more than the {a.live} unique attendees (--live)")
     on = a.date or (dt.date.fromisoformat(data["event_date"]) + dt.timedelta(days=a.day - 1)).isoformat()
     parse_date(on)
     key = str(a.day)
     replaced = key in data["days_live"]
-    entry = {"live": a.live, **({"unique": a.unique} if a.unique is not None else {}), "date": on}
+    entry = {"live": a.live, **({"peak": a.peak} if a.peak is not None else {}),
+             **({"by_source": by_source} if by_source else {}), "date": on}
     data["days_live"][key] = entry
-    out = {"day": a.day, "live": a.live, "counted_as": "peak concurrent live", **({"unique": a.unique} if a.unique is not None else {}),
-           "replaced": replaced}
+    out = {"day": a.day, "live": a.live, "counted_as": LIVE_DEF, **({"peak": a.peak} if a.peak is not None else {}),
+           **({"by_source": by_source} if by_source else {}), "replaced": replaced}
     warn = []
     regs = total_regs(data)
     if a.day == 1 and regs and a.live > regs:
@@ -480,9 +627,10 @@ def cmd_log_day(data, a):
     prev = data["days_live"].get(str(a.day - 1))
     if prev and a.live > prev["live"]:
         warn.append(f"Day {a.day} ({a.live}) is higher than Day {a.day - 1} ({prev['live']}): fine if new people joined, "
-                    "otherwise check both are the peak concurrent count")
-    if a.unique is not None and a.unique < a.live:
-        warn.append(f"--unique ({a.unique}) is below the peak live count ({a.live}); unique attendees are usually higher")
+                    "otherwise check both are unique attendees")
+    if a.peak is not None and a.peak > a.live:
+        warn.append(f"--peak ({a.peak}) is above the unique attendees ({a.live}); the peak at once is usually lower: "
+                    "check --live is the unique count from the Zoom report")
     if warn:
         out["warnings"] = warn
     return out
@@ -512,10 +660,14 @@ def cmd_log_sale(data, a):
         if a.booked is not None and abs(launch_plan.money(a.booked, "--booked") - cash) > .005:
             refuse("--booked is for payment plans; a full payment books price × count")
         booked = cash
+    if a.tier in TICKET_TIERS:
+        refuse(f"tier {a.tier!r} is kept for log-tickets; name the offer's tier something else")
+    src = parse_source(a.source) if a.source else None
     data["sales"].append({"date": today(a).isoformat(), "tier": a.tier, "price": price, "count": a.count,
-                          "payment": a.payment, "via": a.via, "cash": round(cash, 2), "booked": round(booked, 2)})
+                          "payment": a.payment, "via": a.via, "cash": round(cash, 2), "booked": round(booked, 2),
+                          **({"source": src} if src else {})})
     out = {"logged": a.count, "tier": a.tier, "payment": a.payment, "via": a.via, "cash": round(cash, 2),
-           "booked": round(booked, 2), "buyers_total": buyers_total(data)}
+           "booked": round(booked, 2), "buyers_total": buyers_total(data), **({"source": src} if src else {})}
     if a.via == "call":
         out["note"] = "cash only: buyers and booked value of call deals come from log-calls"
     return out
@@ -529,8 +681,15 @@ def call_totals(data):
     return t
 
 
+TICKET_TIERS = ("Tickets", "VIP upgrade")
+
+
+def offer_sales(data):
+    return [x for x in data["sales"] if x.get("via", "checkout") != "ticket"]
+
+
 def checkout_buyers(data):
-    s = [x for x in data["sales"] if x.get("via", "checkout") != "call"]
+    s = [x for x in data["sales"] if x.get("via", "checkout") == "checkout"]
     return sum(x["count"] for x in s) if s else None
 
 
@@ -560,8 +719,9 @@ def cmd_log_calls(data, a):
         refuse(f"calls held in total ({t['held']}) would be more than calls booked ({t['booked']})")
     if t["closed"] > t["held"]:
         refuse(f"calls closed in total ({t['closed']}) would be more than calls held ({t['held']})")
+    src = parse_source(a.source) if a.source else None
     data["calls"].append({"date": today(a).isoformat(), "tier": a.tier, "booked": a.booked, "held": a.held,
-                          "closed": a.closed, "value": round(value, 2)})
+                          "closed": a.closed, "value": round(value, 2), **({"source": src} if src else {})})
     out = {"logged": {"booked": a.booked, "held": a.held, "closed": a.closed, "value": round(value, 2)}, "tier": a.tier,
            "totals": t, "show_rate": None if not t["booked"] else round(t["held"] / t["booked"], 4),
            "close_rate": None if not t["held"] else round(t["closed"] / t["held"], 4)}
@@ -590,9 +750,57 @@ def cmd_log_refund(data, a):
     if amount > collected - already + .005:
         refuse(f"--amount {amount:,.2f} is more than the cash collected for {a.tier!r} ({collected:,.2f}) less earlier "
                f"refunds ({already:,.2f}); log the cash first (log-sale) or refund what was paid")
+    src = parse_source(a.source) if a.source else None
     data["refunds"].append({"date": today(a).isoformat(), "tier": a.tier, "count": a.count, "amount": round(amount, 2),
-                            "booked_cancelled": round(cancelled, 2)})
-    return {"refund": a.count, "tier": a.tier, "amount": round(amount, 2), "booked_cancelled": round(cancelled, 2)}
+                            "booked_cancelled": round(cancelled, 2), **({"source": src} if src else {})})
+    return {"refund": a.count, "tier": a.tier, "amount": round(amount, 2), "booked_cancelled": round(cancelled, 2),
+            **({"source": src} if src else {})}
+
+
+def cmd_log_tickets(data, a):
+    nonneg(a.count, "--count")
+    price = launch_plan.money(a.price, "--price")
+    src = parse_source(a.source) if a.source else None
+    if (a.vip_count is None) != (a.vip_price is None):
+        refuse("--vip-count and --vip-price go together")
+    rows = [("Tickets", price, a.count)]
+    if a.vip_count is not None:
+        rows.append(("VIP upgrade", launch_plan.money(a.vip_price, "--vip-price"), nonneg(a.vip_count, "--vip-count")))
+    out = {"logged": []}
+    for tier, p_, n in rows:
+        cash = round(p_ * n, 2)
+        data["sales"].append({"date": today(a).isoformat(), "tier": tier, "price": p_, "count": n, "payment": "full",
+                              "via": "ticket", "cash": cash, "booked": cash, **({"source": src} if src else {})})
+        out["logged"].append({"tier": tier, "count": n, "price": p_, "cash": cash})
+    if not data.get("paid_event") and price:
+        out["warnings"] = ["this ledger is a free event (init without --paid-event); tickets are logged anyway"]
+    out["tickets_total"] = sum(x["count"] for x in data["sales"] if x["tier"] == "Tickets")
+    out["note"] = "ticket and VIP cash count in the report's cash and booked, never as buyers of the offer"
+    return out
+
+
+def cmd_partner(data, a):
+    r = launch_plan.rate(a.rate, "--rate")
+    name = a.name.strip()
+    if not name or not SRC_RE.match(f"partner:{name}"):
+        refuse(f"--name must be the NAME used in --source partner:NAME (got {a.name!r})")
+    key = next((k for k in data["partners"] if k.casefold() == name.casefold()), name)
+    data["partners"][key] = {"commission_rate": r, "set": today(a).isoformat()}
+    seen = {s.split(":", 1)[1] for s in sources_seen(data) if s.startswith("partner:")}
+    out = {"partner": key, "commission_rate": r,
+           "note": "commission is worked out on net cash (after refunds) in the report; pay it after the refund window"}
+    if not any(x.casefold() == key.casefold() for x in seen):
+        out["warnings"] = [f"nothing is logged yet with --source partner:{key}"]
+    return out
+
+
+def sources_seen(data):
+    out = {r["source"] for r in data["registrations"]}
+    for k in ("sales", "calls", "refunds"):
+        out |= {x["source"] for x in data.get(k, []) if x.get("source")}
+    for e in data["days_live"].values():
+        out |= set((e.get("by_source") or {}))
+    return out
 
 
 def parse_map(items, days):
@@ -690,65 +898,129 @@ def cmd_import_csv(data, a):
 
 # ---------------- gate ----------------
 
-def item_line(gid, what, g):
+def is_critical(gid, data, path=None):
+    if gid == "sms_compliance":
+        return sms_planned(data, path)[0]
+    return GATE_BY_ID[gid][1]
+
+
+def entry_for(data, gid, path=None):
+    g = dict(data["gate"].get(gid) or {"status": "open"})
+    if gid == "sms_compliance" and g.get("auto") and sms_planned(data, path)[0]:
+        g = {"status": "open", "note": "SMS is planned now: test consent and A2P approval"}
+    return g
+
+
+def stage_of(g, gid):
+    """The stage an entry was recorded at (older entries: the item's first stage)."""
+    return g.get("stage") or GATE_BY_ID[gid][6][0]
+
+
+def satisfied(gid, g, stage, day):
+    """(ok, why not): does this entry count for this stage?"""
+    if g["status"] == "na":
+        return True, ""
+    if g["status"] != "pass":
+        return False, g["status"]
+    stages = GATE_BY_ID[gid][6]
+    rec = stage_of(g, gid)
+    if stage != stages[0] and STAGES.index(rec) < STAGES.index(stage):
+        return False, f"passed at {rec}; re-check it at {stage} (gate --stage {stage} --set {gid} pass \"note\")"
+    if stage == CM and str(g.get("tested_at") or "")[:10] != day:
+        return False, f"passed on {str(g.get('tested_at') or '?')[:10]}, not on the close morning ({day}): re-test that morning"
+    return True, ""
+
+
+def item_line(gid, what, g, why=""):
     extra = [g["status"]]
     if g.get("tested_at"):
         extra.append(f"tested {g['tested_at']}")
+    if g.get("stage"):
+        extra.append(f"at {g['stage']}")
     if g.get("note"):
         extra.append(f"note: {g['note']}")
+    if why and why != g["status"]:
+        extra.append(why)
     return f"{gid}: {what} ({'; '.join(extra)})"
 
 
-def gate_view(data):
+def close_day(data):
+    return (dt.date.fromisoformat(data["event_date"]) + dt.timedelta(days=int(data["days"]) - 1)).isoformat()
+
+
+def stage_view(data, stage, today_, path=None):
+    """One stage. close_morning passes count only when dated the close day (the event's final day)."""
     mode = data.get("close_mode", "checkout")
+    day = close_day(data) if stage == CM else today_
     items, hold, adv = [], [], []
-    for gid, crit, group, what, src, modes in GATE:
-        if mode not in modes:
-            continue
-        g = data["gate"].get(gid, {"status": "open"})
-        items.append({"id": gid, "critical": crit, "group": group, "status": g["status"], "check": what, "source": src,
-                      "tested_at": g.get("tested_at") or g.get("date"), **({"note": g["note"]} if g.get("note") else {})})
-        if g["status"] not in ("pass", "na"):
-            (hold if crit else adv).append(item_line(gid, what, g))
-    out = {"result": "GO" if not hold else "HOLD", "close_mode": mode, "items": items}
+    for gid in stage_ids(mode, stage):
+        _, _, group, what, src, _, stages = GATE_BY_ID[gid]
+        g = entry_for(data, gid, path)
+        crit = is_critical(gid, data, path)
+        ok, why = satisfied(gid, g, stage, day)
+        items.append({"id": gid, "critical": crit, "group": group, "status": g["status"], "ok_for_stage": ok,
+                      "check": what, "source": src, "stages": list(stages), "recorded_stage": g.get("stage"),
+                      "tested_at": g.get("tested_at") or g.get("date"), **({"note": g["note"]} if g.get("note") else {}),
+                      **({"why": why} if not ok else {})})
+        if not ok:
+            (hold if crit else adv).append(item_line(gid, what, g, why))
+    out = {"stage": stage, "when": STAGE_WHEN[stage], "result": "GO" if not hold else "HOLD", "close_mode": mode,
+           "items": items}
+    if stage == CM:
+        out["close_morning"] = day
+        if today_ != day:
+            out["note"] = (f"today is {today_}; the close morning is {day} (the final day): passes count only when "
+                           "tested that morning")
     if hold:
         out["hold"] = hold
-        out["say"] = (f"HOLD: {len(hold)} critical item{'s' if len(hold) > 1 else ''} not passed. Fix them before the first "
-                      "send; the member may still choose to launch, knowing what each open item risks.")
+        out["say"] = (f"HOLD at {stage}: {len(hold)} critical item{'s' if len(hold) > 1 else ''} not passed. Fix "
+                      f"{'them' if len(hold) > 1 else 'it'} {STAGE_WHEN[stage]}; the member may still choose to go "
+                      "ahead, knowing what each open item risks.")
     else:
-        out["say"] = "GO: every critical item passes." + (" Advisory items still open." if adv else "")
+        out["say"] = f"GO at {stage}: every critical item passes." + (" Advisory items still open." if adv else "")
     if adv:
         out["advisory_open"] = adv
-    out["close_morning_items"] = close_morning_ids(mode)
-    out["sources"] = {k: SOURCES[k] for k in sorted({g[4] for g in GATE if mode in g[5]})}
     return out
 
 
-def close_morning_view(data, day):
+def gate_view(data, day, path=None):
     mode = data.get("close_mode", "checkout")
-    rows, need = [], []
-    for gid in close_morning_ids(mode):
-        g = data["gate"].get(gid, {"status": "open"})
-        when = str(g.get("tested_at") or "")
-        fresh = g["status"] == "na" or (g["status"] == "pass" and when[:10] == day)
-        rows.append({"id": gid, "status": g["status"], "tested_at": when or None, "fresh_today": fresh,
-                     "check": GATE_BY_ID[gid][3], **({"note": g["note"]} if g.get("note") else {})})
-        if not fresh:
-            why = "passed on " + when[:10] + ", not today" if g["status"] == "pass" else g["status"]
-            need.append(f"{gid}: re-test today ({why})")
-    out = {"close_morning": day, "result": "GO for the close" if not need else "HOLD the close", "items": rows}
-    if need:
-        out["needs"] = need
-        out["say"] = (f"HOLD the close: {len(need)} money/follow-up item{'s' if len(need) > 1 else ''} not passed today. "
-                      "Test each on a phone and run gate --set ITEM pass (each test is dated when it is set).")
-    else:
-        out["say"] = "GO for the close: every money and follow-up item passed this morning."
+    per = {s: stage_view(data, s, day, path) for s in STAGES}
+    items = []
+    for gid in gate_ids(mode):
+        g = entry_for(data, gid, path)
+        _, _, group, what, src, _, stages = GATE_BY_ID[gid]
+        items.append({"id": gid, "critical": is_critical(gid, data, path), "group": group, "status": g["status"],
+                      "stages": list(stages), "recorded_stage": g.get("stage"), "check": what, "source": src,
+                      "tested_at": g.get("tested_at") or g.get("date"), **({"note": g["note"]} if g.get("note") else {})})
+    nxt = next((s for s in STAGES if per[s]["result"] == "HOLD"), None)
+    out = {"result": "GO" if nxt is None else "HOLD", "close_mode": mode,
+           "stages": {s: {"result": v["result"], "when": v["when"],
+                          "items": [i["id"] for i in v["items"]],
+                          **({"hold": [x.split(":", 1)[0] for x in v["hold"]]} if v.get("hold") else {}),
+                          **({"advisory_open": [x.split(":", 1)[0] for x in v["advisory_open"]]}
+                             if v.get("advisory_open") else {})} for s, v in per.items()},
+           "next_stage": nxt, "items": items}
+    out["say"] = ("GO: every stage passes." if nxt is None else
+                  f"Next: {nxt} ({STAGE_WHEN[nxt]}) is HOLD on {', '.join(out['stages'][nxt].get('hold', []))}. "
+                  f"Run gate --stage {nxt} to work through it.")
+    planned, why = sms_planned(data, path)
+    out["sms"] = ("planned (" + why + "): sms_compliance is critical") if planned else "email only: sms_compliance is na"
+    out["close_morning_items"] = close_morning_ids(mode)
+    out["sources"] = {k: SOURCES[k] for k in sorted({g[4] for g in GATE if mode in g[5]})}
     return out
 
 
 def cmd_gate(data, a):
     mode = data.get("close_mode", "checkout")
     ids = gate_ids(mode)
+    stage = CM if a.close_morning else a.stage
+    if a.close_morning and a.stage and a.stage != CM:
+        refuse("--close-morning is --stage close_morning; give one of them")
+    if stage and stage not in STAGES:
+        refuse(f"--stage must be one of {', '.join(STAGES)} (got {stage!r})")
+    day = today(a).isoformat()
+    path = getattr(a, "_path", None)
     changed = []
     sets = a.set or []
     if a.note and len(sets) != 1:
@@ -764,20 +1036,34 @@ def cmd_gate(data, a):
             refuse(f"{gid} is not a gate item for a {mode} close; items: {', '.join(ids)}")
         if status not in STATUSES:
             refuse(f"gate status must be pass, fail, na or open (got {status!r})")
-        crit = GATE_BY_ID[gid][1]
+        stages = GATE_BY_ID[gid][6]
+        if stage and stage not in stages:
+            refuse(f"{gid} is not judged at {stage}; its stages: {', '.join(stages)}")
+        crit = is_critical(gid, data, path)
         if status == "na" and crit and not note:
             refuse(f"{gid} is critical: na needs a note saying why it does not apply (--set {gid} na \"why\")")
-        entry = {"status": status, **({"note": note} if note else {}), "date": today(a).isoformat()}
+        if status == "pass" and crit and not note:
+            refuse(f"{gid} is critical: pass needs a note saying what was tested, by whom, on what device "
+                   f"(--set {gid} pass \"Dana, iPhone, live card then refunded\")")
+        rec = stage
+        if not rec:
+            cur = entry_for(data, gid, path)
+            rec = next((s for s in stages if not satisfied(gid, cur, s, close_day(data) if s == CM else day)[0]),
+                       stages[-1])
+        prev = data["gate"].get(gid)
+        entry = {"status": status, **({"note": note} if note else {}), "date": day, "stage": rec}
         if status != "open":
             entry["tested_at"] = stamp(a)
+        if prev and prev.get("status") != "open":
+            entry["history"] = (prev.get("history") or [])[-4:] + [{k: v for k, v in prev.items() if k != "history"}]
         data["gate"][gid] = entry
-        changed.append(gid)
+        changed.append(f"{gid} ({rec})")
     for gid in a.reset or []:
         if gid not in ids:
             refuse(f"unknown gate item {gid!r} for a {mode} close; items: {', '.join(ids)}")
-        data["gate"][gid] = {"status": "open", "date": today(a).isoformat(), "reset": True}
+        data["gate"][gid] = {"status": "open", "date": day, "reset": True}
         changed.append(gid)
-    out = close_morning_view(data, today(a).isoformat()) if a.close_morning else gate_view(data)
+    out = stage_view(data, stage, day, path) if stage else gate_view(data, day, path)
     if changed:
         out = {"set": changed, **out}
     return out
@@ -817,11 +1103,16 @@ def build_report(data):
     buyers = buyers_total(data)
     if buyers is None and close:
         buyers = 0
-    refunds_n = sum(r["count"] for r in data["refunds"])
+    offer_refunds = [r for r in data["refunds"] if r["tier"] not in TICKET_TIERS]
+    refunds_n = sum(r["count"] for r in offer_refunds)
     refunds_amt = sum(r["amount"] for r in data["refunds"])
     cancelled = sum(r.get("booked_cancelled", 0) for r in data["refunds"])
     cash = sum(s["cash"] for s in data["sales"])
     booked = sum(s["booked"] for s in data["sales"] if s.get("via", "checkout") != "call") + (calls["value"] if calls else 0)
+    ticket_rows = [s for s in data["sales"] if s.get("via") == "ticket"]
+    ticket_cash = sum(s["cash"] for s in ticket_rows if s["tier"] == "Tickets")
+    vip_cash = sum(s["cash"] for s in ticket_rows if s["tier"] == "VIP upgrade")
+    offer_booked = booked - ticket_cash - vip_cash
     net_cash, net_booked = cash - refunds_amt, booked - refunds_amt - cancelled
     # funnel: (label, actual, plan key)
     stages = [("Registered", regs, "registrants")] + [(f"Live Day {k}", live[k - 1], ("day_live", k - 1)) for k in range(1, days + 1)] + \
@@ -896,7 +1187,7 @@ def build_report(data):
     leaks.sort(key=lambda x: (-x["buyers_lost"], -x["shortfall"], x["stage"]))
     protect.sort(key=lambda x: -(x["actual"] / x["plan"] if x["plan"] else 0))
     # benchmarks (the plan's member history when it had one)
-    sold_price = (booked / buyers) if buyers else data["goal"]["cash"] / data["goal"]["buyers"]
+    sold_price = (offer_booked / buyers) if buyers else data["goal"]["cash"] / data["goal"]["buyers"]
     tiers = [{"name": "checkout", "price": sold_price, "share": 1.0, "channel": "checkout"}] if mode == "checkout" else \
         [{"name": "call", "price": sold_price, "share": 1.0, "channel": "call"}] if mode == "call" else \
         [{"name": "checkout", "price": min(sold_price, launch_plan.CALL_PRICE - 1), "share": .5, "channel": "checkout"},
@@ -954,7 +1245,15 @@ def build_report(data):
             "close_rate": r4(ratio(calls and calls["closed"], calls and calls["held"]))},
         "money": {"cash": round(cash, 2), "booked": round(booked, 2), "refunded": round(refunds_amt, 2),
                   "booked_cancelled": round(cancelled, 2), "net_cash": round(net_cash, 2), "net_booked": round(net_booked, 2),
-                  "average_sale": round(sold_price, 2) if buyers else None},
+                  "average_sale": round(sold_price, 2) if buyers else None,
+                  **({"ticket_cash": round(ticket_cash, 2), "vip_cash": round(vip_cash, 2),
+                      "tickets": sum(s["count"] for s in ticket_rows if s["tier"] == "Tickets"),
+                      "vip_upgrades": sum(s["count"] for s in ticket_rows if s["tier"] == "VIP upgrade")}
+                     if ticket_rows else {})},
+        "live_definition": LIVE_DEF,
+        "peak_concurrent": {str(k): data["days_live"][str(k)]["peak"] for k in range(1, days + 1)
+                            if "peak" in data["days_live"].get(str(k), {})},
+        "partners": partner_table(data),
         "refunds": {"count": refunds_n, "amount": round(refunds_amt, 2),
                     "rate": None if not buyers else round(refunds_n / buyers, 4)},
         "buyers_net": buyers_net,
@@ -969,6 +1268,56 @@ def build_report(data):
         "not_logged": missing,
         "sources": {k: SOURCES[k] for k in sorted(keys) if k in SOURCES},
     }
+
+
+def partner_table(data):
+    """Per partner (partner:NAME sources): registrations, Day-1 attendees (if logged by source), buyers, cash,
+    refunds, net cash and the commission due on net cash at the rate set with `partner`."""
+    names = {}
+    def key(src):
+        n = src.split(":", 1)[1]
+        return names.setdefault(n.casefold(), n)
+    rows = {}
+    def row(src):
+        k = key(src)
+        return rows.setdefault(k, {"registrations": 0, "attendees_day1": None, "buyers": 0, "cash": 0.0,
+                                   "refunds": 0, "refunded": 0.0})
+    for r in data["registrations"]:
+        if r["source"].startswith("partner:"):
+            row(r["source"])["registrations"] += r["n"]
+    d1 = (data["days_live"].get("1") or {}).get("by_source") or {}
+    for src, n in d1.items():
+        if src.startswith("partner:"):
+            row(src)["attendees_day1"] = n
+    for s_ in data["sales"]:
+        src = s_.get("source") or ""
+        if src.startswith("partner:"):
+            x = row(src)
+            x["cash"] += s_["cash"]
+            if s_.get("via", "checkout") == "checkout":
+                x["buyers"] += s_["count"]
+    for c in data.get("calls", []):
+        src = c.get("source") or ""
+        if src.startswith("partner:"):
+            row(src)["buyers"] += c["closed"]
+    for r in data["refunds"]:
+        src = r.get("source") or ""
+        if src.startswith("partner:"):
+            x = row(src)
+            x["refunds"] += r["count"]; x["refunded"] += r["amount"]
+    rates = {}
+    for pname, v in (data.get("partners") or {}).items():
+        rates[pname.casefold()] = v.get("commission_rate")
+        row("partner:" + pname)
+    for name, x in rows.items():
+        x["net_cash"] = round(x["cash"] - x["refunded"], 2)
+        x["cash"], x["refunded"] = round(x["cash"], 2), round(x["refunded"], 2)
+        x["show_up"] = None if not x["registrations"] or x["attendees_day1"] is None else \
+            round(x["attendees_day1"] / x["registrations"], 4)
+        r = rates.get(name.casefold())
+        x["commission_rate"] = r
+        x["commission_due"] = None if r is None else round(max(x["net_cash"], 0) * r, 2)
+    return rows
 
 
 def fnum(x):
@@ -1003,6 +1352,12 @@ def report_md(r, heading=True):
               f"({plural(r['refunds']['count'], 'refund')}"
               + (f", {fpct(r['refunds']['rate'])} of buyers" if r['refunds']['rate'] is not None else "") + ")"
               + f" · net cash {money_s(m['net_cash'])} · net booked {money_s(m['net_booked'])}"]
+    if m.get("ticket_cash") is not None:
+        L.append(f"- Event revenue (in the cash above): {plural(m['tickets'], 'ticket')} {money_s(m['ticket_cash'])}"
+                 + (f" · {plural(m['vip_upgrades'], 'VIP upgrade')} {money_s(m['vip_cash'])}" if m.get("vip_upgrades") else ""))
+    L.append(f"- Live counts are {r['live_definition']}"
+             + (" · peak at once: " + ", ".join(f"Day {k} {v:,}" for k, v in r["peak_concurrent"].items())
+                if r.get("peak_concurrent") else ""))
     if r["per_registrant"]:
         L.append(f"- Revenue per registrant: {money_s(r['per_registrant']['cash'])} cash / {money_s(r['per_registrant']['booked'])} "
                  "booked (no published benchmark: compare with your own last launch)")
@@ -1032,6 +1387,15 @@ def report_md(r, heading=True):
         for b in r["benchmarks"]:
             f = (lambda x: f"×{x:.2f}") if b["stage"] == "saw_price" else fpct
             L.append(f"| {b['label']} | {f(b['actual'])} | {f(b['range'][0])}–{f(b['range'][1])} | {b['status']} | {b['source']} |")
+    if r.get("partners"):
+        L += ["", "| Partner | Registered | Day-1 live | Buyers | Cash | Refunds | Net cash | Commission due |",
+              "|---|---|---|---|---|---|---|---|"]
+        for name, x in r["partners"].items():
+            L.append(f"| {name} | {fnum(x['registrations'])} | {fnum(x['attendees_day1'])} | {fnum(x['buyers'])} | "
+                     f"{money_s(x['cash'])} | {x['refunds']} ({money_s(x['refunded'])}) | {money_s(x['net_cash'])} | "
+                     + (f"{money_s(x['commission_due'])} at {fpct(x['commission_rate'])}" if x["commission_rate"] is not None
+                        else "rate not set (partner --name … --rate R)") + " |")
+        L.append("\nCommission is on net cash; pay it after the refund window closes.")
     L += ["", "## Leaks", ""]
     if r["leaks"]:
         for i, x in enumerate(r["leaks"], 1):
@@ -1054,13 +1418,19 @@ def cmd_report(data, a):
     r = build_report(data)
     if a.md is not None:
         target = Path(a.md) if a.md else Path(a._path).parent / "debrief-numbers.md"
+        if target.name.lower() == "debrief.md":
+            refuse(f"{target} is the member's own debrief: the report never writes debrief.md. Use the default "
+                   "(report --md writes debrief-numbers.md in the launch folder) or another FILE")
         if target.exists() and not a.force:
-            head = target.read_text(encoding="utf-8", errors="replace")[:len(MARKER) + 5]
-            if not head.startswith(MARKER):
+            text = target.read_text(encoding="utf-8", errors="replace")
+            if not text.startswith(MARKER):
                 refuse(f"{target} exists and was not written by the report (it may hold hand-written notes); choose "
                        "another FILE, or pass --force to overwrite it")
+            if END_MARKER in text and text.split(END_MARKER, 1)[1].strip():
+                refuse(f"{target} has text added after the report's end marker; move it to debrief.md (or pass "
+                       "--force to overwrite it)")
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(MARKER + "\n" + report_md(r), encoding="utf-8")
+        target.write_text(MARKER + "\n" + report_md(r) + "\n" + END_MARKER + "\n", encoding="utf-8")
         r["written"] = str(target)
     return r
 
@@ -1191,30 +1561,34 @@ def cmd_obsidian(data, a):
                       f"{fnum(regs)} registered · "
                       + (plural(r['buyers_net'], 'buyer') if r['buyers_net'] is not None else '– buyers')
                       + f" (net of refunds) · {money_s(r['money']['net_cash'])} cash")
-    text = idx.read_text(encoding="utf-8") if idx.exists() else "# Launches\n\nOne line per launch, newest last.\n\n"
+    text = idx.read_text(encoding="utf-8") if idx.exists() else "# Launches\n\nOne line per launch, newest last.\n"
     lines = text.splitlines()
-    hit = [i for i, x in enumerate(lines) if f"[[{stem}]]" in x]
+    ours = lambda x, s_: f"[[{s_}]]" in x and (INDEX_MARK in x or x.startswith(f"- ") and f" · [[{s_}]] · " in x
+                                               and re.match(r"- (\d{4}-\d{2}-\d{2}|\?) · \[\[", x))
+    marked = line + " " + INDEX_MARK
+    hit = [i for i, x in enumerate(lines) if ours(x, stem)]
     if hit:
-        lines[hit[0]] = line
+        lines[hit[0]] = marked                       # only a line this script wrote is updated, in place
         lines = [x for i, x in enumerate(lines) if i not in hit[1:]]
-    else:
-        lines.append(line)
-    backfilled = []
+    backfilled, new_lines = [], []
     for n in find_launch_notes(v, include_test=True)[0]:
-        s = Path(n["file"]).stem
+        s_ = Path(n["file"]).stem
         if n["found_in"] != "launches":
             continue
-        if s == stem or any(f"[[{s}]]" in x for x in lines):
+        if s_ == stem or any(f"[[{s_}]]" in x for x in lines):
             continue
         fmn = n["frontmatter"]
-        lines.append(index_line(fmn.get("date", "?"), s, ("TEST · " if is_test(fmn) else "") + str(fmn.get("title", s)),
-                                fmn.get("format", "?"), "back-filled from the note"))
-        backfilled.append(s)
-    head = [x for x in lines if not x.startswith("- ")]
-    entries = sorted([x for x in lines if x.startswith("- ")], key=lambda x: x[2:12])
-    while head and head[-1] == "":
-        head.pop()
-    idx.write_text("\n".join(head + [""] + entries) + "\n", encoding="utf-8")
+        new_lines.append(index_line(fmn.get("date", "?"), s_, ("TEST · " if is_test(fmn) else "") + str(fmn.get("title", s_)),
+                                    fmn.get("format", "?"), "back-filled from the note") + " " + INDEX_MARK)
+        backfilled.append(s_)
+    if not hit:
+        new_lines.append(marked)
+    if new_lines:                                    # appended at the end, the new lines in date order among themselves
+        while lines and not lines[-1].strip():
+            lines.pop()
+        lines += [""] if lines and not lines[-1].startswith("- ") else []
+        lines += sorted(new_lines, key=lambda x: x[2:12])
+    idx.write_text("\n".join(lines) + "\n", encoding="utf-8")
     out = {"written": str(note), "overwrote": existed, "test": test, "index": str(idx), "index_line": line,
            "index_updated": "replaced" if hit else "appended", "index_backfilled": backfilled}
     if warn:
@@ -1222,86 +1596,217 @@ def cmd_obsidian(data, a):
     return out
 
 
+def _scalar(v):
+    v = v.strip()
+    if len(v) >= 2 and v[0] == v[-1] and v[0] in "\"'":
+        return v[1:-1].replace('\\"', '"').replace("\\\\", "\\")
+    return v
+
+
 def frontmatter(text):
+    """(dict, body). Handles key: value, quoted values, inline lists [a, b] and YAML block lists (key: then
+    '  - item' lines). Keys are lower-cased."""
     if not text.startswith("---"):
         return {}, text
-    end = text.find("\n---", 3)
-    if end < 0:
+    end = re.search(r"^---\s*$", text[3:], re.M)
+    if not end:
         return {}, text
-    fm = {}
-    for ln in text[3:end].strip().splitlines():
-        if ":" not in ln:
+    block, body = text[3:3 + end.start()], text[3 + end.end():]
+    fm, cur = {}, None
+    for ln in block.splitlines():
+        if not ln.strip() or ln.lstrip().startswith("#"):
+            continue
+        m = re.match(r"^\s*-\s*(.*)$", ln)
+        if m and cur is not None:
+            if not isinstance(fm.get(cur), list):
+                fm[cur] = []
+            if m.group(1).strip():
+                fm[cur].append(_scalar(m.group(1)))
+            continue
+        if ":" not in ln or ln[:1] in " \t":
             continue
         k, v = ln.split(":", 1)
-        v = v.strip()
+        cur, v = k.strip().lower(), v.strip()
         if v.startswith("[") and v.endswith("]"):
-            v = [x.strip().strip('"\'') for x in v[1:-1].split(",") if x.strip()]
-        elif len(v) >= 2 and v[0] == v[-1] and v[0] in "\"'":
-            v = v[1:-1].replace('\\"', '"').replace("\\\\", "\\")
-        fm[k.strip()] = v
-    return fm, text[end + 4:]
+            fm[cur] = [_scalar(x) for x in v[1:-1].split(",") if x.strip()]
+        elif v == "":
+            fm[cur] = ""
+        else:
+            fm[cur] = _scalar(v)
+    return fm, body.lstrip("\n")
 
 
-HEADINGS = {
-    "results": ("results", "numbers", "the numbers", "metrics", "scoreboard", "funnel", "outcome"),
-    "lessons": ("lessons", "lessons learned", "what broke", "what went wrong", "what didn't work", "what did not work",
-                "debrief", "takeaways", "what we learned", "what i learned", "next time"),
-    "protect": ("what to protect", "what worked", "what went well", "keep", "protect"),
+HEADINGS = {   # matched as whole words anywhere in the heading, case-insensitively, at any level
+    "protect": ("what to protect", "protect", "what worked", "worked well", "what went well", "went well", "wins",
+                "keep", "keepers"),
+    "lessons": ("lesson", "lessons", "what broke", "what went wrong", "what didn't work", "what did not work",
+                "what didnt work", "leaks", "leak", "takeaways", "what we learned", "what i learned", "next time",
+                "what i'd change", "what id change", "what to change", "mistakes", "fixes"),
+    "results": ("results", "result", "numbers", "the numbers", "metrics", "scoreboard", "funnel", "outcome",
+                "outcomes", "stats", "kpis"),
 }
 NAME_RE = re.compile(r"launch|event|boot-?camp|camp|webinar|challenge|workshop|intensive|debrief", re.I)
-TYPES = {"launch", "debrief", "event"}
-SKIP_DIRS = {".obsidian", ".trash", ".git", "external", "templates", "_templates"}
+DEBRIEF_NAME_RE = re.compile(r"(?<![a-z])(debrief|retro|retrospective|post[- ]?mortem|launch review|audit)(?![a-z])", re.I)
+TYPES = {"launch", "debrief", "event", "audit", "retro", "retrospective", "review", "post-mortem", "postmortem", "prep"}
+TAGS = {"launch", "launches", "debrief", "event", "retro", "retrospective", "post-mortem", "postmortem", "audit"}
+FOREIGN_TYPES = {"source", "sources", "transcript", "clipping", "clippings", "reference", "podcast", "article", "book",
+                 "highlight", "highlights", "literature", "client", "clients"}
+FOREIGN_TAGS = {"clippings", "clipping", "readwise", "transcript", "podcast", "source", "client", "clients",
+                "flight-club", "reference"}
+SKIP_DIRS = {".obsidian", ".trash", ".git", "external", "sources", "source", "readwise", "clippings", "clipping",
+             "transcripts", "transcript", "flight-club", "flight club", "imports", "imported", "import", "kindle",
+             "highlights", "web clips", "webclips", "snipd", "omnivore", "references", "clients", "client"}
+TEMPLATE_DIR = re.compile(r"^[\d\s._-]*_?templates?$", re.I)
+TEMPLATE_TEXT = re.compile(r"\{\{\s*(date|title|time)\b[^}]*\}\}|<%\s*tp\.", re.I)
+EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
+PHONE_RE = re.compile(r"(?<![\w/])\+?\(?\d[\d\s().-]{6,}\d(?![\w/])")
+
+
+def redact(text):
+    if not isinstance(text, str):
+        return text
+    text = EMAIL_RE.sub("[email removed]", text)
+    def ph(m):
+        x = m.group(0)
+        digits = re.sub(r"\D", "", x)
+        if re.search(r"\d{4}-\d{2}-\d{2}", x) or not 9 <= len(digits) <= 15:
+            return x
+        if not (x.startswith("+") or re.search(r"[\s().-]", x)):
+            return x
+        return "[phone removed]"
+    return PHONE_RE.sub(ph, text)
+
+
+def tag_tokens(fm):
+    raw = fm.get("tags", fm.get("tag", ""))
+    items = raw if isinstance(raw, list) else re.split(r"[,\s]+", str(raw))
+    out = set()
+    for x in items:
+        x = str(x).strip().strip("#").lower()
+        if x:
+            out.add(x)
+            out.update(p for p in x.split("/") if p)
+    return out
 
 
 def is_test(fm):
-    t = fm.get("test")
-    tags = fm.get("tags") if isinstance(fm.get("tags"), list) else [str(fm.get("tags", ""))]
-    return str(t).lower() == "true" or "test" in [str(x).lower() for x in tags]
+    return str(fm.get("test")).lower() == "true" or "test" in tag_tokens(fm)
 
 
 def fm_match(fm):
-    tags = fm.get("tags") if isinstance(fm.get("tags"), list) else re.split(r"[,\s]+", str(fm.get("tags", "")))
-    return str(fm.get("type", "")).lower() in TYPES or any(
-        re.search(r"launch|event|debrief", str(x), re.I) for x in tags if x)
+    return str(fm.get("type", "")).strip().lower() in TYPES or bool(tag_tokens(fm) & TAGS)
+
+
+def foreign(fm, authors):
+    """Why a note is imported material or a client note (None when it is the member's own)."""
+    t = str(fm.get("type", "")).strip().lower()
+    if t in FOREIGN_TYPES:
+        return f"type: {t}"
+    bad = tag_tokens(fm) & FOREIGN_TAGS
+    if bad:
+        return "tag " + ", ".join(sorted(bad))
+    for k in ("source", "url", "link", "source_url"):
+        v = str(fm.get(k, "") or "")
+        if re.match(r"(https?://|www\.)", v):
+            return f"{k}: {v[:60]}"
+    for k in ("author", "speaker", "host", "creator"):
+        v = fm.get(k)
+        vals = v if isinstance(v, list) else [v] if v else []
+        others = [str(x) for x in vals if str(x).strip("[] ").lower() not in {a.lower() for a in authors} | {"me", "self"}]
+        if others:
+            return f"{k}: {', '.join(others)[:60]} (pass --author NAME if that is the member)"
+    return None
+
+
+def norm_heading(t):
+    t = t.lower().replace("’", "'")
+    t = re.sub(r"[^a-z' ]+", " ", t)
+    return re.sub(r"\s+", " ", t).strip()
+
+
+def heading_kind(title):
+    t = norm_heading(title)
+    for k, names in HEADINGS.items():
+        if any(re.search(r"(?<![a-z'])" + re.escape(n) + r"(?![a-z])", t) for n in names):
+            return k
+    return None
 
 
 def sections(body):
-    """{results, lessons, protect}: the text under every heading (any level) that matches a known variant."""
+    """{results, lessons, protect}: the text under every matching heading (any level, case-insensitive, by the words
+    it contains), running to the next heading of the same or a higher level, so ### sub-headings stay inside."""
     out = {k: [] for k in HEADINGS}
-    parts = re.split(r"^(#{1,6})[ \t]+(.+?)\s*#*\s*$", body, flags=re.M)
-    # parts: [pre, hashes, title, text, hashes, title, text, ...]
-    for i in range(1, len(parts) - 2, 3):
-        title = re.sub(r"[^a-z' ]+", " ", parts[i + 1].lower()).strip()
-        title = re.sub(r"\s+", " ", title)
-        for k, names in HEADINGS.items():
-            if any(title == n or title.startswith(n + " ") for n in names):
-                txt = parts[i + 2].strip()
-                if txt:
-                    out[k].append(txt)
-                break
+    lines = body.splitlines()
+    heads, fence = [], False
+    for i, ln in enumerate(lines):
+        if ln.strip().startswith(("```", "~~~")):
+            fence = not fence
+        if fence:
+            continue
+        m = re.match(r"^(#{1,6})[ \t]+(.+?)\s*#*\s*$", ln)
+        if m:
+            heads.append((i, len(m.group(1)), m.group(2)))
+    skip_until = -1
+    for n, (i, level, title) in enumerate(heads):
+        if i < skip_until:
+            continue
+        k = heading_kind(title)
+        if not k:
+            continue
+        end = next((j for j, lv, _ in heads[n + 1:] if lv <= level), len(lines))
+        txt = "\n".join(lines[i + 1:end]).strip()
+        if txt:
+            out[k].append(txt)
+        skip_until = end
     return {k: ("\n\n".join(v) if v else None) for k, v in out.items()}
 
 
-def find_launch_notes(v, include_test=False):
-    """(notes, looked_in, skipped_test) — launches/ first, then the whole vault by frontmatter."""
+def first_title(fm, body, p):
+    if fm.get("title"):
+        return str(fm["title"])
+    m = re.search(r"^#[ \t]+(.+?)\s*$", body, re.M)
+    return m.group(1) if m else p.stem
+
+
+def note_date(fm, p):
+    d = str(fm.get("date", "") or "")
+    m = re.match(r"(\d{4}-\d{2}(?:-\d{2})?)", d)
+    if m:
+        return m.group(1)
+    m = re.search(r"(?<!\d)(\d{4}-\d{2}(?:-\d{2})?)(?!\d)", p.stem)
+    return m.group(1) if m else None
+
+
+def find_launch_notes(v, include_test=False, authors=()):
+    """(notes, looked_in, skipped) — the member's own launch notes: launches/ first, then the whole vault."""
     looked, notes, seen, skipped = [], [], set(), []
     def add(p, where):
+        rel = p.relative_to(v)
+        if any(x.lower() in SKIP_DIRS or TEMPLATE_DIR.match(x) for x in rel.parts[:-1]):
+            return
         try:
             text = p.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
             return
         fm, body = frontmatter(text)
+        title = first_title(fm, body, p)
         top = p.parent == v / ROOT
-        if not (fm_match(fm) or (where == "launches" and top and NAME_RE.search(p.stem))):
+        named = bool(DEBRIEF_NAME_RE.search(p.stem) or DEBRIEF_NAME_RE.search(title))
+        if not (fm_match(fm) or named or (where == "launches" and top and NAME_RE.search(p.stem))):
             return
+        if TEMPLATE_TEXT.search(text):
+            skipped.append({"file": str(p), "why": "template ({{date}} / {{title}} placeholders)"}); return
+        why = foreign(fm, authors)
+        if why:
+            skipped.append({"file": str(p), "why": "not the member's own note: " + why}); return
         if is_test(fm) and not include_test:
-            skipped.append(str(p)); return
+            skipped.append({"file": str(p), "why": "test note"}); return
         seen.add(p.resolve())
-        notes.append({"file": str(p), "found_in": where, "frontmatter": fm, "body": body})
+        notes.append({"file": str(p), "found_in": where, "frontmatter": fm, "body": body, "title": title,
+                      "date": note_date(fm, p)})
     ld = v / ROOT
     if ld.is_dir():
-        looked.append(f"{ld}/ (frontmatter type launch/debrief/event, tags with launch/event/debrief, or a launch-like "
-                      "file name)")
+        looked.append(f"{ld}/ (frontmatter type or tags, a debrief-like or launch-like file name)")
         work = {d.resolve() for d in ld.rglob("*") if d.is_dir() and ((d / "tracker.json").exists() or (d / "plan.json").exists())}
         for p in sorted(ld.rglob("*.md")):
             if p.name.startswith("_") or any(w in p.resolve().parents for w in work):
@@ -1309,10 +1814,12 @@ def find_launch_notes(v, include_test=False):
             add(p, "launches")
     else:
         looked.append(f"{ld}/ (missing)")
-    looked.append(f"{v}/ (every other note, by frontmatter only; skipped: .obsidian, .trash, External, templates)")
+    looked.append(f"{v}/ (every other note: frontmatter type or tags, or a debrief, retro, post-mortem, launch review "
+                  "or audit file name or title; skipped: templates, External, Sources, Readwise, Clippings, "
+                  "transcripts, clients and other imported material)")
     for p in sorted(v.rglob("*.md")):
         rel = p.relative_to(v)
-        if rel.parts[0] == ROOT or any(x.lower() in SKIP_DIRS for x in rel.parts[:-1]) or p.resolve() in seen:
+        if rel.parts[0] == ROOT or p.resolve() in seen:
             continue
         add(p, "vault")
     return notes, looked, skipped
@@ -1320,24 +1827,29 @@ def find_launch_notes(v, include_test=False):
 
 def cmd_obsidian_read(a):
     v, warn = vault_check(a)
-    found, looked, skipped = find_launch_notes(v, a.include_test)
+    found, looked, skipped = find_launch_notes(v, a.include_test, a.author or ())
     notes = []
     for n in found:
-        s = sections(n["body"])
-        row = {"file": n["file"], "found_in": n["found_in"], "frontmatter": n["frontmatter"], **s}
+        s = {k: redact(x) for k, x in sections(n["body"]).items()}
+        row = {"file": n["file"], "found_in": n["found_in"], "title": redact(n["title"]), "date": n["date"],
+               "frontmatter": {k: ([redact(x) for x in val] if isinstance(val, list) else redact(val))
+                               for k, val in n["frontmatter"].items()}, **s}
         if not any(s.values()):
-            row["body_excerpt"] = n["body"].strip()[:1500]
+            row["body_excerpt"] = redact(n["body"].strip()[:1500])
             warn.append(f"{n['file']}: no Results / Lessons / What to protect heading (or a variant such as Numbers, "
-                        "What broke, Keep): read body_excerpt and summarise it with the member")
+                        "Key lessons, What broke, Wins, Keep): read body_excerpt and summarise it with the member")
         else:
             miss = [k for k, x in s.items() if not x]
             if miss:
                 row["missing"] = miss
         notes.append(row)
-    notes.sort(key=lambda n: str(n["frontmatter"].get("date", "")), reverse=True)
-    out = {"vault": str(v), "launches": notes, "count": len(notes), "looked_in": looked}
+    notes.sort(key=lambda n: (n["date"] is not None, n["date"] or "", n["file"]), reverse=True)
+    out = {"vault": str(v), "launches": notes, "count": len(notes), "looked_in": looked,
+           "order": "newest first by frontmatter date, else a date in the file name; undated last",
+           "redacted": "email addresses and phone numbers are removed from everything returned"}
     if skipped:
-        out["skipped_test_notes"] = skipped
+        out["skipped"] = skipped
+        out["skipped_test_notes"] = [x["file"] for x in skipped if x["why"] == "test note"]
     if not notes:
         warn.append("no launch notes found. Looked in: " + "; ".join(looked) + ". Ask the member where past launch "
                     "notes or debriefs live, and offer to write a summary note for an old launch (with their yes)")
@@ -1361,24 +1873,36 @@ def main(argv=None):
     s.add_argument("--plan"); s.add_argument("--paid-event", action="store_true")
     s.add_argument("--close", choices=CLOSE_MODES); s.add_argument("--list-size", type=int)
     s.add_argument("--test", action="store_true", help="mark the ledger as test/synthetic data")
+    s.add_argument("--sms", action="store_true", help="texts are planned: sms_compliance becomes a critical gate item")
+    s.add_argument("--event", help="event.json: its reminders.sms marks SMS as planned")
     s = mk("log-reg"); s.add_argument("n", type=int); s.add_argument("--source")
     s = mk("log-day"); s.add_argument("--day", type=int, required=True)
-    s.add_argument("--live", "--peak", dest="live", type=int, required=True,
-                   help="peak concurrent live count that day (--peak is the same flag)")
-    s.add_argument("--unique", type=int, help="unique attendees from the Zoom report (stored for reference)")
+    s.add_argument("--live", "--unique", dest="live", type=int, required=True,
+                   help="unique attendees that day (the Zoom participant report; the show-up and retention benchmarks "
+                        "and import-csv use this definition)")
+    s.add_argument("--peak", type=int, help="peak concurrent count that day (stored separately, for reference)")
+    s.add_argument("--source-count", action="append", metavar="SOURCE=N",
+                   help="attendees by source, for example partner:Jo=40 (repeatable)")
     s = mk("log-close"); s.add_argument("--present", type=int, required=True); s.add_argument("--saw-price", type=int, required=True)
     s = mk("log-sale"); s.add_argument("--tier", required=True); s.add_argument("--price", required=True)
     s.add_argument("--count", type=int, required=True); s.add_argument("--payment", choices=["full", "plan"], default="full")
     s.add_argument("--booked"); s.add_argument("--via", choices=["checkout", "call"], default="checkout")
+    s.add_argument("--source", help="partner:NAME (or another source) for partner attribution")
     s = mk("log-calls"); s.add_argument("--booked", type=int, required=True); s.add_argument("--held", type=int, required=True)
     s.add_argument("--closed", type=int, required=True); s.add_argument("--value"); s.add_argument("--tier", default="Call close")
+    s.add_argument("--source")
     s = mk("log-refund"); s.add_argument("--tier", required=True); s.add_argument("--count", type=int, required=True)
-    s.add_argument("--amount", required=True); s.add_argument("--booked-cancelled", type=float)
+    s.add_argument("--amount", required=True); s.add_argument("--booked-cancelled", type=float); s.add_argument("--source")
+    s = mk("log-tickets"); s.add_argument("--count", type=int, required=True); s.add_argument("--price", required=True)
+    s.add_argument("--vip-count", type=int); s.add_argument("--vip-price"); s.add_argument("--source")
+    s = mk("partner"); s.add_argument("--name", required=True)
+    s.add_argument("--rate", "--commission-rate", dest="rate", required=True, help="commission rate, '30%' or 0.3")
     s = mk("import-csv"); s.add_argument("csv"); s.add_argument("--map", nargs="+", required=True)
     s.add_argument("--replace", action="store_true")
     s = mk("gate"); s.add_argument("--set", nargs="+", action="append", metavar="ITEM STATUS [NOTE]")
     s.add_argument("--note"); s.add_argument("--reset", action="append", metavar="ITEM")
-    s.add_argument("--close-morning", action="store_true")
+    s.add_argument("--close-morning", action="store_true", help="the same as --stage close_morning")
+    s.add_argument("--stage", choices=STAGES)
     s = mk("pace")
     s = mk("report"); s.add_argument("--md", nargs="?", const=""); s.add_argument("--force", action="store_true")
     s = mk("obsidian"); s.add_argument("--vault", required=True); s.add_argument("--force", action="store_true")
@@ -1386,6 +1910,7 @@ def main(argv=None):
     s.add_argument("--lesson", action="append")
     s = mk("obsidian-read"); s.add_argument("--vault", required=True); s.add_argument("--no-obsidian-check", action="store_true")
     s.add_argument("--include-test", action="store_true")
+    s.add_argument("--author", action="append", help="the member's own name, so notes with author: NAME count")
     a = ap.parse_args(argv)
     today(a)                                  # a bad --date is refused before anything is read or written
     if a.cmd == "obsidian-read":
@@ -1404,9 +1929,13 @@ def main(argv=None):
     data = load(path)
     fn = {"log-reg": cmd_log_reg, "log-day": cmd_log_day, "log-close": cmd_log_close, "log-sale": cmd_log_sale,
           "log-calls": cmd_log_calls, "log-refund": cmd_log_refund, "import-csv": cmd_import_csv, "gate": cmd_gate,
-          "pace": cmd_pace, "report": cmd_report, "obsidian": cmd_obsidian}[a.cmd]
+          "pace": cmd_pace, "report": cmd_report, "obsidian": cmd_obsidian, "log-tickets": cmd_log_tickets,
+          "partner": cmd_partner}[a.cmd]
     out = fn(data, a)
-    if a.cmd in ("log-reg", "log-day", "log-close", "log-sale", "log-calls", "log-refund", "import-csv") \
+    if getattr(a, "_ledger_note", None):
+        out = {"ledger": a._ledger_note, **out}
+    if a.cmd in ("log-reg", "log-day", "log-close", "log-sale", "log-calls", "log-refund", "import-csv", "log-tickets",
+                 "partner") \
             or (a.cmd == "gate" and (a.set or a.reset)) or (a.cmd == "obsidian" and a.lesson):
         save(path, data)
     print(json.dumps(out, indent=1, ensure_ascii=False))

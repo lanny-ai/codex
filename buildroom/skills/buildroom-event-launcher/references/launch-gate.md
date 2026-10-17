@@ -32,6 +32,9 @@ The gate runs in four stages, each with its own items (`launch_tracker.py gate -
 - **[claims_substantiated] Other performance claims are typical and backed**: "save 20 hours a week", "launch in a weekend" and the like are what a typical buyer gets, with evidence, or they come out. [FTC substantiation]
 - **[partner_disclosure] Partners disclose their commission** in every promotion that pays them. [FTC Endorsement Guides, 2023 revision]
 
+- **[registration_path_tested] The registration path works end to end**: sign up from a phone with a test address, the confirmation arrives with the join link, the calendar file opens, the contact lands in the right list and workflow. [founder: links forwarded with an email in the URL lost data]
+- **[testimonial_permission] (cart stage) Written permission before reusing anyone's chat comment or live words** as a testimonial.
+
 **Consent on the day** (`sms_compliance` is critical only when texts are planned; `replay_release` is `na` when there is no replay)
 - **[sms_compliance] SMS only with written consent and an approved A2P 10DLC brand and campaign**, sent between 9 a.m. and 8 p.m. in the contact's time zone, STOP honoured at once. If either is missing, use email only. [TCPA; carrier rules; GoHighLevel requirements]
 - **[recording_notice] Recording announced** on the registration page and at the start of each day; Zoom's recording notice on. Some US states require every party's consent. [state law; Zoom]
@@ -39,7 +42,6 @@ The gate runs in four stages, each with its own items (`launch_tracker.py gate -
 
 ## Advisory items (strongly recommended; HOLD is not required)
 
-- **[testimonial_permission] Written permission before reusing anyone's chat comment or live words** as a testimonial.
 - **[privacy_notice] Privacy notice on the registration page** stating what is collected and why; for EU and UK registrants, the lawful basis and a separate marketing consent.
 - **[moderator_links] A moderator assigned**, with every link they will drop and when, and a backup host link.
 - **[first_win_timed] The first-win tool timed**: the time it takes is measured, and the invitation says that time, not a guess. [founder: promised 25 minutes, median 48.7]

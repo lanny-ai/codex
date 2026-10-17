@@ -14,15 +14,20 @@ Usage
       Merge fields never go into the file or the add-links: when join_url is a merge field such as
       {{contact.zoom_link}}, the location is "registration_url" (or "location") and the description says
       the join link is in the confirmation email; real URLs are fully URL-encoded in the links.
-      Refused (exit 2): unknown time zone, an end not after its start, days not in date order, a local
-      time that does not exist (clocks spring forward). Warned: daylight saving changes between days, any
+      A day may hold two (or more) sessions, for example a Europe-friendly repeat: "sessions": [{"start",
+      "end", "title"?}, ...] in place of start/end; each session is its own VEVENT (UID …-dayN-s2@ for the
+      second), in time order and not overlapping.
+      Refused (exit 2): unknown time zone, an end not after its start, days not in date order, sessions
+      that overlap or are out of order, a local time that does not exist (clocks spring forward). Warned: daylight saving changes between days, any
       time outside 07:00–21:00 in the host zone, a session outside 07:00–22:00 in any --recipient-tz, a
       merge-field join link (with no registration_url to use instead).
-  event_ics.py reminders --spec event.json [--recipient-tz IANA ...]
+  event_ics.py reminders --spec event.json [--recipient-tz IANA ...] [--plan plan.json]
       The reminder schedule, with ids that match launch_plan.py timeline: prework (3 days before Day 1,
-      "prework_days_before"), day_before, dayN_morning, dayN_15min, dayN_live, dayN_night (the evening of
-      Day N, before Day N+1) and dayN_replay (1–3 hours after the end, "replay_after_end_minutes",
-      default 120). Each send has its host-local and UTC time and its local time in every recipient time
+      "prework_days_before"), day_before, dayN_morning, dayN_15min, dayN_live (dayN_15min_s2 and
+      dayN_live_s2 for a second session), dayN_night (the evening of Day N, after its last session, before
+      Day N+1) and dayN_replay (1–3 hours after the day's last session, "replay_after_end_minutes", default
+      120). The close day's replay names a deadline only when there is one ("deadline" in event.json, or
+      the plan's timeline cart close with --plan); otherwise it says when follow-up ends. Each send has its host-local and UTC time and its local time in every recipient time
       zone (default: the event's own); a session outside 07:00–22:00 in a recipient zone is warned.
       Email only by default. SMS rows only when the spec sets "sms": true (day_before, morning, 15 min,
       live) or lists the sends; it then prints the consent and A2P 10DLC caveat. SMS quiet hours are
@@ -40,10 +45,15 @@ event.json
    "tz": "America/Los_Angeles", "join_url": "https://zoom.us/j/123" or "{{contact.zoom_link}}",
    "alarm_minutes": 15, "description": "shown on every day", "sequence": 0, "uid_seed": "optional",
    "registration_url": "https://example.com/register (the location when join_url is a merge field)",
+   "deadline": "2026-11-15 23:59 America/Los_Angeles (optional; leave it out or null when there is none)",
    "days": [{"date": "2026-11-10", "start": "14:00", "end": "17:00", "title": "optional",
-             "description": "optional, added to the shared one"}],
+             "description": "optional, added to the shared one"},
+            {"date": "2026-11-11", "sessions": [{"start": "09:00", "end": "11:00", "title": "optional"},
+                                                {"start": "17:00", "end": "19:00"}]}],
    "reminders": {"morning_time": "08:00", "recap_after_end_minutes": 60, "replay_after_end_minutes": 120,
                  "prework_days_before": 3, "sms": false | true | ["day_before", "morning_of", "15_min", "live_now"]}}
+  reminders.sms takes kinds (above) or send ids such as day1_morning, day2_15min (each id turns on SMS for its kind
+  on every day).
 
 Standard library only (zoneinfo for time zones).
 """
@@ -136,9 +146,11 @@ def localize(day, t, tz, what, warnings):
 
 
 def resolve_days(spec):
-    """[{n, date, start, end (aware local), start_utc, end_utc, summary, description}] plus warnings."""
+    """[{n, s (session), sessions, date, start, end (aware local), start_utc, end_utc, summary, description}] plus
+    warnings: one entry per session, in order."""
     tz = zone(spec["tz"], "\"tz\"")
     warnings, days, prev = [], [], None
+    n_days = len(spec["days"])
     for i, d in enumerate(spec["days"], 1):
         if not isinstance(d, dict):
             refuse(f"day {i} must be an object with date, start and end")
@@ -146,25 +158,38 @@ def resolve_days(spec):
             date = dt.date.fromisoformat(str(d.get("date", "")).strip())
         except ValueError:
             refuse(f"day {i}: date must be YYYY-MM-DD (got {d.get('date')!r})")
-        st, en = hhmm(d.get("start"), f"day {i} start"), hhmm(d.get("end"), f"day {i} end")
-        if en <= st:
-            refuse(f"day {i} ({date}): the end {en.strftime('%H:%M')} is not after the start {st.strftime('%H:%M')}")
         if prev and date <= prev:
-            refuse(f"days must be in date order, one session a day: day {i} ({date}) is not after day {i - 1} ({prev})")
+            refuse(f"days must be in date order, one entry a day (use \"sessions\" for two sessions on one day): day {i} "
+                   f"({date}) is not after day {i - 1} ({prev})")
         prev = date
-        s, e = localize(date, st, tz, f"day {i} start", warnings), localize(date, en, tz, f"day {i} end", warnings)
-        for label, t in (("start", st), ("end", en)):
-            if t < DAY_HOURS[0] or t > DAY_HOURS[1]:
-                warnings.append(f"day {i} {label} {t.strftime('%H:%M')} is outside 07:00–21:00 in {tz.key}: check the "
-                                "time suits your audience (and their zones)")
-        n = len(spec["days"])
-        summary = d.get("title") or (f"{spec['title']} - Day {i}" if n > 1 else spec["title"])
-        days.append({"n": i, "date": date, "start": s, "end": e, "start_utc": s.astimezone(UTC), "end_utc": e.astimezone(UTC),
-                     "summary": summary,
-                     "description": "\n\n".join(x for x in (d.get("description"), spec.get("description")) if x)})
+        sess = d.get("sessions")
+        if sess is not None and (not isinstance(sess, list) or not sess or not all(isinstance(x, dict) for x in sess)):
+            refuse(f"day {i}: \"sessions\" must be a list of {{start, end}}")
+        sess = sess or [{"start": d.get("start"), "end": d.get("end")}]
+        last_end = None
+        for k, x in enumerate(sess, 1):
+            lab = f"day {i}" + (f" session {k}" if len(sess) > 1 else "")
+            st, en = hhmm(x.get("start"), f"{lab} start"), hhmm(x.get("end"), f"{lab} end")
+            if en <= st:
+                refuse(f"{lab} ({date}): the end {en.strftime('%H:%M')} is not after the start {st.strftime('%H:%M')}")
+            if last_end and st < last_end:
+                refuse(f"{lab} ({date}) starts at {st.strftime('%H:%M')}, before the previous session ends "
+                       f"({last_end.strftime('%H:%M')}): sessions go in time order without overlapping")
+            last_end = en
+            s_, e_ = localize(date, st, tz, f"{lab} start", warnings), localize(date, en, tz, f"{lab} end", warnings)
+            for label, t in (("start", st), ("end", en)):
+                if t < DAY_HOURS[0] or t > DAY_HOURS[1]:
+                    warnings.append(f"{lab} {label} {t.strftime('%H:%M')} is outside 07:00–21:00 in {tz.key}: check the "
+                                    "time suits your audience (and their zones)")
+            base = d.get("title") or (f"{spec['title']} - Day {i}" if n_days > 1 else spec["title"])
+            summary = x.get("title") or (base + (f" (session {k})" if len(sess) > 1 else ""))
+            days.append({"n": i, "s": k, "sessions": len(sess), "date": date, "start": s_, "end": e_,
+                         "start_utc": s_.astimezone(UTC), "end_utc": e_.astimezone(UTC), "summary": summary,
+                         "description": "\n\n".join(y for y in (d.get("description"), spec.get("description")) if y)})
     if not days:
         refuse("\"days\" is empty")
-    for a, b in zip(days, days[1:]):
+    firsts = [x for x in days if x["s"] == 1]
+    for a, b in zip(firsts, firsts[1:]):
         if a["start"].utcoffset() != b["start"].utcoffset():
             off = lambda t: "UTC" + t.strftime("%z")[:3] + (":" + t.strftime("%z")[3:] if t.strftime("%z")[3:] != "00" else "")
             warnings.append(f"daylight saving changes between day {a['n']} ({a['date']}) and day {b['n']} ({b['date']}) in "
@@ -204,9 +229,10 @@ def utc_stamp(t):
     return t.astimezone(UTC).strftime("%Y%m%dT%H%M%SZ")
 
 
-def uid_for(spec, n):
+def uid_for(spec, n, session=1):
     seed = spec.get("uid_seed") or f"{spec['title']}|{spec.get('organizer') if isinstance(spec.get('organizer'), str) else (spec.get('organizer') or {}).get('name', '')}"
-    return f"{hashlib.sha1(seed.encode('utf-8')).hexdigest()[:16]}-day{n}@buildroom-event-launcher"
+    return (f"{hashlib.sha1(seed.encode('utf-8')).hexdigest()[:16]}-day{n}" + (f"-s{session}" if session > 1 else "")
+            + "@buildroom-event-launcher")
 
 
 def organizer(spec):
@@ -270,7 +296,7 @@ def ics_bytes(spec, days, stamp):
     lines = ["BEGIN:VCALENDAR", "VERSION:2.0", f"PRODID:{PRODID}", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
              f"X-WR-CALNAME:{esc(spec['title'])}"]
     for d in days:
-        lines += ["BEGIN:VEVENT", f"UID:{uid_for(spec, d['n'])}", f"DTSTAMP:{stamp}", f"SEQUENCE:{seq}",
+        lines += ["BEGIN:VEVENT", f"UID:{uid_for(spec, d['n'], d['s'])}", f"DTSTAMP:{stamp}", f"SEQUENCE:{seq}",
                   f"DTSTART:{utc_stamp(d['start_utc'])}", f"DTEND:{utc_stamp(d['end_utc'])}",
                   f"SUMMARY:{esc(d['summary'])}"]
         desc = full_description(spec, d)
@@ -314,7 +340,7 @@ def recipient_hours(days, zones):
             s, e = d["start_utc"].astimezone(z), d["end_utc"].astimezone(z)
             late = e.time() > RECIPIENT_HOURS[1] or e.date() > s.date()
             if s.time() < RECIPIENT_HOURS[0] or s.time() > RECIPIENT_HOURS[1] or late:
-                w.append(f"day {d['n']} runs {s.strftime('%H:%M')}–{e.strftime('%H:%M')}"
+                w.append(f"day {d['n']}" + (f" session {d['s']}" if d["sessions"] > 1 else "") + " runs {s.strftime('%H:%M')}–{e.strftime('%H:%M')}"
                          + (f" (ends {e.date()})" if e.date() > s.date() else "")
                          + f" in {z.key}: outside 07:00–22:00 there; consider a second session or a replay plan "
                          "for that zone")
@@ -348,7 +374,8 @@ def cmd_build(a):
             if len(v) > 2000:
                 warnings.append(f"day {d['n']} {k} link is {len(v)} characters; some email clients cut links over about "
                                 "2,000: shorten the description")
-        events.append({"day": d["n"], "summary": d["summary"], "uid": uid_for(spec, d["n"]),
+        events.append({"day": d["n"], **({"session": d["s"]} if d["sessions"] > 1 else {}), "summary": d["summary"],
+                       "uid": uid_for(spec, d["n"], d["s"]),
                        "start_local": d["start"].strftime("%Y-%m-%d %H:%M %Z (%a)"),
                        "end_local": d["end"].strftime("%Y-%m-%d %H:%M %Z"),
                        "start_utc": d["start_utc"].strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -399,16 +426,43 @@ def sms_kinds(cfg):
         return []
     if not isinstance(v, list):
         refuse("reminders.sms must be true, false or a list of sends")
-    bad = [k for k in v if k not in REMINDER_KINDS]
+    out, bad = [], []
+    for k in v:                                   # a kind (morning_of) or a send id (day1_morning: its kind)
+        m = re.fullmatch(r"day\d+_(morning|15min|live|night|replay)(?:_s\d+)?", str(k))
+        kind = k if k in REMINDER_KINDS else {"morning": "morning_of", "15min": "15_min", "live": "live_now",
+                                               "night": "night_before_recap", "replay": "replay"}[m.group(1)] if m else None
+        if kind is None:
+            bad.append(k)
+        elif kind not in out:
+            out.append(kind)
     if bad:
-        refuse(f"reminders.sms lists unknown sends {bad}; choose from {REMINDER_KINDS}")
-    return list(v)
+        refuse(f"reminders.sms lists unknown sends {bad}; choose from {REMINDER_KINDS} or send ids such as "
+               "day1_morning (a send id turns on SMS for that kind of send on every day)")
+    return out
 
 
-def send_id(kind, n):
+def send_id(kind, n, session=1):
+    sfx = f"_s{session}" if session > 1 else ""
     return {"prework": "prework", "day_before": "day_before", "morning_of": f"day{n}_morning",
-            "night_before_recap": f"day{n - 1}_night", "15_min": f"day{n}_15min", "live_now": f"day{n}_live",
+            "night_before_recap": f"day{n - 1}_night", "15_min": f"day{n}_15min{sfx}", "live_now": f"day{n}_live{sfx}",
             "replay": f"day{n}_replay"}[kind]
+
+
+def deadline_text(spec, plan_path=None):
+    if spec.get("deadline"):
+        return str(spec["deadline"])
+    if plan_path:
+        pp = Path(plan_path)
+        pp = pp / "plan.json" if pp.is_dir() else pp
+        if not pp.exists():
+            refuse(f"no plan at {plan_path}")
+        try:
+            tl = (json.loads(pp.read_text(encoding="utf-8")) or {}).get("timeline") or {}
+        except (ValueError, UnicodeDecodeError) as e:
+            refuse(f"{plan_path} is not readable JSON ({e})")
+        if tl.get("deadline") and tl.get("cart_close"):
+            return f"the cart closes {tl['cart_close']}"
+    return None
 
 
 def cmd_reminders(a):
@@ -425,33 +479,44 @@ def cmd_reminders(a):
     if not 60 <= replay_after <= 180:
         warnings.append(f"replay_after_end_minutes is {replay_after}: replays work best 1–3 hours after the end")
     sms = sms_kinds(cfg)
+    deadline = deadline_text(spec, a.plan)
     zones = [zone(z, "--recipient-tz") for z in (a.recipient_tz or [spec["tz"]])]
     sends = []
-    def add(kind, day, when, purpose, note=None):
-        sends.append({"kind": kind, "day": day["n"], "when": when, "purpose": purpose, **({"note": note} if note else {})})
+    def add(kind, day, when, purpose, session=1):
+        sends.append({"kind": kind, "day": day["n"], "s": session, "when": when, "purpose": purpose})
+    n_days = days[-1]["n"]
+    by_day = {}
     for d in days:
-        if d["n"] == 1:
+        by_day.setdefault(d["n"], []).append(d)
+    for n, ss in by_day.items():
+        d, last_s = ss[0], ss[-1]
+        if n == 1:
             if pre_days >= 2:
                 add("prework", d, d["start"] - dt.timedelta(days=pre_days),
                     "the one pre-work action and why being live matters; same clock time as the start")
             add("day_before", d, d["start"] - dt.timedelta(days=1),
                 "how to prepare, the calendar file, the one pre-work action; same clock time as the start")
         m = localize(d["date"], morning, tz, "reminders.morning_time", warnings)
-        last = d["n"] == len(days) and len(days) > 1
+        last = n == n_days and n_days > 1
         if m <= d["start"] - dt.timedelta(minutes=30):
             add("morning_of", d, m, "close day: today's promise and the reminder that the offer is today, the link"
-                if last else f"today is Day {d['n']}: what happens, the start time in a few zones, the link")
+                if last else f"today is Day {n}: what happens, the start time in a few zones, the link"
+                + (f" (and the later session at {ss[1]['start'].strftime('%H:%M')})" if len(ss) > 1 else ""))
         else:
-            warnings.append(f"day {d['n']}: the morning reminder ({morning.strftime('%H:%M')}) is not at least 30 minutes "
+            warnings.append(f"day {n}: the morning reminder ({morning.strftime('%H:%M')}) is not at least 30 minutes "
                             "before the start, so it is left out; the 15-minute reminder covers it")
-        if d["n"] >= 2:
-            prev = days[d["n"] - 2]
+        if n >= 2:
+            prev = by_day[n - 1][-1]
             add("night_before_recap", d, prev["end"] + dt.timedelta(minutes=recap_after),
-                f"Day-{prev['n']}-night recap and the Day-{d['n']} payoff (founder lesson: without it people drift away)")
-        add("15_min", d, d["start"] - dt.timedelta(minutes=15), "starting in 15 minutes, with the link")
-        add("live_now", d, d["start"], "we're live now, with the link")
-        add("replay", d, d["end"] + dt.timedelta(minutes=replay_after),
-            f"the Day {d['n']} replay and when it comes down" + (" (with the offer and the real deadline)" if last else ""))
+                f"Day-{n - 1}-night recap and the Day-{n} payoff (founder lesson: without it people drift away)")
+        for x in ss:
+            add("15_min", x, x["start"] - dt.timedelta(minutes=15), "starting in 15 minutes, with the link", x["s"])
+            add("live_now", x, x["start"], "we're live now, with the link", x["s"])
+        close_day = n == n_days
+        add("replay", last_s, last_s["end"] + dt.timedelta(minutes=replay_after),
+            f"the Day {n} replay and when it comes down" + (
+                (f" (with the offer and the deadline: {deadline})" if deadline else
+                 " (with the offer; no deadline: say when follow-up ends)") if close_day else ""))
     sends.sort(key=lambda s: (s["when"].astimezone(UTC), REMINDER_KINDS.index(s["kind"])))
     flags, out = [], []
     labels = set()
@@ -468,11 +533,12 @@ def cmd_reminders(a):
                 if f:
                     r["sms_flag"] = f
                     labels.add(where)
-                    flags.append(f"{send_id(s['kind'], s['day'])} SMS at {r['local']} {z.key}: {f}")
+                    flags.append(f"{send_id(s['kind'], s['day'], s['s'])} SMS at {r['local']} {z.key}: {f}")
             if s["kind"] == "morning_of" and lt.date() != s["when"].date():
                 r["note"] = f"arrives on {lt.date()} in this zone, not the event's morning"
             rec.append(r)
-        out.append({"id": send_id(s["kind"], s["day"]), "kind": s["kind"], "day": s["day"], "channels": ch,
+        out.append({"id": send_id(s["kind"], s["day"], s["s"]), "kind": s["kind"], "day": s["day"],
+                    **({"session": s["s"]} if s["s"] > 1 else {}), "channels": ch,
                     "local": s["when"].strftime("%Y-%m-%d %H:%M %Z (%a)"), "utc": u.strftime("%Y-%m-%dT%H:%M:%SZ"),
                     "purpose": s["purpose"], "recipients": rec})
     if a.recipient_tz:
@@ -484,7 +550,7 @@ def cmd_reminders(a):
         "reminders that fire hours early lose the room (founder Jul 2026: the Day 2 'we're live' email fired about 4 "
         "hours early, twice); check each send's UTC time in the workflow, not just the clock time",
     ]
-    res = {"tz": tz.key, "recipient_tz": [z.key for z in zones], "sms": bool(sms), "sms_sends": sms,
+    res = {"tz": tz.key, "recipient_tz": [z.key for z in zones], "sms": bool(sms), "sms_sends": sms, "deadline": deadline,
            "sends": out, "sms_flags": flags, "warnings": warnings,
            "sources": {k: SOURCES[k] for k in ("GHL help 2026", "Build Room founder run Jul 2026")}}
     if sms:
@@ -689,6 +755,7 @@ def main(argv=None):
     s = sub.add_parser("build"); s.add_argument("--spec", required=True); s.add_argument("--out", required=True)
     s.add_argument("--date"); s.add_argument("--recipient-tz", nargs="+")
     s = sub.add_parser("reminders"); s.add_argument("--spec", required=True); s.add_argument("--recipient-tz", nargs="+")
+    s.add_argument("--plan", help="plan.json: its timeline's cart close is the deadline when event.json has none")
     s = sub.add_parser("check"); s.add_argument("ics")
     a = ap.parse_args(argv)
     out, code = {"build": cmd_build, "reminders": cmd_reminders, "check": cmd_check}[a.cmd](a)
