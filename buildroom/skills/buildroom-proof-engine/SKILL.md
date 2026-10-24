@@ -52,7 +52,7 @@ Replace **one** generic or composite proof block with the named result, immediat
 
 ### Phase 5 — Business File update
 
-- **§18 Proof vault** — the location (`proof/`), the count of consented stories by class, the latest one line, and the number pending; the **never-say claims** list gains any claim a story could tempt but does not support.
+- **§18 Proof vault** line, in the template's shape: location (`proof/`) · consented testimonials (count, by class, e.g. "4: D 2, C 1, B 1") · real numbers (how many stories carry the client's own number) · review count + rating (public reviews, if the member has them) · founder photos (where they are); add "pending: N" at the end. The **never-say claims** list gains any claim a story could tempt but does not support.
 - **§19 Testimonials collected** — count and latest, when a story is a video or audio testimonial (the Video Director records the video itself).
 - **§13** — one `captured` row for each story still pending permission or waiting on a number, pointing to `proof/`.
 - **§8** — one row; ask for the 1–5 rating.
