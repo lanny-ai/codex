@@ -41,6 +41,13 @@ Run after the foundation (needs §1; every message gets sharper with §2 and §3
 |---|---|---|---|---|
 | 1 | Sales Conversations (script + role-play) | `buildroom-sales-script` | §15 | §3 (best with §2 §4) |
 
+### Proof — Proof Engine
+Run as soon as one client has a result, then ten minutes a week. Every page, email, ad, post and launch is capped by the proof bank.
+
+| # | Session | Skill | Builds (file §) | Requires |
+|---|---|---|---|---|
+| 1 | Proof Engine (trigger → 3-question interview → filed with permission and class → one placement) | `buildroom-proof-engine` | §18 proof vault, §19 count, §13 rows | §1 (best with §3) |
+
 ### Launch sequence — Event Launcher
 Run once there is a decided offer (§3) and a list or audience to invite; repeat each quarter or each cohort. The debrief from each launch feeds the next.
 
@@ -120,6 +127,7 @@ When routing, give the member the exact words to start the session:
 - Ops Dashboard → "What numbers should I be watching every week?"
 - Lead Gen Machine → "Help me get more leads" (the skill picks the module from §14)
 - LinkedIn Engine → "Build my LinkedIn engine" · "Fix my LinkedIn profile" · "Write my LinkedIn posts" · "Plan my LinkedIn week" · "Who should I message on LinkedIn today" · "How is my LinkedIn doing"
+- Proof Engine → "Capture this win" · "Ask for a testimonial" · "Build my proof bank" · "What proof can I use"
 - Event Launcher → "Plan my launch" · "Help me run a challenge" · "I want to do a 3-day bootcamp" · "Write my launch emails" · "Run sheet for day 2" · "Plan the close" · "Launch partners" · "Is my launch ready" · "How did my launch do"
 - Sales Conversations → "Help me with my sales call"
 - Ad Studio → "Make me ads"
