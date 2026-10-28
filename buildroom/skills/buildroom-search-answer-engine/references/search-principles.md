@@ -1,0 +1,70 @@
+# Search and answer principles: what the October 2026 evidence says
+
+Each claim is tagged: **founder's method** (the OS Cortex AEO Publisher, read from the Build Room repository), **official** (a platform's or regulator's own page, read through search extracts), **independent** (a study by someone not selling the thing measured), **vendor** (a tool company's own data), **practitioner** (an agency's test or opinion), **folklore** (repeated everywhere, sourced nowhere). Say which kind a claim is when you use it with the member. Every number here came from search extracts, not full page reads; the report behind this skill lists the ones that disagree between sources.
+
+## 1. The order of work, and why
+
+1. **The buyer aged 55 to 75 is on Google and YouTube, not yet in ChatGPT.** 77% of Americans 65 and over, and 58% of those 50 to 64, have never used a chatbot; 86% of adults 50 to 64 use YouTube, and a majority over 65 do (Pew, February 2026) [independent]. ChatGPT use rises in every age band each year, so the engines are not ignored; they come after Google.
+2. **On Google's AI surfaces, local answers cite the Business Profile first.** AI Mode sent about 80% of local-service citations to Maps and Business Profile pages and 20% to websites; AI Overviews sent about 73% to the business's own site (Steady Demand, August 2026, 7,990 searches, one snapshot) [vendor]. The Business Profile is 28.5% of all AI citations and dominates Google's AI; Yelp dominates ChatGPT's local answers, where the profile does not appear (BrightLocal, 200,000 searches) [vendor].
+3. **Reviews are a ranking input and the buyer's filter.** Review signals are about a fifth of local-pack weight in the 2026 Local Search Ranking Factors survey (47 practitioners, 187 factors) [practitioner survey, via summaries]. 31% of US adults will only use a business rated 4.5 or higher, 47% skip one with fewer than 20 reviews, 74% want a review from the last three months, 80% favour a business that replies to every review, and half are put off by a templated reply (BrightLocal survey of 1,002 US adults, February 2026) [independent].
+4. **Other people's words beat the business's own in AI answers.** Expert-curated lists, presence on review and directory sites, and unstructured mentions rate highest for AI visibility in the 2026 survey; a dedicated page per service ranks first for local organic and second for AI visibility [practitioner survey]. Branded web mentions correlate about 0.66 with AI visibility, backlinks about 0.22 (Ahrefs, 75,000 brands) [vendor, correlation]. Neutral third-party "best X" lists took about 81% of professional-services list citations; self-published ones 19% (Wix Studio, 75,000 answers) [vendor].
+
+So: the profile, then one page per service and one answer page a week, then five free listings and one mention a month, then YouTube, then anything aimed at ChatGPT alone.
+
+## 2. What Google says
+
+- **No special requirements** for AI Overviews or AI Mode: no new files, no special markup, no chunking; the page must be indexed and snippet-eligible; "it is still SEO"; build unique, non-commodity content a model could not easily produce (Google's AI-features page and its May 2026 generative-AI guide) [official].
+- **Search ignores llms.txt** [official]. 97% of such files got zero AI-crawler requests in a month (300,000 domains) [independent]. Do not spend the member's time on it.
+- **Helpful, people-first content** (page revised October 2026): effort, originality, skill and accuracy; fabricated author profiles signal a low-quality page; accurate bylines strongly encouraged; do not change dates without substantive change [official, via trade press].
+- **AI-assisted writing is allowed**; pages produced at scale to rank, however produced, are spam (scaled content abuse). Google ran spam updates in March, June, August and September 2026 enforcing it [official].
+- **Structured data does not earn AI citations.** Adding JSON-LD to 1,885 pages changed nothing in AI Mode or ChatGPT and cut AI Overview citations by a small, significant 4.6% against controls (Ahrefs, May 2026) [vendor, controlled]. Google says structured data is not required for AI features [official]. FAQ rich results ended for everyone on 7 May 2026; HowTo ended in 2023; self-serving star markup has shown no stars since 2019 [official]. Worth a few minutes: Organization, LocalBusiness, Person, Article, BreadcrumbList. Nothing else.
+- **Google-Extended** governs Gemini training only; blocking it does not remove a site from AI Overviews or AI Mode. A Search Console toggle (September 2026) can opt a site out of AI features; leave it off [official].
+
+## 3. Page patterns with evidence
+
+| Practice | Evidence | Strength |
+|---|---|---|
+| Answer in the first lines | 44% of 18,012 verified ChatGPT citations came from the first 30% of the page | practitioner data |
+| One page per service | First for local organic, second for AI visibility (2026 survey) | practitioner survey |
+| State the number on cost and time questions | Cited pages for "how much" and "how long" stated a figure outright; "contact us for pricing" gives nothing to quote (INSIDEA, 2,667 answers) | vendor, small sample |
+| Update pages, do not re-date them | 75% of cited pages updated within a year; over a quarter first published two or more years ago (Seer, 47,097 citations) | vendor |
+| Question-shaped headings, short sections, one list or table | Recommended everywhere; relevance dominates and formatting adds little once relevance is equal (six-model experiment) | practitioner |
+| A named author with real credentials and an About page | Google's self-assessment questions; the fake-author warning | official |
+| Length to the question | Length barely correlates with AI Overview citations (Spearman 0.04, Ahrefs); longer pages did better in ChatGPT (SE Ranking) | vendor, conflicting |
+| Cover the topic as a cluster | Only 38% of AI Overview citations come from the top-10 organic results (Ahrefs, March 2026); BrightEdge says 17% | vendor |
+| First-hand experience and original data | Rewarded in the 2026 core updates per third-party analyses; the founder's "original utility" rule | practitioner; founder's method |
+
+## 4. The founder's method
+
+The OS Cortex AEO Publisher [founder's method]: AEO is a system, not a content trick; one authority domain with a growing answer library, never a microsite; evidence first, a citation ledger for every factual claim, at least three authoritative sources, the direct answer in the first 100 words; original utility on every page (first-hand expertise, a framework, data, an example no other page has); never invent customer stories, testimonials, credentials or statistics; a scope note where a topic approaches medical, legal, financial or mental-health advice; question scoring by demand 25%, business value 25%, citation gap 20%, evidence 20%, freshness 10%; the first three pages by hand (a definition, a how-to, a comparison or objection) before any routine; nothing publishes after a failed gate. This skill keeps all of it and adds a first-hand page kind, because the research shows the member's own counted numbers are what cost and "what is typical" answers cite.
+
+## 5. The Business Profile
+
+- **Moves rank:** primary category (the strongest factor the owner controls), the real-world name with nothing added, hours including holidays ("open now" entered the top five), the address or a true service area, and reviews by rating, count and recency [practitioner survey, 2026].
+- **Keyword-stuffed names** hold two to five times more top-three positions in one vendor correlation and are the top suspension cause [vendor; official policy]. The correlation is not permission.
+- **Does not move rank:** photos and posts. Controlled tests found no pack movement from photos or from nine weeks of weekly posts across 441 keywords; the average post gets under 20 views in its seven-day life (Sterling Sky) [practitioner tests]. They move conversion: a buyer deciding whom to call wants real photos and a recent sign of life. Google suggests one post a week [official via secondary].
+- **Eligibility:** in-person contact with customers at the business's place or theirs; service-area businesses hide the address; virtual offices, PO boxes, coworking without signage and reception, and fully remote practices are not eligible [official via explainers]. Agencies report a 2026 suspension wave on service-area profiles; unverified, and every source sells reinstatement [practitioner].
+- **Removed or added in the last year** [official, corroborated]: Q&A gone (December 2025); messaging ended July 2024; AI review summaries on listings; social links auto-added; Gemini "Ask Maps" (March 2026) answers from profile fields, website content and reviews, and the owner cannot write its answers; video verification is the usual route.
+- **Reviews, steady not bursting:** Google pauses new reviews on a profile during a spam spike and shows a warning banner (Maps blog, 16 April 2026) [official]. Top-three review counts vary by category from medians of about 20 (home health care) to about 350 (dentists) at 4.8 to 4.9 stars (Local Falcon, 50 million results) against an older mixed average of 47 at 4.47 (BrightLocal) [vendor, contradictory]. Benchmark against the lowest-review business consistently in the top three for the member's own town and category.
+- **Asking:** within hours of the job; the same way for everyone; text out-performs email in vendor data (completion 12 to 20% vs 3 to 8%; vendor-sourced, varies); one reminder three to five days later roughly doubles yield [vendor]. Replies: five-star reviews got replies 29% of the time, one-star 10%, with 19.5 days to reply to a one-star (UENI, 229,882 reviews) [vendor data]; reply to all within a week, personally.
+
+## 6. Listings
+
+Citations weigh about 6 to 7% of pack rank and citation consistency sits 28th; "maintenance, not strategy" [practitioner survey]. For AI answers they matter more: ChatGPT cited BBB in 39% and licensing sites in 25% of home-services answers; Yelp data appeared in the grounding of 96% of ChatGPT local runs in one test and in 0.6% of citations in another [vendor, contradictory]. Yelp licensed its reviews, photos and business details to OpenAI in July 2026 [official, Yelp's SEC filing]. Apple Business (14 April 2026, free) replaced Apple Business Connect; Bing Places feeds Copilot [official via secondary]. Paying a data aggregator is not supported by any 2026 evidence [vendor opinion].
+
+## 7. YouTube
+
+Google's AI cites YouTube in up to about 36% of answers; ChatGPT in about 2% (OtterlyAI, 83,835 citations); other studies put YouTube's share of AI Overview citations at 4.7% to 23% by metric [vendor, wide range]. Relevance to the question predicts citation, not views (near-zero correlation); long-form is about 94% of citations; Google deep-links to a timestamp in about half its YouTube citations, so chapters behave like sub-headings; viewers over 55 are about 15% of Shorts viewers [vendor]. One long-form answer video every two to four weeks, titled with the customer's question, the answer in the first 30 seconds, chapters as sub-questions, a corrected transcript, the matching answer page linked.
+
+## 8. Measuring, and what counts
+
+- **Search Console** generative-AI report (June 2026, global by September): impressions in AI Overviews and AI Mode, combined, no clicks [official]. **Bing Webmaster Tools** AI Performance report (February and June 2026): citations in Copilot and Bing AI with grounding queries, intents, topics and citation share; richer, free [official via secondary]. **IndexNow** speeds Bing and Copilot; its benefit to ChatGPT is inferred [practitioner]. **GA4** has an AI Assistant channel since May 2026; about 70% of AI-sourced visits arrive with no referrer [vendor; official].
+- **The manual monthly check:** 10 to 15 customer-style prompts, two wordings each, logged out, on Google's AI, ChatGPT, Perplexity, Gemini and Copilot, two or three runs on different days, because the same business reappears only 40 to 50% of the time [vendor: Steady Demand, BrightLocal]; two brand prompts to catch wrong facts (5 of 18 brand queries returned correct details in one small audit) [practitioner]. About two hours; judge the trend over three months.
+- **Clicks fall when AI answers appear:** 38 to 40% fewer organic clicks on triggering queries in a randomised experiment (Agarwal and Sen, January to February 2026, about 1,065 users, not yet peer reviewed) [independent]; 58% lower at position one over two years (Ahrefs) [vendor]; brands cited inside the overview get about 35% more clicks (Seer) [vendor]. About 68% of US Google searches end without a click (SparkToro and Similarweb, early 2026, partly a panel change) [vendor].
+- **AI referrals are small and convert well:** 1 to 4% of visits; small-business sites' AI share rose from 0.4% to 1.7% in 19 months, the fastest of any vertical (Previsible, 166 properties); AI visits convert better than organic by 1.2 to 20 times depending on the dataset [vendor].
+- **Time to be seen:** a new page cited in ChatGPT or Perplexity within one to two weeks once Bing has it (medians 4 to 11 days) [vendor]; profile changes in four to eight weeks [practitioner]; "three to six months" for rankings is folklore.
+- **What counts:** calls and direction requests from the profile, booked calls and forms attributed by "how did you find us", Search Console clicks on answer pages and the AI-impressions line, Bing citations, and the monthly share of customer prompts where the business is named. Not traffic, not rankings.
+
+## 9. Anti-patterns that got sites and profiles hit in 2025 and 2026
+
+Templated city pages where only the place name changes; doorway pages; pages produced at volume for rankings ("AI slop", in Google's own words); keyword-stuffed profile names; review gating, incentives or bursts; fake author profiles; self-serving star markup; Q&A seeding and FAQ schema (both retired); any results claim without what is typical beside it [official; practitioner].

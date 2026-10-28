@@ -48,6 +48,13 @@ Run as soon as one client has a result, then ten minutes a week. Every page, ema
 |---|---|---|---|---|
 | 1 | Proof Engine (trigger → 3-question interview → filed with permission and class → one placement) | `buildroom-proof-engine` | §18 proof vault, §19 count, §13 rows | §1 (best with §3) |
 
+### Search — Search & Answer Engine
+Run once §2 exists and the member has a website or meets customers in person; then a weekly routine of about two and a half hours. Profile first, pages second, listings and mentions third, YouTube fourth, ChatGPT last.
+
+| # | Session | Skill | Builds (file §) | Requires |
+|---|---|---|---|---|
+| 1 | Search & Answer Engine (eligibility and profile → question map → one answer page a week through the gate → review loop → listings and one mention a month → YouTube brief → monthly citation check) | `buildroom-search-answer-engine` | §21, one §14 channel row, §18 review count, §13 rows | §1 §2 (best with §3 §4 §14 §18) |
+
 ### Launch sequence — Event Launcher
 Run once there is a decided offer (§3) and a list or audience to invite; repeat each quarter or each cohort. The debrief from each launch feeds the next.
 
@@ -128,6 +135,7 @@ When routing, give the member the exact words to start the session:
 - Lead Gen Machine → "Help me get more leads" (the skill picks the module from §14)
 - LinkedIn Engine → "Build my LinkedIn engine" · "Fix my LinkedIn profile" · "Write my LinkedIn posts" · "Plan my LinkedIn week" · "Who should I message on LinkedIn today" · "How is my LinkedIn doing"
 - Proof Engine → "Capture this win" · "Ask for a testimonial" · "Build my proof bank" · "What proof can I use"
+- Search & Answer Engine → "Get found on Google" · "Fix my Google Business Profile" · "Get more Google reviews" · "Answer this question on my website" · "Am I showing up in ChatGPT" · "Search week"
 - Event Launcher → "Plan my launch" · "Help me run a challenge" · "I want to do a 3-day bootcamp" · "Write my launch emails" · "Run sheet for day 2" · "Plan the close" · "Launch partners" · "Is my launch ready" · "How did my launch do"
 - Sales Conversations → "Help me with my sales call"
 - Ad Studio → "Make me ads"

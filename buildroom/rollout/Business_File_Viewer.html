@@ -182,12 +182,13 @@ const REG={
   18:{t:"Advertising",skill:"Ad Studio",say:"Make me ads",req:[2,3],soft:[4,7]},
   19:{t:"Video",skill:"Video Director",say:"Make me a video",req:[1,2],soft:[3,4,17]},
   20:{t:"Launches & Events",skill:"Event Launcher",say:"Plan my launch",req:[1,2,3],soft:[4,6,16,17]},
+  21:{t:"Search & Answer Presence",skill:"Search & Answer Engine",say:"Get found on Google",req:[1,2],soft:[3,4,14,18]},
   8:{t:"Session Log",skill:"",say:"",req:[]}
 };
 const SEQ=[
   {name:"Foundation · Offer Clarity",secs:[2,3,4,5]},
   {name:"Funnel · Automation",secs:[6,16,7]},
-  {name:"Lead Generation",secs:[14]},
+  {name:"Lead Generation",secs:[14,21]},
   {name:"Sales · Launches",secs:[15,20]},
   {name:"Advertising · Video",secs:[18,19]},
   {name:"Operations · SOPs",secs:[9,10,11,12]},
@@ -268,7 +269,7 @@ function render(doc){
   $("biz").textContent=doc.business&&!/\[.*\]/.test(doc.business)?doc.business:"(business name not set)";
   $("own").textContent=doc.owner&&!/\[.*\]/.test(doc.owner)?doc.owner:"";
   $("upd").textContent=doc.updated&&!/\[.*\]/.test(doc.updated)?"Last updated "+doc.updated:"";
-  const build=[1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,18,19,20];
+  const build=[1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,18,19,20,21];
   const c=build.filter(n=>status(doc,n)==="complete").length,p=build.filter(n=>status(doc,n)==="provisional").length;
   $("prog").innerHTML=`<div class="c" style="width:${c/build.length*100}%"></div><div class="p" style="width:${p/build.length*100}%"></div>`;
   $("legend").innerHTML=`<span><i class="dot c"></i><b>${c}</b> complete</span><span><i class="dot p"></i><b>${p}</b> provisional</span><span><i class="dot n"></i><b>${build.length-c-p}</b> not started</span><span>· ${build.length} sections · ${doc.log.length} session${doc.log.length===1?"":"s"} logged</span>`;

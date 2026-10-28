@@ -354,6 +354,26 @@ _Built by: Event Launcher · Requires: §1, §2, §3; best with §4, §6, §16, 
 
 ---
 
+## 21. Search & Answer Presence
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: Search & Answer Engine · Requires: §1, §2; best with §3, §4, §14, §18_
+
+- **Website** (builder · domain · who edits · Search Console verified · Bing verified · search crawlers allowed):
+- **Google Business Profile** (eligible or not · verified · primary category · score · reviews count + rating · last reply · last photo · last post):
+- **Question map** (questions mapped · rated · next three):
+- **Answer pages** (published · last published · last updated · service pages · hub):
+- **Listings** (live · details match · last checked):
+- **Review loop** (how asked · when · link saved · asks per month · reviews per month · reply rule):
+- **Author & reviewer** (named author · credentials line · reviewer for regulated topics):
+- **Scope rules** (regulated profession · scope note · never-say claims apply):
+- **Monthly check** (prompts · engines · last run · seen in N of M · top competitor):
+- **Weekly routine** (day · minutes · profile · one page · one mention):
+- **Results** (profile calls + directions · bookings by "how did you find us" · Search Console clicks + AI impressions · Bing citations · first citation date):
+- **Search folder:** [search/]
+
+---
+
 ## 8. Session Log
 
 | Date | Session | Outputs produced | Status | Rating (1–5) | Notes |
