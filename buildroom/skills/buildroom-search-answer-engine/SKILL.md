@@ -1,7 +1,7 @@
 ---
 name: buildroom-search-answer-engine
 description: |
-  Gets the member found and cited in Google, Maps, YouTube and AI answers without ads: Google Business Profile first, one honest answer page a week on their own site, a steady review loop, five free listings, a monthly citation check (§21). Use for "get found on Google," "fix my Google Business Profile," "get more Google reviews," "what should I write about," "answer this question on my website," "search week," "am I showing up in ChatGPT," or "AEO."
+  Gets the member found and cited in Google, Maps, YouTube and AI answers without ads: Google Business Profile first, one honest answer page a week on their own site, a steady review loop, five free listings, a monthly citation check (§21). Use for "get found on Google," "fix my Google Business Profile," "get more Google reviews," "what should I write about," "answer this question on my website," "publish this page," "search week," "am I showing up in ChatGPT," or "AEO."
 ---
 
 # Build Room — Search & Answer Engine
@@ -54,6 +54,7 @@ Read these before member-facing work, in this order:
 - **Answer page** ("answer this question on my website", "write an answer page for …"): Phase 3 for one question, through the gate.
 - **Reviews** ("get more Google reviews", "how do I reply to this review"): Phase 4, the ask and the replies.
 - **Listings** ("list my business everywhere", "fix my listings"): Phase 4, listings only.
+- **Publish** ("publish this page", "put this page on my site", "is my page live yet"): Phase 3 steps 4 and 5 for one gated page: publish by API or the paste checklist, IndexNow, verify, record.
 - **Check** ("am I showing up in ChatGPT", "monthly search check", "am I in Google's AI answers"): Phase 6, the citation check and the two reports.
 - **Weekly** ("search week", "what's my search routine this week"): `profile_tracker.py weekly`, the next question from the map, and once a month one mention and the citation check; about three hours in a normal week (the page is two of them), three and a half in a check month.
 - **Demo** ("show me how the search engine works"): a short labelled walkthrough on the member's file or an obviously hypothetical business: one profile check, three rated questions, one direct answer, one review ask, one prompt logged. Nothing written to the Business File; every script runs with `--folder search-demo`, deleted afterwards; say once it was a demo.

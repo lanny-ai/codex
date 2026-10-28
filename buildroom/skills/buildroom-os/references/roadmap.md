@@ -135,7 +135,7 @@ When routing, give the member the exact words to start the session:
 - Lead Gen Machine → "Help me get more leads" (the skill picks the module from §14)
 - LinkedIn Engine → "Build my LinkedIn engine" · "Fix my LinkedIn profile" · "Write my LinkedIn posts" · "Plan my LinkedIn week" · "Who should I message on LinkedIn today" · "How is my LinkedIn doing"
 - Proof Engine → "Capture this win" · "Ask for a testimonial" · "Build my proof bank" · "What proof can I use"
-- Search & Answer Engine → "Get found on Google" · "Fix my Google Business Profile" · "Get more Google reviews" · "Answer this question on my website" · "Am I showing up in ChatGPT" · "Search week"
+- Search & Answer Engine → "Get found on Google" · "Fix my Google Business Profile" · "Get more Google reviews" · "Answer this question on my website" · "Publish this page" · "Am I showing up in ChatGPT" · "Search week"
 - Event Launcher → "Plan my launch" · "Help me run a challenge" · "I want to do a 3-day bootcamp" · "Write my launch emails" · "Run sheet for day 2" · "Plan the close" · "Launch partners" · "Is my launch ready" · "How did my launch do"
 - Sales Conversations → "Help me with my sales call"
 - Ad Studio → "Make me ads"
