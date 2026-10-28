@@ -86,6 +86,7 @@ Scope decides the channel; origin decides the honesty of the claim. A story goes
 | Ads (Ad Studio) | D or B **named** only; H with typical result | `ads`, plus `photo_or_logo` for a photo | Cited by ID in the Ad Studio's copy manifest; nothing anonymous that implies a real person |
 | Video testimonials (Video Director) | D or B named | `video` plus the Video Director's consent form | The director records; this skill decides who to ask |
 | LinkedIn posts (LinkedIn Engine) | D, B, A with consent; H | `social` | The post gate checks origin and permission |
+| Answer pages and service pages (Search & Answer Engine) | D or B, named or anonymous, with the typical result beside the number; H with typical result | `site` | Copied by ID into `search/answers/<slug>.md`; the page's gate requires the typical result in the same paragraph |
 | Launch Day 2 proof and invitation emails (Event Launcher) | A and B for a free event; D only labelled as a paid-program result; E as "what's possible" | `events` (and `emails` for the invitations) | The launch gate re-checks before the cart emails |
 | Sales calls (Sales Conversations) | Any `named` or `anonymous` story, in the member's words | `events` or `emails` (either shows the client expects it to be told) | Pending stories are not told |
 | Composites (X) | Anywhere a labelled illustration helps | none (no real person) | The label travels with the words |

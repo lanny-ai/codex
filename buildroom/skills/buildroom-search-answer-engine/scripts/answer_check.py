@@ -5,15 +5,19 @@ An answer page is a markdown file in `search/answers/<slug>.md` with a front-mat
 Nothing is published until `check` passes every hard gate (the founder's OS Cortex gates,
 adapted for a page the member publishes by hand on their own site builder).
 
-  python3 answer_check.py new "How much does X cost?" --slug how-much-x-cost --author "Dana Ruiz" --kind first-hand [--folder search]
-  python3 answer_check.py check search/answers/how-much-x-cost.md [--business-file BUSINESS_FILE.md] [--site https://example.com] [--questions search/questions.json]
-  python3 answer_check.py schema search/answers/how-much-x-cost.md --site https://example.com [--org "Ruiz Advisory"] [--out file.json]
-  python3 answer_check.py robots [--block-training]
+  python3 answer_check.py new "How much does X cost?" --author "Dana Ruiz" --credentials "CPA, 14 years" --kind first-hand [--slug …] [--id Q-04] [--cluster pricing] [--folder search]
+  python3 answer_check.py new "Bookkeeping clean-up" --kind service --author "Dana Ruiz" --credentials "…"
+  python3 answer_check.py check search/answers/<slug>.md [--business-file BUSINESS_FILE.md] [--site https://example.com] [--questions search/questions.json]
+  python3 answer_check.py schema search/answers/<slug>.md --site https://example.com [--path answers/slug] [--org "Ruiz Advisory"] [--out search/answers/<slug>.jsonld]
+  python3 answer_check.py robots [--site https://example.com] [--block-training] [--out search/robots.txt]
+  python3 answer_check.py robots --check robots.txt          # a pasted or downloaded robots.txt: which answer crawlers it blocks
 
-Page kinds: `evidence` (three or more outside sources) and `first-hand` (the member's own data or
-experience, with a "How we know" section and at least one outside source). Every paragraph or
+Page kinds: `evidence` (three or more outside sources), `first-hand` (the member's own counted data,
+with a "How we know" section and at least one outside source) and `service` (one page per service:
+what it is, who it is for, what it costs, what happens first; sources optional). Every paragraph or
 list item that carries a number or a results claim carries a marker: [S1] (a source), [own] (the
-member's own counted data), or [method] (the member's own method, an opinion, not a fact).
+member's own counted data), or [method] (the member's own method or opinion, not a fact). Dates,
+years, plain durations, step numbers and phone numbers do not need one.
 
 Exit code 0 when every hard gate passes (warnings allowed), 1 when a gate fails, 2 on a usage error.
 """
@@ -27,44 +31,61 @@ from urllib.parse import urlparse
 
 sys.dont_write_bytecode = True
 
-KINDS = ("evidence", "first-hand")
+KINDS = ("evidence", "first-hand", "service")
 REGULATED = ("none", "financial", "legal", "medical", "mental-health", "insurance", "real-estate")
 STATUSES = ("draft", "ready", "published", "needs-update")
 DIRECT_ANSWER_WORDS = 100
-MIN_SOURCES = {"evidence": 3, "first-hand": 1}
+MIN_SOURCES = {"evidence": 3, "first-hand": 1, "service": 0}
 MIN_ORIGINAL_WORDS = 40
 WORDS_LOW, WORDS_HIGH = 300, 2000
 SENTENCE_WARN = 24
-REQUIRED = ("id", "question", "title", "slug", "kind", "status", "author", "author_credentials", "reviewer", "published",
-            "updated", "cluster", "original", "regulated", "next_action", "sources")
-GATES = ("front_matter", "direct_answer", "sources", "claims_supported", "original_contribution", "headings", "author",
+REQUIRED = ("id", "question", "title", "slug", "kind", "status", "author", "author_credentials", "published",
+            "updated", "cluster", "original", "regulated", "next_action")
+GATES = ("front_matter", "h1", "direct_answer", "sources", "claims_supported", "original_contribution", "headings", "author",
          "dates", "next_action", "internal_links", "scope_note", "never_say", "typical_result", "no_placeholders",
          "duplicate", "schema_match", "how_we_know")
-# Search and answer crawlers (visibility) kept separate from model-training crawlers (a brand choice).
+# Search and answer crawlers (being found and cited). Google-Extended is kept out of both lists on purpose: it governs
+# Gemini training AND grounding, so blocking it can stop the Gemini app from using the site; it stays allowed.
 SEARCH_CRAWLERS = ("Googlebot", "Bingbot", "OAI-SearchBot", "ChatGPT-User", "PerplexityBot", "Perplexity-User",
-                   "Claude-SearchBot", "Claude-User", "Applebot", "Amzn-SearchBot")
-TRAINING_CRAWLERS = ("GPTBot", "ClaudeBot", "Google-Extended", "Applebot-Extended", "CCBot", "Bytespider",
-                     "Amazonbot", "Meta-ExternalAgent")
+                   "Claude-SearchBot", "Claude-User", "Applebot", "Amzn-SearchBot", "Meta-WebIndexer")
+GROUNDING_CRAWLERS = ("Google-Extended",)
+TRAINING_CRAWLERS = ("GPTBot", "ClaudeBot", "Applebot-Extended", "Bytespider", "Amazonbot", "Meta-ExternalAgent")
 REGULATED_HINTS = {
-    "financial": r"\b(invest|retire|tax|401\(?k\)?|ira|portfolio|mortgage|loan|credit|debt|insurance premium|annuit)",
-    "legal": r"\b(lawsuit|sue|liabil|contract|attorney|lawyer|court|divorce|custody|will|estate|llc)\b",
-    "medical": r"\b(diagnos|symptom|treatment|dose|medication|surgery|therapy|chronic|pain|disease|injur)",
-    "mental-health": r"\b(anxiety|depress|trauma|ptsd|counsel|therapist|suicid|addiction)",
-    "insurance": r"\b(policy|premium|claim|deductible|coverage|underwrit)",
-    "real-estate": r"\b(tenant|landlord|fair housing|zoning|appraisal|listing agent|buyer agent)",
+    "financial": r"\b(invest(?:ing|ment)|retire(?:ment)?|tax(?:es)?\b|401\(?k\)?|\bira\b|portfolio|mortgage|loan|credit score|debt|annuit)",
+    "legal": r"\b(lawsuit|\bsue\b|liabilit|attorney|lawyer|court|divorce|custody|last will|probate|estate plan|\bllc\b|contract (?:law|dispute))",
+    "medical": r"\b(diagnos|symptom|treatment|dose|medication|surgery|chronic (?:pain|illness)|disease|injur)",
+    "mental-health": r"\b(anxiety|depress|trauma|ptsd|counsel(?:ing|lor)|therapist|suicid|addiction)",
+    "insurance": r"\b(premium|deductible|underwrit|insurance polic)",
+    "real-estate": r"\b(tenant|landlord|fair housing|zoning|appraisal|listing agent|buyer'?s agent)",
 }
 SCOPE_PHRASES = re.compile(r"(general information|not (?:legal|medical|financial|tax|investment|health|professional|individual) advice|"
                            r"talk to (?:your|a) (?:doctor|lawyer|attorney|adviser|advisor|accountant|cpa|professional)|"
                            r"does not replace|is not a substitute)", re.I)
-PLACEHOLDERS = re.compile(r"\b(TODO|TBD|TK|lorem ipsum|xxx+|insert .{0,20} here|\[your [^\]]+\]|\[name\]|\[city\])\b", re.I)
-RESULT_WORDS = re.compile(r"\b(clients?|customers?|patients?|members?|students?|owners?|people|businesses|families|results?|saved|save|earned|earn|"
-                          r"grew|grow|increased|increase|cut|reduced|reduce|doubled|tripled|booked|closed|won|lost)\b", re.I)
+SENTINEL = "‹"   # every scaffold placeholder carries it; a page with one left in does not publish
+PLACEHOLDER_WORDS = re.compile(r"\b(TODO|TBD|TK|lorem ipsum|xxx+|insert .{0,20} here)\b", re.I)
+PLACEHOLDER_BRACKETS = re.compile(r"\[(?:your [^\]]+|name|city|town|business|date|number)\]", re.I)
+PLACEHOLDER_SCAFFOLD = ("Title of the source", "example.org/page", "12 or more words of your own", "Answer in two or three plain sentences",
+                        "A question-shaped heading", "Another question:", "A short list or a small table")
+OUTCOME = re.compile(r"\b(saved?|earn(?:ed|s)?|grew|grow(?:s|th)?|increased?|cut|reduced?|doubled|tripled|booked|closed|won|lost|paid off|cleared|"
+                     r"gained?|recovered|avoided)\b", re.I)
+CLIENT_NOUNS = re.compile(r"\b(clients?|customers?|patients?|members?|students?|homeowners?|owners?)\b", re.I)
 NUMBER = re.compile(r"(\$\s?\d|\d+(?:\.\d+)?\s?%|\b\d{2,}\b|\b\d\s?(?:x|times)\b)", re.I)
-TYPICAL = re.compile(r"\b(typical|typically|most (?:clients|customers|patients|people|members|businesses)|on average|average|usual|usually|"
+EXEMPT = [  # removed from a paragraph before looking for a number that needs a marker
+    r"(?:\+?\d{1,3}[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}",        # phone numbers
+    r"\b(19|20)\d\d\b",                                                 # years
+    r"\b\d+[\s-](?:minute|hour|day|week|month|year)s?\b",               # plain durations
+    r"\bstep \d+\b", r"\bpage \d+\b", r"\b\d{1,2}:\d\d\b",              # steps, pages, times of day
+    r"\]\([^)]*\)",                                                     # link targets
+    r"\[(?:S\d+|own|method)\]",                                         # the markers themselves
+]
+TYPICAL = re.compile(r"\b(typical|typically|most (?:clients|customers|patients|people|members|businesses|homeowners|owners|jobs)|on average|average|usual|usually|"
                      r"not everyone|results vary|range)\b", re.I)
 MARKER = re.compile(r"\[(S\d+|own|method)\]")
 FENCE = re.compile(r"```(\w*)\n(.*?)```", re.S)
 INLINE_LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
+NEXT_LINK = re.compile(r"^(https?://|/|mailto:|tel:|sms:)")
+STOP = {"a", "an", "the", "is", "are", "do", "does", "how", "what", "why", "when", "which", "can", "i", "my",
+        "to", "for", "of", "in", "on", "and", "or", "it", "be", "should", "much", "with", "me", "you", "your"}
 
 
 def die(msg, code=2):
@@ -76,11 +97,25 @@ def words(text):
     return len(re.findall(r"[A-Za-z0-9$%'’-]+", text))
 
 
+def slugify(text, limit=60):
+    """The same slug the question map makes, so a page and its question agree."""
+    t = re.sub(r"[^a-z0-9\s-]", "", text.lower())
+    ws = [w for w in t.split() if w not in STOP] or t.split()
+    slug = "-".join(ws)
+    if len(slug) > limit:
+        slug = slug[:limit].rsplit("-", 1)[0]
+    return slug.strip("-") or "page"
+
+
+def norm(text):
+    return re.sub(r"[^a-z0-9]", "", (text or "").lower())
+
+
 # ---------------------------------------------------------------- front matter
 
 def parse_front_matter(text):
-    """A small YAML subset: `key: value` lines and `key:` followed by `  - item` lines."""
-    m = re.match(r"^---\n(.*?)\n---\n?(.*)$", text, re.S)
+    """A small YAML subset: `key: value` lines (a trailing ` # comment` is ignored) and `key:` with `  - item` lines."""
+    m = re.match(r"^﻿?---\n(.*?)\n---\n?(.*)$", text, re.S)
     if not m:
         return None, text
     fm, body = {}, m.group(2)
@@ -88,6 +123,7 @@ def parse_front_matter(text):
     for line in m.group(1).splitlines():
         if not line.strip():
             continue
+        line = re.sub(r"\s+#\s.*$", "", line)
         lm = re.match(r"^\s+-\s*(.*)$", line)
         if lm and key:
             fm.setdefault(key, [])
@@ -98,14 +134,12 @@ def parse_front_matter(text):
         km = re.match(r"^([A-Za-z_][\w-]*):\s*(.*)$", line)
         if km:
             key = km.group(1).strip()
-            val = km.group(2).strip()
-            fm[key] = val if val else ""
-            continue
+            fm[key] = km.group(2).strip()
     return fm, body
 
 
 def parse_sources(fm):
-    """`S1 | Title | Publisher | URL | published YYYY-MM-DD | accessed YYYY-MM-DD` (publisher/dates optional)."""
+    """`S1 | Title | Publisher | URL | published YYYY-MM-DD | accessed YYYY-MM-DD` (publisher and dates optional)."""
     raw = fm.get("sources") or []
     if isinstance(raw, str):
         raw = [raw] if raw else []
@@ -123,6 +157,8 @@ def parse_sources(fm):
             problems.append(f"{sid} has no URL")
         if not title:
             problems.append(f"{sid} has no title")
+        if SENTINEL in item or any(ph.lower() in item.lower() for ph in PLACEHOLDER_SCAFFOLD):
+            problems.append(f"{sid} is still the scaffold's example source")
         out.append({"id": sid, "title": title, "url": url, "dated": dated, "raw": item})
     return out, problems
 
@@ -169,36 +205,75 @@ def paragraphs(text):
     return out
 
 
-def first_paragraph(text):
-    for para in re.split(r"\n\s*\n", text.strip()):
-        p = para.strip()
-        if p and not p.startswith(("#", "```", "|", "!", "<")):
+def is_furniture(para, fm):
+    """A byline, a date line or the next-step line: not an answer and not a claim."""
+    p = para.strip()
+    if re.match(r"^(\*{0,2}By |\*?Updated|\*?Last reviewed|\*Next step|Next step|\*?Reviewed)", p, re.I):
+        return True
+    if fm.get("author") and p.startswith(fm["author"]):
+        return True
+    return False
+
+
+def first_answer_paragraph(text, fm):
+    paras = [p.strip() for p in re.split(r"\n\s*\n", strip_code(text).strip()) if p.strip()]
+    for p in paras:
+        if p.lower().startswith("**short answer"):
             return p
+    for p in paras:
+        if p.startswith(("#", "```", "|", "!", "<")) or is_furniture(p, fm):
+            continue
+        return p
     return ""
 
 
+def unexempt(para):
+    t = para
+    for rx in EXEMPT:
+        t = re.sub(rx, " ", t, flags=re.I)
+    return t
+
+
+def plain_text(md):
+    t = re.sub(r"\*\*|__", "", md)
+    t = MARKER.sub("", t)
+    t = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", t)
+    return re.sub(r"\s+", " ", t).strip()
+
+
 def load_business_file_lists(path):
-    """§18 never-say claims and §1 retired lines, as lower-case phrases."""
+    """§18 never-say claims and §1 retired lines, as lower-case phrases. Reads the line after the label (the template's
+    parenthetical hint stripped) and any sub-bullets beneath it, until the next field."""
     if not path:
         return [], []
     p = Path(path)
     if not p.exists():
         die(f"business file {p} not found")
-    text = p.read_text(encoding="utf-8")
-    never, retired = [], []
+    lines = p.read_text(encoding="utf-8").splitlines()
 
     def grab(label):
-        m = re.search(r"\*\*" + re.escape(label) + r"[^*]*\*\*\s*:?\s*(.*)", text)
-        if not m:
-            return []
-        line = m.group(1).strip()
-        if line in ("", "—", "-"):
-            return []
-        return [x.strip(" .;·\"“”'‘’") for x in re.split(r"[;·]|\s\|\s|,\s(?=[A-Z\"“])", line) if len(x.strip(" .;·\"“”'‘’")) > 3]
+        out = []
+        for i, line in enumerate(lines):
+            m = re.match(r"^\s*-?\s*\*\*" + re.escape(label) + r"[^*]*\*\*[ \t]*(?:\([^)]*\))?[ \t]*:?[ \t]*(.*)$", line)
+            if not m:
+                continue
+            head = re.sub(r"^\([^)]*\)\s*:?\s*", "", m.group(1).strip())
+            items = [head] if head else []
+            for nxt in lines[i + 1:]:
+                if re.match(r"^\s+-\s*", nxt) and not re.match(r"^\s*-\s*\*\*", nxt):
+                    items.append(re.sub(r"^\s+-\s*", "", nxt))
+                else:
+                    break
+            for it in items:
+                for piece in re.split(r"[;·]|\s\|\s|,\s(?=[A-Z\"“])", it):
+                    piece = re.sub(r"\s*\([^)]*\)\s*$", "", piece)           # a trailing annotation
+                    piece = piece.strip(" .;·\"“”'‘’-")
+                    if len(piece) > 3 and piece not in ("—",):
+                        out.append(piece.lower())
+            break
+        return out
 
-    never = grab("Never-say claims")
-    retired = grab("Retired lines")
-    return [n.lower() for n in never], [r.lower() for r in retired]
+    return grab("Never-say claims"), grab("Retired lines")
 
 
 # ---------------------------------------------------------------- check
@@ -211,23 +286,26 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
     fm, body = parse_front_matter(text)
     fails, warns, info = {}, [], {}
 
+    def fail(gate, msg):
+        fails[gate] = (fails.get(gate, "") + "; " + msg).strip("; ")
+
     if fm is None:
         fails["front_matter"] = "no front-matter block (--- ... ---) at the top"
         return {"ok": False, "file": str(p), "fails": fails, "warns": warns, "info": info}
 
-    missing = [k for k in REQUIRED if k not in fm or fm[k] in ("", [])]
-    if fm.get("reviewer", None) == "none":
-        missing = [m for m in missing if m != "reviewer"]
-    if missing:
-        fails["front_matter"] = "missing: " + ", ".join(missing)
     kind = fm.get("kind", "")
-    if kind not in KINDS:
-        fails["front_matter"] = (fails.get("front_matter", "") + f"; kind must be {' or '.join(KINDS)}").strip("; ")
-    if fm.get("status") and fm["status"] not in STATUSES:
-        fails["front_matter"] = (fails.get("front_matter", "") + f"; status must be one of {', '.join(STATUSES)}").strip("; ")
     regulated = fm.get("regulated", "none") or "none"
+    if fm.get("reviewer", "") == "" and regulated == "none":
+        fm["reviewer"] = "none"
+    missing = [k for k in REQUIRED if k not in fm or fm[k] in ("", [])]
+    if missing:
+        fail("front_matter", "missing: " + ", ".join(missing))
+    if kind not in KINDS:
+        fail("front_matter", f"kind must be one of {', '.join(KINDS)}")
+    if fm.get("status") and fm["status"] not in STATUSES:
+        fail("front_matter", f"status must be one of {', '.join(STATUSES)}")
     if regulated not in REGULATED:
-        fails["front_matter"] = (fails.get("front_matter", "") + f"; regulated must be one of {', '.join(REGULATED)}").strip("; ")
+        fail("front_matter", f"regulated must be one of {', '.join(REGULATED)}")
 
     h1, sections = split_sections(body)
     lead = sections[0][1] if sections else ""
@@ -235,29 +313,34 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
     info["words"] = words(body_nocode)
     info["h1"] = h1
 
-    # direct answer: the first paragraph after the H1, at most 100 words, and not a heading or an image
-    para = first_paragraph(lead)
+    # H1: the question word for word (a service page uses the service name as its title)
+    if not h1:
+        fail("h1", "no H1 at the top of the body")
+    elif kind == "service":
+        if fm.get("title") and norm(h1) != norm(fm["title"]):
+            fail("h1", "a service page's H1 is the service name (the front-matter title)")
+    elif fm.get("question") and norm(h1) != norm(fm["question"]):
+        fail("h1", "the H1 must be the question word for word, as the front matter has it")
+
+    # direct answer: the first real paragraph (bylines and date lines skipped), at most 100 words
+    para = first_answer_paragraph(lead, fm)
     n = words(para)
     info["direct_answer_words"] = n
-    if not h1:
-        fails["direct_answer"] = "no H1 (the question) at the top of the body"
-    elif not para:
-        fails["direct_answer"] = "no paragraph before the first H2; the direct answer goes first"
+    if h1 and not para:
+        fail("direct_answer", "no paragraph before the first H2; the direct answer goes first")
     elif n > DIRECT_ANSWER_WORDS:
-        fails["direct_answer"] = f"the first paragraph is {n} words; the direct answer must sit inside the first {DIRECT_ANSWER_WORDS}"
-    elif n < 15:
+        fail("direct_answer", f"the opening paragraph is {n} words; the direct answer must sit inside the first {DIRECT_ANSWER_WORDS}")
+    elif para and n < 15:
         warns.append(f"direct answer is only {n} words; say the answer in a full sentence or two")
-    if h1 and fm.get("question") and re.sub(r"\W", "", h1.lower()) != re.sub(r"\W", "", fm["question"].lower()):
-        warns.append("the H1 and the front-matter question differ; use the question as the H1")
 
     # sources
     sources, problems = parse_sources(fm)
     unique_urls = {s["url"] for s in sources if s["url"]}
     need = MIN_SOURCES.get(kind, 3)
     if problems:
-        fails["sources"] = "; ".join(problems)
+        fail("sources", "; ".join(problems))
     elif len(unique_urls) < need:
-        fails["sources"] = f"{len(unique_urls)} source URL(s); a {kind or 'evidence'} page needs at least {need} unique"
+        fail("sources", f"{len(unique_urls)} source URL(s); a {kind or 'evidence'} page needs at least {need} unique")
     if any(not s["dated"] for s in sources):
         warns.append("a source has no date; add the publication or access date")
     own_domain = urlparse(site).netloc.lower().replace("www.", "") if site else ""
@@ -265,76 +348,78 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
         warns.append("a source is the member's own site; that is first-hand data, mark it [own] and keep outside sources separate")
     info["sources"] = len(unique_urls)
 
-    # claims ledger: every paragraph or list item with a number or a results claim, outside the Sources section,
-    # carries at least one marker; every [S#] used exists in the front matter
+    # claims ledger: every paragraph or list item with a number (after dates, durations, phones, steps and links are set
+    # aside) carries at least one marker; every [S#] used exists in the front matter
     unsupported, unknown = [], []
     ids = {s["id"] for s in sources}
     for heading, sec in sections:
         if heading.lower().startswith(("sources", "about the author")):
             continue
         for para in paragraphs(sec):
+            if is_furniture(para, fm):
+                continue
             marks = MARKER.findall(para)
-            has_number = bool(NUMBER.search(para))
-            has_claim = has_number and bool(RESULT_WORDS.search(para))
-            if has_number and not marks:
-                if not has_claim and re.search(r"\b(20\d\d|step \d|\d+ (?:minute|hour|day|week|month|year)s?)\b", para, re.I):
-                    continue   # a date, a step number or a plain duration is not a claim
-                unsupported.append(para[:90])
+            if NUMBER.search(unexempt(para)) and not marks:
+                unsupported.append(plain_text(para)[:90])
             for m in marks:
                 if m.startswith("S") and m not in ids:
                     unknown.append(m)
     if unsupported:
-        fails["claims_supported"] = f"{len(unsupported)} sentence(s) with a number or result and no [S#]/[own]/[method] marker, e.g. '{unsupported[0]}'"
+        fail("claims_supported", f"{len(unsupported)} paragraph(s) with a number and no [S#]/[own]/[method] marker, e.g. '{unsupported[0]}'")
     if unknown:
-        fails["claims_supported"] = (fails.get("claims_supported", "") + f"; unknown source marker(s): {', '.join(sorted(set(unknown)))}").strip("; ")
-    info["marked_sentences"] = len(MARKER.findall(body_nocode))
+        fail("claims_supported", f"unknown source marker(s): {', '.join(sorted(set(unknown)))}")
+    info["marked_paragraphs"] = len(MARKER.findall(body_nocode))
 
-    # original contribution: the front-matter line plus a section that holds it
+    # original contribution: the front-matter line plus a section of the member's own view, distinct from "How we know"
     orig = fm.get("original", "")
-    orig_words = words(orig) if isinstance(orig, str) else 0
-    orig_sections = [s for h, s in sections if re.search(r"(what we|our (?:take|view|method|rule|approach|experience)|how we|what (?:we|i)'d|in our|what nobody)", h, re.I)]
-    if orig_words < 12:
-        fails["original_contribution"] = "front-matter `original` must say, in at least 12 words, what this page has that no other page has"
-    elif not orig_sections or all(words(s) < MIN_ORIGINAL_WORDS for s in orig_sections):
-        fails["original_contribution"] = (f"no section of at least {MIN_ORIGINAL_WORDS} words carrying the member's own view or method "
-                                          "(a heading like 'What we'd check first', 'Our rule', 'How we handle this')")
+    orig = orig if isinstance(orig, str) else " ".join(orig)
+    view_sections = [s for h, s in sections if re.search(r"(what we|our (?:take|view|method|rule|approach|experience)|what (?:we|i)'d|in our|what nobody|"
+                                                         r"the mistake|what to check)", h, re.I) and not h.lower().startswith("how we know")]
+    if words(orig) < 12 or orig.lstrip().startswith("(") or SENTINEL in orig:
+        fail("original_contribution", "front-matter `original` must say, in at least 12 words of the member's own, what this page has that no other page has")
+    elif not view_sections or all(words(s) < MIN_ORIGINAL_WORDS for s in view_sections):
+        fail("original_contribution", f"no section of at least {MIN_ORIGINAL_WORDS} words carrying the member's own view or rule "
+                                      "(a heading like 'What we'd check first', 'Our rule', 'The mistake we see most'); 'How we know' does not count")
 
-    # headings
+    # headings (the Sources section does not count)
     h2s = [h for h, _ in sections if h and not h.lower().startswith("sources")]
-    question_h2s = [h for h in h2s if h.rstrip().endswith("?")]
     if len(h2s) < 2:
-        fails["headings"] = "fewer than two H2 sections"
-    elif not question_h2s:
+        fail("headings", "fewer than two H2 sections")
+    elif not any(h.rstrip().endswith("?") for h in h2s):
         warns.append("no H2 is a question; question-shaped headings are the ones engines quote")
     if any(words(s) > 350 for _, s in sections):
         warns.append("a section runs over 350 words; split it so each heading answers one thing")
 
     # author, reviewer, dates
     if not fm.get("author") or not fm.get("author_credentials"):
-        fails["author"] = "author and author_credentials are required (who is answering, and why they can)"
-    if regulated != "none" and fm.get("reviewer", "none") in ("", "none"):
-        fails["author"] = (fails.get("author", "") + f"; a {regulated} page needs a named reviewer").strip("; ")
+        fail("author", "author and author_credentials are required (who is answering, and why they can)")
+    reviewer = fm.get("reviewer", "none") or "none"
+    if regulated != "none":
+        if reviewer == "none":
+            fail("author", f"a {regulated} page needs a named reviewer")
+        elif not re.search(r"[A-Z][a-z]+ [A-Z]", reviewer):
+            warns.append("the reviewer should be a named person (first and last name), not a team")
     for key in ("published", "updated"):
-        v = fm.get(key, "")
-        if not re.fullmatch(r"20\d\d-\d\d-\d\d", v or ""):
-            fails["dates"] = f"{key} must be a date YYYY-MM-DD"
+        if not re.fullmatch(r"20\d\d-\d\d-\d\d", fm.get(key, "") or ""):
+            fail("dates", f"{key} must be a date YYYY-MM-DD")
     if "dates" not in fails:
         try:
             pub, upd = date.fromisoformat(fm["published"]), date.fromisoformat(fm["updated"])
             if upd < pub:
-                fails["dates"] = "updated is before published"
-            elif (date.today() - upd).days > 365 and fm.get("status") == "published":
+                fail("dates", "updated is before published")
+            elif (date.today() - upd).days > 365 and fm.get("status") in ("published", "needs-update"):
                 warns.append("last updated over a year ago; re-check the facts and bump `updated`")
         except ValueError:
-            fails["dates"] = "a date is not a real calendar date"
+            fail("dates", "a date is not a real calendar date")
     if not re.search(r"(updated|last reviewed|reviewed on)\s*:?\s*20\d\d", body_nocode, re.I):
         warns.append("no visible 'Updated: <date>' line in the body; readers and engines both look for it")
 
     # next action
     na = fm.get("next_action", "")
-    if not na or "|" not in na or not re.search(r"https?://|^/|\.html|mailto:", na.split("|", 1)[1].strip()):
-        fails["next_action"] = "next_action must be `label | link` (one relevant next step with a working link)"
-    elif not any(na.split("|", 1)[1].strip().split("?")[0] in INLINE_LINK.findall(body_nocode) for _ in [0]) and na.split("|", 1)[1].strip() not in body_nocode:
+    link = na.split("|", 1)[1].strip() if "|" in na else ""
+    if not na or not link or not NEXT_LINK.match(link):
+        fail("next_action", "next_action must be `label | link` (a page link, mailto:, tel: or sms:)")
+    elif link not in body_nocode:
         warns.append("the next-action link does not appear in the body; put it at the end of the page")
 
     # internal links: relative links or links on the member's domain, anywhere in the body, not counting the sources
@@ -343,42 +428,47 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
     internal = [l for l in links if l.startswith("/") or (own_domain and own_domain in l)]
     info["internal_links"] = len(internal)
     if site and len(internal) < require_internal:
-        fails["internal_links"] = f"{len(internal)} internal link(s); link to at least {require_internal} other pages on the site (a hub or related answer, and the offer or contact page)"
+        fail("internal_links", f"{len(internal)} internal link(s); link to at least {require_internal} other pages on the site (the service or hub page, and the booking or contact page)")
     elif not site and len(internal) < require_internal:
         warns.append(f"{len(internal)} internal link(s) found; pass --site to check them properly; aim for {require_internal} or more")
 
     # scope note for regulated topics
-    detected = [k for k, rx in REGULATED_HINTS.items() if re.search(rx, body_nocode, re.I)]
+    detected = [k for k, rx in REGULATED_HINTS.items() if len(re.findall(rx, body_nocode, re.I)) >= 2]
     info["regulated_hints"] = detected
     if regulated != "none" and not SCOPE_PHRASES.search(body_nocode):
-        fails["scope_note"] = f"a {regulated} page needs a visible scope note (general information, not advice; who to talk to)"
+        fail("scope_note", f"a {regulated} page needs a visible scope note (general information, not advice; who to talk to)")
     elif regulated == "none" and detected:
-        warns.append(f"the text touches {', '.join(detected)} topics; if the page is about one of them set `regulated` and add a scope note")
+        warns.append(f"the text touches {', '.join(detected)} topics more than once; if the page is about one of them set `regulated` and add a scope note")
 
-    # never-say claims and retired lines
+    # never-say claims and retired lines (exact phrases; a paraphrase is the session's judgment)
     never, retired = load_business_file_lists(business_file)
-    low = body_nocode.lower()
+    low = re.sub(r"\s+", " ", body_nocode.lower())
     hits = [n for n in never + retired if n and n in low]
     if hits:
-        fails["never_say"] = "the page uses a never-say claim or a retired line: " + "; ".join(hits[:3])
+        fail("never_say", "the page uses a never-say claim or a retired line: " + "; ".join(hits[:3]))
     if business_file is None:
         warns.append("no --business-file given, so §18 never-say claims and §1 retired lines were not checked")
 
-    # typical result beside any results claim
+    # typical result beside any results claim (an outcome verb with a number or a client noun), whatever the marker
     bare = []
     for heading, sec in sections:
-        if heading.lower().startswith(("sources", "how we know")):
+        if heading.lower().startswith("sources"):
             continue
         for para in paragraphs(sec):
-            if NUMBER.search(para) and RESULT_WORDS.search(para) and re.search(r"\[(own|S\d+)\]", para) and not TYPICAL.search(para):
-                bare.append(para[:80])
+            if is_furniture(para, fm):
+                continue
+            if OUTCOME.search(para) and (NUMBER.search(unexempt(para)) or CLIENT_NOUNS.search(para)) and MARKER.search(para) and not TYPICAL.search(para):
+                bare.append(plain_text(para)[:80])
     if bare:
-        fails["typical_result"] = f"{len(bare)} paragraph(s) make a results claim without saying what is typical, e.g. '{bare[0]}'"
+        fail("typical_result", f"{len(bare)} paragraph(s) make a results claim without saying what is typical, e.g. '{bare[0]}'")
 
     # placeholders
-    ph = PLACEHOLDERS.findall(body_nocode) + ([] if isinstance(fm.get("original"), list) else PLACEHOLDERS.findall(str(fm.get("original", ""))))
+    ph = set(PLACEHOLDER_WORDS.findall(body_nocode)) | set(PLACEHOLDER_BRACKETS.findall(body_nocode))
+    ph |= {s for s in PLACEHOLDER_SCAFFOLD if s.lower() in body_nocode.lower()}
+    if SENTINEL in body_nocode or any(SENTINEL in str(v) for v in fm.values()):
+        ph.add("‹…› scaffold text")
     if ph:
-        fails["no_placeholders"] = "placeholder text left in: " + ", ".join(sorted({x if isinstance(x, str) else x[0] for x in ph})[:4])
+        fail("no_placeholders", "placeholder text left in: " + ", ".join(sorted(x if isinstance(x, str) else x[0] for x in ph)[:4]))
 
     # duplicate against the question map
     if questions:
@@ -389,9 +479,9 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
             except json.JSONDecodeError:
                 qs = []
             dup = [q for q in qs if q.get("status") == "published" and q.get("id") != fm.get("id")
-                   and (q.get("slug") == fm.get("slug") or re.sub(r"\W", "", q.get("question", "").lower()) == re.sub(r"\W", "", fm.get("question", "").lower()))]
+                   and (q.get("slug") == fm.get("slug") or norm(q.get("question", "")) == norm(fm.get("question", "")))]
             if dup:
-                fails["duplicate"] = f"already published as {dup[0]['id']} ({dup[0].get('published_url') or dup[0].get('slug')}); update that page instead"
+                fail("duplicate", f"already published as {dup[0]['id']} ({dup[0].get('published_url') or dup[0].get('slug')}); update that page instead")
             if fm.get("id") and not any(q.get("id") == fm.get("id") for q in qs):
                 warns.append(f"{fm['id']} is not in the question map; add it so the map stays the one list")
 
@@ -401,27 +491,31 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
             try:
                 data = json.loads(block)
             except json.JSONDecodeError as e:
-                fails["schema_match"] = f"the JSON-LD block does not parse: {e}"
+                fail("schema_match", f"the JSON-LD block does not parse: {e}")
                 continue
             items = data.get("@graph", [data]) if isinstance(data, dict) else data
             for it in items:
                 t = it.get("@type", "")
-                if t in ("Article", "BlogPosting", "FAQPage", "WebPage") and it.get("headline") and it["headline"] != fm.get("title"):
-                    fails["schema_match"] = "the schema headline differs from the page title"
+                if t in ("Article", "BlogPosting", "WebPage") and it.get("headline") and it["headline"] != fm.get("title"):
+                    fail("schema_match", "the schema headline differs from the page title")
                 if t == "FAQPage":
-                    qtexts = [e.get("name", "") for e in it.get("mainEntity", [])]
-                    if any(q not in h2s and q != h1 for q in qtexts):
-                        fails["schema_match"] = "a FAQPage question is not a visible heading on the page"
+                    fail("schema_match", "FAQPage markup: FAQ rich results ended in May 2026 and the skill does not use it; remove the block")
                 if t in ("Article", "BlogPosting") and isinstance(it.get("author"), dict) and it["author"].get("name") and it["author"]["name"] != fm.get("author"):
-                    fails["schema_match"] = "the schema author differs from the front-matter author"
+                    fail("schema_match", "the schema author differs from the front-matter author")
 
     # first-hand pages: a "How we know" section
     if kind == "first-hand":
         hk = [s for h, s in sections if h.lower().startswith("how we know")]
         if not hk or words(hk[0]) < 30:
-            fails["how_we_know"] = "a first-hand page needs a 'How we know' section (what was counted, over what period, how many)"
+            fail("how_we_know", "a first-hand page needs a 'How we know' section (what was counted, over what period, how many)")
         if "[own]" not in body_nocode:
             warns.append("a first-hand page usually carries [own] markers on the member's own numbers")
+    if kind == "service":
+        have = " ".join(h.lower() for h in h2s)
+        missing_q = [w for w in ("who", "cost", "first") if w not in have]
+        if missing_q:
+            warns.append("a service page usually answers: what it is, who it is for, what it costs (or how pricing works), what happens first; "
+                         f"missing: {', '.join(missing_q)}")
 
     # length and readability (warnings)
     if info["words"] < WORDS_LOW:
@@ -458,57 +552,84 @@ reviewer: none
 published: {today}
 updated: {today}
 cluster: {cluster}
-original: (12+ words: what this page has that no other page has: your own numbers, your rule, your method, your example)
+original: ‹12 or more words of your own: what this page has that no other page has: your numbers, your rule, your example›
 regulated: none
 next_action: Book a 20-minute call | /contact
 sources:
-  - S1 | Title of the source | Publisher | https://example.org/page | published 2026-01-15 | accessed {today}
+  - S1 | ‹Title of the source› | ‹Publisher› | https://example.org/page | published 2026-01-15 | accessed {today}
 ---
-# {question}
+# {h1}
 
-**Short answer:** (Answer the question in two or three plain sentences, under 100 words. Say the number or the decision first, then the one condition that changes it.)
+**Short answer:** ‹Answer in two or three plain sentences, under 100 words: the number or the decision first, then the one condition that changes it.›
 
-Updated: {today}
+By {author}, {credentials}. Updated: {today}
 
-## (A question-shaped heading: What decides the answer?)
+{sections}
+## Sources
 
-(Each heading answers one thing. A sentence with a number or a result ends with [S1], [own] or [method].)
+- [S1] ‹Title of the source, Publisher, 2026.› https://example.org/page
 
-## (Another question: What does it cost / how long / what goes wrong?)
+*Next step:* [Book a 20-minute call](/contact)
+"""
 
-- (A short list or a small table gives engines something to lift.)
+SECTIONS_QUESTION = """## ‹A question-shaped heading: what decides the answer?›
+
+‹One thing per heading. A paragraph or list item with a number ends with [S1], [own] or [method].›
+
+## ‹Another question: what does it cost, how long, what goes wrong?›
+
+- ‹A short list or a small table gives engines something to lift.›
 {how_we_know}
 ## What we'd check first
 
-(At least 40 words of your own view: the rule you use, the mistake you see most, the example from your own work. This is the part no other page has.)
+‹At least 40 words of your own view: the rule you use, the mistake you see most, the example from your own work. The part no other page has.›
+"""
 
-## Sources
+SECTIONS_SERVICE = """## What is it?
 
-- [S1] Title of the source, Publisher, 2026. https://example.org/page
+‹Two or three plain sentences: what the service is and what it ends with.›
 
-*Next step:* [Book a 20-minute call](/contact)
+## Who is it for?
+
+- ‹The person and the situation, in their words from §2.›
+- ‹Who it is not for.›
+
+## What does it cost?
+
+‹A real price or range, or how the price is set, with [own]. "Contact us" gives engines nothing to quote.›
+
+## What happens first?
+
+‹The first step, how long it takes, what the client needs to bring.›
+
+## Our rule
+
+‹At least 40 words of your own: the rule you work by, the mistake you see most, one example from a real job.›
 """
 
 HOW_WE_KNOW = """
 ## How we know
 
-(First-hand pages only: what you counted, over what period, how many clients or jobs, and what you did not count. Then the number with [own].)
+‹First-hand pages: what you counted, over what period, how many clients or jobs, what you did not count. Then the number, with [own].›
 """
 
 
 def cmd_new(a):
     folder = Path(a.folder)
     (folder / "answers").mkdir(parents=True, exist_ok=True)
-    slug = a.slug or re.sub(r"[^a-z0-9]+", "-", a.question.lower()).strip("-")[:60]
+    slug = a.slug or slugify(a.question)
     out = folder / "answers" / f"{slug}.md"
     if out.exists() and not a.force:
         die(f"{out} already exists (use --force to overwrite)")
     title = a.title or a.question.rstrip("?")
+    if a.kind == "service":
+        sections, h1 = SECTIONS_SERVICE, title
+    else:
+        sections, h1 = SECTIONS_QUESTION.format(how_we_know=HOW_WE_KNOW if a.kind == "first-hand" else ""), a.question
     out.write_text(TEMPLATE.format(qid=a.id or "Q-00", question=a.question, title=title, slug=slug, kind=a.kind, author=a.author,
-                                   credentials=a.credentials or "(credentials: years, qualification, how many clients)",
-                                   today=date.today().isoformat(), cluster=a.cluster or "general",
-                                   how_we_know=HOW_WE_KNOW if a.kind == "first-hand" else ""), encoding="utf-8")
-    print(json.dumps({"ok": True, "wrote": str(out), "next": f"fill it in, then: answer_check.py check {out}"}, indent=2))
+                                   credentials=a.credentials or "‹credentials: years, qualification, how many clients›",
+                                   today=date.today().isoformat(), cluster=a.cluster or "general", h1=h1, sections=sections), encoding="utf-8")
+    print(json.dumps({"ok": True, "wrote": str(out), "next": f"replace every ‹…› with your own words, then: answer_check.py check {out}"}, indent=2, ensure_ascii=False))
 
 
 def cmd_check(a):
@@ -533,11 +654,16 @@ def cmd_schema(a):
         person["description"] = fm["author_credentials"]
     if a.author_url:
         person["url"] = a.author_url
+    desc = plain_text(first_answer_paragraph(sections[0][1] if sections else "", fm))
+    desc = re.sub(r"^Short answer:\s*", "", desc, flags=re.I)
+    if len(desc) > 300:
+        cut = desc[:300]
+        desc = cut[:cut.rfind(". ") + 1] if ". " in cut else cut
     article = {
         "@type": "Article",
         "@id": url + "#article",
         "headline": fm.get("title", h1),
-        "description": first_paragraph(sections[0][1] if sections else "")[:300],
+        "description": desc,
         "url": url,
         "mainEntityOfPage": url,
         "datePublished": fm.get("published", ""),
@@ -557,33 +683,85 @@ def cmd_schema(a):
             {"@type": "ListItem", "position": 3, "name": fm.get("title", h1), "item": url},
         ],
     }]
-    # FAQPage only when asked (--faq): FAQ rich results ended for every site on 7 May 2026 and structured data does not
-    # earn AI citations, so it is a harmless extra for the question-shaped headings, nothing more.
-    faqs = []
-    for h, s in sections:
-        if h.endswith("?") and 0 < words(s) <= 120:
-            ans = re.sub(r"\s+", " ", MARKER.sub("", strip_code(s))).strip()
-            faqs.append({"@type": "Question", "name": h, "acceptedAnswer": {"@type": "Answer", "text": ans}})
-    if faqs and a.faq:
-        graph.append({"@type": "FAQPage", "@id": url + "#faq", "mainEntity": faqs})
     data = {"@context": "https://schema.org", "@graph": graph}
     out = json.dumps(data, indent=2, ensure_ascii=False)
     if a.out:
         Path(a.out).write_text(out + "\n", encoding="utf-8")
-        print(json.dumps({"ok": True, "wrote": a.out, "types": [g["@type"] for g in graph]}, indent=2))
+        print(json.dumps({"ok": True, "wrote": a.out, "types": [g["@type"] for g in graph],
+                          "note": "No FAQPage: FAQ rich results ended in May 2026 and structured data does not earn AI citations. "
+                                  "Paste into the page's header code field if the builder has one; skip it if not."}, indent=2))
     else:
         print(out)
 
 
+def parse_robots(text):
+    """Return {user_agent_lower: [(rule, path), ...]}; a run of User-agent lines shares the rules that follow."""
+    groups, current, open_run = {}, [], False
+    for raw in text.splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if not line or ":" not in line:
+            continue
+        key, val = [x.strip() for x in line.split(":", 1)]
+        k = key.lower()
+        if k == "user-agent":
+            if not open_run:
+                current = []
+                open_run = True
+            current.append(val.lower())
+            groups.setdefault(val.lower(), [])
+        elif k in ("allow", "disallow"):
+            open_run = False
+            for ua in current or ["*"]:
+                groups.setdefault(ua, []).append((k, val))
+        else:
+            open_run = False
+    return groups
+
+
+def blocked_by(groups, agent):
+    rules = groups.get(agent.lower())
+    if rules is None:
+        rules = groups.get("*", [])
+    best = None
+    for rule, path in rules:
+        if rule == "disallow" and path == "":
+            continue
+        if path and "/".startswith(path):
+            if best is None or len(path) > len(best[1]):
+                best = (rule, path)
+    return best is not None and best[0] == "disallow"
+
+
 def cmd_robots(a):
+    if a.check:
+        src = Path(a.check)
+        if not src.exists():
+            die(f"{src} not found")
+        groups = parse_robots(src.read_text(encoding="utf-8", errors="ignore"))
+        blocked = [ua for ua in SEARCH_CRAWLERS + GROUNDING_CRAWLERS if blocked_by(groups, ua)]
+        out = {"ok": not blocked, "blocked_search_crawlers": blocked,
+               "training_crawlers_blocked": [ua for ua in TRAINING_CRAWLERS if blocked_by(groups, ua)],
+               "note": ("These crawlers decide whether the site can be found and cited: turn off the builder's 'block AI bots' switch "
+                        "or remove their Disallow lines, then check again." if blocked else "Search and answer crawlers are allowed.")}
+        print(json.dumps(out, indent=2))
+        sys.exit(0 if out["ok"] else 1)
     lines = ["# Search and answer crawlers: allowed (these decide whether the site can be found and cited)"]
     for ua in SEARCH_CRAWLERS:
         lines += [f"User-agent: {ua}", "Allow: /", ""]
-    lines.append("# Model-training crawlers: a separate brand choice. Blocking them does not affect search or answer visibility.")
+    lines.append("# Google-Extended governs Gemini grounding as well as training; blocking it can stop the Gemini app using the site")
+    for ua in GROUNDING_CRAWLERS:
+        lines += [f"User-agent: {ua}", "Allow: /", ""]
+    lines.append("# Model-training crawlers: a separate brand choice. Allowing them is the default; a business that wants to be known loses nothing.")
     for ua in TRAINING_CRAWLERS:
         lines += [f"User-agent: {ua}", "Disallow: /" if a.block_training else "Allow: /", ""]
     lines += ["User-agent: *", "Allow: /", "", f"Sitemap: {a.site.rstrip('/')}/sitemap.xml" if a.site else "Sitemap: https://YOUR-DOMAIN/sitemap.xml"]
-    print("\n".join(lines))
+    text = "\n".join(lines) + "\n"
+    if a.out:
+        Path(a.out).parent.mkdir(parents=True, exist_ok=True)
+        Path(a.out).write_text(text, encoding="utf-8")
+        print(json.dumps({"ok": True, "wrote": a.out}, indent=2))
+    else:
+        print(text, end="")
 
 
 def main(argv=None):
@@ -596,9 +774,9 @@ def main(argv=None):
     s = sub.add_parser("check"); s.add_argument("file"); s.add_argument("--business-file", default=None); s.add_argument("--site", default="")
     s.add_argument("--questions", default=""); s.add_argument("--internal-links", type=int, default=2); s.set_defaults(f=cmd_check)
     s = sub.add_parser("schema"); s.add_argument("file"); s.add_argument("--site", required=True); s.add_argument("--path", default="")
-    s.add_argument("--org", default=""); s.add_argument("--author-url", default=""); s.add_argument("--faq", action="store_true")
-    s.add_argument("--out", default=""); s.set_defaults(f=cmd_schema)
-    s = sub.add_parser("robots"); s.add_argument("--site", default=""); s.add_argument("--block-training", action="store_true"); s.set_defaults(f=cmd_robots)
+    s.add_argument("--org", default=""); s.add_argument("--author-url", default=""); s.add_argument("--out", default=""); s.set_defaults(f=cmd_schema)
+    s = sub.add_parser("robots"); s.add_argument("--site", default=""); s.add_argument("--block-training", action="store_true")
+    s.add_argument("--out", default=""); s.add_argument("--check", default=""); s.set_defaults(f=cmd_robots)
     a = ap.parse_args(argv)
     a.f(a)
 

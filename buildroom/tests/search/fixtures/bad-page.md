@@ -23,7 +23,7 @@ If you are asking the question you probably already know the answer, and the ans
 
 ## Our clients
 
-Our clients save 40% on their accounting bills in the first year and never miss a deadline. We guarantee you'll never miss a tax deadline again. TODO add the chart here.
+Our clients save 40% on their accounting bills in the first year and never miss a deadline. We guarantee you'll never miss a tax deadline again. TODO add the chart here. We serve [your city] and nearby.
 
 ## Sources
 

@@ -368,7 +368,7 @@ _Built by: Search & Answer Engine · Requires: §1, §2; best with §3, §4, §1
 - **Author & reviewer** (named author · credentials line · reviewer for regulated topics):
 - **Scope rules** (regulated profession · scope note · never-say claims apply):
 - **Monthly check** (prompts · engines · last run · seen in N of M · top competitor):
-- **Weekly routine** (day · minutes · profile · one page · one mention):
+- **Weekly routine** (day · minutes · profile · one page · one mention a month):
 - **Results** (profile calls + directions · bookings by "how did you find us" · Search Console clicks + AI impressions · Bing citations · first citation date):
 - **Search folder:** [search/]
 

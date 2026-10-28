@@ -55,7 +55,7 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 
 | Path | What it is |
 |---|---|
-| `BUILDROOM_BUSINESS_FILE.md` | **Your** Business File. One file, twenty sections, every session builds on it. Blank until your first session. |
+| `BUILDROOM_BUSINESS_FILE.md` | **Your** Business File. One file, twenty-one sections, every session builds on it. Blank until your first session. |
 | `BuildRoom_OS_Say_These_Words.pdf` | Print it, keep it by your computer: every trigger phrase, what it needs, what it writes. |
 | `tools/BuildRoom_OS_Quick_Start.html` | Open in a browser: the visual guide to the program and every session's trigger phrase. |
 | `tools/Rent_Calculator.html` | Open in a browser: what your undocumented processes cost you. Copies a §9 block into your file. |

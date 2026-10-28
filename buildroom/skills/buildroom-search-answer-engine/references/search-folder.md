@@ -14,6 +14,6 @@
 | `checks/YYYY-MM.json` | `citation_check.py` | the month's prompts and logged results |
 | `checks/YYYY-MM-prompts.md`, `checks/YYYY-MM-report.md` | `citation_check.py prompts`, `report --md` | the checklist to run and the month's report |
 | `mentions.md` | the session | one line per mention asked for or earned: date, who, what, result |
-| `robots.txt` | `answer_check.py robots` | the crawler file to upload or compare against the builder's setting |
+| `robots.txt` | `answer_check.py robots --out search/robots.txt` | the crawler file to upload, or to compare against the builder's setting (`robots --check` reads the live one) |
 
-Rules: no client or patient names anywhere in the folder except as a reviewer's public first name on a public review; review text is never copied here (the Proof Engine holds consented words in `proof/`); `questions.json` and `profile.json` are edited by the scripts, not by hand; a page is never deleted from `answers/`, it is marked `needs-update` or its question `retired`.
+Rules: no client or patient names anywhere in the folder except inside a consented proof entry copied by ID from `proof/` into an answer page (the Proof Engine keeps the words and the permission; this folder never holds review text or a reviewer's name of its own); `profile.json` holds ratings and dates, never who said what; `questions.json` and `profile.json` are edited by the scripts, not by hand; a page is never deleted from `answers/`, it is marked `needs-update` or its question `retired`.

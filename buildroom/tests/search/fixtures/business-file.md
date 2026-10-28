@@ -1,8 +1,10 @@
-# Build Room Business File · Ruiz Advisory (test fixture)
+# Build Room Business File · Ruiz Advisory (test fixture, in the template's own shape)
 
 ## 1. Business Snapshot
 
-- **Retired lines:** "we guarantee you'll never miss a tax deadline again" · "the cheapest bookkeeper in Boise"
+- **Retired lines** (never used again in any output, by any session — e.g. a credibility story, a claim, an old offer): "we guarantee you'll never miss a tax deadline again" (it was 2019)
+  - "the cheapest bookkeeper in Boise"
+- **Tools:** QuickBooks · GoHighLevel
 
 ## 18. Advertising
 

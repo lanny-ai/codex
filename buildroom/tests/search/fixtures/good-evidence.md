@@ -23,13 +23,13 @@ sources:
 
 **Short answer:** A 13-week cash flow forecast is a simple table of the money you expect to come in and go out each week for the next quarter, updated every Monday. It answers one question: will there be enough cash in the account in each of the next 13 weeks? [S1]
 
-Updated: 2026-11-10
+By Dana Ruiz, CPA. Reviewed by Sam Lee, CPA. Updated: 2026-11-10
 
 This is general information for Idaho residents, not financial or tax advice, and reading it does not make you a client. For your own situation, talk to an accountant who knows it.
 
 ## Why 13 weeks?
 
-Thirteen weeks is one quarter, long enough to see a quarterly tax payment coming and short enough that the numbers are real [S1]. Most lenders ask for the same horizon [S2].
+Thirteen weeks is one quarter, long enough to see a quarterly tax payment coming and short enough that the numbers are real [S1]. Most lenders ask for the same horizon [S2]. Owner-operators of small firms report working more than 50 hours a week [S3].
 
 ## What goes in it?
 

@@ -21,7 +21,7 @@ sources:
 
 **Short answer:** For a business with one bank account and under a year of mess, a clean-up usually costs between $900 and $2,400 with us, and takes two to four weeks [own]. The price doubles when there is a second entity or payroll that was never reconciled [own]. Most clients land near the middle of that range [own].
 
-Updated: 2026-11-03
+By Dana Ruiz, CPA since 1998. Updated: 2026-11-03
 
 ## What decides the price?
 
@@ -32,6 +32,8 @@ Three things: how many months are behind, how many accounts feed the books, and 
 - A second company sharing the same bank account
 - Payroll run by hand with no filings matched
 - Receipts kept nowhere
+
+Call (555) 010-0100 if you are not sure which you have, or allow a 20-minute call.
 
 ## How we know
 
