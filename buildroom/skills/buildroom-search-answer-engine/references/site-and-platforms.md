@@ -31,13 +31,28 @@ GoHighLevel warning: a funnel built before the custom domain was attached can st
 
 Whatever the builder, the answer page needs only: a custom address, an H1 and H2s, a paragraph, a list or table, a link, an image with alt text and a date line. Every builder in the table can do that. Schema (`answer_check.py schema --path <the real path>`) and a robots file (`robots --out`) are optional extras; if the builder makes them hard, skip them and say so in `search/site.md`. The one setting that is not optional is the "block AI bots" switch, off.
 
-## 3. After publishing, each time
+## 3. Publishing and indexing, each time (`publish.py`)
 
-1. Open the live page on a phone: does it load, is the answer at the top, does the next-step link work?
-2. Search Console: URL inspection, "request indexing".
-3. Bing Webmaster Tools: submit the URL (or let IndexNow do it where the builder supports it).
-4. Link the new page from its hub or service page and from one older answer; make sure the home page links to every service page.
-5. Record the URL in the question map.
+**Getting the page onto the site.** Two routes, decided by the builder:
+
+| Builder | Route | Keys in `.env` (never in the chat) |
+|---|---|---|
+| WordPress (self-hosted or a paid wordpress.com plan) | `publish.py publish <page> --builder wordpress --site https://…` creates or updates the page by slug | `WP_USER`, `WP_APP_PASSWORD` (an application password made under the user's profile, not the login password) |
+| Webflow | `--builder webflow`: a live CMS item (fields name, slug, post-body, post-summary) | `WEBFLOW_API_TOKEN`, `WEBFLOW_COLLECTION_ID` |
+| Shopify | `--builder shopify`: a page at /pages/<handle> | `SHOPIFY_STORE`, `SHOPIFY_ACCESS_TOKEN` |
+| Wix | `--builder wix`: a blog post (the Blog API; a table becomes one line per row) | `WIX_API_KEY`, `WIX_SITE_ID` |
+| Squarespace, Kajabi, GoHighLevel, Google Sites, Carrd | no page API: `publish.py render <page> --site … --schema …` writes the HTML and a ten-minute paste checklist; the member pastes | none |
+
+`publish.py keys` says which builders the member's keys unlock, by key name only. `--dry-run` shows the request with every key masked; `--draft` publishes unpublished. The skill never drives a builder's login with a browser and never asks for a key in the chat.
+
+**Getting it indexed.** Nobody submits a page "to AI"; the engines crawl it.
+
+1. `publish.py verify <url>`: live, a title and an H1, no noindex, the canonical pointing at itself, the answer crawlers allowed in robots.txt, the page in the sitemap (sitemap indexes followed).
+2. **Google** (and its AI Overviews and AI Mode, which use the same index): the sitemap, a link from the home page and the service page, and the member's click in Search Console → URL inspection → Request indexing. There is **no legitimate API** for requesting indexing of ordinary pages (Google's Indexing API is for job postings and live events only, and using it otherwise breaks the guidelines; the Search Console API can inspect a page but not request it), so this stays a click.
+3. **Bing and Copilot**: `publish.py indexnow <url>`, once the IndexNow key file is on the site root (`publish.py indexnow-key` makes it; Wix and WordPress with Rank Math can host it; Squarespace cannot, so skip IndexNow there and submit the URL in Bing Webmaster Tools by hand). ChatGPT crawls on its own and leans partly on Bing's index, so this helps there too.
+4. **Perplexity, Claude, Meta**: their own crawlers find a page that is linked and allowed; nothing to submit.
+5. Link the new page from its hub or service page and from one older answer; make sure the home page links to every service page.
+6. `publish.py record <page> --url … --questions search/questions.json`: the page and its question marked published with the address. Expect Bing within days, ChatGPT or Perplexity within one to two weeks, Google when it gets there.
 
 ## 4. Free tools, and their limits in 2026
 

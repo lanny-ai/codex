@@ -8,7 +8,7 @@ Expectations, stated to the member before the first page: AI answers cut clicks 
 
 ## 2. The two free reports (monthly, ten minutes)
 
-- **Search Console**: Performance, last 28 days vs the previous 28: clicks and impressions for the answer pages; the generative-AI report's impressions; queries at positions 5 to 20 with impressions and few clicks (the refresh list and the next questions). Pages: any "discovered, currently not indexed" answer page gets a request-indexing and an internal link.
+- **Search Console**: the page's indexing status first (URL inspection; "request indexing" is the member's click and the only route Google offers for ordinary pages); then Performance, last 28 days vs the previous 28: clicks and impressions for the answer pages; the generative-AI report's impressions; queries at positions 5 to 20 with impressions and few clicks (the refresh list and the next questions). Pages: any "discovered, currently not indexed" answer page gets a request-indexing and an internal link.
 - **Bing Webmaster Tools**: AI Performance: citations, cited pages, the grounding queries behind them (the questions Copilot actually sends), citation share against the sites it names.
 
 GA4, if the member has it: the AI Assistant channel, and referrers chatgpt.com, perplexity.ai, copilot.microsoft.com, gemini.google.com. Most AI-sourced visits arrive with no referrer and land in Direct, so a rise in Direct alongside the other signals is part of the picture.

@@ -8,6 +8,9 @@
 | `question-map.md` | `question_map.py md` | the readable map: next to answer, the ranked table, clusters and hub readiness, retired questions |
 | `answers/<slug>.md` | the session, through `answer_check.py new` and `check` | one answer page per question, front matter plus body (`answer-standard.md`) |
 | `answers/<slug>.jsonld` | `answer_check.py schema --out` | the optional Article and breadcrumb markup to paste into the builder |
+| `answers/<slug>.html`, `answers/<slug>-paste.md` | `publish.py render` or `publish --builder manual` | the rendered page and the ten-minute paste checklist for builders with no API |
+| `<key>.txt` | `publish.py indexnow-key` | the IndexNow key file the member uploads to the site root |
+| `../.env` | the member | the builder and IndexNow keys, read by `publish.py`, never printed, never copied anywhere |
 | `site.md` | the session (Phase 0, then as things change) | builder, domain, editors, verification dates, sitemap, crawler settings, Cloudflare, About page, service pages, workarounds |
 | `profile.json` | `profile_tracker.py` | the Business Profile record, the activity log (photos, posts, asks, reviews, replies, updates) and the listings |
 | `profile-check.md`, `profile-report.md` | `profile_tracker.py check --md`, `report --md` | the scored checklist and the monthly numbers |

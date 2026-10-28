@@ -21,7 +21,7 @@ S = SK / "scripts"
 R = SK / "references"
 FX = HERE / "fixtures"
 PY = sys.executable
-QM, AC, PT, CC = S / "question_map.py", S / "answer_check.py", S / "profile_tracker.py", S / "citation_check.py"
+QM, AC, PT, CC, PB = S / "question_map.py", S / "answer_check.py", S / "profile_tracker.py", S / "citation_check.py", S / "publish.py"
 RESULTS = []
 
 
@@ -30,9 +30,10 @@ def check(name, ok, detail=""):
     print(f"{'PASS' if ok else 'FAIL'}  {name}" + (f"  — {str(detail)[:700]}" if detail and not ok else ""))
 
 
-def run(args, cwd, ok_codes=(0,)):
-    p = subprocess.run([str(a) for a in args], cwd=cwd, capture_output=True, text=True,
-                       env={"PYTHONDONTWRITEBYTECODE": "1", "PATH": "/usr/bin:/bin"})
+def run(args, cwd, ok_codes=(0,), env=None):
+    e = {"PYTHONDONTWRITEBYTECODE": "1", "PATH": "/usr/bin:/bin"}
+    e.update(env or {})
+    p = subprocess.run([str(a) for a in args], cwd=cwd, capture_output=True, text=True, env=e)
     return p.returncode in ok_codes, p.stdout + p.stderr, p.returncode
 
 
@@ -500,6 +501,172 @@ def citation_tests(tmp, qm_cwd):
     return cwd
 
 
+
+# ---------------------------------------------------------------- publish (a local fake of the builders' APIs and a live site)
+
+class _Fake(__import__("http.server").server.BaseHTTPRequestHandler):
+    """WordPress pages API, IndexNow, Wix/Webflow/Shopify endpoints, and a small live site for verify."""
+    seen = []
+    key = "k" * 32
+    page_html = ""
+    robots = "User-agent: *\nAllow: /\n"
+    noindex = False
+
+    def log_message(self, *a):
+        pass
+
+    def _send(self, code, body, ctype="application/json"):
+        data = body if isinstance(body, bytes) else body.encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_GET(self):
+        path = self.path.split("?")[0]
+        if path == "/wp-json/wp/v2/pages":
+            return self._send(200, "[]")
+        if path == f"/{self.key}.txt":
+            return self._send(200, self.key, "text/plain")
+        if path == "/robots.txt":
+            return self._send(200, self.robots, "text/plain")
+        if path == "/sitemap.xml":
+            return self._send(200, '<?xml version="1.0"?><sitemapindex><sitemap><loc>http://127.0.0.1:%d/sitemap-pages.xml</loc></sitemap></sitemapindex>' % self.server.server_port, "application/xml")
+        if path == "/sitemap-pages.xml":
+            return self._send(200, '<urlset><url><loc>http://127.0.0.1:%d/answers/bookkeeping-clean-up-cost</loc></url></urlset>' % self.server.server_port, "application/xml")
+        if path == "/answers/bookkeeping-clean-up-cost":
+            meta = '<meta name="robots" content="noindex">' if self.noindex else ""
+            return self._send(200, f'<html><head><title>Bookkeeping clean-up cost</title>{meta}<link rel="canonical" href="http://127.0.0.1:{self.server.server_port}/answers/bookkeeping-clean-up-cost"></head><body><h1>How much</h1><p>between $900 and $2,400 with us</p></body></html>', "text/html")
+        return self._send(404, "{}")
+
+    def do_POST(self):
+        n = int(self.headers.get("Content-Length") or 0)
+        body = json.loads(self.rfile.read(n) or b"{}")
+        _Fake.seen.append({"path": self.path, "headers": dict(self.headers), "body": body})
+        if self.path.startswith("/wp-json/wp/v2/pages"):
+            if not self.headers.get("Authorization", "").startswith("Basic "):
+                return self._send(401, '{"message":"no auth"}')
+            return self._send(201, json.dumps({"id": 7, "link": f"http://127.0.0.1:{self.server.server_port}/{body.get('slug')}"}))
+        if self.path == "/indexnow":
+            if body.get("key") != self.key:
+                return self._send(403, '{"error":"bad key"}')
+            return self._send(202, "")
+        if self.path.startswith("/blog/v3/draft-posts"):
+            return self._send(200, json.dumps({"draftPost": {"id": "x", "url": {"url": f"http://127.0.0.1:{self.server.server_port}/post/{body['draftPost']['slug']}"}}}))
+        if self.path.startswith("/v2/collections/"):
+            return self._send(202, json.dumps({"id": "item1"}))
+        if self.path.startswith("/admin/api/"):
+            return self._send(201, json.dumps({"page": {"id": 1, "handle": body["page"]["handle"]}}))
+        return self._send(404, "{}")
+
+
+def publish_tests(tmp):
+    import threading
+    from http.server import HTTPServer
+    srv = HTTPServer(("127.0.0.1", 0), _Fake)
+    port = srv.server_port
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{port}"
+    env = {"BUILDROOM_TEST_ENDPOINT": base}
+    cwd = tmp / "pb"
+    (cwd / "search/answers").mkdir(parents=True)
+    page = cwd / "search/answers/bookkeeping-clean-up-cost.md"
+    page.write_text((FX / "good-first-hand.md").read_text())
+    shutil.copy(FX / "questions.txt", cwd / "q.txt")
+    run([PY, QM, "init"], cwd)
+    run([PY, QM, "add", "What is a 13-week cash flow forecast?", "--intent", "definition", "--rate", "4,5,3,5,3"], cwd)
+    run([PY, QM, "add", "How much does a bookkeeping clean-up cost for a small business?", "--intent", "cost", "--rate", "5,5,4,5,2"], cwd)
+    # keys: names only, never values
+    (cwd / ".env").write_text("WP_USER=dana\nWP_APP_PASSWORD=abcd efgh ijkl mnop\n# comment\nexport WIX_API_KEY='wixsecretvalue123'\n")
+    ok, out, _ = run([PY, PB, "keys"], cwd)
+    d = pj(out)
+    check("pb keys lists set keys by name, unlocks wordpress, and never prints a value", ok and d["keys_set"] == ["WIX_API_KEY", "WP_APP_PASSWORD", "WP_USER"] and d["builders_unlocked"] == ["wordpress"]
+          and "abcd" not in out and "wixsecret" not in out, out[:300])
+    # render
+    (cwd / "search/answers/bookkeeping-clean-up-cost.jsonld").write_text('{"@context":"https://schema.org","@type":"Article","headline":"Bookkeeping clean-up cost for a small business"}')
+    ok, out, _ = run([PY, PB, "render", "search/answers/bookkeeping-clean-up-cost.md", "--site", "https://example.com", "--schema", "search/answers/bookkeeping-clean-up-cost.jsonld"], cwd)
+    h = (cwd / "search/answers/bookkeeping-clean-up-cost.html").read_text()
+    check("pb render writes HTML with title, description, canonical, schema, H1 and H2 ids", ok and "<title>Bookkeeping clean-up cost for a small business</title>" in h and 'rel="canonical" href="https://example.com/answers/bookkeeping-clean-up-cost"' in h
+          and "application/ld+json" in h and "<h1>How much does a bookkeeping clean-up cost" in h and '<h2 id="what-doubles-it">' in h, h[:400])
+    check("pb render strips [own]/[method], turns [S1] into a footnote link, and keeps the list and the next-step link", "[own]" not in h and "[method]" not in h
+          and '<li id="source-1">' in h and "<ul><li>A second company" in h and '<a href="/contact">Book a 20-minute call</a>' in h, h[-600:])
+    pc = (cwd / "search/answers/bookkeeping-clean-up-cost-paste.md").read_text()
+    check("pb render writes the paste checklist with the address, title, H1 and the Search Console step", "answers/bookkeeping-clean-up-cost" in pc and "Request indexing" in pc and "H1" in pc, pc[:300])
+    ok, out, _ = run([PY, PB, "render", FX / "bad-page.md"], cwd, ok_codes=(2,))
+    check("pb render refuses a page whose status is still draft", ok, out)
+    # table rendering
+    tpage = cwd / "search/answers/t.md"
+    tpage.write_text((FX / "good-evidence.md").read_text())
+    run([PY, PB, "render", "search/answers/t.md"], cwd)
+    th = (cwd / "search/answers/what-is-13-week-cash-flow-forecast.html").read_text()
+    check("pb render turns a pipe table into a table with a header row", "<table><thead><tr><th>Row</th><th>What it holds</th></tr></thead>" in th and "<td>Cash in</td>" in th, th[:300])
+    # wordpress publish against the fake, then dry-run masking
+    ok, out, _ = run([PY, PB, "publish", "search/answers/bookkeeping-clean-up-cost.md", "--builder", "wordpress", "--site", base], cwd, env=env)
+    d = pj(out)
+    sent = [s for s in _Fake.seen if s["path"].startswith("/wp-json")]
+    check("pb publish wordpress posts the page with Basic auth, slug, title and content, and returns the link",
+          ok and d["ok"] and d["url"].endswith("/bookkeeping-clean-up-cost") and sent and sent[-1]["headers"]["Authorization"].startswith("Basic ")
+          and sent[-1]["body"]["slug"] == "bookkeeping-clean-up-cost" and sent[-1]["body"]["status"] == "publish" and "<h2" in sent[-1]["body"]["content"], out[:400])
+    ok, out, _ = run([PY, PB, "publish", "search/answers/bookkeeping-clean-up-cost.md", "--builder", "wordpress", "--site", base, "--draft", "--dry-run"], cwd, env=env)
+    check("pb publish --dry-run shows the request with the password masked and a draft status", ok and pj(out)["dry_run"] and "abcd efgh" not in out and "•••" in out and "draft" in out, out[:400])
+    ok, out, _ = run([PY, PB, "publish", "search/answers/bookkeeping-clean-up-cost.md", "--builder", "shopify", "--site", base], cwd, env=env, ok_codes=(2,))
+    check("pb publish refuses a builder whose keys are missing, naming them, without printing any value", ok and "SHOPIFY_STORE" in out and "abcd" not in out, out[:200])
+    (cwd / ".env").write_text("WP_USER=dana\nWP_APP_PASSWORD=abcd efgh ijkl mnop\nWIX_API_KEY=wixsecretvalue123\nWIX_SITE_ID=site1\nWEBFLOW_API_TOKEN=wf-token-value-1\nWEBFLOW_COLLECTION_ID=coll1\nSHOPIFY_STORE=shop.myshopify.com\nSHOPIFY_ACCESS_TOKEN=shpat_secretvalue\n")
+    ok, out, _ = run([PY, PB, "publish", "search/answers/bookkeeping-clean-up-cost.md", "--builder", "wix", "--site", base, "--dry-run"], cwd, env=env)
+    d = pj(out)
+    body = d["request"]["body"]
+    types = [n["type"] for n in body["draftPost"]["richContent"]["nodes"]]
+    check("pb publish wix --dry-run builds rich content (paragraphs, headings, a bulleted list) and masks the key",
+          ok and "PARAGRAPH" in types and "HEADING" in types and "BULLETED_LIST" in types and "wixsecret" not in out and d["request"]["headers"]["Authorization"] == "•••", out[:300])
+    ok, out, _ = run([PY, PB, "publish", "search/answers/bookkeeping-clean-up-cost.md", "--builder", "wix", "--site", base], cwd, env=env)
+    check("pb publish wix posts a draft post and publishes it, returning the post url", ok and pj(out)["url"].endswith("/post/bookkeeping-clean-up-cost") and _Fake.seen[-1]["body"]["publish"] is True, out[:300])
+    ok, out, _ = run([PY, PB, "publish", "search/answers/bookkeeping-clean-up-cost.md", "--builder", "webflow", "--site", base], cwd, env=env)
+    check("pb publish webflow posts a live CMS item with name, slug and post-body", ok and _Fake.seen[-1]["path"] == "/v2/collections/coll1/items/live" and _Fake.seen[-1]["body"]["fieldData"]["slug"] == "bookkeeping-clean-up-cost", out[:300])
+    ok, out, _ = run([PY, PB, "publish", "search/answers/bookkeeping-clean-up-cost.md", "--builder", "shopify", "--site", base], cwd, env=env)
+    check("pb publish shopify posts a page with the handle and the access-token header", ok and _Fake.seen[-1]["path"].startswith("/admin/api/") and _Fake.seen[-1]["headers"].get("X-Shopify-Access-Token") == "shpat_secretvalue"
+          and _Fake.seen[-1]["body"]["page"]["handle"] == "bookkeeping-clean-up-cost", out[:300])
+    ok, out, _ = run([PY, PB, "publish", "search/answers/bookkeeping-clean-up-cost.md", "--builder", "manual", "--site", "https://example.com"], cwd)
+    check("pb publish manual writes the HTML and the checklist and names the builders without an API", ok and "Squarespace" in pj(out)["note"] and (cwd / "search/answers/bookkeeping-clean-up-cost-paste.md").exists(), out[:300])
+    # indexnow
+    ok, out, _ = run([PY, PB, "indexnow", f"{base}/answers/bookkeeping-clean-up-cost"], cwd, env=env, ok_codes=(2,))
+    check("pb indexnow without a key says to run indexnow-key", ok, out)
+    (cwd / ".env").write_text((cwd / ".env").read_text() + f"INDEXNOW_KEY={_Fake.key}\n")
+    ok, out, _ = run([PY, PB, "indexnow-key", "--site", base], cwd)
+    d = pj(out)
+    check("pb indexnow-key writes the key file to upload and names its address", ok and (cwd / d["key_file"]).exists() and d["upload_to"].endswith(f"/{_Fake.key}.txt"), out)
+    ok, out, _ = run([PY, PB, "indexnow", f"{base}/answers/bookkeeping-clean-up-cost"], cwd, env=env)
+    sent = [s for s in _Fake.seen if s["path"] == "/indexnow"][-1]["body"]
+    check("pb indexnow checks the live key file, then posts host, key, keyLocation and urlList; 202 is accepted",
+          ok and pj(out)["ok"] and sent["key"] == _Fake.key and sent["urlList"] == [f"{base}/answers/bookkeeping-clean-up-cost"] and sent["keyLocation"].endswith(".txt"), out[:300])
+    (cwd / ".env").write_text((cwd / ".env").read_text().replace(_Fake.key, "wrongkey" + "0" * 24))
+    ok, out, _ = run([PY, PB, "indexnow", f"{base}/answers/bookkeeping-clean-up-cost", "--skip-key-check"], cwd, env=env, ok_codes=(1,))
+    check("pb indexnow reports a refused ping (403) as not ok", ok and not pj(out)["ok"], out[:200])
+    # verify
+    ok, out, _ = run([PY, PB, "verify", f"{base}/answers/bookkeeping-clean-up-cost", "--expect", "between $900 and $2,400"], cwd, env=env)
+    d = pj(out)
+    check("pb verify: live, H1, no noindex, canonical, title, expected text, crawlers allowed, in the sitemap index", ok and d["ok"] and all(d["checks"].values()), out[:500])
+    _Fake.noindex = True
+    _Fake.robots = "User-agent: OAI-SearchBot\nDisallow: /\n\nUser-agent: *\nAllow: /\n"
+    ok, out, _ = run([PY, PB, "verify", f"{base}/answers/bookkeeping-clean-up-cost"], cwd, env=env, ok_codes=(1,))
+    d = pj(out)
+    check("pb verify fails on noindex and on a blocked answer crawler, with plain notes", not d["ok"] and not d["checks"]["no_noindex"] and not d["checks"]["answer_crawlers_allowed"] and any("noindex" in n for n in d["notes"]) and any("OAI-SearchBot" in n for n in d["notes"]), out[:400])
+    _Fake.noindex = False
+    _Fake.robots = "User-agent: *\nAllow: /\n"
+    ok, out, _ = run([PY, PB, "verify", f"{base}/answers/missing"], cwd, env=env, ok_codes=(1,))
+    check("pb verify fails a page that is not live", not pj(out)["checks"]["live_200"], out[:200])
+    check("pb verify names Google's route as the member's click, not an API", "Request indexing" in pj(out)["google"] and "no legitimate API" in pj(out)["google"])
+    # record
+    ok, out, _ = run([PY, PB, "record", "search/answers/bookkeeping-clean-up-cost.md", "--url", f"{base}/answers/bookkeeping-clean-up-cost", "--questions", "search/questions.json"], cwd)
+    t = page.read_text()
+    q = json.loads((cwd / "search/questions.json").read_text())["questions"]
+    check("pb record sets status published and url in the page, and marks the question published", ok and "status: published" in t and f"url: {base}/answers/bookkeeping-clean-up-cost" in t
+          and any(x["id"] == "Q-02" and x["status"] == "published" and x["published_url"].endswith("cost") for x in q), out[:300])
+    check("pb no secret value reached a file the skill writes", not any(("abcd efgh" in p.read_text(errors="ignore")) for p in (cwd / "search").rglob("*") if p.is_file()))
+    srv.shutdown()
+    return cwd
+
+
 # ---------------------------------------------------------------- consistency between scripts, references, template and docs
 
 def consistency_tests():
@@ -556,13 +723,19 @@ def consistency_tests():
     check("every reference named in SKILL.md exists", not missing, missing)
     unlisted = [p.name for p in R.glob("*.md") if p.name not in refs and p.name != "business-file-template.md"]
     check("every reference file is named in SKILL.md", not unlisted, unlisted)
-    missing = [s for s in ("question_map.py", "answer_check.py", "profile_tracker.py", "citation_check.py") if s not in skill]
+    missing = [s for s in ("question_map.py", "answer_check.py", "profile_tracker.py", "citation_check.py", "publish.py") if s not in skill]
     check("every script is named in SKILL.md", not missing, missing)
     check("SKILL.md: Profile, Reviews and Listings modes need §1 only; the time claim is about three hours", "§1 only" in skill and "about three hours" in skill)
     for term in ("llms.txt", "FAQ rich results", "Q&A", "star markup", "templated city pages"):
         check(f"search-principles.md names retired advice: {term}", term.lower() in sp_.lower())
     check("search-principles.md attributes the YouTube figures to Pew 2025 and the chatbot figures to Pew 2026", "Pew, February 2025" in sp_ and "Pew, February 2026" in sp_)
     check("the four-to-eight-week profile clock is hedged as unmeasured", "nobody has measured" in mm)
+    sitep = (R / "site-and-platforms.md").read_text()
+    check("site-and-platforms.md explains publishing by API vs paste, IndexNow, and that Google indexing is the member's click", "publish.py" in sitep and "IndexNow" in sitep and "Request indexing" in sitep and "no legitimate api" in sitep.lower())
+    pbdoc = (S / "publish.py").read_text()
+    check("publish.py never prints a key: every error and dry run goes through mask()", "mask(" in pbdoc and "print(env" not in pbdoc and 'print(key' not in pbdoc)
+    cl2 = (ROOT / "rollout/universal/CLAUDE.md").read_text()
+    check("CLAUDE.md names the publishing keys as .env keys", "WP_APP_PASSWORD" in cl2 and "INDEXNOW_KEY" in cl2)
     pp_ = (ROOT / "skills/buildroom-proof-engine/references/proof-playbook.md").read_text()
     check("the Proof Engine's placement table has a row for answer pages", "Answer pages" in pp_ and "Search & Answer Engine" in pp_)
     cl = (ROOT / "rollout/universal/CLAUDE.md").read_text()
@@ -580,7 +753,8 @@ def consistency_tests():
                 hits.append(f"{p.name}: the founder's name")
     check("confidentiality: no email addresses, keys or personal names in the skill, tests or fixtures", not hits, hits)
     for sc, cmds in ((QM, ("init", "add", "import", "score", "next", "set", "list", "md")), (AC, ("new", "check", "schema", "robots")),
-                     (PT, ("init", "set", "service", "log", "check", "weekly", "listings", "report")), (CC, ("plan", "prompts", "reword", "log", "report"))):
+                     (PT, ("init", "set", "service", "log", "check", "weekly", "listings", "report")), (CC, ("plan", "prompts", "reword", "log", "report")),
+                     (PB, ("keys", "render", "publish", "indexnow-key", "indexnow", "verify", "record"))):
         doc = sc.read_text().split('"""')[1]
         missing = [c for c in cmds if f"{sc.name} {c}" not in doc]
         check(f"{sc.name} docstring shows every command", not missing, missing)
@@ -594,6 +768,7 @@ def main():
         answer_tests(tmp, qm_cwd)
         profile_tests(tmp)
         citation_tests(tmp, qm_cwd)
+        publish_tests(tmp)
         consistency_tests()
     finally:
         if keep:
