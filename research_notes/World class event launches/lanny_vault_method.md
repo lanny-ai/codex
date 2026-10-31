@@ -91,7 +91,7 @@ Evidence base: seven runs of Lanny's own free 3-day "Forever Free AI Boot Camp" 
 **Segments.**
 - List temperature tiers (hot/warm/cool/cold × business/consumer). The cold list gets eight value-only emails with engagement scoring: open 1, click 3, reply 6, self-segment reply 8, hand-raise keyword 10 (founder's notes).
 - Reply prompts at the end of every belief email "self-segment" readers by temperature, objection and demand (founder's notes, Engagement notes).
-- Deliverability: "Send from a subdomain… Ramp volume… Sunset policy" (cold nurture). The Apr 2026 bonus day showed what happens without it: "Surprise there's only 6 people… did the email… go into spam?" (founder's notes).
+- Deliverability: "Send from a subdomain… Ramp volume… Sunset policy" (cold nurture). The Apr 2026 bonus day showed what happens without it: "Surprise there's only [a handful] people… did the email… go into spam?" (founder's notes).
 - Speed to contact for the top tier: "iMessage from Lanny within 10 minutes of list entry (Tier A only)" (founder's notes).
 
 **Partners / JV.**
@@ -147,7 +147,7 @@ Evidence base: seven runs of Lanny's own free 3-day "Forever Free AI Boot Camp" 
 **Chat.** Over a thousand chat messages in July (founder's notes). Mine the chat for names and builds to call on. Use "Screenshot this one" lines to signal value and move chat. Read aggregate pre-work data back to the room: "[a few hundred] people with truth/integrity as a core value" (founder's notes).
 
 **Testimonials on Day 2.**
-- Bring a prior success on live, in their own words. a paid-program member appeared on Day 2, "the campaign kept its biggest promise", and Lanny "walked her entire funnel on the whiteboard with real numbers" (founder's notes).
+- Bring a prior success on live, in their own words. A paid-program member appeared on Day 2, "the campaign kept its biggest promise", and Lanny "walked her entire funnel on the whiteboard with real numbers" (founder's notes).
 - Frame it honestly: "this is not a testimonial… I want you to see what it looks like to take this and execute" (founder's notes). Live: "that sounds an awful lot like a testimonial that I might have been fishing for, and I wasn't" (founder's notes).
 - On-air rules for featured attendees: "featured people had to email you AND stay to the end of Day 2" (founder's notes).
 - Day-3 recap asset: an AI-generated "AI-Lanny" video built overnight from the Day 1–2 transcripts, carrying the scoreboard and the pitch. "The best single asset produced this year" (founder's notes; Lanny explains the prompt on Day 3).
@@ -276,7 +276,7 @@ Evidence base: seven runs of Lanny's own free 3-day "Forever Free AI Boot Camp" 
 | Navigator Q2 drop | about 30% of all starters quit at question 2 | Exact | founder's notes |
 | Median time to Compass | about 49 min (promo said "25 minutes" five times) | Exact | founder's notes |
 | Strategy sessions | a few hundred invited, well under a third booked | Exact | founder's notes |
-| Frozen follow-up after camp | a couple of thousand enrollments across a couple of thousand contacts; none of the ten workflows published | Exact (state.json 2026-08-01) | founder's notes |
+| Frozen follow-up after camp | a couple of thousand enrollments across a couple of thousand contacts; none of the ten workflows published | Exact (follow-up state at camp end, 2026-08-01) | founder's notes |
 | Lead cost | Lanny: a few thousand dollars in lead cost across roughly a thousand starts; "paying more than" a dollar per person in API tokens | Approximate | founder's notes |
 | One-click upsell vs re-entry checkout | "20, 30, 40, 50%" vs "3-5%" | Lanny's rule of thumb, approximate | founder's notes |
 | High-ticket offered at an earlier camp | a handful of sales across a mix of monthly, four-pay and five-figure terms | Approximate, Lanny recall | founder's notes |
@@ -351,6 +351,6 @@ Evidence base: seven runs of Lanny's own free 3-day "Forever Free AI Boot Camp" 
 
 ---
 
-## 6. Confidential data to keep out of the skill (files named, data not copied)
+## 6. What was deliberately left out
 
 The founder's private notes behind this file hold attendee, buyer, partner and staff names, list sizes, revenue ledgers, database paths and one credential. None of that was copied here, and the skill must not reproduce any of it. Use anonymized patterns only.

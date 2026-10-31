@@ -48,9 +48,9 @@ Scope: `buildroom/` on `claude/new-session-1rmv4i` (PR #2, lanny-ai/codex). Noth
 
 ## 6. Risks and debt
 
-- The repo is public (`gh api repos/lanny-ai/codex`: `private: false`). `research_notes/World class event launches/lanny_vault_method.md` carries founder figures (the $1 Build Brief with 102 buyers, $997, a $30K integrity breach, 2,181 frozen enrollments, the price ladder) and vault file paths, although NOTES.md says confidential founder data was removed. Readings: public pricing vs. confidential numbers; owner's call.
+- The repo is public (`gh api repos/lanny-ai/codex`: `private: false`). `research_notes/World class event launches/lanny_vault_method.md` carries founder figures (buyer counts, the price ladder, the integrity-breach amount, frozen enrollment counts) and vault file paths, although NOTES.md says confidential founder data was removed. Readings: public pricing vs. confidential numbers; owner's call.
 - Founder's name: "Lanny"/"Morton" in 15 skill reference files (reconstruction headers "host Lanny Morton, AI Momentum Labs"; `sales-coach-source.md` product name; `deploy-pages.md` "Lanny's words"), `decision-machine/references/knowledge-base.md:15`, `curriculum/AUTOMATION_W2_STEP1`, four `test-run/` files, and `Brainstorm_Board.html:128` placeholder "[two first names]" (the second of them is a personal name, not the founder's). 58 matching lines ship in the zip. No member or client names found.
-- Commit trailers name models: `Claude Opus 5` (8), `Claude Opus 5.5` (50), `Claude Fable 5.1` (47), against NOTES.md "no model identifiers in commits or the PR". Readings: trailers are the mandated attribution and exempt; or they violate the rule.
+- Commit trailers name three model versions (105 trailers in all: 8, 50 and 47), against NOTES.md "no model identifiers in commits or the PR". Readings: trailers are the mandated attribution and exempt; or they violate the rule.
 - Four of six test-run findings unapplied (PR body §6: one-offer schema, 25% pre-fill at session 3, protocol/curriculum contradiction, rating timing).
 - `build-skills.sh` overwrites embedded copies silently except the media files; the test-order bug above; 4.5 MB zip per release committed to git.
 - Vault credentials (AddEvent key, partner campaign password) are outside the repo and outside this finish (NOTES.md).
