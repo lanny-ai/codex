@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Build Room OS: What's New</title>
+<style>
+@page{size:Letter;margin:0}
+:root{--navy:#0f1424;--ink:#1a1f2e;--muted:#4a5266;--orange:#e8620c;--gold:#f5a623;--soft:#fff3e8;--line:#e3e6ee;--green:#1d7a46}
+*{box-sizing:border-box}
+html,body{margin:0;background:#fff;color:var(--ink);font-family:"Helvetica Neue",Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{width:8.5in;height:11in;padding:0.6in 0.7in 0.55in;position:relative;overflow:hidden;page-break-after:always;font-size:15pt;line-height:1.45}
+.page:last-child{page-break-after:auto}
+.band{background:var(--navy);color:#fff;margin:-0.6in -0.7in 0.3in;padding:0.32in 0.7in 0.28in;display:flex;align-items:center;justify-content:space-between}
+.band h1{margin:0;font-size:24pt;line-height:1.15}
+.band .eb{color:var(--gold);font-size:10.5pt;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-bottom:4px}
+.band img{height:0.42in}
+h2{font-size:19pt;margin:0.18in 0 0.08in;color:var(--navy)}
+h3{font-size:16pt;margin:0.14in 0 0.04in;color:var(--navy)}
+p{margin:0 0 0.12in}
+.lead{font-size:16.5pt}
+.say{display:inline-block;background:var(--soft);border:2px solid var(--orange);border-radius:10px;padding:2px 12px;font-weight:700;color:var(--navy)}
+ol.steps{list-style:none;padding:0;margin:0.06in 0 0;counter-reset:s}
+ol.steps>li{counter-increment:s;position:relative;padding:0.08in 0 0.1in 0.62in;border-bottom:1px solid var(--line)}
+ol.steps>li:last-child{border-bottom:0}
+ol.steps>li:before{content:counter(s);position:absolute;left:0;top:0.07in;width:0.44in;height:0.44in;border-radius:50%;background:var(--orange);color:#fff;font-weight:800;font-size:15pt;display:flex;align-items:center;justify-content:center}
+.box{border:2px solid var(--line);border-radius:14px;padding:0.14in 0.2in;margin:0.12in 0}
+.box.tip{background:#eef7f1;border-color:#bfe2cc}
+.box.warn{background:var(--soft);border-color:#f3c79f}
+.box b.t{display:block;font-size:13pt;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:2px}
+code,.kbd{font-family:"Courier New",monospace;background:#eef0f5;border:1px solid #d6dae4;border-radius:6px;padding:1px 7px;font-size:14pt;font-weight:700}
+.foot{position:absolute;left:0.7in;right:0.7in;bottom:0.3in;font-size:10.5pt;color:var(--muted);display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:6px}
+.cover{background:var(--navy);color:#fff}
+.cover .inner{padding:1.0in 0.85in}
+.cover img{height:0.8in}
+.cover h1{font-size:40pt;line-height:1.08;margin:0.6in 0 0.15in}
+.cover .sub{font-size:19pt;color:#d9deeb}
+.cover .gold{color:var(--gold)}
+.cover ul{font-size:17pt;line-height:1.5;margin:0.45in 0 0;padding-left:0.3in}
+.cover .foot{color:#aab3c8;border-color:#2a3350}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:0.22in}
+table.cmd{width:100%;border-collapse:collapse;font-size:14pt;line-height:1.3}
+table.cmd th{text-align:left;background:var(--navy);color:#fff;padding:5px 8px;font-size:11.5pt;letter-spacing:.05em;text-transform:uppercase}
+table.cmd td{padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+table.cmd td.s{font-weight:700;color:var(--navy);width:52%}
+table.cmd tr.g td{background:var(--soft);font-weight:800;color:var(--orange);text-transform:uppercase;letter-spacing:.06em;font-size:11pt;padding-top:8px}
+.new{background:var(--orange);color:#fff;border-radius:6px;padding:0 6px;font-size:10pt;font-weight:800;margin-left:6px;vertical-align:2px}
+</style></head><body>
+
+<section class="page cover"><div class="inner">
+<img src="../../brand/buildroom-os-horizontal-on-navy.png" alt="Build Room OS">
+<h1>What's new in<br><span class="gold">Build Room OS</span></h1>
+<div class="sub">Changes since last week's guide (October 21, 2026), plus step-by-step help to get started.</div>
+<ul>
+<li><b>Two new tools:</b> the Search &amp; Answer Engine and the Proof Engine</li>
+<li><b>Get found on Google</b> and in AI answers, without ads</li>
+<li><b>New to Build Room OS?</b> Simple install steps start on page 6</li>
+<li><b>Every command</b> that starts a tool, on the last four pages</li>
+</ul>
+</div>
+<div class="foot"><span>Build Room · AI Momentum Labs</span><span>Version: October 28, 2026 · 32 tools</span></div>
+</section>
+
+<section class="page">
+<div class="band"><div><div class="eb">Since last week</div><h1>What's new, in plain words</h1></div><img src="../../brand/buildroom-os-horizontal-on-navy.png"></div>
+<h2>1. The Search &amp; Answer Engine <span class="new">NEW</span></h2>
+<p>Get found in Google, Google Maps, YouTube and AI answers (Google's AI, ChatGPT, Perplexity) <b>without ads</b>. It fixes your Google Business Profile first, helps you write one honest answer page a week on your own site, keeps reviews coming, lists you in the free directories, and checks monthly whether the AI tools name you.</p>
+<h2>2. The Proof Engine <span class="new">NEW</span></h2>
+<p>Turns a client's good result into proof you're <b>allowed</b> to use: a short interview and a permission ask you send yourself, every story kept with its permission, one story at a time placed into your page, emails, ads and posts.</p>
+<h2>3. Pages go live and get indexed for you</h2>
+<p>On WordPress, Webflow, Shopify and Wix it can publish the page itself. On Squarespace, Kajabi, GoHighLevel and Google Sites it gives you a ten-minute paste checklist. Then it tells Bing, checks the page is live, and shows you the one click Google asks for.</p>
+<h2>4. Your printed guide grew again</h2>
+<p><b>Say These Words</b> (the PDF in your folder) now has <b>six pages</b>.</p>
+<div class="box tip"><b class="t">Good to know</b>Your <b>Business File</b> gained a section for your search presence (§21). You don't have to do anything; the tool fills it in. Thirty-two tools now.</div>
+<div class="foot"><span>Build Room OS · What's new</span><span>Page 2</span></div>
+</section>
+
+<section class="page">
+<div class="band"><div><div class="eb">Try the new things first</div><h1>Try the Search &amp; Answer Engine</h1></div><img src="../../brand/buildroom-os-horizontal-on-navy.png"></div>
+<p class="lead">Already have Build Room OS? First get this week's version (page 5). Then:</p>
+<ol class="steps">
+<li><b>Open Claude</b> in your Build Room OS folder, the way you normally do.</li>
+<li><b>See a short demo first.</b> Type: <span class="say">Show me how the search engine works</span>. Nothing is changed; it's a tour.</li>
+<li><b>Start for real.</b> Type: <span class="say">Get found on Google</span></li>
+<li><b>Fix your Google Business Profile.</b> It scores it and names what moves your ranking (real name, category, hours, reviews) before what helps a buyer choose you (photos, posts).</li>
+<li><b>Write one page a week.</b> It picks the question customers ask most, drafts the page in your words, and checks it before it goes live.</li>
+<li><b>Ask every client for a review, the same way.</b> It gives you the words. Never a gift, never only the happy ones.</li>
+<li><b>Each week:</b> <span class="say">Search week</span> (about three hours). <b>Each month:</b> <span class="say">Am I showing up in ChatGPT?</span></li>
+</ol>
+<div class="box warn"><b class="t">Honest expectations</b>Profile and reviews move first, within a month or two. Pages take months. It counts calls and bookings, not "traffic".</div>
+<div class="foot"><span>Build Room OS · What's new</span><span>Page 3</span></div>
+</section>
+
+<section class="page">
+<div class="band"><div><div class="eb">Try the new things first</div><h1>Try the Proof Engine</h1></div><img src="../../brand/buildroom-os-horizontal-on-navy.png"></div>
+<p class="lead">Best the moment a client tells you something went well. Ten minutes a week keeps it going.</p>
+<ol class="steps">
+<li><b>Open Claude</b> in your Build Room OS folder.</li>
+<li><b>Type:</b> <span class="say">Capture this win</span> and tell it what happened, in the client's words if you remember them.</li>
+<li><b>Send the interview and the permission ask yourself.</b> It drafts five short questions and asks the client where their words may be used (website, emails, LinkedIn, ads, video) and whether to use their name. You send it by email or text; the tool never contacts your clients.</li>
+<li><b>Wait for the answer.</b> A story stays unused until the client says yes. A no is respected forever.</li>
+<li><b>Place it.</b> Say <span class="say">What proof can I use for my offer page?</span> and it puts the right story in the right place, with "what a typical client gets" beside the number.</li>
+<li><b>Once a week, say:</b> <span class="say">Proof check</span>. New wins, answers that came in, anything due a nudge.</li>
+</ol>
+<div class="box tip"><b class="t">Why it matters</b>Real, permitted proof is the biggest single upgrade to every page, email and ad you have. And the rules on reviews and testimonials now carry real penalties, so the permission is worth the ten minutes.</div>
+<div class="foot"><span>Build Room OS · What's new</span><span>Page 4</span></div>
+</section>
+
+<!-- 5 UPDATE -->
+<section class="page">
+<div class="band"><div><div class="eb">Already installed?</div><h1>Get this week's version</h1></div><img src="../../brand/buildroom-os-horizontal-on-navy.png"></div>
+<p class="lead">You'll download the new folder, then move <b>your</b> Business File into it so nothing you've built is lost.</p>
+<ol class="steps">
+<li><b>Download</b> <code>BuildRoom_OS_2026-10-28.zip</code> from the Members' area. It goes into your <b>Downloads</b> folder.</li>
+<li><b>Unzip it.</b> <b>Mac:</b> double-click the file. <b>Windows:</b> right-click it and choose <b>Extract All</b>, then <b>Extract</b>.</li>
+<li><b>Find your old Build Room OS folder</b> (the one you've been using).</li>
+<li><b>Copy your Business File</b> out of the old folder. It's called <code>BUILDROOM_BUSINESS_FILE.md</code>. Right-click it and choose <b>Copy</b>.</li>
+<li><b>Open the new folder</b> and choose <b>Paste</b>. When it asks, choose <b>Replace</b>. (The new folder comes with a blank one; yours replaces it.)</li>
+<li><b>From now on, use the new folder.</b> Keep the old one for a week, just in case, then you can delete it.</li>
+</ol>
+<div class="box tip"><b class="t">Not sure which folder is yours?</b>Open your old Business File in a text app. If you see your business name and your answers, that's the one to copy.</div>
+<div class="foot"><span>Build Room OS · What's new</span><span>Page 5</span></div>
+</section>
+
+<!-- 6 INSTALL WHAT YOU NEED -->
+<section class="page">
+<div class="band"><div><div class="eb">New to Build Room OS?</div><h1>If you haven't installed it yet</h1></div><img src="../../brand/buildroom-os-horizontal-on-navy.png"></div>
+<h2>What you need (once)</h2>
+<ol class="steps">
+<li><b>A computer</b>: Mac or Windows. A phone or tablet won't work for this part.</li>
+<li><b>A paid Claude plan</b> (Pro or Max) from <b>claude.ai</b>. This is what does the thinking.</li>
+<li><b>Claude Code</b> on your computer. If you don't have it yet, open the setup page at <b>code.claude.com/docs/en/setup</b> and follow the steps for your computer, or ask in the Members' area; we'll walk you through it on a call.</li>
+<li><b>The Build Room OS file</b>: <code>BuildRoom_OS_2026-10-28.zip</code> from the Members' area.</li>
+</ol>
+<h2>Put the folder somewhere safe</h2>
+<ol class="steps">
+<li><b>Unzip the download.</b> <b>Mac:</b> double-click it. <b>Windows:</b> right-click, <b>Extract All</b>, then <b>Extract</b>.</li>
+<li><b>Move the folder</b> called <code>BuildRoom_OS</code> into your <b>Documents</b> folder. This is your Build Room home; your Business File lives here.</li>
+</ol>
+<div class="box warn"><b class="t">Keep it off cloud-sync folders</b>Use Documents on your own computer, not OneDrive or iCloud Drive "optimised" storage, so Claude can always read your files.</div>
+<div class="foot"><span>Build Room OS · What's new</span><span>Page 6</span></div>
+</section>
+
+<!-- 7 OPEN IT -->
+<section class="page">
+<div class="band"><div><div class="eb">New to Build Room OS?</div><h1>Open it and say your first words</h1></div><img src="../../brand/buildroom-os-horizontal-on-navy.png"></div>
+<div class="two">
+<div>
+<h3>On a Mac</h3>
+<ol class="steps">
+<li>Press <span class="kbd">⌘ Command</span> + <span class="kbd">Space</span>, type <b>Terminal</b>, press Enter.</li>
+<li>Type <code>cd</code> and one space. Don't press Enter yet.</li>
+<li>Drag the <code>BuildRoom_OS</code> folder from Documents into the Terminal window. Press Enter.</li>
+<li>Type <code>claude</code> and press Enter.</li>
+</ol>
+</div>
+<div>
+<h3>On Windows</h3>
+<ol class="steps">
+<li>Open the <code>BuildRoom_OS</code> folder in Documents.</li>
+<li>Click once in the address bar at the top (where the folder path shows).</li>
+<li>Type <b>powershell</b> and press Enter. A blue or black window opens.</li>
+<li>Type <code>claude</code> and press Enter.</li>
+</ol>
+</div>
+</div>
+<h2>Your first words</h2>
+<p>When Claude is ready, type this and press Enter:</p>
+<p style="font-size:18pt"><span class="say">I'm new to the Build Room. Set me up.</span></p>
+<p>It asks one question at a time. No wrong answers; stop and come back any time.</p>
+<div class="box tip"><b class="t">Three habits</b>
+1. Always open Claude <b>inside</b> your <code>BuildRoom_OS</code> folder.<br>
+2. Unsure? Say <span class="say">Where do I start?</span><br>
+3. Never paste passwords or account keys into the chat.</div>
+<div class="foot"><span>Build Room OS · What's new</span><span>Page 7</span></div>
+</section>
+
+<section class="page">
+<div class="band"><div><div class="eb">Keep this by your computer</div><h1>Every command (1 of 4)</h1></div><img src="../../brand/buildroom-os-horizontal-on-navy.png"></div>
+<p>Type any of these into Claude, inside your Build Room OS folder, to start that tool.</p><table class="cmd">
+<tr><th>Say this</th><th>What it does</th></tr>
+<tr class="g"><td colspan="2">Start here</td></tr>
+<tr><td class="s">I'm new to the Build Room. Set me up.</td><td>A tour and your first step</td></tr>
+<tr><td class="s">Where do I start?</td><td>Shows your progress and the one thing to do next</td></tr>
+<tr class="g"><td colspan="2">New this week</td></tr>
+<tr><td class="s">Get found on Google <span class="new">NEW</span></td><td>Found on Google and in AI answers, without ads</td></tr>
+<tr><td class="s">Fix my Google Business Profile</td><td>Scores your profile; what to fix first</td></tr>
+<tr><td class="s">Get more Google reviews</td><td>The ask in your words, for every client</td></tr>
+<tr><td class="s">Search week</td><td>Your weekly routine, about three hours</td></tr>
+<tr><td class="s">Am I showing up in ChatGPT?</td><td>The monthly check of the AI answers</td></tr>
+<tr><td class="s">Capture this win <span class="new">NEW</span></td><td>A client result turned into proof you may use</td></tr>
+<tr class="g"><td colspan="2">Your foundation (in this order)</td></tr>
+<tr><td class="s">Help me build my ideal client avatar</td><td>Who you serve, and their own words</td></tr>
+<tr><td class="s">Help me build my signature offer</td><td>What you sell, the price, the guarantee</td></tr>
+<tr><td class="s">Help me position my business</td><td>Why people should choose you</td></tr>
+<tr><td class="s">Write my offer page</td><td>A finished sales page</td></tr>
+</table>
+<div class="foot"><span>Build Room OS · What's new</span><span>Page 8</span></div>
+</section>
+
+<section class="page">
+<div class="band"><div><div class="eb">Keep this by your computer</div><h1>Every command (2 of 4)</h1></div><img src="../../brand/buildroom-os-horizontal-on-navy.png"></div>
+<table class="cmd">
+<tr><th>Say this</th><th>What it does</th></tr>
+<tr class="g"><td colspan="2">Getting clients</td></tr>
+<tr><td class="s">Help me map my funnel</td><td>How strangers become clients, step by step</td></tr>
+<tr><td class="s">Help me build my opt-in page</td><td>A sign-up page and free gift</td></tr>
+<tr><td class="s">Build my follow-up system</td><td>Emails that follow up for you</td></tr>
+<tr><td class="s">Help me get more leads</td><td>Your network, outreach, referrals</td></tr>
+<tr><td class="s">Help me with my sales call</td><td>A sales script, plus practice</td></tr>
+<tr><td class="s">Where is my funnel leaking?</td><td>Where people drop off, and the fixes</td></tr>
+<tr><td class="s">Build my LinkedIn engine</td><td>Profile, posts and a daily routine for LinkedIn clients</td></tr>
+<tr><td class="s">Who should I message on LinkedIn today?</td><td>Today's short list, with draft messages</td></tr>
+<tr><td class="s">Plan my LinkedIn week</td><td>Three posts and last week's results</td></tr>
+<tr><td class="s">Plan my launch</td><td>Plan a live event that sells</td></tr>
+<tr><td class="s">Is my launch ready?</td><td>The checklist before you invite anyone</td></tr>
+<tr><td class="s">How did my launch do?</td><td>Results and lessons for next time</td></tr>
+</table>
+<div class="foot"><span>Build Room OS · What's new</span><span>Page 9</span></div>
+</section>
+
+<section class="page">
+<div class="band"><div><div class="eb">Keep this by your computer</div><h1>Every command (3 of 4)</h1></div><img src="../../brand/buildroom-os-horizontal-on-navy.png"></div>
+<table class="cmd">
+<tr><th>Say this</th><th>What it does</th></tr>
+<tr class="g"><td colspan="2">Marketing and words</td></tr>
+<tr><td class="s">Make me ads</td><td>Ad ideas and finished ads using your real photo</td></tr>
+<tr><td class="s">Make me a video</td><td>A video plan, script and edit around you</td></tr>
+<tr><td class="s">Write me the email</td><td>Any email, page or letter, in your voice</td></tr>
+<tr><td class="s">Find the words my clients actually use</td><td>Real customer language, with sources</td></tr>
+<tr><td class="s">Make my offer a no-brainer</td><td>Bonuses, guarantee, the offer math</td></tr>
+<tr><td class="s">Run discovery on this business</td><td>Research on your business, a client or a prospect</td></tr>
+<tr class="g"><td colspan="2">Running the business</td></tr>
+<tr><td class="s">Help me document my processes</td><td>Step-by-step instructions anyone can follow</td></tr>
+<tr><td class="s">Help me hire someone</td><td>Job ad, interview questions, first week</td></tr>
+<tr><td class="s">Help me train my new hire</td><td>A training plan with checklists</td></tr>
+<tr><td class="s">What numbers should I be watching every week?</td><td>A one-page weekly dashboard</td></tr>
+</table>
+<div class="foot"><span>Build Room OS · What's new</span><span>Page 10</span></div>
+</section>
+
+<section class="page">
+<div class="band"><div><div class="eb">Keep this by your computer</div><h1>Every command (4 of 4)</h1></div><img src="../../brand/buildroom-os-horizontal-on-navy.png"></div>
+<table class="cmd">
+<tr><th>Say this</th><th>What it does</th></tr>
+<tr class="g"><td colspan="2">Anytime</td></tr>
+<tr><td class="s">Let's brainstorm</td><td>A brainstorm that ends in a decision</td></tr>
+<tr><td class="s">Capture what we decided</td><td>Turns notes into a dated plan</td></tr>
+<tr><td class="s">Build my compass</td><td>Your values and strengths, in your words</td></tr>
+<tr><td class="s">Convene the board</td><td>Four advisers argue your decision</td></tr>
+<tr class="g"><td colspan="2">Extras (when you're ready)</td></tr>
+<tr><td class="s">Set up my second brain</td><td>An Obsidian notes vault Claude reads</td></tr>
+<tr><td class="s">Build me a source watcher</td><td>Saves the best of podcasts and videos to your notes</td></tr>
+<tr><td class="s">Make me an agent</td><td>Designs a helper that runs a task for you</td></tr>
+</table>
+<div class="box tip" style="margin-top:0.18in"><b class="t">Stuck?</b>Say <span class="say">Where do I start?</span> or bring your question to the next Build Room session. Everyone gets stuck at the start; it gets easy quickly.</div><div class="foot"><span>Build Room OS · What's new</span><span>Page 11</span></div>
+</section>
+
+</body></html>
