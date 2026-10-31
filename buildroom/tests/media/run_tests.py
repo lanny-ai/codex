@@ -8,7 +8,9 @@ imageio-ffmpeg). The static-renderer check runs only when Node and Playwright ar
 Usage:  python3 buildroom/tests/media/run_tests.py [--keep]
 Exit code 0 when every check passes.
 """
-import json, os, shutil, subprocess, sys, tempfile, threading
+import sys
+sys.dont_write_bytecode = True  # noqa: E402  (no __pycache__ in the skill folders or here)
+import json, os, shutil, subprocess, tempfile, threading  # noqa: E402
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -29,6 +31,7 @@ def check(name, ok, detail=""):
 
 
 def sh(args, cwd, env=None, ok_codes=(0,)):
+    env = {**(env or os.environ), "PYTHONDONTWRITEBYTECODE": "1"}
     p = subprocess.run([str(a) for a in args], cwd=cwd, env=env, capture_output=True, text=True)
     return p.returncode in ok_codes, p.stdout + p.stderr, p.returncode
 
@@ -42,7 +45,7 @@ def main():
     env = {**os.environ, "NO_PROXY": "127.0.0.1,localhost", "no_proxy": "127.0.0.1,localhost",
            "KIE_API_BASE": f"http://127.0.0.1:{port}", "HIGGSFIELD_API_BASE": f"http://127.0.0.1:{port}",
            "HEYGEN_API_BASE": f"http://127.0.0.1:{port}", "SUBMAGIC_API_BASE": f"http://127.0.0.1:{port}",
-           "GEN_POLL_SECONDS": "0.1", "FFMPEG": ffmpeg_bin()}
+           "GEN_POLL_SECONDS": "0.1", "FFMPEG": ffmpeg_bin(), "PYTHONDONTWRITEBYTECODE": "1"}
     (work / ".env").write_text("KIE_API_KEY=testkey\nHIGGSFIELD_API_KEY=hid\nHIGGSFIELD_API_SECRET=hsec\n"
                                "HEYGEN_API_KEY=hgkey\nSUBMAGIC_API_KEY=sk-test\n")
     L, G = VD / "ledger.py", VD / "gen.py"
@@ -303,4 +306,9 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        rc = main()
+    finally:
+        for d in ROOT.rglob("__pycache__"):
+            shutil.rmtree(d, ignore_errors=True)
+    sys.exit(rc)

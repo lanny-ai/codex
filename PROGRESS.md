@@ -91,3 +91,27 @@ Acceptance checks (expected, then actual):
 Suite: `find buildroom -name __pycache__ -type d -prune -exec rm -rf {} +`, then `python3 buildroom/tests/launch/run_tests.py`: 394/394 checks passed, exit 0. Sweep again afterwards; `find buildroom -name __pycache__ | wc -l` prints 0.
 
 Deferred: nothing from M3. The media suite's `__pycache__` fix is M4; the zip rebuild is M5.
+
+## 2026-10-31, M4: media suite leaves no __pycache__; order proof media then launch
+
+Job: PLAN.md M4. Branch `claude/new-session-1rmv4i`, HEAD at start `452135d`, working tree clean. File: `buildroom/tests/media/run_tests.py` only. Each target spot was confirmed with sed and grep before editing (line 11 import line, `sh()` at line 31 with `env=None` passed straight to `subprocess.run`, the `env` dict at lines 42 to 45, the two-line `__main__` block at lines 305 to 306), and the four edits were applied as exact replacements that assert the old text is present once. `ROOT` in this file is `HERE.parents[1]`, which is `buildroom/` (HERE is `buildroom/tests/media`), so `ROOT.rglob("__pycache__")` covers the whole toolkit including `skills/buildroom-video-director/scripts/` and `tests/media/`; no other variable was needed. The launch suite's lines 10 to 12 were read and mirrored for edit 1.
+
+What changed (306 lines before, 311 after):
+1. Lines 11 to 13: `import sys`, then `sys.dont_write_bytecode = True  # noqa: E402  (no __pycache__ in the skill folders or here)`, then the remaining imports (`json, os, shutil, subprocess, tempfile, threading`) with `# noqa: E402`. The in-process imports of `mock_providers`, `videolib` and `transcribe` no longer write `.pyc` files.
+2. `sh()`: new first line `env = {**(env or os.environ), "PYTHONDONTWRITEBYTECODE": "1"}` before `subprocess.run`, so every subprocess the suite starts (ledger, gen, assemble, transcribe, review, submagic, node renderer) carries it whether the caller passed an env or not.
+3. The `env` dict in `main()`: added `"PYTHONDONTWRITEBYTECODE": "1"` after `"FFMPEG": ffmpeg_bin()` (belt and braces).
+4. `__main__` block: `try: rc = main()` / `finally:` remove every `__pycache__` under `ROOT` with `shutil.rmtree(d, ignore_errors=True)` / `sys.exit(rc)`. Behaviour of the suite is otherwise unchanged: same checks, same output lines, same exit code.
+
+Acceptance checks (expected, then actual):
+- `python3 -c "import ast,sys; ast.parse(open('buildroom/tests/media/run_tests.py').read()); print('parses')"`: expect `parses`; actual `parses`.
+- `grep -c 'dont_write_bytecode' buildroom/tests/media/run_tests.py`: expect 1; actual 1. `grep -c 'PYTHONDONTWRITEBYTECODE' buildroom/tests/media/run_tests.py`: expect 2; actual 2.
+- Order proof: `find buildroom -name __pycache__ -type d -prune -exec rm -rf {} +`, `find buildroom -name __pycache__ | wc -l` prints 0 (clean start); `python3 buildroom/tests/media/run_tests.py; echo exit=$?` ends `56/56 checks passed` and `exit=0`, 0 FAIL lines; `find buildroom -name __pycache__ | wc -l` prints 0 (expect 0); then `python3 buildroom/tests/launch/run_tests.py; echo exit=$?` ends `394/394 checks passed` and `exit=0`. Before M4 this order failed the launch suite's last check.
+- Em dash guard: `git diff -U0` added and removed lines carry 0 em dashes.
+- `git status --short` before commit: ` M buildroom/tests/media/run_tests.py` only, then PROGRESS.md once this entry was written.
+
+Suites (run after the order proof, nothing else moved):
+- `python3 buildroom/tests/search/run_tests.py`: 191/191 passed, exit 0.
+- `python3 buildroom/tests/linkedin/run_tests.py`: 139/139 checks passed, exit 0.
+- `find buildroom -name __pycache__ | wc -l` afterwards: 0. The ground-rules sweep after the media suite is no longer needed.
+
+Deferred: nothing from M4. The zip rebuild and full-suite run are M5.
