@@ -15,7 +15,7 @@ cd BuildRoom_OS
 claude
 ```
 
-The thirty-two skills are picked up automatically from `.claude/skills/`. Say:
+The thirty-five skills are picked up automatically from `.claude/skills/`. Say:
 
 > I'm new to the Build Room — set me up.
 
@@ -61,7 +61,7 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 | `tools/Rent_Calculator.html` | Open in a browser: what your undocumented processes cost you. Copies a §9 block into your file. |
 | `tools/Business_File_Viewer.html` | Open in a browser: paste your Business File, see every section's status, your progress, the one session to run next, and your Build Plan. |
 | `tools/Brainstorm_Board.html` | Open in a browser: frame, diverge, cluster, dot-vote, decide, then "Copy for Claude." |
-| `skills/` | The thirty-two skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
+| `skills/` | The thirty-five skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
 | `CLAUDE.md`, `AGENTS.md` | Tell Claude Code and Codex what this folder is. Don't delete them. |
 
 ## The sessions
@@ -95,6 +95,9 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 | "Build me a source watcher" | A watcher for any source, filing filtered notes into your Obsidian vault (elective; some sources need a paid key, it says which) |
 | "Set up my second brain" | An Obsidian vault with Claude Code inside it, your data on your own machine (elective; free app, subscription only) |
 | "Make me an agent" | An agent definition from the founder's thirteen elements, installable as a skill or handed to a build (elective) |
+| "Triage my projects" (or "what should I finish", "help me choose") | The one project to finish next and the rest parked with a revisit date, in PORTFOLIO.md and your Build Plan (elective) |
+| "Finish it" (or "what is left to do", "take this over the line") | An unfinished project audited, cut to the smallest shippable version, built and tested by a crew, and shipped with a checklist; say it inside the project's folder (elective) |
+| "Build me an app" (or "build it", "pursue goal") | A new app or tool from an idea: a brainstorm, one written goal you approve, then a crew that builds, tests, reviews and documents it (elective) |
 | "Run discovery on this business" | The Magic Business Genie rebuilt: research first, confirm what's known, ask only the gaps, then the ten Genie outputs; own business, a client, or a prospect |
 | "Where is my funnel leaking?" | Every failure point measured, the top leaks with fixes you approve, and a weekly routine that re-runs it (needs §6 and a week of traffic) |
 | "Build my compass" | Who you are at a deep level, in a page and a half that ends in a Compass Statement; every session then sounds like you |
