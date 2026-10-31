@@ -65,3 +65,29 @@ Acceptance checks (F = the file; expected, then actual):
 Suite: `find buildroom -name __pycache__ -type d -prune -exec rm -rf {} +`, then `python3 buildroom/tests/launch/run_tests.py`: 394/394 checks passed, exit 0.
 
 Deferred: nothing from M2. The planning files' own names are M3.
+
+## 2026-10-31, M3: root README pointer, NOTES.md instructor line, names out of the planning files
+
+Job: PLAN.md M3. Branch `claude/new-session-1rmv4i`, HEAD at start `d01e12e`, working tree clean. Files: README.md (root), NOTES.md, STATE.md, GOAL.md, LATER.md, PORTFOLIO.md. Every target line was confirmed with sed before editing, and every occurrence of the three names was located first with a case-insensitive grep over the whole tree excluding .git (the instructor's surname, the second placeholder first name as a whole word, the partner-company abbreviation as a whole word). Edits were applied with exact one-per-line string replacements that assert the old text is present once.
+
+What changed (10 hit lines edited plus one insertion; no name is repeated here):
+1. README.md: the Build Room OS pointer line and a blank line inserted after the first paragraph's blank (new lines 5 and 6); `## Install` moved from line 5 to line 7.
+2. NOTES.md line 19: now the specified sentence ("no third-party instructors are credited anywhere, by the owner's instruction"). NOTES.md line 30: the partner abbreviation before "admin password" is now "a partner campaign's".
+3. STATE.md line 24: the instructor's quoted full name is now "The instructor's name" (sentence start). Line 52: the placeholder quote is now `"[two first names]"` and the parenthesis reads "(the second of them is a personal name, not the founder's)". Line 56: "partner campaign password". Line 72: "Keep the two first names as the Brainstorm Board placeholder?". Line 74: "single mention of the third-party instructor (the rule)".
+4. GOAL.md line 77: the two grep literals are now `grep -rn '<second placeholder name>' buildroom` and `grep -rn '<instructor surname>' .`. This is the one edit to GOAL.md after approval; it changes no requirement, only the spelling of two literals that were themselves forbidden names.
+5. LATER.md line 14: "(AddEvent key, a partner campaign's admin password)". PORTFOLIO.md line 16: "the testimonial admin password from the partner campaign note".
+6. Not edited: five CSS hits in `buildroom/rollout/BuildRoom_OS_Say_These_Words.html` for a colour token (`--<colour>`) whose spelling matches the instructor's first name. It is a colour, not a credit, and is not the surname; the acceptance grep is for the surname.
+
+Acceptance checks (expected, then actual):
+- `sed -n '5p' README.md`: expect the Build Room OS line; actual `Build Room OS, the member toolkit for the Build Room (thirty-two skills for Claude Code and Codex), lives under [`buildroom/`](buildroom/README.md).`
+- `sed -n '7p' README.md`: expect `## Install`; actual `## Install`. `grep -c 'buildroom/README.md' README.md`: expect 1; actual 1.
+- `sed -n '19p' NOTES.md`: expect the specified line; actual matches it exactly. `grep -c 'no third-party instructors are credited anywhere' NOTES.md`: expect 1; actual 1.
+- `grep -rniE '<surname>' . --exclude-dir=.git`, `grep -rniE '\b<placeholder name>\b' . --exclude-dir=.git`, `grep -rniE '\b<abbreviation>\b' . --exclude-dir=.git`: expect nothing from each; actual nothing from each (before editing: 3, 3 and 4 hit lines respectively, 10 distinct lines in all).
+- `git grep -niE` for the same three patterns against HEAD after the commit: expect nothing; actual nothing from each (run on the M3 commit, then once more on the amended commit that folded this line in before the push).
+- Em dash guard: `git diff -U0` removed lines carry 0 em dashes, added lines carry 0.
+- Trailing newlines: the diff shows no "No newline at end of file" marker on any of the six files.
+- `git status --short` before commit: README.md, NOTES.md, STATE.md, GOAL.md, LATER.md, PORTFOLIO.md and PROGRESS.md only.
+
+Suite: `find buildroom -name __pycache__ -type d -prune -exec rm -rf {} +`, then `python3 buildroom/tests/launch/run_tests.py`: 394/394 checks passed, exit 0. Sweep again afterwards; `find buildroom -name __pycache__ | wc -l` prints 0.
+
+Deferred: nothing from M3. The media suite's `__pycache__` fix is M4; the zip rebuild is M5.

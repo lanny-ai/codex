@@ -21,7 +21,7 @@ Scope: `buildroom/` on `claude/new-session-1rmv4i` (PR #2, lanny-ai/codex). Noth
 - Every skill's `references/business-file-protocol.md` and `business-file-template.md` `cmp` equal to `shared/business-file-protocol.md` and `templates/BUILDROOM_BUSINESS_FILE.md` (32/32); the shared media files match in ad-studio and video-director.
 - PR #2 (`gh api repos/lanny-ai/codex/pulls/2`): open, draft, base `main`, head `9326d24` (= local HEAD = origin), `mergeable: true`, `mergeable_state: clean`, 105 commits, 412 files, +80,474/−0, 0 reviews, 0 comments, no CI, no labels. `git merge-tree --write-tree origin/main HEAD` succeeds with no conflicts. Main has one commit the branch lacks (`1d80d57` Control Center plugin); the branch has 105 main lacks.
 - Grep for `new-session-1rmv4i|raw/claude` across *.md/*.html/*.sh: no hits except NOTES.md. The only link pattern is `releases/README.md:10` with `<branch>`.
-- Secret scan: only placeholders (`sk-your-key-here`, `sk-...`, `sk-test` in the media test). Emails: `example.com`/fixture addresses and placeholders only. "Amber Spears": zero hits under buildroom/, in both zips, and in the PR body; one hit in NOTES.md (the rule itself).
+- Secret scan: only placeholders (`sk-your-key-here`, `sk-...`, `sk-test` in the media test). Emails: `example.com`/fixture addresses and placeholders only. The instructor's name: zero hits under buildroom/, in both zips, and in the PR body; one hit in NOTES.md (the rule itself).
 - Not run: `build-skills.sh` and `build-universal-bundle.sh`. Both write inside the repo even with an output folder (`cp shared/... "$dir/references/..."` into every skill, `rm -rf` of `__pycache__` under skills/; the bundle script calls `build-skills.sh dist`). Sync was verified with `cmp` instead.
 
 ## 3. What exists but is broken (evidence)
@@ -49,11 +49,11 @@ Scope: `buildroom/` on `claude/new-session-1rmv4i` (PR #2, lanny-ai/codex). Noth
 ## 6. Risks and debt
 
 - The repo is public (`gh api repos/lanny-ai/codex`: `private: false`). `research_notes/World class event launches/lanny_vault_method.md` carries founder figures (the $1 Build Brief with 102 buyers, $997, a $30K integrity breach, 2,181 frozen enrollments, the price ladder) and vault file paths, although NOTES.md says confidential founder data was removed. Readings: public pricing vs. confidential numbers; owner's call.
-- Founder's name: "Lanny"/"Morton" in 15 skill reference files (reconstruction headers "host Lanny Morton, AI Momentum Labs"; `sales-coach-source.md` product name; `deploy-pages.md` "Lanny's words"), `decision-machine/references/knowledge-base.md:15`, `curriculum/AUTOMATION_W2_STEP1`, four `test-run/` files, and `Brainstorm_Board.html:128` placeholder "Lanny, Haley" (Haley is a second personal name). 58 matching lines ship in the zip. No member or client names found.
+- Founder's name: "Lanny"/"Morton" in 15 skill reference files (reconstruction headers "host Lanny Morton, AI Momentum Labs"; `sales-coach-source.md` product name; `deploy-pages.md` "Lanny's words"), `decision-machine/references/knowledge-base.md:15`, `curriculum/AUTOMATION_W2_STEP1`, four `test-run/` files, and `Brainstorm_Board.html:128` placeholder "[two first names]" (the second of them is a personal name, not the founder's). 58 matching lines ship in the zip. No member or client names found.
 - Commit trailers name models: `Claude Opus 5` (8), `Claude Opus 5.5` (50), `Claude Fable 5.1` (47), against NOTES.md "no model identifiers in commits or the PR". Readings: trailers are the mandated attribution and exempt; or they violate the rule.
 - Four of six test-run findings unapplied (PR body §6: one-offer schema, 25% pre-fill at session 3, protocol/curriculum contradiction, rating timing).
 - `build-skills.sh` overwrites embedded copies silently except the media files; the test-order bug above; 4.5 MB zip per release committed to git.
-- Vault credentials (AddEvent key, HEI password) are outside the repo and outside this finish (NOTES.md).
+- Vault credentials (AddEvent key, partner campaign password) are outside the repo and outside this finish (NOTES.md).
 
 ## 7. Smallest shippable version
 
@@ -69,9 +69,9 @@ Milestone C, after merge (optional, 15 minutes): one line in the root README poi
 2. Rebuild the 2026-10-28 zip with the buildroom-os §20/§21 fix before merging, or ship that fix in the next weekly release? (yes = rebuild)
 3. Should the template header read `File version: 1.6`, or is 1.0 the member file's own counter? (one line)
 4. Are the founder figures and vault paths in `research_notes/World class event launches/lanny_vault_method.md` acceptable on public main? (y/n)
-5. Keep "Lanny, Haley" as the Brainstorm Board placeholder? (y/n)
+5. Keep the two first names as the Brainstorm Board placeholder? (y/n)
 6. Do the `Co-Authored-By: Claude <model>` trailers satisfy "no model identifiers"? (y/n)
-7. May NOTES.md's single mention of Amber Spears (the rule) stay on main? (y/n)
+7. May NOTES.md's single mention of the third-party instructor (the rule) stay on main? (y/n)
 8. Add a root README line pointing to `buildroom/`? (y/n)
 9. Should `MEMBER-README.md` go into the zip, or has START-HERE replaced it? (one line)
 10. Edit the PR body's stale headings (28 skills, video-engine) before merge, or leave the changelog as history? (y/n = edit)

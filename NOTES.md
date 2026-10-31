@@ -16,7 +16,7 @@ Build Room OS is the member toolkit for the Build Room, a program of guided week
 - Thirty-two skills in `buildroom/skills/`, each with SKILL.md, references and, where needed, stdlib Python scripts. The newest: LinkedIn Engine (Oct 16), Event Launcher (Oct 17), Proof Engine (Oct 24), Search & Answer Engine (Oct 28, with a publish-and-index step added the same day).
 - Test suites: `buildroom/tests/launch/run_tests.py` (394 checks), `buildroom/tests/linkedin/run_tests.py` (139), `buildroom/tests/search/run_tests.py` (191), `buildroom/tests/media/` (needs ffmpeg on PATH). All passed on 2026-10-28.
 - Rollout material in `buildroom/rollout/`: the six-page Say These Words guide (HTML plus PDF), the eleven-page What's New guide for 2026-10-28 (`whats-new/`), Quick Start, One Pager, Business File Viewer, Brainstorm Board, Rent Calculator, MEMBER-README, FACILITATOR-RUN-OF-SHOW, `universal/` (START-HERE, CLAUDE.md, installers).
-- Research behind the newest skills in `research_notes/` and `reports/` (confidential founder data removed; Amber Spears is never credited anywhere by the owner's instruction).
+- Research behind the newest skills in `research_notes/` and `reports/` (confidential founder data removed; no third-party instructors are credited anywhere, by the owner's instruction).
 - PORTFOLIO.md (2026-10-31): Build Room OS is the one project being finished.
 
 ## What "finished" means (from the triage)
@@ -27,7 +27,7 @@ A last read-through, merge PR #2 to main, and the release links move off the bra
 
 - The release README's download pattern uses `<branch>`; once merged it should say `main`.
 - The PR title and body were updated on 2026-10-28; the body ends with the required attribution footer.
-- Two credentials sit in the owner's Obsidian vault (an AddEvent key, an HEI admin password); they are outside this repo and are the owner's to remove. Not part of this finish.
+- Two credentials sit in the owner's Obsidian vault (an AddEvent key, a partner campaign's admin password); they are outside this repo and are the owner's to remove. Not part of this finish.
 - The media test suite needs ffmpeg; the other three suites are stdlib only.
 - Nothing in the repo may contain API keys, member or client names, or the founder's confidential numbers; the search, launch and LinkedIn suites include scans for this.
 

@@ -13,7 +13,7 @@ The words to start: open the folder and say **finish it**.
 ## Next
 
 1. **Weekly member hand-off**: the 2026-10-28 zip, the six-page Say These Words guide, the eleven-page What's New guide and the Gamma summary posted in the Members' area. Ready to post; nothing to build.
-2. **Vault credential clean-up**: remove the AddEvent key from the add-to-calendar playbook and the HEI testimonial admin password from the HEI campaign note in the Obsidian vault, and rotate both. A half-hour task, and the only item actively exposed.
+2. **Vault credential clean-up**: remove the AddEvent key from the add-to-calendar playbook and the testimonial admin password from the partner campaign note in the Obsidian vault, and rotate both. A half-hour task, and the only item actively exposed.
 
 ## Parked (revisit on 2026-11-30)
 

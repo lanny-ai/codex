@@ -74,7 +74,7 @@ Work milestone by milestone from PLAN.md. After every edit batch run the four su
 - All four suites exit 0, in the order launch, linkedin, search, media, launch.
 - `unzip -l` of the release shows 32 skill folders under both `.claude/skills/` and `.codex/skills/`; `cmp` of the committed zip against `buildroom/dist/BuildRoom_OS.zip` is silent.
 - `grep -rn 'new-session-1rmv4i\|<branch>' buildroom --include=*.md` returns nothing.
-- `grep -rn 'Haley' buildroom` and `grep -rn 'Amber' .` return nothing (excluding `.git`).
+- `grep -rn '<second placeholder name>' buildroom` and `grep -rn '<instructor surname>' .` return nothing (excluding `.git`).
 - The redacted note has no dollar figure, no count above 99, and no backticked vault path.
 - `gh api repos/lanny-ai/codex/pulls/2` shows `draft: false` before the merge and `merged: true` after.
 - `curl -sIL https://github.com/lanny-ai/codex/raw/main/buildroom/rollout/releases/BuildRoom_OS_2026-10-28.zip` ends in a 200 with a zip content type.
