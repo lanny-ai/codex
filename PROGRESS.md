@@ -115,3 +115,41 @@ Suites (run after the order proof, nothing else moved):
 - `find buildroom -name __pycache__ | wc -l` afterwards: 0. The ground-rules sweep after the media suite is no longer needed.
 
 Deferred: nothing from M4. The zip rebuild and full-suite run are M5.
+
+## 2026-10-31, M5: rebuild the zip, full suite run, commit, push
+
+Job: PLAN.md M5. Branch `claude/new-session-1rmv4i`, HEAD at start `4f301d3`, working tree clean (`git status --short` printed nothing), `find buildroom -name __pycache__ -type d -prune -exec rm -rf {} +` run first (0 folders remained). Files: `buildroom/rollout/releases/BuildRoom_OS_2026-10-28.zip` (replaced under the same name), `buildroom/rollout/releases/README.md` (one sentence appended to the 2026-10-28 row). `buildroom/dist/BuildRoom_OS.zip` is git-ignored and not committed. The zip was built exactly once.
+
+Build: `bash buildroom/build-universal-bundle.sh` from the repo root, exit 0. Output: `built dist/BuildRoom_OS.zip (4.4M)` followed by the eleven non-skill files in sorted order (AGENTS.md, BUILDROOM_BUSINESS_FILE.md, BuildRoom_OS_Say_These_Words.pdf, CLAUDE.md, START-HERE.md, install.ps1, install.sh, tools/Brainstorm_Board.html, tools/BuildRoom_OS_Quick_Start.html, tools/Business_File_Viewer.html, tools/Rent_Calculator.html), exactly as the plan expected. `git status --short` after the build: nothing (build-skills.sh re-copied identical files). Then `cp buildroom/dist/BuildRoom_OS.zip buildroom/rollout/releases/BuildRoom_OS_2026-10-28.zip`.
+
+Zip size: before 4,524,176 bytes (the 2026-10-28 build); after 4,524,207 bytes (dist and the committed copy both 4,524,207).
+
+README: the 2026-10-28 row's "What changed" cell was confirmed to end `the printable guide gains page 6. |` (one match), then the specified sentence was appended before the closing ` |` with an exact replacement that asserts the old text is present once. The row still has three cells like its neighbours (`awk -F'|' '{print NF-2}'` prints 3 for line 7). No em dash in the added text (0).
+
+Zip verification (ZIP = the committed path; expected, then actual):
+- `cmp buildroom/dist/BuildRoom_OS.zip "$ZIP" && echo same`: expect `same`; actual `same`.
+- `unzip -l "$ZIP" | grep -cE ' BuildRoom_OS/\.claude/skills/[^/]+/$'`: expect 32; actual 32. Same with `\.codex`: expect 32; actual 32. Same with `skills/[^/]+/$` and no dot prefix: expect 32; actual 32.
+- Extracted to SCRATCH/zipcheck. `diff -rq SCRATCH/zipcheck/BuildRoom_OS/skills buildroom/skills`: expect nothing; actual nothing, rc=0. `diff -rq .claude/skills skills`: nothing, rc=0. `diff -rq .codex/skills skills`: nothing, rc=0.
+- `cmp` of every non-skill file against its source, all silent: CLAUDE.md and AGENTS.md against `buildroom/rollout/universal/CLAUDE.md`; START-HERE.md against `buildroom/rollout/universal/START-HERE.md`; BUILDROOM_BUSINESS_FILE.md against `buildroom/templates/BUILDROOM_BUSINESS_FILE.md`; BuildRoom_OS_Say_These_Words.pdf against `buildroom/rollout/BuildRoom_OS_Say_These_Words.pdf`; tools/Brainstorm_Board.html, tools/BuildRoom_OS_Quick_Start.html, tools/Business_File_Viewer.html, tools/Rent_Calculator.html against `buildroom/rollout/*.html`; install.sh and install.ps1 against `buildroom/rollout/universal/`. 11 of 11 `ok`, 0 `DIFF`. The eleven are the only non-skill entries in the zip root and tools/.
+- `unzip -p "$ZIP" BuildRoom_OS/BUILDROOM_BUSINESS_FILE.md | sed -n 7p`: expect `**File version:** 1.6`; actual `**File version:** 1.6`.
+- `unzip -p "$ZIP" BuildRoom_OS/.claude/skills/buildroom-os/SKILL.md | grep -c '§14–§21'`: expect 1; actual 1.
+- `unzip -p "$ZIP" BuildRoom_OS/tools/Brainstorm_Board.html | grep -c 'Alex, Sam'`: expect 1; actual 1.
+- `unzip -l "$ZIP" | grep -c __pycache__`: expect 0; actual 0.
+
+Suites, in this order, each exit 0 and 0 FAIL lines:
+- `python3 buildroom/tests/launch/run_tests.py`: 394/394 checks passed, exit 0.
+- `python3 buildroom/tests/linkedin/run_tests.py`: 139/139 checks passed, exit 0.
+- `python3 buildroom/tests/search/run_tests.py`: 191/191 passed, exit 0.
+- `python3 buildroom/tests/media/run_tests.py`: 56/56 checks passed, exit 0.
+- `python3 buildroom/tests/launch/run_tests.py` (after media): 394/394 checks passed, exit 0.
+- `find buildroom -name __pycache__ | wc -l` afterwards: expect 0; actual 0.
+
+Final greps (counts only):
+- `grep -rn 'new-session-1rmv4i\|<branch>' buildroom --include=*.md | wc -l`: expect 0; actual 0.
+- Case-insensitive grep over the working tree excluding .git for the instructor's surname, the second placeholder first name (whole word) and the partner-company abbreviation (whole word): expect 0, 0, 0; actual 0, 0, 0.
+- `git grep -niE` for the same three patterns against HEAD (`4f301d3`): expect 0, 0, 0; actual 0, 0, 0.
+- `git status --short` before this entry: the zip and the releases README only; with this entry, PROGRESS.md as well.
+
+Commit: `git add buildroom/rollout/releases/BuildRoom_OS_2026-10-28.zip buildroom/rollout/releases/README.md PROGRESS.md`, subject `Release 2026-10-28 rebuilt from the read-through fixes; download pattern on main`. Step 10 (model-identifier check on `git log 9326d24..HEAD`) and step 11 (push, `git rev-parse HEAD origin/claude/new-session-1rmv4i`, PR #2 head and mergeable state) are recorded in the builder's report for this sitting; the commit cannot describe its own hash.
+
+Deferred: nothing from M5. The PR body, ready-for-review, merge and main-link confirmation are M6.
