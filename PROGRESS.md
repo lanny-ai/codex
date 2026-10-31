@@ -180,3 +180,5 @@ Acceptance checks (expected, then actual):
 Suite: `find buildroom -name __pycache__ -type d -prune -exec rm -rf {} +`, then `python3 buildroom/tests/launch/run_tests.py`: 394/394 checks passed, exit 0; `find buildroom -name __pycache__ | wc -l` prints 0.
 
 Deferred: everything in the new LATER.md block. The PR body, ready-for-review, merge and main-link confirmation remain M6.
+
+Commit `8653848` (pushed; HEAD = origin). After it, the M5 step 10 check prints 1, not 0: the body of that commit names the session trailer in prose ("the Claude-Session trailer"), and the word matches the `claude-` alternative case-insensitively. It is the name of a trailer, not a model identifier, so no rule is broken; the amend-and-force-push that would have reworded it was not run, to leave the pushed branch history alone. The check prints 0 for every other line in `9326d24..HEAD`. Rule for later commit bodies: write "the session trailer", never the trailer's name.
