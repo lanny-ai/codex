@@ -178,7 +178,7 @@ Every new Build Room week becomes a skill the same day through the generator, so
 
 **Added.** New.
 **How.** A progress view over every section, six routing rules (first gap with prerequisites met, harden provisional debt first, missing prerequisites named, ship-state nudges, everything complete means brainstorm), goal-first routing, and the trigger phrase to say.
-**Why.** A member with twenty-six skills needs one place that tells them which to run. This is the only skill that never builds anything.
+**Why.** A member with thirty-two skills needs one place that tells them which to run. This is the only skill that never builds anything.
 
 ---
 

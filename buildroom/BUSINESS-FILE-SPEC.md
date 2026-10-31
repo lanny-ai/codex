@@ -72,4 +72,4 @@ Every new weekly skill MUST:
 
 ## Versioning
 
-The file carries `File version: 1.0` in its header. Additive changes (new sections, new fields) bump the minor version and require no migration. Skills treat unknown sections as opaque and preserve them byte-for-byte on rewrite — this is what lets a member's file move safely between skill generations.
+The file carries `File version: 1.6` in its header (the spec version above). Additive changes (new sections, new fields) bump the minor version and require no migration. Skills treat unknown sections as opaque and preserve them byte-for-byte on rewrite — this is what lets a member's file move safely between skill generations.

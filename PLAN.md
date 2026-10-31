@@ -46,7 +46,7 @@ Edits, exact:
 4. templates/BUILDROOM_BUSINESS_FILE.md line 7: `**File version:** 1.0` becomes `**File version:** 1.6`.
 5. BUSINESS-FILE-SPEC.md line 75: `The file carries \`File version: 1.0\` in its header.` becomes `The file carries \`File version: 1.6\` in its header (the spec version above).` Rest of the line unchanged.
 6. Business_File_Viewer.html line 340: `**File version:** 1.0` becomes `**File version:** 1.6`.
-7. Brainstorm_Board.html line 128: `placeholder="Lanny, Haley"` becomes `placeholder="Alex, Sam"`.
+7. Brainstorm_Board.html line 128: the `placeholder` attribute (the founder's first name and a second first name) becomes `placeholder="Alex, Sam"`.
 8. build-universal-bundle.sh line 13: `two-page` becomes `six-page`.
 9. buildroom/README.md line 48 (the `buildroom-search-answer-engine` row) currently ends `§13 rows, §8 |` with no Requires cell. Append ` §1 §2 (best §3 §4 §14 §18); Python 3 only, no packages, ffmpeg not needed |` so the row has four cells like its neighbours.
 10. deck line 181: `twenty-six skills` becomes `thirty-two skills`. Line 68 ("twenty-six of them") stays; LATER.md parks the rest of the deck.
@@ -57,7 +57,7 @@ Acceptance checks:
 - `grep -c '§14–§21' buildroom/skills/buildroom-os/SKILL.md` prints `1`; `grep -c '§14–§19' buildroom/skills/buildroom-os/SKILL.md` prints `0`.
 - `grep -c 'search and answer presence (§1–§21' buildroom/rollout/universal/CLAUDE.md` prints `1`.
 - `grep -rn 'File version' buildroom --include=*.md --include=*.html | grep -v test-run | grep -vc '1\.6'` prints `0` (every File version statement outside test-run says 1.6).
-- `grep -c 'Alex, Sam' buildroom/rollout/Brainstorm_Board.html` prints `1`; `grep -rn 'Haley' buildroom` prints nothing.
+- `grep -c 'Alex, Sam' buildroom/rollout/Brainstorm_Board.html` prints `1`; a grep for the second first name over buildroom prints nothing.
 - `grep -c 'six-page' buildroom/build-universal-bundle.sh` prints `1`; `grep -c 'two-page' buildroom/build-universal-bundle.sh` prints `0`.
 - `sed -n 48p buildroom/README.md | awk -F'|' '{print NF-2}'` prints `4`.
 - `grep -c 'thirty-two skills' buildroom/rollout/decks/2026-10-build-room-os-deck.md` prints `1`.

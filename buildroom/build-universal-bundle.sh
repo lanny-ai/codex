@@ -10,7 +10,7 @@
 #   skills/<skill>/                the same skills, visible; install.sh copies these globally
 #   install.sh / install.ps1       optional: copy skills into ~/.claude/skills and ~/.codex/skills
 #   tools/*.html                   Rent Calculator, Brainstorm Board, Business File Viewer, Quick Start
-#   BuildRoom_OS_Say_These_Words.pdf  the printable two-page trigger-phrase guide
+#   BuildRoom_OS_Say_These_Words.pdf  the printable six-page trigger-phrase guide
 #   BUILDROOM_BUSINESS_FILE.md     the member's Business File — lives in this folder
 set -euo pipefail
 cd "$(dirname "$0")"
