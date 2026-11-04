@@ -111,6 +111,7 @@ Capture turns a raw brainstorm (board export, transcript, notes) into outcome re
 | Triage | `buildroom-triage` | The finishing crew, step one: one project marked finishing now, the rest parked in §13 with a revisit date 30 days out. Never two. |
 | Finish It | `buildroom-finish-it` | The finishing crew for an existing project: snapshot, audit (STATE.md), the owner's questions, scope cut to the smallest shippable version (GOAL.md, LATER.md), then Build It's crew and a ship checklist. |
 | Build It | `buildroom-build-it` | The finishing crew for a new idea: brainstorm, Pursue Goal (GOAL.md), then planner, builder, QA, four reviewers, a five-persona panel seeded from §2, docs and a release judge. |
+| Continuity System | `buildroom-continuity` | From community member Jenn: PROJECT, STATE and DECISIONS in `projects/<name>/continuity/` keep any long project resumable across threads and between Claude and Codex. Reads the Business File, never writes it. |
 
 ### Sessions kept as notes, not skills
 | Session | Why not a skill | Where it lives |
@@ -152,6 +153,7 @@ When routing, give the member the exact words to start the session:
 - Triage (elective) → "Triage my projects"
 - Finish It (elective) → "Finish it"
 - Build It (elective) → "Build me an app"
+- Continuity System (elective) → "Set up the continuity system for this project"
 - Compass (anytime) → "Build my compass"
 - Second Brain (elective) → "Set up my second brain"
 - Source Watcher (elective) → "Build me a source watcher"

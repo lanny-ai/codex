@@ -14,6 +14,7 @@ Read `references/business-file-protocol.md` before anything else. This skill rea
 
 - **Read:** §1 and §2 pre-fill the brainstorm and the primary avatar in Phase 4, labelled as drawn from the file, never as real customer research. A §13 row for this idea, if one exists, is the starting brief.
 - **Write:** a §13 row for the build (status `building` once GOAL.md is approved, `shipped` with how to run it and where it lives when the judge approves). One §8 line at the end.
+- **Continuity:** if the project has a `continuity/` folder (the Continuity System), add each real decision to `continuity/DECISIONS.md` as a dated entry as well, and never write its other files. Your own files stay at the project's top level.
 
 ## How the crew runs
 

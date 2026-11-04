@@ -14,6 +14,7 @@ Read `references/business-file-protocol.md` before anything else. This skill rea
 
 - **Read:** §1 and §2 go into GOAL.md's Business Outcome and into the persona panel, so the crew tests with the member's real customer, labelled as drawn from the file.
 - **Write:** the project's §13 row moves to `building` when GOAL.md is approved, and to `shipped` with the ship item (the live link, the release, the first user) when SHIP.md is done. Anything parked into LATER.md is not copied into §13; LATER.md is where it lives. One §8 line at the end: what shipped or where it stopped.
+- **Continuity:** if the project has a `continuity/` folder (the Continuity System), add each real decision to `continuity/DECISIONS.md` as a dated entry as well, and never write its other files. Your own files stay at the project's top level.
 
 ## Before you start
 
