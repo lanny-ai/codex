@@ -2,7 +2,7 @@
 
 This repository is the install source for **OS Cortex AEO Publisher**, a governed authority-publishing workflow for ChatGPT desktop and Codex.
 
-Build Room OS, the member toolkit for the Build Room (thirty-two skills for Claude Code and Codex), lives under [`buildroom/`](buildroom/README.md).
+Build Room OS, the member toolkit for the Build Room (thirty-six skills for Claude Code and Codex), lives under [`buildroom/`](buildroom/README.md).
 
 ## Install
 

@@ -15,7 +15,7 @@ cd BuildRoom_OS
 claude
 ```
 
-The thirty-two skills are picked up automatically from `.claude/skills/`. Say:
+The thirty-six skills are picked up automatically from `.claude/skills/`. Say:
 
 > I'm new to the Build Room — set me up.
 
@@ -55,14 +55,28 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 
 | Path | What it is |
 |---|---|
-| `BUILDROOM_BUSINESS_FILE.md` | **Your** Business File. One file, twenty-one sections, every session builds on it. Blank until your first session. |
+| `BUILDROOM_BUSINESS_FILE.md` | **Your** Business File. One file, twenty-one sections, every session builds on it. Your first session creates it from `templates/`. |
+| `templates/BUILDROOM_BUSINESS_FILE_TEMPLATE.md` | The blank Business File the first session copies. Releases carry only this blank copy, never a file named like yours, so an update cannot replace your file. |
+| `update.sh`, `update.ps1` | Install a new release into this folder safely (see Updating below). |
 | `BuildRoom_OS_Say_These_Words.pdf` | Print it, keep it by your computer: every trigger phrase, what it needs, what it writes. |
 | `tools/BuildRoom_OS_Quick_Start.html` | Open in a browser: the visual guide to the program and every session's trigger phrase. |
 | `tools/Rent_Calculator.html` | Open in a browser: what your undocumented processes cost you. Copies a §9 block into your file. |
 | `tools/Business_File_Viewer.html` | Open in a browser: paste your Business File, see every section's status, your progress, the one session to run next, and your Build Plan. |
 | `tools/Brainstorm_Board.html` | Open in a browser: frame, diverge, cluster, dot-vote, decide, then "Copy for Claude." |
-| `skills/` | The thirty-two skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
+| `skills/` | The thirty-six skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
 | `CLAUDE.md`, `AGENTS.md` | Tell Claude Code and Codex what this folder is. Don't delete them. |
+
+## Updating to a new release
+
+Your Business File and everything you made stay exactly as they are. Do it this way, not by unzipping over this folder:
+
+1. Unzip the new release somewhere else, for example your Downloads folder.
+2. Run its update script and give it the path of **this** folder (drag the folder into the terminal window to paste its path):
+   - Mac / Linux: `bash ~/Downloads/BuildRoom_OS/update.sh "/path/to/this/BuildRoom_OS"`
+   - Windows: `powershell -ExecutionPolicy Bypass -File "$HOME\Downloads\BuildRoom_OS\update.ps1" "C:\path\to\this\BuildRoom_OS"`
+3. It replaces only the Build Room skills, tools and instructions, saves everything it replaces in `backups/`, checks your Business File is unchanged byte for byte, and says so.
+
+Or open Claude Code in this folder and say: "Update Build Room OS from my Downloads folder." It runs the same script.
 
 ## The sessions
 
@@ -95,6 +109,10 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 | "Build me a source watcher" | A watcher for any source, filing filtered notes into your Obsidian vault (elective; some sources need a paid key, it says which) |
 | "Set up my second brain" | An Obsidian vault with Claude Code inside it, your data on your own machine (elective; free app, subscription only) |
 | "Make me an agent" | An agent definition from the founder's thirteen elements, installable as a skill or handed to a build (elective) |
+| "Triage my projects" (or "what should I finish", "help me choose") | The one project to finish next and the rest parked with a revisit date, in PORTFOLIO.md and your Build Plan (elective) |
+| "Finish it" (or "what is left to do", "take this over the line") | An unfinished project audited, cut to the smallest shippable version, built and tested by a crew, and shipped with a checklist; say it inside the project's folder (elective) |
+| "Build me an app" (or "build it", "pursue goal") | A new app or tool from an idea: a brainstorm, one written goal you approve, then a crew that builds, tests, reviews and documents it (elective) |
+| "Set up the continuity system for this project" (or "pick up where we left off", "hand off cleanly") | Any long project kept resumable across new threads and between Claude and Codex: three small files in the project's own folder; your Business File is only read, never changed (elective; from community member Jenn) |
 | "Run discovery on this business" | The Magic Business Genie rebuilt: research first, confirm what's known, ask only the gaps, then the ten Genie outputs; own business, a client, or a prospect |
 | "Where is my funnel leaking?" | Every failure point measured, the top leaks with fixes you approve, and a weekly routine that re-runs it (needs §6 and a week of traffic) |
 | "Build my compass" | Who you are at a deep level, in a page and a half that ends in a Compass Statement; every session then sounds like you |
