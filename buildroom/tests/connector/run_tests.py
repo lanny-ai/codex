@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+"""Tests for the Build Room connector (pilot MCP server).
+
+Usage:  python3 buildroom/tests/connector/run_tests.py
+"""
+import sys
+sys.dont_write_bytecode = True  # noqa: E402
+import json, shutil, subprocess, tempfile, threading, urllib.error, urllib.request  # noqa: E402
+from datetime import date, timedelta  # noqa: E402
+from http.server import ThreadingHTTPServer  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+ROOT = Path(__file__).resolve().parents[2]
+CON = ROOT / "connector"
+sys.path.insert(0, str(CON))
+import server  # noqa: E402
+
+RESULTS = []
+
+
+def check(name, ok, detail=""):
+    ok = bool(ok)
+    RESULTS.append(ok)
+    print(("PASS  " if ok else "FAIL  ") + name + ("" if ok else f"   [{detail}]"))
+
+
+def members_cli(path, *args):
+    return subprocess.run([sys.executable, "-B", str(CON / "members.py"), "--members", str(path), "--base-url", "https://example.test", *args],
+                          capture_output=True, text=True)
+
+
+def post(url, obj, key=None, raw=None):
+    data = raw if raw is not None else json.dumps(obj).encode()
+    req = urllib.request.Request(url, data=data, method="POST", headers={"Content-Type": "application/json", "Accept": "application/json, text/event-stream"})
+    if key:
+        req.add_header("Authorization", "Bearer " + key)
+    try:
+        with urllib.request.urlopen(req, timeout=10) as r:
+            body = r.read()
+            return r.status, (json.loads(body) if body else None), dict(r.headers)
+    except urllib.error.HTTPError as e:
+        body = e.read()
+        return e.code, (json.loads(body) if body else None), dict(e.headers)
+
+
+def call(url, key, tool, args=None, mid=1):
+    return post(url, {"jsonrpc": "2.0", "id": mid, "method": "tools/call", "params": {"name": tool, "arguments": args or {}}}, key)
+
+
+def text(resp):
+    return resp["result"]["content"][0]["text"], resp["result"]["isError"]
+
+
+def main():
+    tmp = Path(tempfile.mkdtemp(prefix="br-connector-"))
+    mf, log = tmp / "members.json", tmp / "usage.jsonl"
+    try:
+        # ---- members.py ------------------------------------------------------------
+        p = members_cli(mf, "add", "Pilot@Example.com", "--until", (date.today() + timedelta(days=30)).isoformat(), "--name", "Pat")
+        key = next((w for w in p.stdout.split() if w.startswith("br_")), None)
+        check("members add: prints a key once, with both connection forms", p.returncode == 0 and key and f"/mcp/{key}" in p.stdout and f"Bearer {key}" in p.stdout, p.stdout)
+        stored = mf.read_text()
+        check("members.json keeps only the key's sha256, never the key", key not in stored and server.key_hash(key) in stored)
+        check("members.json is private to the owner (mode 600)", (mf.stat().st_mode & 0o077) == 0)
+        check("email stored lower-case", '"pilot@example.com"' in stored)
+        check("adding the same member twice is refused", members_cli(mf, "add", "pilot@example.com").returncode == 1)
+        lapsed_key = next(w for w in members_cli(mf, "add", "gone@example.com").stdout.split() if w.startswith("br_"))
+        members_cli(mf, "lapse", "gone@example.com")
+        old_key = next(w for w in members_cli(mf, "add", "old@example.com", "--until", (date.today() - timedelta(days=30)).isoformat()).stdout.split() if w.startswith("br_"))
+        grace_key = next(w for w in members_cli(mf, "add", "grace@example.com", "--until", (date.today() - timedelta(days=3)).isoformat()).stdout.split() if w.startswith("br_"))
+        check("members list shows status without keys", "gone@example.com" in members_cli(mf, "list").stdout and "br_" not in members_cli(mf, "list").stdout)
+        check("members.py rejects a bad date", members_cli(mf, "add", "x@example.com", "--until", "next week").returncode != 0)
+
+        # ---- the server ---------------------------------------------------------------
+        app = server.build_app(mf, ROOT / "skills", ROOT / "rollout/releases/README.md", log)
+        httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.make_handler(app))
+        threading.Thread(target=httpd.serve_forever, daemon=True).start()
+        base = f"http://127.0.0.1:{httpd.server_port}"
+        url = base + "/mcp"
+
+        s, r, h = post(url, {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "t", "version": "1"}}}, key)
+        check("initialize: 200, server info, tools capability, instructions", s == 200 and r["result"]["serverInfo"]["name"] == "buildroom"
+              and "tools" in r["result"]["capabilities"] and "Business File" in r["result"]["instructions"], r)
+        check("initialize: echoes a supported protocol version, issues a session id", r["result"]["protocolVersion"] == "2025-06-18" and h.get("Mcp-Session-Id"))
+        s, r, _ = post(url, {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "1999-01-01"}}, key)
+        check("initialize: an unknown version gets the newest supported", r["result"]["protocolVersion"] == server.PROTOCOL_VERSIONS[0])
+        s, r, _ = post(url, {"jsonrpc": "2.0", "method": "notifications/initialized"}, key)
+        check("notification: 202 with no body", s == 202 and r is None, s)
+        s, r, _ = post(url, {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}, key)
+        names = [t["name"] for t in r["result"]["tools"]]
+        check("tools/list: the five Build Room tools", names == ["buildroom_status", "buildroom_list_sessions", "buildroom_start_session", "buildroom_get_file", "buildroom_whats_new"], names)
+        check("ping answers", post(url, {"jsonrpc": "2.0", "id": 3, "method": "ping"}, key)[1]["result"] == {})
+        check("unknown method: JSON-RPC -32601", post(url, {"jsonrpc": "2.0", "id": 4, "method": "nope"}, key)[1]["error"]["code"] == -32601)
+
+        # ---- access ---------------------------------------------------------------------
+        check("no key: 401", post(url, {"jsonrpc": "2.0", "id": 1, "method": "tools/list"})[0] == 401)
+        check("unknown key: 401 at connection time", post(url, {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}, "br_wrong")[0] == 401)
+        t, err = text(call(url, key, "buildroom_status")[1])
+        check("current member: status says current", not err and "current (pilot@example.com)" in t, t)
+        s, r, _ = post(f"{url}/{key}", {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "buildroom_status", "arguments": {}}})
+        check("key in the URL works (Claude desktop custom connectors)", s == 200 and not r["result"]["isError"])
+        t, err = text(call(url, lapsed_key, "buildroom_start_session", {"skill": "buildroom-os"})[1])
+        check("lapsed member: refused politely, told their files stay on their computer", err and "not current" in t and "stay on your computer" in t, t)
+        check("lapsed member can still connect (so they see why)", post(url, {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}, lapsed_key)[0] == 200)
+        t, err = text(call(url, old_key, "buildroom_list_sessions")[1])
+        check("expired past the grace period: refused", err and "expired" in t, t)
+        t, err = text(call(url, grace_key, "buildroom_list_sessions")[1])
+        check("expired 3 days ago, inside the 7-day grace: allowed", not err, t)
+        members_cli(mf, "reactivate", "gone@example.com")
+        check("reactivate takes effect without a restart", not text(call(url, lapsed_key, "buildroom_status")[1])[1])
+        new = next(w for w in members_cli(mf, "new-key", "pilot@example.com").stdout.split() if w.startswith("br_"))
+        check("new-key: the old key stops at once, the new one works",
+              post(url, {"jsonrpc": "2.0", "id": 1, "method": "tools/list"}, key)[0] == 401 and not text(call(url, new, "buildroom_status")[1])[1])
+        key = new
+
+        # ---- content ----------------------------------------------------------------------
+        t, err = text(call(url, key, "buildroom_list_sessions")[1])
+        n_skills = len([d for d in (ROOT / "skills").iterdir() if (d / "SKILL.md").exists()])
+        check(f"list_sessions: all {n_skills} sessions with descriptions", t.count("\n- buildroom-") == n_skills and "buildroom-continuity:" in t, t[:200])
+        t, err = text(call(url, key, "buildroom_start_session", {"skill": "buildroom-search-answer-engine"})[1])
+        skill_md = (ROOT / "skills/buildroom-search-answer-engine/SKILL.md").read_text()
+        check("start_session: the exact SKILL.md, then its file list", t.startswith(skill_md) and "references/answer-standard.md" in t and "scripts/publish.py" in t)
+        check("start_session: says the Business File stays on the member's computer", "Business File on their computer only" in t)
+        t, err = text(call(url, key, "buildroom_get_file", {"skill": "buildroom-search-answer-engine", "path": "references/answer-standard.md"})[1])
+        check("get_file: a listed reference, byte for byte", t == (ROOT / "skills/buildroom-search-answer-engine/references/answer-standard.md").read_text())
+        for bad in ("../../../etc/passwd", "references/../SKILL.md", "/etc/passwd", "references/nope.md", "SKILL.md", "references\\..\\x"):
+            check(f"get_file refuses {bad!r}", text(call(url, key, "buildroom_get_file", {"skill": "buildroom-os", "path": bad})[1])[1])
+        for bad in ("../skills", "buildroom-os/../x", "nope", "", None):
+            check(f"start_session refuses skill {bad!r}", text(call(url, key, "buildroom_start_session", {"skill": bad})[1])[1])
+        t, _ = text(call(url, key, "buildroom_whats_new")[1])
+        check("whats_new: the newest release first", t.startswith("| `BuildRoom_OS_2026-11-04.zip`"), t[:60])
+        check("unknown tool: JSON-RPC -32602", call(url, key, "buildroom_delete_everything")[1]["error"]["code"] == -32602)
+
+        # ---- transport edge cases ---------------------------------------------------------
+        check("GET /mcp: 405", urllib.request.urlopen(urllib.request.Request(base + "/health")).status == 200
+              and post(base + "/nowhere", {}, key)[0] == 404)
+        try:
+            urllib.request.urlopen(url)
+            got = 200
+        except urllib.error.HTTPError as e:
+            got = e.code
+        check("GET /mcp answers 405 (no server-sent stream in the pilot)", got == 405, got)
+        check("bad JSON: 400", post(url, None, key, raw=b"{nope")[0] == 400)
+        check("batch: 400", post(url, [{"jsonrpc": "2.0", "id": 1, "method": "ping"}], key)[0] == 400)
+
+        # ---- logs and secrets ---------------------------------------------------------------
+        lines = log.read_text().splitlines()
+        check("usage log: one line per tool call, with member, tool, skill, outcome",
+              lines and all({"at", "member", "tool", "skill", "outcome"} <= set(json.loads(l)) for l in lines))
+        check("usage log never holds an access key", "br_" not in log.read_text())
+        httpd.shutdown()
+
+        src = (CON / "server.py").read_text()
+        check("server: no third-party imports (runs on any Python host)",
+              all(m.strip().split(".")[0] in {"argparse", "hashlib", "hmac", "json", "os", "re", "secrets", "threading", "datetime", "http", "pathlib"}
+                  for l in src.splitlines() if l.startswith(("import ", "from "))
+                  for m in (l.split()[1:2] if l.startswith("from ") else l[7:].split(","))))
+        check("server: the request log is silenced (paths can carry keys)", "def log_message" in src)
+        check("server: membership source is swappable (allowlist now, GoHighLevel later)", "BUILDROOM_MEMBER_SOURCE" in src and "gohighlevel" in src)
+        gi = (CON / ".gitignore").read_text()
+        check(".gitignore keeps members.json and usage.jsonl out of git", "members.json" in gi and "usage.jsonl" in gi)
+        check("no em dashes in the connector", not any("—" in p.read_text() for p in CON.glob("*") if p.is_file()))
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+    passed = sum(RESULTS)
+    print(f"\n{passed}/{len(RESULTS)} checks passed")
+    return 0 if passed == len(RESULTS) else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
