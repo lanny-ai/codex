@@ -9,9 +9,12 @@
 #   .codex/skills/<skill>/         project-scoped skills for Codex         (auto-discovered)
 #   skills/<skill>/                the same skills, visible; install.sh copies these globally
 #   install.sh / install.ps1       optional: copy skills into ~/.claude/skills and ~/.codex/skills
+#   update.sh / update.ps1         update an existing Build Room folder; never touches the Business File
 #   tools/*.html                   Rent Calculator, Brainstorm Board, Business File Viewer, Quick Start
-#   BuildRoom_OS_Say_These_Words.pdf  the printable six-page trigger-phrase guide
-#   BUILDROOM_BUSINESS_FILE.md     the member's Business File — lives in this folder
+#   BuildRoom_OS_Say_These_Words.pdf  the printable trigger-phrase guide
+#   templates/BUILDROOM_BUSINESS_FILE_TEMPLATE.md  the blank Business File. The zip never carries
+#                                  BUILDROOM_BUSINESS_FILE.md itself, so unzipping a release over a
+#                                  member's folder can never replace their filled-in file.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -37,12 +40,15 @@ cp rollout/Rent_Calculator.html rollout/Brainstorm_Board.html rollout/Business_F
 cp rollout/BuildRoom_OS_Say_These_Words.pdf "$STAGE/"
 
 # member file + docs
-cp templates/BUILDROOM_BUSINESS_FILE.md "$STAGE/"
+mkdir -p "$STAGE/templates"
+cp templates/BUILDROOM_BUSINESS_FILE.md "$STAGE/templates/BUILDROOM_BUSINESS_FILE_TEMPLATE.md"
 cp rollout/universal/START-HERE.md "$STAGE/"
 cp rollout/universal/CLAUDE.md "$STAGE/CLAUDE.md"
 cp rollout/universal/CLAUDE.md "$STAGE/AGENTS.md"
-cp rollout/universal/install.sh rollout/universal/install.ps1 "$STAGE/"
-chmod +x "$STAGE/install.sh"
+cp rollout/universal/install.sh rollout/universal/install.ps1 rollout/universal/update.sh rollout/universal/update.ps1 "$STAGE/"
+chmod +x "$STAGE/install.sh" "$STAGE/update.sh"
+# Safety: the member's own file must never be in a release.
+if [ -e "$STAGE/BUILDROOM_BUSINESS_FILE.md" ]; then echo "ERROR: BUILDROOM_BUSINESS_FILE.md must not be in the zip" >&2; exit 1; fi
 
 OUT="dist/BuildRoom_OS.zip"
 rm -f "$OUT"

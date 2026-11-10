@@ -54,6 +54,13 @@ Before closing, always:
 5. **Emit the ENTIRE updated file** in a single fenced code block — not a diff, not just the changed sections — so the member can replace their saved copy in one paste. Precede it with a 2–4 bullet "What changed in your Business File" summary.
 6. Remind them: "Save this over your old copy. Bring it to every Build Room session."
 
+## Never lose what is there
+
+- Start from the member's current file, never from the blank template. Every section, field, Session Log row and hand edit this session did not touch is kept exactly as it was.
+- Never delete a section, a Session Log row or a past-launch line, and never shorten a section the session did not work on.
+- If the copy you were given is shorter or older than the one in the folder (an old paste), stop and ask which is current before writing anything.
+- Where you can write files, copy the file to `backups/BUILDROOM_BUSINESS_FILE-YYYY-MM-DD.md` before the first change of the day.
+
 ## Size discipline
 
 The file must stay light enough to paste into any session. Target **under ~2,500 words**. If a section is bloating, distill harder and push detail into the linked full document. Never paste an entire deliverable into the file.

@@ -108,6 +108,10 @@ Capture turns a raw brainstorm (board export, transcript, notes) into outcome re
 | Second Brain | `buildroom-obsidian` | The Obsidian + Claude Code second brain (June month, weeks 1, 2 and 4): install, CLAUDE.md and templates, a gated first fill, routines and expert hats; the Business File moves into the vault root. Writes §1 tools, one §13 row, §8. Route here when a member says Claude keeps forgetting their business, or before any heavy knowledge work. |
 | Compass | `buildroom-compass` (anytime, writes §17) | The founder's Compass: a one-question-at-a-time interview producing the personal clarity document (values, energy map, personality, zone of genius, blind spots, Compass Statement) into §17 Founder Compass. Requires nothing; redo when circumstances change. Route here first when a member says they feel misaligned, or before any copy session when §17 is empty. |
 | Agent Forge | `buildroom-agent-forge` | The founder's Agent Forge as a skill: the thirteen elements applied one question at a time with defaults from the file, templates for the common agents, a plain-language proposal path, and a scrub-and-rebuild path for downloaded skills. Reads §1, §9, §12, §13; writes one §13 row and §8. Route here when a §9 candidate is Go or Partial, or when the member says make me an agent. |
+| Triage | `buildroom-triage` | The finishing crew, step one: one project marked finishing now, the rest parked in §13 with a revisit date 30 days out. Never two. |
+| Finish It | `buildroom-finish-it` | The finishing crew for an existing project: snapshot, audit (STATE.md), the owner's questions, scope cut to the smallest shippable version (GOAL.md, LATER.md), then Build It's crew and a ship checklist. |
+| Build It | `buildroom-build-it` | The finishing crew for a new idea: brainstorm, Pursue Goal (GOAL.md), then planner, builder, QA, four reviewers, a five-persona panel seeded from §2, docs and a release judge. |
+| Continuity System | `buildroom-continuity` | From community member Jenn: PROJECT, STATE and DECISIONS in `projects/<name>/continuity/` keep any long project resumable across threads and between Claude and Codex. Reads the Business File, never writes it. |
 
 ### Sessions kept as notes, not skills
 | Session | Why not a skill | Where it lives |
@@ -146,6 +150,10 @@ When routing, give the member the exact words to start the session:
 - Discovery Engine (anytime) → "Run discovery on this business"
 - Funnel Scorecard (funnel) → "Where is my funnel leaking?"
 - Agent Forge (elective) → "Make me an agent"
+- Triage (elective) → "Triage my projects"
+- Finish It (elective) → "Finish it"
+- Build It (elective) → "Build me an app"
+- Continuity System (elective) → "Set up the continuity system for this project"
 - Compass (anytime) → "Build my compass"
 - Second Brain (elective) → "Set up my second brain"
 - Source Watcher (elective) → "Build me a source watcher"

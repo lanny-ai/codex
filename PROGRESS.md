@@ -182,3 +182,11 @@ Suite: `find buildroom -name __pycache__ -type d -prune -exec rm -rf {} +`, then
 Deferred: everything in the new LATER.md block. The PR body, ready-for-review, merge and main-link confirmation remain M6.
 
 Commit `8653848` (pushed; HEAD = origin). After it, the M5 step 10 check prints 1, not 0: the body of that commit names the session trailer in prose ("the Claude-Session trailer"), and the word matches the `claude-` alternative case-insensitively. It is the name of a trailer, not a model identifier, so no rule is broken; the amend-and-force-push that would have reworded it was not run, to leave the pushed branch history alone. The check prints 0 for every other line in `9326d24..HEAD`. Rule for later commit bodies: write "the session trailer", never the trailer's name.
+
+## Final report (2026-10-31)
+
+- Phase A audit, Phase B goal (thirteen owner answers), Phase C plan, Phase D milestones M1 to M5 plus one review fix batch, Phase E ship.
+- PR #2 body headings corrected, marked ready, merged into main with merge commit f2221e4c9e321354267f7700f7652904abb404d9 (two parents). Download links on main verified: zip byte-identical to the committed file; both guide PDFs return 200.
+- Reviewer verdict after the fix batch: clean. Persona panel: SHIP. Parked items and two open owner decisions are in LATER.md and SHIP.md.
+- SHIP.md holds the links to post in the Members' area.
+- Nothing left in scope. The PR #2 check-in schedule is removed. This closing commit sits on the branch after the merge and goes up as a small follow-up pull request.

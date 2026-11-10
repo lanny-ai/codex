@@ -1,0 +1,7 @@
+# Only the Build Room connector is built as an image (see railway.json).
+*
+!buildroom/connector/server.py
+!buildroom/connector/members.py
+!buildroom/skills/**
+!buildroom/rollout/releases/README.md
+buildroom/skills/**/__pycache__
