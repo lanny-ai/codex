@@ -54,6 +54,15 @@ Python 3.9 or later, nothing to install. Settings: `--members` / `BUILDROOM_MEMB
 
 **Hosting:** it must be served over HTTPS. Any host that runs a Python web process works (Render, Railway, Fly.io, a small server behind a TLS proxy). Deploying is a push of this repository plus a members.json on the host's disk. `GET /health` answers for uptime checks.
 
+## On Railway (live)
+
+Project **buildroom-connector**, service **connector**, in the lanny-ai workspace. Address: `https://connector-production-caa1d67a.up.railway.app` (health: `/health`).
+
+- It builds `buildroom/connector/Dockerfile` (set by `railway.json`) from the branch `claude/new-session-1rmv4i`. Once PR #5 is merged, switch the service's branch to `main` in Settings, Source.
+- It redeploys by itself when anything under `buildroom/skills/` changes on that branch, so members get updated sessions within minutes of a push.
+- **The member list is the `BUILDROOM_MEMBERS_JSON` variable.** To change it: copy the variable's value from Railway into a local `members.json`, run `members.py` (add, lapse, reactivate, new-key, remove), then `python3 members.py export` and paste the line back as the variable's value. Railway redeploys in about a minute. Keep that local `members.json` somewhere private; it holds only key fingerprints.
+- Usage lines (`usage {...}`) appear in the service's Deploy Logs.
+
 ## How members connect
 
 **Claude desktop or claude.ai** (paid plans): Settings, Connectors, Add custom connector, and paste their link:
