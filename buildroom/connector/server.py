@@ -46,6 +46,14 @@ class AllowlistSource:
         self._cache, self._mtime = {}, None
 
     def _load(self):
+        env = os.environ.get("BUILDROOM_MEMBERS_JSON")
+        if env:  # hosted pilot: the list lives in a host setting (hashes only), pasted from `members.py export`
+            if env != getattr(self, "_env_seen", None):
+                data = json.loads(env)
+                self._cache = {e["key_sha256"]: e for e in data.get("members", [])}
+                self._grace = int(data.get("grace_days", GRACE_DAYS_DEFAULT))
+                self._env_seen = env
+            return
         try:
             m = self.path.stat().st_mtime
         except FileNotFoundError:
@@ -189,8 +197,13 @@ class App:
             return
         rec = {"at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "member": (member or {}).get("email", "?"),
                "tool": tool, "skill": skill, "outcome": outcome}
-        with self.lock, open(self.log_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(rec) + "\n")
+        line = json.dumps(rec)
+        with self.lock:
+            if str(self.log_path) == "stdout":
+                print("usage " + line, flush=True)
+            else:
+                with open(self.log_path, "a", encoding="utf-8") as f:
+                    f.write(line + "\n")
 
     def call_tool(self, member, name, args):
         args = args or {}

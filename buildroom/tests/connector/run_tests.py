@@ -150,6 +150,32 @@ def main():
         check("usage log never holds an access key", "br_" not in log.read_text())
         httpd.shutdown()
 
+        # ---- hosted mode: the list in a setting, usage to the host's logs ----------------
+        exp = members_cli(mf, "export")
+        check("members export: one line of JSON with hashes and no keys", exp.returncode == 0 and len(exp.stdout.strip().splitlines()) == 1
+              and "br_" not in exp.stdout and json.loads(exp.stdout)["members"])
+        import os, io, contextlib
+        os.environ["BUILDROOM_MEMBERS_JSON"] = exp.stdout.strip()
+        try:
+            src_env = server.AllowlistSource(tmp / "does-not-exist.json")
+            check("hosted: members read from BUILDROOM_MEMBERS_JSON when set", src_env.check(key)[0] and not src_env.check(old_key)[0])
+            app2 = server.App(src_env, server.Content(ROOT / "skills", ROOT / "rollout/releases/README.md"), "stdout")
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                app2.handle(key, {"jsonrpc": "2.0", "id": 9, "method": "tools/call", "params": {"name": "buildroom_status", "arguments": {}}})
+            out = buf.getvalue()
+            check("hosted: usage goes to the host's log as one line, never a key", out.startswith("usage {") and "br_" not in out, out)
+        finally:
+            del os.environ["BUILDROOM_MEMBERS_JSON"]
+        rj = json.loads((ROOT.parent / "railway.json").read_text())
+        check("railway.json: Dockerfile build, /health check, redeploys on skill changes",
+              rj["build"]["builder"] == "DOCKERFILE" and rj["deploy"]["healthcheckPath"] == "/health" and "buildroom/skills/**" in rj["build"]["watchPatterns"])
+        df = (CON / "Dockerfile").read_text()
+        check("Dockerfile: copies only the connector, the skills and the release notes; runs as a non-root user",
+              df.count("COPY ") == 3 and "USER connector" in df and "members.json" not in df)
+        di = (ROOT.parent / ".dockerignore").read_text()
+        check(".dockerignore: everything excluded except what the image needs", di.splitlines()[1] == "*" and "!buildroom/skills/**" in di)
+
         src = (CON / "server.py").read_text()
         check("server: no third-party imports (runs on any Python host)",
               all(m.strip().split(".")[0] in {"argparse", "hashlib", "hmac", "json", "os", "re", "secrets", "threading", "datetime", "http", "pathlib"}

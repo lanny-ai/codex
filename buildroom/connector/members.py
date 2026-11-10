@@ -7,6 +7,7 @@
     python3 members.py reactivate someone@example.com [--until YYYY-MM-DD]
     python3 members.py new-key someone@example.com    # replaces a lost or shared key
     python3 members.py remove someone@example.com
+    python3 members.py export                         # one line for the host's BUILDROOM_MEMBERS_JSON setting
 
 A new access key is printed once and never stored: members.json keeps only its sha256.
 Give the member their connector link and key privately. members.json is not committed.
@@ -68,12 +69,16 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd", required=True)
     a = sub.add_parser("add"); a.add_argument("email"); a.add_argument("--until", type=valid_date); a.add_argument("--name", default="")
     sub.add_parser("list")
+    sub.add_parser("export", help="print the list as one line to paste into the host's BUILDROOM_MEMBERS_JSON setting")
     for c in ("lapse", "remove", "new-key"):
         sub.add_parser(c).add_argument("email")
     r = sub.add_parser("reactivate"); r.add_argument("email"); r.add_argument("--until", type=valid_date)
     args = ap.parse_args(argv)
     data = load(args.members)
 
+    if args.cmd == "export":
+        print(json.dumps(data, separators=(",", ":")))
+        return 0
     if args.cmd == "list":
         if not data["members"]:
             print("No members yet.")
