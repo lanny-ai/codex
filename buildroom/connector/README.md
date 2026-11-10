@@ -77,13 +77,14 @@ https://YOUR-HOST/mcp/<their key>
 claude mcp add --transport http buildroom https://YOUR-HOST/mcp --header "Authorization: Bearer <their key>"
 ```
 
-**Codex:** add it as a remote MCP server in Codex's settings with the same URL and header. Confirm this with one pilot member before promising it.
+**Codex:** add it as a remote MCP server in Codex's settings with the same URL and header. Not yet tried; confirm it with one pilot member before promising it.
 
 ## Checked
 
 - `python3 buildroom/tests/connector/run_tests.py`: 52 checks (protocol, every membership rule, key rotation, path safety, logs carry no keys).
 - The official MCP Python client connects with the key in the header and with the key in the link, lists the tools, starts a session, loads a reference, and is refused a path outside a session.
 - Claude Code's `claude mcp add` and `claude mcp list` report it connected with a good key and refuse a wrong one.
+- Live on Railway (2026-11-10): the same checks pass against the Railway address, and the owner connected it in Claude desktop as a custom connector.
 
 ## Before full launch (not in the pilot)
 
