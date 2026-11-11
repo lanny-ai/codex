@@ -106,7 +106,7 @@ def textbox(sid, name, x, y, w, h, paras, anchor="t"):
     return (f'<p:sp><p:nvSpPr><p:cNvPr id="{sid}" name="{escape(name)}"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>'
             f'<p:spPr><a:xfrm><a:off x="{int(x)}" y="{int(y)}"/><a:ext cx="{int(w)}" cy="{int(h)}"/></a:xfrm>'
             '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>'
-            f'<p:txBody><a:bodyPr wrap="square" lIns="0" tIns="0" rIns="0" bIns="0" anchor="{anchor}"><a:normAutofit/>'
+            f'<p:txBody><a:bodyPr wrap="square" lIns="0" tIns="0" rIns="0" bIns="0" anchor="{anchor}"><a:noAutofit/>'
             '</a:bodyPr><a:lstStyle/>' + "".join(ps) + '</p:txBody></p:sp>')
 
 
@@ -240,7 +240,7 @@ def build_slide(sl, th, accent, body_pt, title_pt, sid0=2):
     if kind == "title":
         shapes.append(textbox(sid0, "Title", L, int(1.6 * EMU), full_w, int(2.0 * EMU), [(title, title_pt + 8, tcol, True, False)], "b"))
         if lines:
-            shapes.append(textbox(sid0 + 1, "Subtitle", L, int(3.8 * EMU), left_w, int(1.6 * EMU),
+            shapes.append(textbox(sid0 + 1, "Subtitle", L, int(4.1 * EMU), left_w, int(1.6 * EMU),
                                   [(x, body_pt, sub, False, False) for x in lines]))
     elif kind in ("statement", "quote", "chat"):
         head = {"chat": "In the chat:", "quote": ""}.get(kind, "")

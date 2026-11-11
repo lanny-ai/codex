@@ -14,15 +14,21 @@ Usage
       <launch>/webinar/webinar.json (a bootcamp day: <launch>/webinar/day-N/webinar.json), creating the folders.
       Refuses to overwrite an existing file without --force. --length scales the teaching blocks (paidclass,
       bootcamp); live60, broadcast3 and interview are 60 minutes.
-  webinar_plan.py render --spec webinar.json [--out-dir DIR] [--runsheet runsheet.json]
+  webinar_plan.py render --spec webinar.json [--out-dir DIR] [--runsheet runsheet.json] [--close close.md] [--force]
       Writes script.md, speaker-notes.md, moderator-sheet.md and qa-bank.md next to the spec (or in --out-dir).
       --runsheet writes the webinar as a day in the Event Launcher's runsheet.json (created if missing; the
       day with the same date is replaced), with the lobby, the recording notice, a checkout test 30 minutes
       before the start and the roles and links merged in, so run_sheet.py build checks it with the launch.
+      --close sets the run sheet's deadline from close.md (removed when close.md says there is none). Blank and
+      placeholder roles and links in runsheet.json are filled from webinar.json; a real value that differs is kept
+      and reported under "conflicts". A day on the same date that the Event Launcher wrote (not marked "webinar")
+      is replaced only with --force (exit 1 otherwise).
       Prints a JSON summary. Exit 0, or 2 when the spec is refused (unreadable, an unknown kind, a bad time).
   webinar_plan.py offer-summary --close close.md --out offer-summary.md [--title "…"]
-      The "what's on offer" one-pager, copied from close.md word for word: backup links and notes marked
-      "moderator only" are left out. Refuses (exit 1) while close.md still has a PENDING element.
+      The "what's on offer" one-pager, copied from close.md word for word: a "## For attendees" section when
+      close.md has one; otherwise all of it except backup links, lines marked "moderator only" or "(internal)", the
+      close mode and sign-off notes. Refuses (exit 1) while close.md still has a PENDING element (case does not
+      matter; HTML comments are ignored), or when a price in close.md would be missing from the page.
 
 Standard library only.
 """
@@ -36,7 +42,7 @@ KINDS = ("lobby", "agreement", "promise", "story", "teach", "guest", "build", "p
          "offer", "qa", "close", "recap")
 # Event Launcher run_sheet.py kinds: lobby welcome teach build proof break qa pitch close recap
 RUNSHEET_KIND = {"lobby": "lobby", "agreement": "welcome", "promise": "welcome", "story": "teach", "teach": "teach",
-                 "guest": "proof", "build": "build", "proof": "proof", "break": "break", "transition": "pitch",
+                 "guest": "proof", "build": "build", "proof": "proof", "break": "break", "transition": "teach",
                  "offer": "pitch", "qa": "qa", "close": "close", "recap": "recap"}
 W = "[write: {}]"
 
@@ -247,9 +253,29 @@ def timed(spec):
         a["start_min"], a["end_min"] = t, t + s["min"]
         a["at"] = (t0 + timedelta(minutes=t)).strftime("%H:%M")
         a["until"] = (t0 + timedelta(minutes=t + s["min"])).strftime("%H:%M")
+        a["at_plain"], a["until_plain"] = plain(t0, t), plain(t0, t + s["min"])
         out.append(a)
         t += s["min"]
     return out, t0
+
+
+ZONES = {"America/New_York": "Eastern", "America/Detroit": "Eastern", "America/Toronto": "Eastern",
+         "America/Chicago": "Central", "America/Winnipeg": "Central", "America/Denver": "Mountain",
+         "America/Edmonton": "Mountain", "America/Phoenix": "Arizona", "America/Los_Angeles": "Pacific",
+         "America/Vancouver": "Pacific", "America/Anchorage": "Alaska", "Pacific/Honolulu": "Hawaii",
+         "Europe/London": "UK", "Europe/Dublin": "Irish", "Australia/Sydney": "Sydney", "Australia/Melbourne": "Melbourne",
+         "Australia/Brisbane": "Brisbane", "Australia/Perth": "Perth", "Pacific/Auckland": "New Zealand", "UTC": "UTC"}
+
+
+def zone(spec):
+    return ZONES.get(spec.get("tz", ""), spec.get("tz", ""))
+
+
+def plain(t0, minutes=0):
+    """7:30 p.m., the way the room says it."""
+    t = t0 + timedelta(minutes=minutes)
+    h = t.hour % 12 or 12
+    return f"{h}:{t.minute:02d} {'a.m.' if t.hour < 12 else 'p.m.'}"
 
 
 def lines(x):
@@ -267,7 +293,8 @@ def proof_txt(p):
 
 def render_script(spec, segs):
     o = [f"# {spec.get('title')} (version {spec.get('version', 1)})", "",
-         f"{spec.get('date')} · {spec.get('start')} {spec.get('tz', '')} · {spec.get('length_min')} minutes · "
+         f"{spec.get('date')} · {segs and next((s['at_plain'] for s in segs if s['kind'] != 'lobby'), '')} {zone(spec)} "
+         f"({spec.get('tz', '')}) · {spec.get('length_min')} minutes · "
          f"{'RECORDED' if spec.get('recorded') else 'live'} · presenter: {spec.get('presenter')} · "
          f"moderator: {(spec.get('roles') or {}).get('moderator', '')}", "",
          f"**Big idea:** {spec.get('big_idea', '')}", "", f"**Promise:** {spec.get('promise', '')}", "", "**Beliefs**"]
@@ -275,7 +302,7 @@ def render_script(spec, segs):
         o.append(f"{i}. From \"{b.get('false', '')}\" to \"{b.get('true', '')}\"")
     o += ["", "**Not covering today (answered in passing):** " + "; ".join(spec.get("not_covering") or []), ""]
     for s in segs:
-        o.append(f"## {s['at']}–{s['until']} · {s['title']} ({s['min']} min)")
+        o.append(f"## {s['at_plain']}–{s['until_plain']} · {s['title']} ({s['min']} min)")
         for x in lines(s.get("say")):
             o.append(f"- {x}")
         if s.get("chat_prompt"):
@@ -300,7 +327,7 @@ def render_notes(spec, segs):
     for s in segs:
         if s["kind"] == "lobby":
             continue
-        o.append(f"## {s['at']} · {s['title']} · {s['min']} min (you should be at minute {s['start_min']})")
+        o.append(f"## {s['at_plain']} · {s['title']} · {s['min']} min (you should be at minute {s['start_min']})")
         for x in lines(s.get("say")):
             o.append(f"- {x}")
         if s.get("chat_prompt"):
@@ -323,46 +350,62 @@ def render_moderator(spec, segs, t0):
     roles = spec.get("roles") or {}
     links = spec.get("links") or {}
     L = spec.get("length_min", 60)
+    z = zone(spec)
     off = next((s for s in segs if s["kind"] == "offer"), None)
     o = [f"# Moderator sheet: {spec.get('title')}", "",
-         f"Moderator: {roles.get('moderator', '')} · Host: {roles.get('host', '')} · Tech: {roles.get('tech', '')}", "",
-         "## Before", "- The test call the day before: join from a computer and a phone, share slides, record, captions, "
-         "every link opened on a phone.",
-         "- 30 minutes before: open the offer link and the backup link on a phone; both work.",
-         "- Recording on with the audio transcript; captions on; save chat on.", "",
+         f"Moderator: {roles.get('moderator', '')} · Host: {roles.get('host', '')} · Tech: {roles.get('tech', '')} · "
+         f"Times are {z} time.", "",
+         "## Setup list (tick each one)",
+         "- [ ] The meeting or webinar is created with the right title, date and time zone; the join link is in the Event "
+         "Launcher's event.json.",
+         "- [ ] Zoom settings: cloud recording on with **Create audio transcript** and **Save chat messages**; automatic "
+         "captions on; the recording notice on; attendees muted on entry; screen sharing for the host only.",
+         "- [ ] You are a co-host, so you can keep the room going if the host's connection drops.",
+         "- [ ] The deck is open in presenter view on the host's computer; the notes are visible only to the host.",
+         "- [ ] Every link below opened on a phone and works, the backup payment link included.",
+         "- [ ] The test call the day before: join from a computer and a phone, share the slides, start and stop the "
+         "recording, turn on captions, drop each link and open it on the phone.", "",
+         "## 30 minutes before", "- Open the offer link and the backup link on a phone; both work.",
+         "- Start the lobby slide and music; have the welcome message ready to post.", "",
          "## During"]
     for s in segs:
         bits = []
         if s.get("chat_prompt"):
-            bits.append(f"the presenter asks: \"{s['chat_prompt']}\"; answer kindly and bring forward good replies")
+            bits.append(f"the host asks: \"{s['chat_prompt']}\"; answer kindly and bring good replies forward")
         if s["kind"] == "lobby":
-            bits.append("greet people by first name as they arrive; post: \"Welcome! Captions: click CC. "
-                        "The session is recorded.\"")
+            bits.append("greet people by first name as they arrive; post: \"Welcome! Captions: click CC at the bottom of "
+                        "Zoom. This session is recorded.\"")
         if s["kind"] == "agreement":
             bits.append("post where the CC (captions) button is, and that the session is recorded")
         if s["kind"] == "offer":
             bits.append("from the first ask: post the offer link and the one-pager, then again every few minutes "
                         "through the Q&A")
         if s["kind"] == "qa":
-            bits.append("bring forward the questions from the bank first, then live ones; first names only if "
-                        "the person is happy with it")
-        for ln in s.get("links") or []:
-            if ln in links:
-                bits.append(f"link `{ln}`: {link_url(links[ln])}")
+            bits.append("bring forward the bank's questions below first, then live ones; first names only if the person "
+                        "is happy with it")
+        if s["kind"] == "offer":
+            for ln in s.get("links") or []:
+                if ln in links:
+                    bits.append(f"link `{ln}`: {link_url(links[ln])}")
         if bits:
-            o.append(f"- **{s['at']} · {s['title']}**: " + "; ".join(bits))
-    o += ["", "## Time calls to send the presenter"]
+            o.append(f"- **{s['at_plain']} · {s['title']}**: " + "; ".join(bits))
+    qs = [q for q in spec.get("qa_bank") or [] if str(q.get("question", "")).strip()]
+    if qs:
+        o += ["", "## Questions to bring forward in the Q&A (if nobody has asked them)"]
+        o += [f"- {q.get('question')} ({q.get('objection')})" for q in qs]
+    o += ["", f"## Time calls to send the host ({z} time)"]
     if off:
-        o.append(f"- {(t0 + timedelta(minutes=off['start_min'] - 10)).strftime('%H:%M')}: \"10 minutes to the offer\"")
-    o.append(f"- {(t0 + timedelta(minutes=L - 10)).strftime('%H:%M')}: \"10 minutes left\"")
-    o.append(f"- {(t0 + timedelta(minutes=L - 2)).strftime('%H:%M')}: \"2 minutes, wrap up\"")
+        o.append(f"- {plain(t0, off['start_min'] - 10)}: \"10 minutes to the offer\"")
+    o.append(f"- {plain(t0, L - 10)}: \"10 minutes left\"")
+    o.append(f"- {plain(t0, L - 2)}: \"2 minutes, wrap up\"")
     o += ["", "## Links"]
     for k, v in links.items():
         note = " (only if the main link fails)" if "backup" in k else ""
         o.append(f"- `{k}`: {link_url(v)}{note}")
     o += ["", "## If something breaks",
-          "- The presenter's connection drops: post \"We'll be right back\"; the host rejoins; use the backup host link.",
-          "- The checkout fails: post the backup payment link and tell the presenter so they can say it on air.",
+          "- The host's connection drops: as co-host, post \"We'll be right back, please stay\" and keep the room; the "
+          "host rejoins from the same join link (or by phone for audio).",
+          "- The checkout fails: post the backup payment link and tell the host so they can say it on air.",
           "- Never type an attendee count, a poll result or a question that was not asked."]
     return "\n".join(o) + "\n"
 
@@ -381,18 +424,36 @@ def runsheet_day(spec, segs, t0):
            "tz": spec.get("tz", ""), "webinar": spec.get("title"),
            "checkout_test": (t0 - timedelta(minutes=30)).strftime("%H:%M"), "segments": []}
     for s in segs:
-        notes = " ".join(lines(s.get("say")))
+        notes = "; ".join(x.rstrip(".;") for x in lines(s.get("say")))
         if s["kind"] == "agreement":
-            notes = (s.get("notes") or "Recording notice. Captions on.") + " " + notes
+            notes = (s.get("notes") or "Recording notice. Captions on.").rstrip(".") + ". " + notes
         e = {"min": s["min"], "title": s["title"], "kind": RUNSHEET_KIND[s["kind"]], "notes": notes.strip()}
         if s["kind"] in ("agreement", "promise", "story", "teach", "transition", "offer", "close", "qa", "guest"):
             e["owner"] = "host"
         if s["kind"] == "lobby":
             e["owner"] = "moderator"
-        if s.get("links"):
+        if s.get("links") and s["kind"] == "offer":
             e["links"] = [x for x in s["links"] if x in (spec.get("links") or {})]
         day["segments"].append(e)
     return day
+
+
+def is_blank(v):
+    return v in (None, "") or (isinstance(v, str) and bool(re.search(r"\[write:|\[.*\]|\bTBD\b|\bTODO\b", v)))
+
+
+def close_deadline_line(path):
+    """The deadline from close.md (None when it says there is none)."""
+    try:
+        text = re.sub(r"<!--.*?-->", "", Path(path).read_text(), flags=re.S)
+    except Exception as e:
+        refuse(f"cannot read {path}: {e}")
+    m = re.search(r"^\s*(?:[-*]\s*)?\**\s*(deadline|enrol?l?ment closes|cart closes|doors close)\b\**\s*[:\-–—]?\s*\**(.*)$",
+                  text, re.I | re.M)
+    if not m:
+        return None
+    v = m.group(2).strip().strip("*").strip()
+    return None if (not v or re.match(r"(none|no deadline|n/?a|—|-)\b", v, re.I)) else v
 
 
 def cmd_render(a):
@@ -417,16 +478,32 @@ def cmd_render(a):
                 rs = json.loads(rp.read_text())
             except Exception as e:
                 refuse(f"cannot read {rp}: {e}")
+        same = [d for d in rs.get("days", []) if d.get("date") == spec["date"]]
+        if same and not same[0].get("webinar") and not a.force:
+            refuse(f"{rp} already has a day on {spec['date']} that the Event Launcher wrote (not a webinar day); pass --force "
+                   "to replace it, or give the webinar another date", 1)
+        conflicts = []
         rs.setdefault("title", spec.get("title"))
         rs.setdefault("allow_early_pitch", False)
         rs.setdefault("close", spec.get("close", "checkout"))
+
+        def merge(dst, src):
+            for k, v in src.items():
+                if is_blank(v):
+                    continue
+                if k not in dst or is_blank(dst[k]):
+                    dst[k] = v
+                elif dst[k] != v:
+                    conflicts.append(f"{k}: runsheet.json has {dst[k]!r}, webinar.json has {v!r} (kept runsheet.json's)")
         roles = rs.setdefault("roles", {})
-        for k, v in (spec.get("roles") or {}).items():
-            roles.setdefault(k, v)
-        roles.setdefault("closer", (spec.get("roles") or {}).get("host", ""))
-        lk = rs.setdefault("links", {})
-        for k, v in (spec.get("links") or {}).items():
-            lk.setdefault(k, v)
+        merge(roles, dict(spec.get("roles") or {}, closer=(spec.get("roles") or {}).get("host", "")))
+        merge(rs.setdefault("links", {}), spec.get("links") or {})
+        if a.close:
+            dl = close_deadline_line(a.close)
+            if dl:
+                rs["deadline"] = dl
+            else:
+                rs.pop("deadline", None)
         day = runsheet_day(spec, segs, t0)
         days = [d for d in rs.get("days", []) if d.get("date") != spec["date"]]
         days.append(day)
@@ -434,36 +511,55 @@ def cmd_render(a):
         rp.parent.mkdir(parents=True, exist_ok=True)
         rp.write_text(json.dumps(rs, indent=2, ensure_ascii=False) + "\n")
         summary["runsheet"] = str(rp)
+        summary["deadline"] = rs.get("deadline")
+        if conflicts:
+            summary["conflicts"] = conflicts
+        if not a.close:
+            summary["note"] = "pass --close launches/<slug>/close.md so the run sheet names the real deadline (or none)"
     print(json.dumps(summary))
 
 
 def cmd_offer_summary(a):
+    """The attendee-facing one-pager from close.md: a "## For attendees" section when there is one, otherwise
+    close.md without its internal lines (backup links, moderator-only notes, the close mode, sign-off notes)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import webinar_check as wc
     try:
-        text = Path(a.close).read_text()
+        raw = Path(a.close).read_text()
     except Exception as e:
         refuse(f"cannot read {a.close}: {e}")
-    pend = [ln.strip() for ln in text.splitlines() if re.search(r"\bPENDING\b", ln)]
+    text = re.sub(r"<!--.*?-->", "", raw, flags=re.S)
+    pend = [ln.strip() for ln in text.splitlines() if re.search(r"\bpending\b", ln, re.I)]
     if pend:
         print(json.dumps({"ok": False, "pending": pend,
                           "say": "close.md still has PENDING elements; settle them with the member first."}))
         sys.exit(1)
-    text = re.sub(r"<!--.*?-->", "", text, flags=re.S)
-    keep = []
-    for ln in text.splitlines():
-        low = ln.lower()
-        if "backup" in low or "moderator only" in low or "internal" in low:
+    sec = re.search(r"^##\s*For attendees\s*$(.*?)(?=^##\s|\Z)", text, re.M | re.S | re.I)
+    src = sec.group(1) if sec else text
+    keep, dropped = [], []
+    for ln in src.splitlines():
+        bare = re.sub(r"^\s*[-*]\s*\**\s*", "", ln).lower()
+        if (bare.startswith("backup") or "moderator only" in ln.lower() or "(internal)" in ln.lower()
+                or bare.startswith("close mode") or re.match(r"^\s*#\s", ln)):
+            dropped.append(ln)
             continue
-        if re.match(r"^\s*#\s", ln):
-            continue
+        ln = re.sub(r"\s*\((?:as )?signed off[^)]*\)", "", ln, flags=re.I)
+        ln = re.sub(r"\s*,?\s*as signed off\b", "", ln, flags=re.I)
         keep.append(ln.rstrip())
     body = re.sub(r"\n{3,}", "\n\n", "\n".join(keep)).strip()
+    missing = sorted(wc.figures(src) - wc.figures("\n".join(dropped)) - wc.figures(body), key=float)
+    if missing:
+        print(json.dumps({"ok": False, "missing": ["$" + x for x in missing],
+                          "say": "a price in close.md did not make it onto the one-pager; check close.md's layout"}))
+        sys.exit(1)
     title = a.title or "What's on offer"
-    out = (f"# {title}\n\n{body}\n\n---\n_Every price, payment plan, guarantee and date here is copied from the launch's "
-           f"close.md on {date.today().isoformat()}. If anything here differs from what you heard, this page is right; "
-           f"ask us._\n")
+    out = (f"# {title}\n\n{body}\n\n---\n_Every price, payment plan, guarantee and date here is the same as on the "
+           f"webinar. Questions? Just ask: reply to any email from us._\n")
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     Path(a.out).write_text(out)
-    print(json.dumps({"ok": True, "written": a.out, "lines": len(keep)}))
+    print(json.dumps({"ok": True, "written": a.out, "lines": len(keep),
+                      "next": "Turn it into a PDF (print to PDF) or a page, and put its link in webinar.json links as "
+                              "offer_summary so the moderator can post it."}))
 
 
 def main(argv=None):
@@ -487,6 +583,8 @@ def main(argv=None):
     r.add_argument("--spec", required=True)
     r.add_argument("--out-dir")
     r.add_argument("--runsheet")
+    r.add_argument("--close")
+    r.add_argument("--force", action="store_true")
     s = sub.add_parser("offer-summary")
     s.add_argument("--close", required=True)
     s.add_argument("--out", required=True)

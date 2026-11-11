@@ -108,18 +108,23 @@ def plan_tests(tmp):
     sp.parent.mkdir()
     shutil.copy(FX / "webinar.json", sp)
     rs = cwd / "fx/runsheet.json"
-    rc, out = run([PY, PLAN, "render", "--spec", sp, "--runsheet", rs], cwd)
+    rc, out = run([PY, PLAN, "render", "--spec", sp, "--runsheet", rs, "--close", FX / "close.md"], cwd)
     r = pj(out)
     names = ("script.md", "speaker-notes.md", "moderator-sheet.md", "qa-bank.md")
     check("render writes the script, notes, moderator sheet and Q&A bank", rc == 0 and all((sp.parent / n).exists() for n in names), out)
     check("render: a finished talk has no placeholders left", r.get("placeholders_left") == 0 and r.get("offer_at_min") == 40, r)
     sc = (sp.parent / "script.md").read_text()
-    check("script.md: clock times from the start (14:40 offer, 14:58 close)", "## 14:40–14:50 · The offer" in sc and "14:58–15:00" in sc, sc[:300])
+    check("script.md: plain clock times with the zone (2:40 p.m. offer, 2:58 p.m. close, Pacific)",
+          "## 2:40 p.m.–2:50 p.m. · The offer" in sc and "2:58 p.m.–3:00 p.m." in sc and "Pacific" in sc, sc[:300])
     check("script.md: proof by ID and class with the typical result", "P-02 · class B · typical:" in sc)
     check("script.md: each loop's question and answer", "Do you need more clients? → No." in sc)
     mod = (sp.parent / "moderator-sheet.md").read_text()
     check("moderator sheet: time calls 10 minutes before the offer, 10 and 2 minutes left",
-          "14:30: \"10 minutes to the offer\"" in mod and "14:50: \"10 minutes left\"" in mod and "14:58" in mod, mod[-600:])
+          "2:30 p.m.: \"10 minutes to the offer\"" in mod and "2:50 p.m.: \"10 minutes left\"" in mod and "2:58 p.m." in mod, mod[-600:])
+    check("moderator sheet: the setup list, co-host, and the bank's questions to bring forward",
+          "## Setup list" in mod and "co-host" in mod and "I need to talk to my husband first (spouse)" in mod)
+    check("moderator sheet: offer links only from the offer, never during the trial close",
+          not re.search(r"Transition[^\n]*example\.com/checkout", mod) and re.search(r"The offer\*\*:[^\n]*example\.com/checkout", mod))
     check("moderator sheet: the backup link is for a failed checkout only", "only if the main link fails" in mod)
     check("moderator sheet: never type a count, a poll result or a question not asked", "Never type an attendee count" in mod)
     notes = (sp.parent / "speaker-notes.md").read_text()
@@ -131,8 +136,10 @@ def plan_tests(tmp):
     check("runsheet: one webinar day with the lobby, a checkout test 30 minutes before, roles and links merged",
           len(rsj["days"]) == 1 and day["webinar"] and day["checkout_test"] == "13:30" and day["segments"][0]["kind"] == "lobby"
           and rsj["roles"]["moderator"] == "Sam Ruiz" and "checkout" in rsj["links"], day)
-    check("runsheet: kinds map to the Event Launcher's (transition and offer are pitch)",
-          [s["kind"] for s in day["segments"]][6:9] == ["teach", "pitch", "pitch"], [s["kind"] for s in day["segments"]])
+    check("runsheet: kinds map to the Event Launcher's (the transition teaches; only the offer is a pitch)",
+          [s["kind"] for s in day["segments"]][6:10] == ["teach", "teach", "pitch", "qa"], [s["kind"] for s in day["segments"]])
+    check("runsheet: the real deadline from close.md", rsj.get("deadline", "").startswith("enrolment closes January 9"), rsj.get("deadline"))
+    check("runsheet: prompts joined with punctuation", "; " in day["segments"][2]["notes"])
     rc, out = run([PY, RUNSHEET, "build", "--spec", rs, "--out", cwd / "fx/run-sheet.md"], cwd)
     ch = {c["id"]: c for c in pj(out).get("checks", [])}
     check("run_sheet.py accepts the webinar day: recording notice, roles, backup and checkout test pass",
@@ -140,8 +147,30 @@ def plan_tests(tmp):
                                                                   "checkout_before_close", "links_have_values")), out[-500:])
     check("run_sheet.py: first build is a should (not a must) for a single webinar day",
           ch.get("first_build", {}).get("level") == "should", ch.get("first_build"))
-    run([PY, PLAN, "render", "--spec", sp, "--runsheet", rs], cwd)
+    run([PY, PLAN, "render", "--spec", sp, "--runsheet", rs, "--close", FX / "close.md"], cwd)
     check("render again replaces the same day instead of adding one", len(json.loads(rs.read_text())["days"]) == 1)
+    # placeholders from a first render are replaced once the member fills them in
+    w0 = copy.deepcopy(FIXTURE)
+    w0["roles"]["moderator"] = "[write: moderator's name]"
+    (cwd / "fx/w0.json").write_text(json.dumps(w0))
+    rs2 = cwd / "fx/rs2.json"
+    run([PY, PLAN, "render", "--spec", cwd / "fx/w0.json", "--out-dir", cwd / "fx/o0", "--runsheet", rs2], cwd)
+    rc, out = run([PY, PLAN, "render", "--spec", sp, "--out-dir", cwd / "fx/o1", "--runsheet", rs2], cwd)
+    check("render: a placeholder role in runsheet.json is replaced by the filled-in one",
+          json.loads(rs2.read_text())["roles"]["moderator"] == "Sam Ruiz", rs2.read_text()[:300])
+    w1 = copy.deepcopy(FIXTURE)
+    w1["roles"]["moderator"] = "Lee Park"
+    (cwd / "fx/w1.json").write_text(json.dumps(w1))
+    rc, out = run([PY, PLAN, "render", "--spec", cwd / "fx/w1.json", "--out-dir", cwd / "fx/o2", "--runsheet", rs2], cwd)
+    check("render: a real role that differs is kept and reported as a conflict",
+          json.loads(rs2.read_text())["roles"]["moderator"] == "Sam Ruiz" and pj(out).get("conflicts"), out)
+    el = cwd / "fx/el.json"
+    el.write_text(json.dumps({"title": "Camp", "days": [{"date": "2026-12-03", "start": "10:00", "segments": [{"min": 5, "title": "x", "kind": "teach"}]}]}))
+    rc, out = run([PY, PLAN, "render", "--spec", sp, "--out-dir", cwd / "fx/o3", "--runsheet", el], cwd)
+    check("render refuses to replace a day the Event Launcher wrote, without --force",
+          rc == 1 and json.loads(el.read_text())["days"][0]["start"] == "10:00", out)
+    rc, _ = run([PY, PLAN, "render", "--spec", sp, "--out-dir", cwd / "fx/o3", "--runsheet", el, "--force"], cwd)
+    check("render --force replaces it", rc == 0 and json.loads(el.read_text())["days"][0].get("webinar"))
     bad = cwd / "fx/bad.json"
     w2 = copy.deepcopy(FIXTURE)
     w2["segments"][3]["kind"] = "sermon"
@@ -154,6 +183,19 @@ def plan_tests(tmp):
     check("offer-summary: prices, plan total, guarantee and deadline copied word for word",
           rc == 0 and "$1,997 in full, or 4 payments of $549 ($2,196 total)" in osu and "enrolment closes January 9" in osu, osu)
     check("offer-summary: the moderator-only backup link is left out", "example.com/pay" not in osu and "Backup" not in osu)
+    check("offer-summary: internal wording left out (close mode, sign-off note)", "Close mode" not in osu and "signed off" not in osu, osu)
+    multi = cwd / "close-multi.md"
+    multi.write_text("- **Close mode:** checkout\n- Done-with-you: $3,997, or 3 payments of $1,399 ($4,197 total) · checkout and backup on the sheet\n"
+                     "- Internal audit package: $4,500\n- Backup payment link (moderator only): https://x\n")
+    rc, out = run([PY, PLAN, "offer-summary", "--close", multi, "--out", cwd / "o3.md"], cwd)
+    o3 = (cwd / "o3.md").read_text() if (cwd / "o3.md").exists() else ""
+    check("offer-summary keeps a door whose line merely mentions a backup, and the internal-sounding package",
+          rc == 0 and "$3,997" in o3 and "$4,500" in o3 and "https://x" not in o3, (out, o3))
+    att = cwd / "close-att.md"
+    att.write_text("Close mode: checkout\n\n## For attendees\n\n- The Program: $997\n\n## Notes\n\n- Backup: https://x\n")
+    run([PY, PLAN, "offer-summary", "--close", att, "--out", cwd / "o4.md"], cwd)
+    o4 = (cwd / "o4.md").read_text()
+    check("offer-summary uses a \"## For attendees\" section when close.md has one", "$997" in o4 and "Close mode" not in o4 and "Notes" not in o4, o4)
     pend = cwd / "close-pending.md"
     pend.write_text((FX / "close.md").read_text().replace("signed off 2026-11-20", "PENDING"))
     rc, out = run([PY, PLAN, "offer-summary", "--close", pend, "--out", cwd / "o2.md"], cwd)
@@ -249,11 +291,12 @@ def slide_tests(tmp):
 def check_tests(tmp):
     cwd = tmp / "check"
     cwd.mkdir()
-    for f in ("close.md", "proof-bank.md", "business-file.md"):
+    for f in ("close.md", "proof-bank.md", "business-file.md", "registration-page.md"):
         shutil.copy(FX / f, cwd / f)
     run([PY, SLIDES, "build", "--spec", FX / "webinar.json", "--out", cwd / "deck.pptx"], cwd)
     base = ["--close", "close.md", "--proof", "proof-bank.md", "--business-file", "business-file.md"]
-    rc, out = run([PY, CHECK, "check", "--spec", FX / "webinar.json", "--deck", "deck.pptx", "--out", "check.md"] + base, cwd)
+    rc, out = run([PY, CHECK, "check", "--spec", FX / "webinar.json", "--deck", "deck.pptx", "--page", "registration-page.md",
+                   "--out", "check.md"] + base, cwd)
     r = pj(out)
     check("the finished sample webinar says GO (exit 0)", rc == 0 and r.get("result") == "GO", [i for i in r.get("items", []) if not i["ok"]])
     check("check.md is written with every item", (cwd / "check.md").exists() and "| `offer_matches_close` | critical | PASS" in (cwd / "check.md").read_text())
@@ -321,6 +364,10 @@ def check_tests(tmp):
     variant("a retired line, even with other punctuation", say("teach1", "Stop leaving money on the table!"), expect_id="retired_lines")
     variant("a retired line without quotes", say("teach2", "You could double your rates in thirty days"), expect_id="retired_lines")
     variant("a never-say claim", say("teach3", "This is guaranteed income"), expect_id="retired_lines")
+    variant("a never-say claim from a comma-separated list", say("teach3", "and get six figures in six weeks"),
+            expect_id="retired_lines")
+    variant("a retired line with a contraction", say("teach1", "Stop leavin' money... no: stop leaving money on the table"),
+            expect_id="retired_lines")
     rc, out = run([PY, CHECK, "check", "--spec", FX / "webinar.json", "--close", "close.md", "--proof", "proof-bank.md"], cwd)
     check("check without --business-file holds on retired_lines", rc == 1 and "retired_lines" in pj(out).get("critical_open", []))
     for code, line in (("fake_count", "There are 400 people here right now"), ("fake_count", "The room is full today"),
@@ -329,8 +376,47 @@ def check_tests(tmp):
                        ("replay_threat", "If you leave now, you'll miss it; we'll edit that out"),
                        ("hidden_text", "Use embedded commands in grey"), ("fake_scarcity", "Only 3 spots left")):
         variant(f"refused: {line}", say("transition", line), expect_id="refused_tactics")
-    variant("real places in close.md make a places line allowed", say("offer", "Only 3 spots left of the 20"),
-            close=cl + "\n- **Places:** 20 places, because Dana coaches each one\n", expect_id="refused_tactics", expect_ok=True)
+    capped = cl + "\n- **Places:** 20 places, because Dana coaches each one\n"
+    variant("the cap said as the cap passes", say("offer", "I cap it at 20 places so I can coach each one"),
+            close=capped, expect_id="refused_tactics", expect_ok=True)
+    variant("the cap said as the cap matches close.md", say("offer", "I cap it at 20 places"), close=capped,
+            expect_id="offer_matches_close", expect_ok=True)
+    variant("\"only 3 left\" is refused even with a real cap (the moderator gives the live count)",
+            say("offer", "Only 3 spots left of the 20"), close=capped, expect_id="refused_tactics")
+    variant("a place count not in close.md", say("offer", "There are 15 places"), close=capped, expect_id="offer_matches_close")
+    # review findings: forms of money, dates, payments, deadlines
+    for line in ("It's 1,497 dollars", "That's 2497 USD", "Or £1,497 in the UK", "About fifteen hundred dollars"):
+        variant(f"a price in another form: {line}", say("offer", line), expect_id="offer_matches_close")
+    variant("a price from close.md said in a teaching block", say("teach2", "It's $1,997, by the way"), expect_id="offer_matches_close")
+    variant("a date not in close.md", say("offer", "Enrolment closes January 31"), expect_id="offer_matches_close")
+    variant("a payment count not in close.md", say("offer", "Or 6 payments"), expect_id="offer_matches_close")
+    variant("the member's own figure in the story is not a price", say("story", "I charged $40 an hour back then"),
+            expect_id="offer_matches_close", expect_ok=True)
+    variant("an earnings promise in the promise line", lambda w: w.update(promise="Earn 30% more revenue this year"),
+            expect_id="earnings_typical")
+    nodl = re.sub(r"- \*\*Deadline:\*\*.*\n", "- **Deadline:** none; follow-up ends January 20\n", cl)
+    variant("no deadline: \"the replay is available until December 10\" is honest",
+            lambda w: (seg(w, "offer").update(say=[x for x in seg(w, "offer")["say"] if "closes" not in x]),
+                       w["qa_bank"][3].update(answer="Good. Show him the one-pager and talk it over."),
+                       say("close", "The replay is available until December 10")(w)),
+            close=nodl, expect_id="deadline_real", expect_ok=True)
+    variant("a close.md saying \"Enrolment closes …\" counts as a deadline", lambda w: None,
+            close=cl.replace("- **Deadline:** enrolment closes", "- Enrolment closes"), expect_id="deadline_real", expect_ok=True)
+    variant("\"no deadline extensions\" elsewhere is not \"no deadline\"", lambda w: None,
+            close=cl + "\n- Note: no deadline extensions for anyone\n", expect_id="deadline_real", expect_ok=True)
+    variant("\"doors close this Sunday\" when close.md has a date", say("offer", "Doors close this Sunday"), expect_id="deadline_real")
+    variant("PENDING in lower case still holds", lambda w: None, close=cl.replace("signed off 2026-11-20", "pending sign-off"),
+            expect_id="offer_matches_close")
+    variant("PENDING inside an HTML comment does not hold", lambda w: None, close=cl + "\n<!-- PENDING note to self -->\n",
+            expect_id="offer_matches_close", expect_ok=True)
+    variant("\"300 people\" about past clients is not a head count", say("story", "I've worked with 300 people on exactly this"),
+            expect_id="refused_tactics", expect_ok=True)
+    variant("a real bonus for staying is not a replay threat", say("qa", "If you leave early, you'll miss the bonus checklist"),
+            expect_id="refused_tactics", expect_ok=True)
+    variant("an illustration (X) is not proof", lambda w: seg(w, "teach3").update(proof=[{"id": "P-01", "class": "X"}]),
+            expect_id="proof_classified")
+    variant("the host's own figures (H) need the typical result",
+            lambda w: seg(w, "teach3").update(proof=[{"id": "P-05", "class": "H"}]), expect_id="proof_classified")
     variant("a recording that says it is live",
             lambda w: (w.update(recorded=True), seg(w, "agreement")["say"].append("This is a recording of a session I ran live"),
                        say("teach1", "We're live right now")(w)), expect_id="refused_tactics")
@@ -341,6 +427,9 @@ def check_tests(tmp):
             expect_id="recording_notice", expect_ok=True)
     variant("no recording notice in the first minutes", lambda w: seg(w, "agreement").update(notes="Captions are on"),
             expect_id="recording_notice")
+    (cwd / "page-bad.md").write_text("Join my free class on pricing. Thursday, December 3.")
+    variant("a registration page that never mentions the offer or the recording", lambda w: None,
+            extra=("--page", "page-bad.md"), expect_id="page_discloses")
     variant("no written answer for the spouse", lambda w: w["qa_bank"].pop(), expect_id="qa_bank_covers")
     variant("a placeholder answer does not count", lambda w: w["qa_bank"][0].update(answer="[write: answer]"), expect_id="qa_bank_covers")
     variant("the presenter as moderator", lambda w: w["roles"].update(moderator="Dana Ruiz"), expect_id="moderator_named")
@@ -410,6 +499,37 @@ def review_tests(tmp):
     check("run scorecard: questions not answered aloud are listed", "3 questions asked; 3 not answered aloud" in md)
     check("run scorecard: no attendee names or emails", not re.search(r"Pat|Kim Ode|Lou Grant|Ana Ruiz|@example\.com", md), md)
     check("run --log appends the run to webinar.json", json.loads(sp.read_text())["runs"][-1]["attended"] == 4)
+    rc, out = run([PY, REVIEW, "review", "--kind", "run", "--transcript", FX / "rehearsal.vtt", "--spec", FX / "webinar.json",
+                   "--attendance", FX / "attendance-webinar.csv", "--out", cwd / "run-w.md"], cwd)
+    check("Zoom Webinar attendee report: only the Attendee section, rejoins merged, no-shows left out (2 people)",
+          rc == 0 and pj(out).get("run", {}).get("attended") == 2, out[-400:])
+    rc, out = run([PY, REVIEW, "review", "--kind", "run", "--transcript", FX / "rehearsal.vtt", "--spec", FX / "webinar.json",
+                   "--attendance", FX / "attendance-guests.csv", "--out", cwd / "run-g.md"], cwd)
+    check("Meetings participants report: guests with blank emails keyed by name, the host left out (2 people)",
+          rc == 0 and pj(out).get("run", {}).get("attended") == 2, out[-400:])
+    (cwd / "chat2.txt").write_text("14:15:02 From Jo Bell to Everyone:\n\tJo here, can you email me at jo@example.com or call 555 123 4567?\n")
+    rc, out = run([PY, REVIEW, "review", "--kind", "run", "--transcript", FX / "rehearsal.vtt", "--spec", FX / "webinar.json",
+                   "--chat", cwd / "chat2.txt", "--out", cwd / "run-c.md"], cwd)
+    c2 = (cwd / "run-c.md").read_text()
+    check("unanswered chat questions are quoted without the asker's name, email or number",
+          "Jo" not in c2 and "jo@example.com" not in c2 and "555" not in c2 and "[email]" in c2, c2[-300:])
+    short = (FX / "rehearsal.vtt").read_text()
+    short = re.sub(r"\b00:(\d\d:\d\d\.\d{3})", r"\1", short)
+    (cwd / "short.vtt").write_text(short)
+    r5 = pj(run([PY, REVIEW, "review", "--kind", "rehearsal", "--transcript", cwd / "short.vtt", "--spec", FX / "webinar.json",
+                 "--out", cwd / "r5.md"], cwd)[1])
+    check("short VTT timestamps (mm:ss.mmm, from Otter or Descript) are read as timed",
+          r5.get("timed") is True and any(x["id"] == "time_to_offer" for x in r5["lines"]), r5.get("timed"))
+    (cwd / "untimed.vtt").write_text("WEBVTT\n\nHello everyone, welcome.\n")
+    r6 = pj(run([PY, REVIEW, "review", "--kind", "rehearsal", "--transcript", cwd / "untimed.vtt", "--out", cwd / "r6.md"], cwd)[1])
+    check("a .vtt with no readable timings says so", "warning" in r6, r6)
+    w9 = copy.deepcopy(FIXTURE)
+    seg(w9, "promise")["say"].insert(0, "At the end I'll tell you about The Pricing Program")
+    (cwd / "w9.json").write_text(json.dumps(w9))
+    r7 = pj(run([PY, REVIEW, "review", "--kind", "rehearsal", "--transcript", FX / "rehearsal.vtt", "--spec", cwd / "w9.json",
+                 "--out", cwd / "r7.md"], cwd)[1])
+    check("naming the offer on the agenda does not count as the offer starting (the dry-run bug)",
+          r7.get("offer_at") == 47.0 and next(x for x in r7["lines"] if x["id"] == "loops_open")["verdict"] == "FIX", r7.get("offer_at"))
     rc, out = run([PY, REVIEW, "evergreen-ready", "--spec", sp], cwd)
     check("evergreen-ready: READY after a live run that converted", rc == 0 and pj(out).get("result") == "READY", out)
     rc, out = run([PY, REVIEW, "evergreen-ready", "--spec", FX / "webinar.json"], cwd)
@@ -466,7 +586,7 @@ def consistency_tests():
           set(re.findall(r"`(\w+)`", folder.split("- `format`:")[1].split("\n")[0])) == set(wp.FORMATS))
     check("talk-structures.md minute map matches the live60 outline (offer 40–50)", "| 40–50 | The offer (`offer`)" in (R / "talk-structures.md").read_text())
     # the skill never writes a price
-    check("SKILL.md says prices come only from close.md", "never writes a price" in sk)
+    check("SKILL.md says prices come only from close.md", "never invents or changes a price" in sk)
     # privacy: no partner material, client or attendee names, founder figures, credentials
     banned = re.compile(r"brian ?tracy|canfield|\bhei\b|forever.free|jesse|karen martel|nathalie|dahl|briantracyai|"
                         r"2,181|105 people|\b308\b|lanny@|@aimomentumlabs|/home/user/brain|zoom-transcripts|password", re.I)

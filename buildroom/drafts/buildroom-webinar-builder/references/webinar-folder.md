@@ -11,12 +11,33 @@
 | `qa-bank.md` | `webinar_plan.py render` | The scripted Q&A by objection, each answer with its door |
 | `slides.pptx` | `slide_builder.py build` | The deck, with the speaker notes in each slide's notes |
 | `registration-page.md` | You, through Kern | The page words (`registration-page.md`) |
-| `offer-summary.md` | `webinar_plan.py offer-summary --close ../close.md` | The "what's on offer" one-pager, copied from `close.md` |
+| `offer-summary.md` | `webinar_plan.py offer-summary --close launches/<slug>/close.md --out launches/<slug>/webinar/offer-summary.md` | The "what's on offer" one-pager, copied from `close.md` |
 | `check.md` | `webinar_check.py check --out` | The go-live check, GO or HOLD, item by item |
 | `rehearsals/rehearsal-N.md` | `webinar_review.py review --kind rehearsal` | The rehearsal scorecard and the three fixes |
 | `runs/run-N.md` | `webinar_review.py review --kind run` | The run scorecard: who stayed, the chat, the numbers, what landed, the three fixes |
 
-The offer itself (`close.md`), the one belief (`belief.md`), the proof bank (`proof-bank.md`) and the run sheet (`runsheet.json`) stay in the launch folder, owned by the Event Launcher. This skill reads them and, with `render --runsheet`, writes the webinar as a day in `runsheet.json`.
+The offer itself (`close.md`), the one belief (`belief.md`), the proof bank (`proof-bank.md`) and the run sheet (`runsheet.json`) stay in the launch folder, owned by the Event Launcher. This skill reads them. With `render --runsheet`, it adds the webinar as a day in `runsheet.json` (marked `"webinar"`), fills only blank or placeholder roles and links, and never replaces a day the Event Launcher wrote without `--force`.
+
+## The proof bank, as the check reads it
+
+Cite stories by the Proof Engine's IDs. The check reads the launch's `proof-bank.md` in either layout:
+
+```
+| ID | Origin | Kind | Permission | Scope | Result (one line) | Proves | Placed |
+|---|---|---|---|---|---|---|---|
+| P-01 | D | result | named | site, emails, events | A price sheet in five weeks | Pricing Program | Day 2 |
+```
+
+or one heading per story:
+
+```
+## P-01 A price sheet in five weeks
+- Class: D
+- Permission: named
+- Scope: site, emails, events
+```
+
+Columns are found by their header names, in any order. A story used on a webinar needs `events` in its scope.
 
 ## `webinar.json`
 

@@ -26,3 +26,5 @@ For the person running the chat: the lobby welcome and when to post it; every ch
 ## 4. The script (`script.md`)
 
 The whole hour in one file: clock times, each block's job, the prompts, slides by title, the chat prompts, proof by ID, the offer lines as `close.md` has them, the Q&A bank by objection. It is for rehearsal and for the Event Launcher's run sheet, not for reading aloud.
+
+**Text never shrinks to fit.** The deck turns PowerPoint's shrink-to-fit off, so type stays at the sizes the check measured; a slide with too many words overflows visibly instead, and `deck_words` flags it first.
