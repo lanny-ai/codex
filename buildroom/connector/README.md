@@ -63,6 +63,17 @@ Project **buildroom-connector**, service **connector**, in the lanny-ai workspac
 - **The member list is the `BUILDROOM_MEMBERS_JSON` variable.** To change it: copy the variable's value from Railway into a local `members.json`, run `members.py` (add, lapse, reactivate, new-key, remove), then `python3 members.py export` and paste the line back as the variable's value. Railway redeploys in about a minute. Keep that local `members.json` somewhere private; it holds only key fingerprints.
 - Usage lines (`usage {...}`) appear in the service's Deploy Logs.
 
+## Sign-up for a live session: /join and /admin
+
+`/join` is a page members open themselves. They enter their name, their Build Room email and the room code the host announces.
+
+- **Pre-approved email** (on `BUILDROOM_PREAPPROVED`, a list of sha256 fingerprints of lowercase emails, built from the payment review): their personal link appears at once, with the setup steps.
+- **Anyone else**: a request waits on `/admin`. Once approved, they come back to `/join`, enter the same email and get their link. "Approve and get link" gives you a link to send by hand.
+- Someone already on the host's member list is told to use the link they were given. Signing up again with a sign-up email replaces that member's link (the old one stops).
+- Sign-up closes after `BUILDROOM_JOIN_UNTIL` (UTC) or when `BUILDROOM_JOIN_CODE` is removed. Approvals and links keep working after it closes.
+- `/admin` takes the admin key (only its sha256 is stored, in `BUILDROOM_ADMIN_KEY_SHA256`). It lists requests and sign-ups, and can approve, decline, or stop someone's access.
+- Sign-ups and requests live in `signups.json` in `BUILDROOM_DATA_DIR`, a Railway volume mounted at `/data` (with `RAILWAY_RUN_UID=0` so the service can write to it). It holds emails and names of people who signed up, and key fingerprints, never keys.
+
 ## How members connect
 
 **Claude desktop or claude.ai** (paid plans): Settings, Connectors, Add custom connector, and paste their link:

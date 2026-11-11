@@ -13,12 +13,14 @@ Protocol: MCP over Streamable HTTP (JSON responses), JSON-RPC 2.0, POST /mcp.
 Auth (pilot): a per-member access key, sent as "Authorization: Bearer <key>" (Claude Code, Codex)
 or in the path, /mcp/<key> (Claude desktop custom connectors, which take a URL only).
 """
-import argparse, hashlib, hmac, json, os, re, secrets, threading
+import argparse, hashlib, hmac, json, os, re, secrets, sys, threading
 from datetime import date, datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import join  # noqa: E402  (sign-up and approvals, same folder)
 SERVER_NAME = "buildroom"
 SERVER_VERSION = "0.1.0-pilot"
 PROTOCOL_VERSIONS = ("2025-06-18", "2025-03-26", "2024-11-05")
@@ -41,9 +43,15 @@ class AllowlistSource:
 
     name = "allowlist"
 
-    def __init__(self, path):
+    def __init__(self, path, store=None):
         self.path = Path(path)
+        self.store = store  # sign-up members (join.py), kept on the host's disk
         self._cache, self._mtime = {}, None
+
+    def listed_emails(self):
+        """Emails on the host's own list (not sign-ups)."""
+        self._load()
+        return {e.get("email", "") for e in self._cache.values()}
 
     def _load(self):
         env = os.environ.get("BUILDROOM_MEMBERS_JSON")
@@ -70,7 +78,10 @@ class AllowlistSource:
         self._load()
         h = key_hash(key)
         member = None
-        for stored, entry in self._cache.items():
+        entries = list(self._cache.items())
+        if self.store:
+            entries += [(e["key_sha256"], e) for e in self.store.members()]
+        for stored, entry in entries:
             if hmac.compare_digest(stored, h):
                 member = entry
                 break
@@ -95,9 +106,9 @@ class NotBuiltYet:
         raise RuntimeError(f"The {self.name} membership source is not built yet; use allowlist for the pilot.")
 
 
-def make_source(kind, members_path):
+def make_source(kind, members_path, store=None):
     if kind == "allowlist":
-        return AllowlistSource(members_path)
+        return AllowlistSource(members_path, store)
     if kind in ("gohighlevel", "mightynetworks"):
         return NotBuiltYet(kind)
     raise SystemExit(f"Unknown BUILDROOM_MEMBER_SOURCE: {kind}")
@@ -302,7 +313,41 @@ def make_handler(app):
             p = self.path.split("?")[0].strip("/").split("/")
             return p[0] == "mcp" and len(p) <= 2
 
+        def _page(self, html):
+            body = html.encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Frame-Options", "DENY")
+            self.send_header("Referrer-Policy", "no-referrer")
+            self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def _ip(self):
+            return (self.headers.get("X-Forwarded-For") or self.client_address[0]).split(",")[0].strip()
+
+        def _json_body(self):
+            try:
+                n = int(self.headers.get("Content-Length", "0"))
+                return json.loads(self.rfile.read(n)) if 0 < n <= 20000 else {}
+            except ValueError:
+                return {}
+
+        def _admin_key(self):
+            a = self.headers.get("Authorization", "")
+            return a[7:].strip() if a.lower().startswith("bearer ") else ""
+
         def do_GET(self):
+            route = self.path.split("?")[0].rstrip("/")
+            if route == "/join":
+                return self._page(join.JOIN_PAGE)
+            if route == "/admin":
+                return self._page(join.ADMIN_PAGE)
+            if route == "/admin/api":
+                status, obj = app.join.admin("GET", route, self._admin_key(), {})
+                return self._send(status, obj, {"Cache-Control": "no-store"})
             if self.path.split("?")[0] == "/health":
                 return self._send(200, {"ok": True, "version": SERVER_VERSION})
             if self._is_mcp_path():
@@ -313,6 +358,15 @@ def make_handler(app):
             self._send(405, extra={"Allow": "POST"})
 
         def do_POST(self):
+            route = self.path.split("?")[0].rstrip("/")
+            if route == "/join":
+                body = self._json_body()
+                status, obj = app.join.submit(self._ip(), body if isinstance(body, dict) else {})
+                return self._send(status, obj, {"Cache-Control": "no-store"})
+            if route == "/admin/api":
+                body = self._json_body()
+                status, obj = app.join.admin("POST", route, self._admin_key(), body if isinstance(body, dict) else {})
+                return self._send(status, obj, {"Cache-Control": "no-store"})
             if not self._is_mcp_path():
                 return self._send(404, {"error": "not found"})
             key = self._key()
@@ -343,8 +397,11 @@ def make_handler(app):
 
 
 def build_app(members, skills, releases, log):
-    source = make_source(os.environ.get("BUILDROOM_MEMBER_SOURCE", "allowlist"), members)
-    return App(source, Content(skills, releases), log)
+    store = join.Store(os.environ.get("BUILDROOM_DATA_DIR"))
+    source = make_source(os.environ.get("BUILDROOM_MEMBER_SOURCE", "allowlist"), members, store)
+    app = App(source, Content(skills, releases), log)
+    app.join = join.Join(store, source.listed_emails)
+    return app
 
 
 def main(argv=None):
