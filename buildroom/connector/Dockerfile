@@ -3,7 +3,7 @@
 FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 BUILDROOM_USAGE_LOG=stdout
 WORKDIR /app
-COPY buildroom/connector/server.py buildroom/connector/members.py /app/buildroom/connector/
+COPY buildroom/connector/server.py buildroom/connector/members.py buildroom/connector/join.py /app/buildroom/connector/
 COPY buildroom/skills /app/buildroom/skills
 COPY buildroom/rollout/releases/README.md /app/buildroom/rollout/releases/README.md
 RUN useradd --create-home --uid 10001 connector && chown -R connector /app

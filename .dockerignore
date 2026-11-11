@@ -2,6 +2,7 @@
 *
 !buildroom/connector/server.py
 !buildroom/connector/members.py
+!buildroom/connector/join.py
 !buildroom/skills/**
 !buildroom/rollout/releases/README.md
 buildroom/skills/**/__pycache__

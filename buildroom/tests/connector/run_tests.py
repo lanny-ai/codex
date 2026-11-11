@@ -172,15 +172,90 @@ def main():
               rj["build"]["builder"] == "DOCKERFILE" and rj["deploy"]["healthcheckPath"] == "/health" and "buildroom/skills/**" in rj["build"]["watchPatterns"])
         df = (CON / "Dockerfile").read_text()
         check("Dockerfile: copies only the connector, the skills and the release notes; runs as a non-root user",
-              df.count("COPY ") == 3 and "USER connector" in df and "members.json" not in df)
+              df.count("COPY ") == 3 and "join.py" in df and "USER connector" in df and "members.json" not in df)
         di = (ROOT.parent / ".dockerignore").read_text()
         check(".dockerignore: everything excluded except what the image needs", di.splitlines()[1] == "*" and "!buildroom/skills/**" in di)
 
+        # ---- sign-up: instant for clear payers, admin approval for the rest ----------------
+        import hashlib as _h
+        data = tmp / "data"
+        env_keep = {k: os.environ.get(k) for k in ("BUILDROOM_DATA_DIR", "BUILDROOM_JOIN_CODE", "BUILDROOM_JOIN_UNTIL", "BUILDROOM_PREAPPROVED", "BUILDROOM_ADMIN_KEY_SHA256")}
+        admin_key = "admin-test-key-123"
+        os.environ.update({"BUILDROOM_DATA_DIR": str(data), "BUILDROOM_JOIN_CODE": "ROOM-1111",
+                           "BUILDROOM_JOIN_UNTIL": (date.today() + timedelta(days=1)).isoformat(),
+                           "BUILDROOM_PREAPPROVED": json.dumps([_h.sha256(b"payer@example.com").hexdigest()]),
+                           "BUILDROOM_ADMIN_KEY_SHA256": _h.sha256(admin_key.encode()).hexdigest()})
+        try:
+            app3 = server.build_app(mf, ROOT / "skills", ROOT / "rollout/releases/README.md", log)
+            h3 = ThreadingHTTPServer(("127.0.0.1", 0), server.make_handler(app3))
+            threading.Thread(target=h3.serve_forever, daemon=True).start()
+            b3 = f"http://127.0.0.1:{h3.server_port}"
+            jn = lambda body: post(b3 + "/join", body)
+            page = urllib.request.urlopen(b3 + "/join").read().decode()
+            check("join page: served, asks for name, email and room code, no outside scripts",
+                  "Room code" in page and 'id="email"' in page and "<script src" not in page)
+            s, r, _ = jn({"name": "Pat Payer", "email": "  Payer@Example.com ", "code": "room-1111"})
+            check("join: a pre-approved email gets a link at once (email and code case-insensitive)", s == 200 and r["state"] == "approved" and r["key"].startswith("br_"), r)
+            k1 = r["key"]
+            check("join: that link works on the connector", not text(call(b3 + "/mcp", k1, "buildroom_status")[1])[1])
+            check("join: signups.json holds a key fingerprint, never the key", k1 not in (data / "signups.json").read_text())
+            check("join: the pre-approved list holds no emails, only fingerprints", "payer@example.com" not in os.environ["BUILDROOM_PREAPPROVED"])
+            s, r, _ = jn({"name": "Pat Payer", "email": "payer@example.com", "code": "ROOM-1111"})
+            check("join again: a new link, and the old one stops", r["state"] == "approved" and r["key"] != k1
+                  and post(b3 + "/mcp", {"jsonrpc": "2.0", "id": 1, "method": "tools/list"}, k1)[0] == 401)
+            s, r, _ = jn({"name": "New Person", "email": "new@example.com", "code": "ROOM-1111"})
+            check("join: an unknown email waits for approval, no key", r["state"] == "pending" and "key" not in r, r)
+            check("join: waiting again stays pending, one request", jn({"name": "New Person", "email": "new@example.com", "code": "ROOM-1111"})[1]["state"] == "pending"
+                  and len(json.loads((data / "signups.json").read_text())["requests"]) == 1)
+            check("join: wrong room code refused", jn({"name": "X", "email": "x@example.com", "code": "NOPE"})[1]["state"] == "bad_code")
+            check("join: bad email refused", jn({"name": "X", "email": "not-an-email", "code": "ROOM-1111"})[1]["state"] == "bad_email")
+            check("join: someone already on the host list is told to use their own link", jn({"name": "Pilot", "email": "pilot@example.com", "code": "ROOM-1111"})[1]["state"] == "already")
+            adm = lambda m, body=None: post(b3 + "/admin/api", body or {}, admin_key) if m == "POST" else None
+            req = urllib.request.Request(b3 + "/admin/api", headers={"Authorization": "Bearer wrong"})
+            try:
+                urllib.request.urlopen(req); bad = 200
+            except urllib.error.HTTPError as e:
+                bad = e.code
+            check("admin: a wrong admin key is refused", bad == 401)
+            req = urllib.request.Request(b3 + "/admin/api", headers={"Authorization": "Bearer " + admin_key})
+            listing = json.loads(urllib.request.urlopen(req).read())
+            check("admin: lists the pending request and the signed-up member, never a key fingerprint",
+                  [r["email"] for r in listing["requests"]] == ["new@example.com"] and listing["members"][0]["email"] == "payer@example.com"
+                  and "key_sha256" not in json.dumps(listing))
+            check("admin page: served, asks for the admin key", "Admin key" in urllib.request.urlopen(b3 + "/admin").read().decode())
+            check("admin: approve", adm("POST", {"email": "new@example.com", "decision": "approve"})[1].get("ok"))
+            s, r, _ = jn({"name": "New Person", "email": "new@example.com", "code": "ROOM-1111"})
+            check("join after approval: the link is given", r["state"] == "approved" and r["key"].startswith("br_"), r)
+            jn({"name": "Nope", "email": "nope@example.com", "code": "ROOM-1111"})
+            adm("POST", {"email": "nope@example.com", "decision": "decline"})
+            check("join after decline: told to contact the team, no key", jn({"name": "Nope", "email": "nope@example.com", "code": "ROOM-1111"})[1]["state"] == "declined")
+            s, r, _ = adm("POST", {"email": "nope@example.com", "decision": "link"})
+            check("admin: approve and get link gives a working link to send", r.get("key") and not text(call(b3 + "/mcp", r["key"], "buildroom_status")[1])[1])
+            adm("POST", {"email": "payer@example.com", "decision": "lapse"})
+            newest = json.loads((data / "signups.json").read_text())
+            check("admin: stop access lapses the member", [m["status"] for m in newest["members"] if m["email"] == "payer@example.com"] == ["lapsed"])
+            check("admin: an unknown decision is refused", adm("POST", {"email": "x@example.com", "decision": "delete"})[0] == 400)
+            os.environ["BUILDROOM_JOIN_UNTIL"] = (date.today() - timedelta(days=2)).isoformat()
+            check("join: closed after the last day", jn({"name": "Late", "email": "late@example.com", "code": "ROOM-1111"})[1]["state"] == "closed")
+            del os.environ["BUILDROOM_JOIN_CODE"]
+            check("join: closed when no room code is set", jn({"name": "Late", "email": "late@example.com", "code": ""})[1]["state"] == "closed")
+            os.environ["BUILDROOM_JOIN_CODE"] = "ROOM-1111"; os.environ["BUILDROOM_JOIN_UNTIL"] = date.today().isoformat()
+            for _ in range(40):
+                s_last = jn({"name": "Spam", "email": "spam@example.com", "code": "WRONG"})[0]
+            check("join: too many tries from one address are slowed down", s_last == 429)
+            h3.shutdown()
+        finally:
+            for k, v in env_keep.items():
+                if v is None:
+                    os.environ.pop(k, None)
+                else:
+                    os.environ[k] = v
+
         src = (CON / "server.py").read_text()
         check("server: no third-party imports (runs on any Python host)",
-              all(m.strip().split(".")[0] in {"argparse", "hashlib", "hmac", "json", "os", "re", "secrets", "threading", "datetime", "http", "pathlib"}
+              all(m.strip().split(".")[0] in {"argparse", "hashlib", "hmac", "json", "os", "re", "secrets", "sys", "threading", "datetime", "http", "pathlib", "join"}
                   for l in src.splitlines() if l.startswith(("import ", "from "))
-                  for m in (l.split()[1:2] if l.startswith("from ") else l[7:].split(","))))
+                  for m in (l.split()[1:2] if l.startswith("from ") else l.split("#")[0][7:].split(","))))
         check("server: the request log is silenced (paths can carry keys)", "def log_message" in src)
         check("server: membership source is swappable (allowlist now, GoHighLevel later)", "BUILDROOM_MEMBER_SOURCE" in src and "gohighlevel" in src)
         gi = (CON / ".gitignore").read_text()
