@@ -304,6 +304,10 @@ def make_handler(app):
             self.send_response(status)
             if obj is not None:
                 self.send_header("Content-Type", "application/json")
+            # Ask proxies (Railway's edge compresses and chunks bodies when a client offers gzip or zstd) to pass the
+            # response through as sent: plain JSON with its Content-Length, which every MCP client can read.
+            self.send_header("Cache-Control", (extra or {}).pop("Cache-Control", "no-store") + ", no-transform")
+            self.send_header("Content-Encoding", "identity")
             for k, v in (extra or {}).items():
                 self.send_header(k, v)
             self.send_header("Content-Length", str(len(body)))

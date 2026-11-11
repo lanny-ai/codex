@@ -154,6 +154,10 @@ def main():
         check("chunked request body (no Content-Length) is read: initialize 200", s == 200 and r["result"]["protocolVersion"] == "2025-03-26", (s, r))
         s, r = chunked("/mcp", {"jsonrpc": "2.0", "id": 10, "method": "tools/list"}, chunks=7)
         check("chunked tools/list in seven pieces: 200 with the tools", s == 200 and len(r["result"]["tools"]) == 5, s)
+        s, r, h = post(url, {"jsonrpc": "2.0", "id": 11, "method": "tools/list"}, key)
+        check("responses ask proxies not to compress or re-chunk them (no-transform, identity)",
+              "no-transform" in h.get("Cache-Control", "") and h.get("Content-Encoding") == "identity"
+              and h.get("Content-Length") == str(len(json.dumps(r).encode())), dict(h))
         s, r, _ = post(url, {"jsonrpc": "2.0", "id": 5, "result": {}}, key)
         check("a client's JSON-RPC reply (no method): 202, nothing sent back", s == 202 and r is None, s)
         check("GET /mcp: 405", urllib.request.urlopen(urllib.request.Request(base + "/health")).status == 200
