@@ -132,6 +132,34 @@ def main():
         check("unknown tool: JSON-RPC -32602", call(url, key, "buildroom_delete_everything")[1]["error"]["code"] == -32602)
 
         # ---- transport edge cases ---------------------------------------------------------
+        import http.client
+        def chunked(path, obj, chunks=3):
+            body = json.dumps(obj).encode()
+            c = http.client.HTTPConnection("127.0.0.1", httpd.server_port, timeout=10)
+            step = max(1, len(body) // chunks)
+            c.putrequest("POST", path)
+            for k, v in (("Content-Type", "application/json"), ("Accept", "application/json, text/event-stream"),
+                         ("Authorization", f"Bearer {key}"), ("Transfer-Encoding", "chunked")):
+                c.putheader(k, v)
+            c.endheaders()
+            for i in range(0, len(body), step):
+                part = body[i:i + step]
+                c.send(f"{len(part):x}\r\n".encode() + part + b"\r\n")
+            c.send(b"0\r\n\r\n")
+            r = c.getresponse()
+            data = r.read()
+            c.close()
+            return r.status, (json.loads(data) if data else None)
+        s, r = chunked("/mcp", {"jsonrpc": "2.0", "id": 9, "method": "initialize", "params": {"protocolVersion": "2025-03-26"}})
+        check("chunked request body (no Content-Length) is read: initialize 200", s == 200 and r["result"]["protocolVersion"] == "2025-03-26", (s, r))
+        s, r = chunked("/mcp", {"jsonrpc": "2.0", "id": 10, "method": "tools/list"}, chunks=7)
+        check("chunked tools/list in seven pieces: 200 with the tools", s == 200 and len(r["result"]["tools"]) == 5, s)
+        s, r, h = post(url, {"jsonrpc": "2.0", "id": 11, "method": "tools/list"}, key)
+        check("responses ask proxies not to compress or re-chunk them (no-transform, identity)",
+              "no-transform" in h.get("Cache-Control", "") and h.get("Content-Encoding") == "identity"
+              and h.get("Content-Length") == str(len(json.dumps(r).encode())), dict(h))
+        s, r, _ = post(url, {"jsonrpc": "2.0", "id": 5, "result": {}}, key)
+        check("a client's JSON-RPC reply (no method): 202, nothing sent back", s == 202 and r is None, s)
         check("GET /mcp: 405", urllib.request.urlopen(urllib.request.Request(base + "/health")).status == 200
               and post(base + "/nowhere", {}, key)[0] == 404)
         try:

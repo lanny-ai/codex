@@ -1,0 +1,326 @@
+{
+  "title": "How to Price Your Services Without Guessing",
+  "presenter": "Dana Ruiz",
+  "version": 1,
+  "format": "live60",
+  "date": "2026-12-03",
+  "start": "14:00",
+  "tz": "America/Los_Angeles",
+  "length_min": 60,
+  "lobby_min": 5,
+  "recorded": false,
+  "close": "checkout",
+  "big_idea": "Your price is a decision you make once a year, not a guess you make every proposal.",
+  "promise": "You'll leave with one price you can raise this month, and the words to say it.",
+  "beliefs": [
+    {
+      "false": "I need more clients to earn more",
+      "true": "One price that pays you properly beats ten more clients"
+    },
+    {
+      "false": "Raising prices will drive my clients away",
+      "true": "Good clients stay when the price matches the result"
+    },
+    {
+      "false": "I have to justify every dollar",
+      "true": "A clear package explains itself"
+    }
+  ],
+  "not_covering": [
+    "How to find new clients (I'll show you why you need fewer)",
+    "Discounting (we won't)",
+    "Complicated spreadsheets (one page is enough)"
+  ],
+  "offer_disclosed": true,
+  "roles": {
+    "host": "Dana Ruiz",
+    "moderator": "Sam Ruiz",
+    "tech": "Sam Ruiz"
+  },
+  "links": {
+    "checkout": "https://example.com/checkout",
+    "backup_checkout": "https://example.com/pay",
+    "offer_summary": "https://example.com/offer"
+  },
+  "segments": [
+    {
+      "id": "lobby",
+      "kind": "lobby",
+      "title": "Lobby: welcome slide, music, greet people by name",
+      "min": 5,
+      "say": [
+        "Welcome people by name"
+      ],
+      "chat_prompt": "Type where you're joining from",
+      "slides": [],
+      "notes": ""
+    },
+    {
+      "id": "agreement",
+      "kind": "agreement",
+      "title": "The agreement frame, recording notice and captions",
+      "min": 3,
+      "say": [
+        "Have you ever finished a proposal and wondered if the price was right?",
+        "Have you ever said yes to a project you regretted pricing?",
+        "By the end you'll have one price you can raise"
+      ],
+      "chat_prompt": "Type yes if that's you",
+      "notes": "Recording notice: this session is recorded. Captions are on: click CC.",
+      "slides": [
+        {
+          "title": "Have you ever wondered if your price was right?",
+          "kind": "statement"
+        }
+      ]
+    },
+    {
+      "id": "promise",
+      "kind": "promise",
+      "title": "The promise, the agenda, what we are not covering, and the offer",
+      "min": 4,
+      "say": [
+        "Three things today",
+        "What we're not covering: finding new clients, discounting, spreadsheets",
+        "At the end I'll tell you about my Pricing Program; there will be an offer, and nobody has to buy",
+        "We finish at three, on time"
+      ],
+      "chat_prompt": "Type 1 if you've raised a price this year, 2 if not yet",
+      "slides": [
+        {
+          "title": "Today",
+          "kind": "list",
+          "lines": [
+            "One price to raise",
+            "How to say it",
+            "What to do this week"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "story",
+      "kind": "story",
+      "title": "The story, ending on the big idea",
+      "min": 5,
+      "say": [
+        "I undercharged for eleven years",
+        "The client who asked why I was so cheap",
+        "What changed: I decided my price once a year"
+      ],
+      "chat_prompt": "",
+      "slides": [
+        {
+          "title": "I used to guess",
+          "kind": "statement"
+        }
+      ]
+    },
+    {
+      "id": "teach1",
+      "kind": "teach",
+      "title": "You don't need more clients to earn more",
+      "min": 8,
+      "belief": 1,
+      "say": [
+        "Most people think more clients is the answer",
+        "Here's the trap: more clients, same price, more hours",
+        "Try this: list your three services and what each really takes"
+      ],
+      "chat_prompt": "Type 1 if you've ever been fully booked and still short",
+      "proof": [
+        {
+          "id": "P-02",
+          "class": "B",
+          "typical": "Most clients raise one price within a month."
+        }
+      ],
+      "loop": {
+        "question": "Do you need more clients?",
+        "answer": "No. You need one price that pays you properly."
+      },
+      "slides": [
+        {
+          "title": "More clients isn't the answer",
+          "kind": "list",
+          "lines": [
+            "One price that pays you properly"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "teach2",
+      "kind": "teach",
+      "title": "Good clients stay when the price matches the result",
+      "min": 8,
+      "belief": 2,
+      "say": [
+        "The fear: everyone leaves",
+        "What actually happens with good clients",
+        "Try this: tell one trusted client first"
+      ],
+      "chat_prompt": "Type the service you'd raise first",
+      "proof": [
+        {
+          "id": "P-01",
+          "class": "D",
+          "label": "paid-program result",
+          "typical": "Most clients have a working price sheet inside two months."
+        }
+      ],
+      "loop": {
+        "question": "Will raising prices drive clients away?",
+        "answer": "The right ones stay, and you'll know who they are."
+      },
+      "slides": [
+        {
+          "title": "The right clients stay",
+          "kind": "statement"
+        }
+      ]
+    },
+    {
+      "id": "teach3",
+      "kind": "teach",
+      "title": "A clear package explains itself",
+      "min": 8,
+      "belief": 3,
+      "say": [
+        "Stop itemising",
+        "One package, one price, one sentence",
+        "Write your one sentence now"
+      ],
+      "chat_prompt": "Type your one sentence if you're happy to share it",
+      "loop": {
+        "question": "Do you have to justify every dollar?",
+        "answer": "No. A clear package does it for you."
+      },
+      "slides": [
+        {
+          "title": "One package, one price, one sentence",
+          "kind": "statement"
+        }
+      ]
+    },
+    {
+      "id": "transition",
+      "kind": "transition",
+      "title": "The transition and the trial close",
+      "min": 4,
+      "say": [
+        "So that's how to raise one price without guessing",
+        "If you'd like help doing it, here's how I can help",
+        "Would it help to have someone check your numbers with you?"
+      ],
+      "chat_prompt": "",
+      "slides": [
+        {
+          "title": "Want help doing it?",
+          "kind": "statement"
+        }
+      ]
+    },
+    {
+      "id": "offer",
+      "kind": "offer",
+      "title": "The offer",
+      "min": 10,
+      "asks": 3,
+      "links": [
+        "checkout",
+        "offer_summary"
+      ],
+      "say": [
+        "The Pricing Program: six weeks, a price sheet you trust",
+        "$1,997 in full, or 4 payments of $549, $2,196 in total",
+        "The guarantee: come to the first two sessions; if it isn't useful, ask for a refund",
+        "Cohort starts January 12, and enrolment closes January 9 at midnight Pacific",
+        "The link is on screen and in the chat"
+      ],
+      "chat_prompt": "",
+      "slides": [
+        {
+          "title": "The Pricing Program",
+          "kind": "offer",
+          "lines": [
+            "Six weeks, a price sheet you trust",
+            "$1,997 in full",
+            "Or 4 payments of $549 ($2,196 total)"
+          ]
+        },
+        {
+          "title": "Join here",
+          "kind": "link",
+          "lines": [
+            "example.com/checkout"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qa",
+      "kind": "qa",
+      "title": "Q&A as objection handling",
+      "min": 8,
+      "say": [
+        "The questions people ask most, then yours"
+      ],
+      "chat_prompt": "Type your question",
+      "slides": [
+        {
+          "title": "",
+          "kind": "chat",
+          "lines": [
+            "Type your question"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "close",
+      "kind": "close",
+      "title": "The takeaway close and the hard stop",
+      "min": 2,
+      "say": [
+        "This may or may not be for you",
+        "It isn't for you if you don't want to change a price this year",
+        "The link once more; thank you; we're done on time"
+      ],
+      "chat_prompt": "",
+      "slides": [
+        {
+          "title": "Thank you",
+          "kind": "statement"
+        }
+      ]
+    }
+  ],
+  "qa_bank": [
+    {
+      "objection": "time",
+      "question": "I don't have time for six weeks",
+      "answer": "It's one hour a week, recorded, and the first step takes twenty minutes. Most people get their price sheet done in the first two weeks.",
+      "door": "The Pricing Program"
+    },
+    {
+      "objection": "money",
+      "question": "I can't afford it right now",
+      "answer": "There's a payment plan: 4 payments of $549, $2,196 in total. If money is genuinely tight, don't; use today's three steps on your own.",
+      "door": "The Pricing Program, payment plan"
+    },
+    {
+      "objection": "confidence",
+      "question": "I'm not a numbers person",
+      "answer": "You don't need to be. We do the sheet together, line by line, and you can ask anything.",
+      "door": "The Pricing Program"
+    },
+    {
+      "objection": "spouse",
+      "question": "I need to talk to my husband first",
+      "answer": "Good. Show him the one-pager; enrolment closes January 9, so there's time to talk it over.",
+      "door": "The Pricing Program"
+    }
+  ],
+  "runs": []
+}
