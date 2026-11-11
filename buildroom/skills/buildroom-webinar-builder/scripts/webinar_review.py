@@ -198,9 +198,11 @@ def find_block_starts(spec, cues):
     starts = {}
     if not spec or not cues or cues[0][0] is None:
         return starts
+    st, _ = plan_times(spec)
     for s in spec.get("segments") or []:
+        floor = st.get(s.get("id"), (0,))[0] * 0.6  # a block's words said early (the agenda names the offer) are not its start
         for ph in cue_phrases(s):
-            hit = next((c[0] for c in cues if ph in wc.norm(c[3])), None)
+            hit = next((c[0] for c in cues if c[0] >= floor and ph in wc.norm(c[3])), None)
             if hit is not None:
                 starts[s.get("id")] = round(hit, 1)
                 break

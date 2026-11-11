@@ -1,7 +1,7 @@
 ---
 name: buildroom-webinar-builder
 description: |
-  Writes the webinar itself and makes each run better than the last: the one big idea, a timed talk that closes its own loops, slides an older room can read, speaker notes, the chat and moderator sheet, an honest Q&A bank, the registration page words, a "what's on offer" one-pager, a go-live check, a rehearsal scorecard and a review of every run (§20 webinar line). Use for "build my webinar," "write my webinar," "write my webinar title and registration page," "make my webinar slides," "rehearse my webinar," "how did my webinar go," "why didn't my webinar sell," or "make my webinar evergreen."
+  Writes the webinar itself and makes each run better than the last: the one big idea, a timed talk that closes its own loops, slides an older room can read, speaker notes, the chat and moderator sheet, an honest Q&A bank, the registration page words, a "what's on offer" one-pager, a go-live check, a rehearsal scorecard and a review of every run (§20 webinar line). Use for "build my webinar," "write my webinar," "write my webinar title and registration page," "make my webinar slides," "is my webinar ready," "rehearse my webinar," "how did my webinar go," "why didn't my webinar sell," or "make my webinar evergreen."
 ---
 
 # Build Room — Webinar Builder
@@ -51,6 +51,7 @@ Read these before member-facing work, in this order:
 - **Build** (default; "build my webinar", "write my webinar"): Phases 0–6, ending with the talk, the deck, the notes, the Q&A bank, the moderator sheet, the registration page words, the one-pager and a check that says GO.
 - **Title and page** ("write my webinar title and registration page"): Phase 1 step 3 and Phase 4 only.
 - **Slides** ("make my webinar slides"): Phase 3 from an existing `webinar.json`.
+- **Check** ("is my webinar ready"): Phase 5 step 1 only, on the current files; GO or HOLD, item by item.
 - **Rehearse** ("rehearse my webinar"): `rehearse-and-review.md` §1 on a rehearsal recording's transcript; the scorecard and the three fixes.
 - **Review** ("how did my webinar go"): `rehearse-and-review.md` §2 on the live run's transcript, chat and attendance; what landed, where people left, the questions that came up, and the next version drafted for approval.
 - **Diagnose** ("why didn't my webinar sell"): `webinar_review.py diagnose`, in order: show-up, then stay-to-offer, then close; the one leak to fix first and the fix.

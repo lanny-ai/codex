@@ -49,6 +49,8 @@ The gate runs in four stages, each with its own items (`launch_tracker.py gate -
 - **[refund_commissions] Refunds reverse partner commissions** (GoHighLevel does not do this automatically).
 - **[chargeback_ready] Chargeback exposure understood**: Visa's US "excessive" dispute ratio fell to 1.5% from April 2026; a clear refund path is cheaper than a dispute.
 
+**A webinar or bootcamp day written by the Webinar Builder** carries its own go-live check (`webinar_check.py`): every price, date and place count on the slides and in the script against `close.md`, proof by ID and class, retired lines, the refused tactics, the recording notice. Its GO, with the date, is the note for the talk and slides on `proof_classified`, `real_deadlines`, `single_source`, `retired_lines` and `claims_substantiated`.
+
 ## How to run the gate with a member
 
 Item by item, one message each, starting with money. For each: what to test, how to test it in their tools, then "tell me what happened". Record the result with a note (who tested, on what device, when). On the morning of the close, `launch_tracker.py gate --close-morning` lists the money and follow-up items; each must pass again that day before the close goes ahead. In a call close, the checkout items become the booking path and a backup booking link. If something fails on the close morning, the moderator has the second checkout path and the member says so on air; a transparent fix costs less than a silent failure.

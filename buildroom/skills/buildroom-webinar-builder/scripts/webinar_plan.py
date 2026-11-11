@@ -354,7 +354,7 @@ def render_moderator(spec, segs, t0):
     off = next((s for s in segs if s["kind"] == "offer"), None)
     o = [f"# Moderator sheet: {spec.get('title')}", "",
          f"Moderator: {roles.get('moderator', '')} · Host: {roles.get('host', '')} · Tech: {roles.get('tech', '')} · "
-         f"Times are {z} time.", "",
+         f"Times are {z} time. When the host asks the room something, answer kindly and bring good replies forward.", "",
          "## Setup list (tick each one)",
          "- [ ] The meeting or webinar is created with the right title, date and time zone; the join link is in the Event "
          "Launcher's event.json.",
@@ -370,11 +370,11 @@ def render_moderator(spec, segs, t0):
          "## During"]
     for s in segs:
         bits = []
-        if s.get("chat_prompt"):
-            bits.append(f"the host asks: \"{s['chat_prompt']}\"; answer kindly and bring good replies forward")
         if s["kind"] == "lobby":
             bits.append("greet people by first name as they arrive; post: \"Welcome! Captions: click CC at the bottom of "
-                        "Zoom. This session is recorded.\"")
+                        "Zoom. This session is recorded.\"" + (f" Then post: \"{s['chat_prompt']}\"" if s.get("chat_prompt") else ""))
+        elif s.get("chat_prompt"):
+            bits.append(f"the host asks: \"{s['chat_prompt']}\"")
         if s["kind"] == "agreement":
             bits.append("post where the CC (captions) button is, and that the session is recorded")
         if s["kind"] == "offer":
@@ -424,7 +424,7 @@ def runsheet_day(spec, segs, t0):
            "tz": spec.get("tz", ""), "webinar": spec.get("title"),
            "checkout_test": (t0 - timedelta(minutes=30)).strftime("%H:%M"), "segments": []}
     for s in segs:
-        notes = "; ".join(x.rstrip(".;") for x in lines(s.get("say")))
+        notes = " ".join(x.rstrip(" .;") + "." for x in lines(s.get("say")))
         if s["kind"] == "agreement":
             notes = (s.get("notes") or "Recording notice. Captions on.").rstrip(".") + ". " + notes
         e = {"min": s["min"], "title": s["title"], "kind": RUNSHEET_KIND[s["kind"]], "notes": notes.strip()}
@@ -453,6 +453,7 @@ def close_deadline_line(path):
     if not m:
         return None
     v = m.group(2).strip().strip("*").strip()
+    v = v.rstrip(" .;")
     return None if (not v or re.match(r"(none|no deadline|n/?a|—|-)\b", v, re.I)) else v
 
 

@@ -139,7 +139,7 @@ def plan_tests(tmp):
     check("runsheet: kinds map to the Event Launcher's (the transition teaches; only the offer is a pitch)",
           [s["kind"] for s in day["segments"]][6:10] == ["teach", "teach", "pitch", "qa"], [s["kind"] for s in day["segments"]])
     check("runsheet: the real deadline from close.md", rsj.get("deadline", "").startswith("enrolment closes January 9"), rsj.get("deadline"))
-    check("runsheet: prompts joined with punctuation", "; " in day["segments"][2]["notes"])
+    check("runsheet: prompts joined as sentences", ". " in day["segments"][2]["notes"])
     rc, out = run([PY, RUNSHEET, "build", "--spec", rs, "--out", cwd / "fx/run-sheet.md"], cwd)
     ch = {c["id"]: c for c in pj(out).get("checks", [])}
     check("run_sheet.py accepts the webinar day: recording notice, roles, backup and checkout test pass",

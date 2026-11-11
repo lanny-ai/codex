@@ -19,7 +19,7 @@ Brain/                          the vault, a plain folder on local disk (never O
     sops/                       the Operations Pack lives here once §9 exists
     prompts/                    reusable prompts and routines
   search/                       the question map, answer-page drafts, the Business Profile record and the monthly citation checks (the Search & Answer Engine)
-  launches/                     one folder per launch event, plus a debrief note each and _index.md (the Event Launcher reads these before planning the next one)
+  launches/                     one folder per launch event, plus a debrief note each and _index.md (the Event Launcher reads these before planning the next one; a webinar's talk, deck and scorecards sit in its webinar/ subfolder)
   External/                     what watchers write; never edited by hand until promoted
   memory/                       session logs, tasks/open, tasks/done
   templates/                    the note templates below

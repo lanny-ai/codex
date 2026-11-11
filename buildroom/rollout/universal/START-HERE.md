@@ -15,7 +15,7 @@ cd BuildRoom_OS
 claude
 ```
 
-The thirty-six skills are picked up automatically from `.claude/skills/`. Say:
+The thirty-seven skills are picked up automatically from `.claude/skills/`. Say:
 
 > I'm new to the Build Room — set me up.
 
@@ -63,7 +63,7 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 | `tools/Rent_Calculator.html` | Open in a browser: what your undocumented processes cost you. Copies a §9 block into your file. |
 | `tools/Business_File_Viewer.html` | Open in a browser: paste your Business File, see every section's status, your progress, the one session to run next, and your Build Plan. |
 | `tools/Brainstorm_Board.html` | Open in a browser: frame, diverge, cluster, dot-vote, decide, then "Copy for Claude." |
-| `skills/` | The thirty-six skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
+| `skills/` | The thirty-seven skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
 | `CLAUDE.md`, `AGENTS.md` | Tell Claude Code and Codex what this folder is. Don't delete them. |
 
 ## Updating to a new release
@@ -104,6 +104,7 @@ Or open Claude Code in this folder and say: "Update Build Room OS from my Downlo
 | "Make me a video" (ad, content, sales video, or "help me get a client testimonial video") | A directed video around your real face and footage: script, shoot list, edit, captions, review, ready to publish |
 | "Build my LinkedIn engine" (or "write my LinkedIn posts", "who should I message on LinkedIn today", "how is my LinkedIn doing") | A profile that converts, three posts a week in your own words, carousels, a 20-minute daily conversation routine, a pipeline and a weekly scorecard; you post and send everything yourself |
 | "Plan my launch" (or "help me run a challenge", "I want to do a 3-day bootcamp", "is my launch ready", "how did my launch do") | A live event that sells: the launch math, the format, the one belief, invitation and reminder emails, the calendar file, the run-of-show, the close, a launch gate that catches a broken checkout before your audience does, follow-up by where each person stopped, and a debrief saved to your Obsidian vault |
+| "Build my webinar" (or "rehearse my webinar", "how did my webinar go", "why didn't my webinar sell") | The webinar itself, live and in your own voice: a 60-minute talk minute by minute that says up front there will be an offer, slides you can read from across the room with your notes in them, the sheet for whoever runs the chat, the registration page words, a one-page "what's on offer", a check before you go live, and a scorecard after every rehearsal and every run |
 | "Capture this win" (or "ask for a testimonial", "build my proof bank", "what proof can I use") | Client wins turned into proof you're allowed to use: a 3-question interview, permission recorded for every story, and one placement at a time into your page, emails, ads, posts and launches |
 | "Get found on Google" (or "fix my Google Business Profile", "get more Google reviews", "answer this question on my website", "am I showing up in ChatGPT") | Found and cited without ads: your Google Business Profile scored and fixed, one honest answer page a week on your own website through a gate, a review ask you send the same way to everyone, five free listings, and a monthly check of whether Google's AI, ChatGPT, Perplexity, Gemini and Copilot name you |
 | "Build me a source watcher" | A watcher for any source, filing filtered notes into your Obsidian vault (elective; some sources need a paid key, it says which) |
