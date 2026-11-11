@@ -19,7 +19,8 @@ Usage
 
 Checks (must unless marked should)
   recording_notice       a segment in the first 10 minutes of every day mentions the recording notice
-  first_build            Day 1 has a build segment starting within its first 30 minutes (20 is the founder's rule)
+  first_build            Day 1 has a build segment starting within its first 30 minutes (20 is the founder's rule);
+                         a should, not a must, for a single webinar day (a day with "webinar": its title)
   breaks_90              no stretch longer than 90 minutes without a break segment
   length_vs_end          the segments fit the day's planned "end" (when given; lobby time not counted)
   links_have_values      every link a segment names has a value in "links" (no blanks, TBD or placeholders)
@@ -186,7 +187,7 @@ def resolve(spec):
                          "at": clock(t0, at), "until": clock(t0, at + mins), "t": t0 + dt.timedelta(minutes=at)})
             at += mins
         days.append({"n": i, "date": date, "t0": t0, "end": end, "tz": d.get("tz", ""), "segments": segs, "total": at,
-                     "lobby": lead, "checkout_test": d.get("checkout_test")})
+                     "lobby": lead, "checkout_test": d.get("checkout_test"), "webinar": d.get("webinar")})
     for a, b in zip(days, days[1:]):
         if b["date"] <= a["date"]:
             refuse(f"days must be in date order: day {b['n']} ({b['date']}) is not after day {a['n']} ({a['date']})")
@@ -231,12 +232,15 @@ def run_checks(spec, days, event=None):
 
     b1 = next((s for s in content(days[0]) if s["kind"] == "build"), None)
     ok = b1 is not None and b1["start_min"] <= FIRST_BUILD[1]
+    # A single webinar (a day the Webinar Builder wrote, marked "webinar") teaches a first step inside each block
+    # rather than holding a build segment, so the founder's first-build rule is a should there, not a must.
+    single_webinar = len(days) == 1 and bool(days[0].get("webinar"))
     check("first_build", ok,
           (f"Day 1 builds at {b1['at']} (minute {b1['start_min']})" + ("" if b1["start_min"] <= FIRST_BUILD[0] else
            f"; the founder's rule is within {FIRST_BUILD[0]} minutes") if ok else
            f"no build segment in Day 1's first {FIRST_BUILD[1]} minutes" + (f" (the first is at {b1['at']}, minute "
            f"{b1['start_min']})" if b1 else "") + f": everyone builds something within {FIRST_BUILD[0]}–{FIRST_BUILD[1]} "
-           "minutes (founder method)"))
+           "minutes (founder method)"), "should" if single_webinar else "must")
 
     long = []
     for d in days:
