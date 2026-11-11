@@ -249,6 +249,8 @@ class App:
 
     def handle(self, key, msg):
         """Handle one JSON-RPC message. Returns (http_status, response_or_None)."""
+        if isinstance(msg, dict) and msg.get("jsonrpc") == "2.0" and "method" not in msg and ("result" in msg or "error" in msg):
+            return 202, None  # a client's reply to a server request: accepted, nothing to send back
         if not isinstance(msg, dict) or msg.get("jsonrpc") != "2.0" or "method" not in msg:
             return 400, {"jsonrpc": "2.0", "id": None, "error": {"code": -32600, "message": "Invalid request"}}
         mid, method = msg.get("id"), msg["method"]
@@ -328,10 +330,38 @@ def make_handler(app):
         def _ip(self):
             return (self.headers.get("X-Forwarded-For") or self.client_address[0]).split(",")[0].strip()
 
-        def _json_body(self):
+        def _read_body(self, limit):
+            """The request body, or None when it is missing or over the limit. Reads a Content-Length body or a
+            chunked one (some MCP clients and proxies send chunked bodies with no Content-Length)."""
+            if "chunked" in self.headers.get("Transfer-Encoding", "").lower():
+                out = b""
+                while True:
+                    line = self.rfile.readline(1024)
+                    try:
+                        size = int(line.split(b";")[0].strip() or b"0", 16)
+                    except ValueError:
+                        return None
+                    if size == 0:
+                        while self.rfile.readline(1024) not in (b"\r\n", b"\n", b""):
+                            pass
+                        break
+                    if len(out) + size > limit:
+                        return None
+                    out += self.rfile.read(size)
+                    self.rfile.readline(1024)
+                return out or None
             try:
                 n = int(self.headers.get("Content-Length", "0"))
-                return json.loads(self.rfile.read(n)) if 0 < n <= 20000 else {}
+            except ValueError:
+                return None
+            if n <= 0 or n > limit:
+                return None
+            return self.rfile.read(n)
+
+        def _json_body(self):
+            raw = self._read_body(20000)
+            try:
+                return json.loads(raw) if raw else {}
             except ValueError:
                 return {}
 
@@ -373,14 +403,11 @@ def make_handler(app):
             if not key:
                 return self._send(401, {"error": "A Build Room access key is required."},
                                   {"WWW-Authenticate": 'Bearer realm="buildroom"'})
-            try:
-                n = int(self.headers.get("Content-Length", "0"))
-            except ValueError:
-                n = 0
-            if n <= 0 or n > MAX_BODY:
+            raw = self._read_body(MAX_BODY)
+            if not raw:
                 return self._send(400, {"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "Bad body"}})
             try:
-                msg = json.loads(self.rfile.read(n))
+                msg = json.loads(raw)
             except ValueError:
                 return self._send(400, {"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "Parse error"}})
             if isinstance(msg, list):
