@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import webinar_check as wc  # noqa: E402
 
 TS = re.compile(r"(\d{1,2}):(\d{2}):(\d{2})(?:[.,](\d{1,3}))?\s*-->\s*(\d{1,2}):(\d{2}):(\d{2})")
-TYPICAL = re.compile(r"\b(typical|typically|most clients|most people|on average|usually|results vary)\b", re.I)
+TYPICAL = re.compile(r"\b(typical|typically|most clients (get|see|have|reach)|on average|results vary|not typical of)\b", re.I)
 ASK = re.compile(r"\?|\b(type|put|drop) (it |that |a |your |yes |1 |2 |one )?.{0,20}(in|into) the chat\b|\bin the chat\b", re.I)
 STOP = set("about after again also because been before being could does doing from have here into just like make more "
            "most much only other over really should some still such than that their them then there these they this "
@@ -61,9 +61,8 @@ def read_transcript(path):
         t = ln.strip()
         if not t or t == "WEBVTT" or t.isdigit() or t.startswith("NOTE"):
             continue
-        if cur is None:
+        if cur is None:  # a plain transcript: one untimed cue per line
             cues.append([None, None, "", t])
-            cur = cues[-1] if False else None
             continue
         sp = re.match(r"^([^:]{1,40}):\s+(.*)", t)
         if sp and not cur[3]:
@@ -250,7 +249,7 @@ def review(a):
     unl = []
     for i, c in enumerate(pre):
         if (wc.MONEY.search(c[3]) or wc.PCT.search(c[3])) and wc.EARN.search(c[3]):
-            near = " ".join(x[3] for x in pre[max(0, i - 2): i + 3])
+            near = " ".join(x[3] for x in pre[max(0, i - 1): i + 2])
             if not TYPICAL.search(near):
                 unl.append(c[3][:70])
     line("unlabelled_proof", "FIX" if unl else "PASS", ("said without the typical result: " + " | ".join(unl[:3])) if unl
@@ -299,7 +298,7 @@ def review(a):
             peak = max(present(people, m) for m in range(0, int((end or L or 60)) + 1))
             at2 = present(people, 2)
             ao = present(people, o_act) if o_act is not None else None
-            ae = present(people, (end or L) - 1)
+            ae = present(people, min(end or L, L or end) - 1)
             run.update({"attended": att, "peak": peak, "at_offer": ao, "at_end": ae})
             att_lines.append(f"{att} people attended; {at2} there at minute 2, peak {peak} at once, "
                              f"{ao if ao is not None else '?'} when the offer started, {ae} at the end")

@@ -57,7 +57,8 @@ The offer itself (`close.md`), the one belief (`belief.md`), the proof bank (`pr
 - `close`: `checkout`, `call` or `both`, matching `close.md`.
 - `recorded`: `true` only for the evergreen version (`evergreen.md`).
 - Segment `kind`: `lobby`, `agreement`, `promise`, `story`, `teach`, `guest`, `build`, `proof`, `break`, `transition`, `offer`, `qa`, `close`, `recap`. Lobby minutes run before the start time and are not counted in `length_min`.
-- Every `teach` block carries `belief` (1–3) and `loop`. Proof is cited by the proof bank's ID and class only; the words stay in the proof bank.
+- Every `teach` block carries `belief` (1–3) and `loop`. Proof is cited by the proof bank's ID and class only (`{"id", "class", "typical", "label"}`); the words stay in the proof bank. A paid-program result (class D) carries `"label": "paid-program result"` and is introduced as one; a money or paid-program result (B or D) carries `typical`.
+- The `offer` block carries `asks` (how many times the offer is asked for; three is the aim).
 - Money appears only in the `offer`, `qa` and `close` blocks, copied from `close.md`; `webinar_check.py` compares every figure.
 - Placeholders written by `outline` look like `[write: …]`; the check fails any left.
 - `runs` is appended by `webinar_review.py review --log`: `{date, version, kind, registered, attended, peak, at_offer, at_end, buyers, calls_booked}`.

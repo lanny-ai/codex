@@ -99,14 +99,14 @@ def bf_list(text, label):
         if re.search(label, ln, re.I):
             on = True
             rest = re.split(r":\*?\*?", ln, maxsplit=1)
-            if len(rest) > 1 and len(norm(rest[1]).split()) >= 3:
-                out += [x.strip() for x in re.split(r"[;·]", rest[1]) if len(norm(x).split()) >= 3]
+            if len(rest) > 1 and norm(rest[1]):
+                out += [x.strip() for x in re.split(r"[;·]", rest[1]) if len(norm(x).split()) >= 2]
             continue
         if on:
             m = re.match(r"\s+[-*]\s+(.*)", ln) or re.match(r"[-*]\s+(?!\*\*)(.*)", ln)
             if m and not m.group(1).startswith("**"):
                 item = m.group(1).strip().strip('"“”')
-                if len(norm(item).split()) >= 3 and item not in ("—", "-"):
+                if len(norm(item).split()) >= 2 and item not in ("—", "-"):
                     out.append(item)
                 continue
             on = False
@@ -326,10 +326,10 @@ def run(a):
     item("refused_tactics", not hits, "none of the refused tactics" if not hits else "; ".join(hits))
 
     # recording notice
-    early = "\n".join(seg_text(s) for s in body if st.get(s.get("id"), 99) < 5)
+    spoken = lambda s: "\n".join(strings({k: s.get(k) for k in ("say", "notes", "chat_prompt", "slides")}))
+    early = "\n".join(spoken(s) for s in body if st.get(s.get("id"), 99) < 5)
     if rec:
-        ok = bool(re.search(r"\brecord(ed|ing)\b", early + " " + str(spec.get("title", "")), re.I)) and \
-            bool(re.search(r"recorded|recording of", early, re.I))
+        ok = bool(re.search(r"\brecording of\b|\bthis is a recording\b|\brecorded (session|version|earlier)\b", early, re.I))
         item("recording_notice", ok, "labelled as recorded in the opening" if ok else
              "a recorded version must say in its opening that it is a recording of a session run live")
     else:
