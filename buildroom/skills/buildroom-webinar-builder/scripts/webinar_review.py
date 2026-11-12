@@ -29,9 +29,14 @@ from pathlib import Path  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import webinar_check as wc  # noqa: E402
 
-TS = re.compile(r"(\d{1,2}):(\d{2}):(\d{2})(?:[.,](\d{1,3}))?\s*-->\s*(\d{1,2}):(\d{2}):(\d{2})")
+TS = re.compile(r"(?:(\d{1,2}):)?(\d{2}):(\d{2})(?:[.,](\d{1,3}))?\s*-->\s*(?:(\d{1,2}):)?(\d{2}):(\d{2})")
 TYPICAL = re.compile(r"\b(typical|typically|most clients (get|see|have|reach)|on average|results vary|not typical of)\b", re.I)
 ASK = re.compile(r"\?|\b(type|put|drop) (it |that |a |your |yes |1 |2 |one )?.{0,20}(in|into) the chat\b|\bin the chat\b", re.I)
+WATCH_FIX = {"block_timings": "Trim the blocks that ran long, starting with the longest",
+             "sounds_read": "Speak from the prompts rather than reading the notes; pause between sentences",
+             "interaction": "Ask the planned chat prompt in every block, out loud",
+             "offer_said_three": "Ask for the offer three times, with the link on screen and in the chat",
+             "time_to_offer": "Start the offer a little sooner", "total_length": "Trim a few minutes so it ends on time"}
 STOP = set("about after again also because been before being could does doing from have here into just like make more "
            "most much only other over really should some still such than that their them then there these they this "
            "those very want what when where which while will with would your yours you".split())
@@ -55,7 +60,7 @@ def read_transcript(path):
         m = TS.search(ln)
         if m:
             h, mi, s, _, h2, m2, s2 = m.groups()
-            cur = [int(h) * 60 + int(mi) + int(s) / 60, int(h2) * 60 + int(m2) + int(s2) / 60, "", ""]
+            cur = [int(h or 0) * 60 + int(mi) + int(s) / 60, int(h2 or 0) * 60 + int(m2) + int(s2) / 60, "", ""]
             cues.append(cur)
             continue
         t = ln.strip()
@@ -71,6 +76,20 @@ def read_transcript(path):
     return [tuple(c) for c in cues if c[3]]
 
 
+CHAT_NAMES = set()
+
+
+def redact(text, extra=()):
+    """A chat question as asked, without emails, phone numbers, @mentions or the names of people in the chat."""
+    t = re.sub(r"[\w.+-]+@[\w-]+\.[\w.]+", "[email]", text)
+    t = re.sub(r"\+?\d[\d ().-]{7,}\d", "[number]", t)
+    t = re.sub(r"@\w+", "@[name]", t)
+    for n in set(CHAT_NAMES) | set(extra):
+        if n and n[0].isalpha():
+            t = re.sub(r"\b" + re.escape(n) + r"\b", "[name]", t)
+    return t
+
+
 def read_chat(path, start_hhmm=None):
     """[(minute, is_question, text)] from a Zoom chat .txt; clock times are made relative to the start."""
     try:
@@ -82,7 +101,8 @@ def read_chat(path, start_hhmm=None):
     for ln in raw.splitlines():
         m = rx.match(ln.strip())
         if m:
-            h, mi, s, _who, text = m.groups()
+            h, mi, s, who, text = m.groups()
+            CHAT_NAMES.update(w for w in re.split(r"\s+", re.sub(r"\(.*?\)", "", who)) if len(w) > 1)
             cur = [int(h) * 60 + int(mi) + int(s or 0) / 60, text.strip()]
             out.append(cur)
         elif cur is not None and ln.strip():
@@ -107,30 +127,55 @@ def parse_dt(s):
     return None
 
 
-def read_attendance(path, date_s, start_hhmm):
-    """Per person, merged (join, leave) minutes from the start. People are keyed by email or name, never written."""
+def read_attendance(path, date_s, start_hhmm, exclude=()):
+    """Per person, merged (join, leave) minutes from the start. Reads Zoom's Meetings participants report and the
+    Webinar attendee report (only its Attendee section; Host and Panelist sections are skipped). People are keyed by
+    email, or by name when the email is blank (guests), so a rejoin is one person. The host is left out.
+    Names and emails are used only to count; none is written."""
     try:
         text = Path(path).read_text(errors="replace")
     except Exception as e:
         refuse(f"cannot read {path}: {e}")
     lines = text.splitlines()
-    hdr = next((i for i, ln in enumerate(lines) if re.search(r"join time", ln, re.I) and re.search(r"leave time", ln, re.I)), None)
-    if hdr is None:
-        refuse(f"{path}: no 'Join Time' and 'Leave Time' columns (export the attendee or participants report as CSV)")
-    rows = list(csv.DictReader(lines[hdr:]))
-    cols = rows[0].keys() if rows else []
-    jc = next(c for c in cols if re.search(r"join time", c, re.I))
-    lc = next(c for c in cols if re.search(r"leave time", c, re.I))
-    kc = next((c for c in cols if re.search(r"email", c, re.I)), None) or next((c for c in cols if re.search(r"name", c, re.I)), None)
     sh, sm = (int(x) for x in start_hhmm.split(":"))
     t0 = datetime.combine(date.fromisoformat(date_s), datetime.min.time()).replace(hour=sh, minute=sm)
-    people = {}
-    for i, r in enumerate(rows):
-        j, l = parse_dt(r.get(jc, "")), parse_dt(r.get(lc, ""))
+    excl = {x.strip().lower() for x in exclude if x and x.strip()}
+    people, found, section, hdr = {}, False, "", None
+    for i, ln in enumerate(lines):
+        cells = next(csv.reader([ln])) if ln.strip() else []
+        low = [c.strip().lower() for c in cells]
+        if any("join time" in c for c in low) and any("leave time" in c for c in low):
+            hdr = low
+            found = True
+            continue
+        if not cells or not any(c.strip() for c in cells):
+            continue
+        if hdr is None or len(cells) < 2 or not any(parse_dt(c) for c in cells):
+            label = " ".join(low)
+            if re.search(r"\b(host|panelist|attendee|participant)s? details\b|^(host|panelist|attendee)", label):
+                section = label
+                hdr = None if not re.search(r"attendee|participant", label) else hdr
+            continue
+        if re.search(r"\b(host|panelist)", section) and not re.search(r"attendee", section):
+            continue
+        row = dict(zip(hdr, cells))
+        jc = next((k for k in hdr if "join time" in k), None)
+        lc = next((k for k in hdr if "leave time" in k), None)
+        j, l = parse_dt(row.get(jc, "") or ""), parse_dt(row.get(lc, "") or "")
         if not j or not l:
             continue
-        k = (r.get(kc) or f"row{i}").strip().lower() if kc else f"row{i}"
-        people.setdefault(k, []).append(((j - t0).total_seconds() / 60, (l - t0).total_seconds() / 60))
+        ek = next((k for k in hdr if "email" in k), None)
+        nk = next((k for k in hdr if "name" in k), None)
+        name = (row.get(nk) or "").strip()
+        name = re.sub(r"\s*\(.*\)\s*$", "", name).strip().lower()  # "Name (Original Name)"
+        if name in excl or (row.get("attended", "").strip().lower() == "no"):
+            continue
+        key = (row.get(ek) or "").strip().lower() or name or f"row{i}"
+        if "host" in (row.get("role", "") or "").lower():
+            continue
+        people.setdefault(key, []).append(((j - t0).total_seconds() / 60, (l - t0).total_seconds() / 60))
+    if not found:
+        refuse(f"{path}: no 'Join Time' and 'Leave Time' columns (export the attendee or participants report as CSV)")
     return people
 
 
@@ -153,9 +198,11 @@ def find_block_starts(spec, cues):
     starts = {}
     if not spec or not cues or cues[0][0] is None:
         return starts
+    st, _ = plan_times(spec)
     for s in spec.get("segments") or []:
+        floor = st.get(s.get("id"), (0,))[0] * 0.6  # a block's words said early (the agenda names the offer) are not its start
         for ph in cue_phrases(s):
-            hit = next((c[0] for c in cues if ph in wc.norm(c[3])), None)
+            hit = next((c[0] for c in cues if c[0] >= floor and ph in wc.norm(c[3])), None)
             if hit is not None:
                 starts[s.get("id")] = round(hit, 1)
                 break
@@ -163,15 +210,19 @@ def find_block_starts(spec, cues):
 
 
 def offer_start(spec, cues, planned):
+    """When the offer began. The agenda names the offer (it must), so the search starts well into the talk:
+    at 60% of the planned offer start, or the planned transition, whichever is earlier."""
     if not cues or cues[0][0] is None:
         return None
-    seg = next((s for s in (spec or {}).get("segments", []) if s.get("kind") == "offer"), None)
+    segs = (spec or {}).get("segments", [])
+    seg = next((s for s in segs if s.get("kind") == "offer"), None)
     phrases = cue_phrases(seg) if seg else []
+    st, _ = plan_times(spec) if spec else ({}, 0)
+    trans = next((v[0] for v in st.values() if v[2].get("kind") == "transition"), None)
+    floor = min(x for x in ((planned or 0) * 0.6, trans if trans is not None else 10 ** 6))
     for c in cues:
-        tx = wc.norm(c[3])
-        if any(p in tx for p in phrases):
+        if c[0] >= floor and any(p in wc.norm(c[3]) for p in phrases):
             return round(c[0], 1)
-    floor = (planned or 0) * 0.5
     for c in cues:
         if c[0] >= floor and (wc.MONEY.search(c[3]) or re.search(r"how (i|we) can help|here'?s (the|my) offer", c[3], re.I)):
             return round(c[0], 1)
@@ -199,6 +250,10 @@ def review(a):
     if not cues:
         refuse(f"{a.transcript}: no transcript text found")
     timed = cues[0][0] is not None
+    warn = None
+    if not timed and Path(a.transcript).suffix.lower() in (".vtt", ".srt"):
+        warn = (f"{Path(a.transcript).name} has no timings this script can read, so the timing lines are left out; "
+                "export the transcript again as .vtt with timestamps")
     planned_st, planned_len = plan_times(spec) if spec else ({}, None)
     L = (spec or {}).get("length_min") or planned_len
     host = str(((spec or {}).get("roles") or {}).get("host", "") or (spec or {}).get("presenter", "")).lower()
@@ -208,7 +263,7 @@ def review(a):
     lines, fixes = [], []
 
     def line(cid, verdict, detail, fix=None):
-        lines.append({"id": cid, "verdict": verdict, "detail": detail})
+        lines.append({"id": cid, "verdict": verdict, "detail": detail, "_fix": fix})
         if verdict == "FIX" and fix:
             fixes.append((cid, fix))
 
@@ -258,7 +313,7 @@ def review(a):
     longs = [s for s in sents if len(s.split()) > 45]
     script_ngrams = set()
     for s in (spec or {}).get("segments", []):
-        for x in wc.strings(s.get("say")) + wc.strings(s.get("notes")):
+        for x in wc.strings(s.get("notes")) + [sl.get("notes", "") for sl in s.get("slides") or []]:
             w = wc.norm(x).split()
             script_ngrams |= {" ".join(w[i:i + 8]) for i in range(len(w) - 7)}
     tw = wc.norm(" ".join(c[3] for c in hcues)).split()
@@ -287,12 +342,16 @@ def review(a):
          "Remove the line; say the honest version (honesty-rules.md)")
 
     res = {"ok": True, "kind": a.kind, "timed": timed, "offer_at": o_act, "length": end, "lines": lines}
+    if warn:
+        res["warning"] = warn
     run = {"date": (spec or {}).get("date") or date.today().isoformat(), "version": (spec or {}).get("version", 1), "kind": a.kind}
 
     # ---- a live run: attendance, chat, numbers
     att_lines, chat_lines = [], []
     if a.kind == "run":
-        people = read_attendance(a.attendance, spec["date"], spec["start"]) if a.attendance and spec else None
+        people = (read_attendance(a.attendance, spec["date"], spec["start"],
+                                  [str((spec.get("roles") or {}).get("host", "")), str(spec.get("presenter", ""))])
+                  if a.attendance and spec else None)
         if people:
             att = len(people)
             peak = max(present(people, m) for m in range(0, int((end or L or 60)) + 1))
@@ -325,7 +384,7 @@ def review(a):
                 kw = [w for w in wc.norm(tx).split() if len(w) > 4 and w not in STOP][:4]
                 after = wc.norm(" ".join(c[3] for c in hcues if c[0] is None or c[0] >= t - 0.5))
                 if kw and sum(1 for w in kw if w in after) < min(2, len(kw)):
-                    unans.append(tx[:100])
+                    unans.append(redact(tx)[:100])
             chat_lines.append(f"{sum(1 for x in chat if x[1])} questions asked; {len(unans)} not answered aloud")
             chat_lines += [f"  - \"{u}\"" for u in unans[:8]]
             if unans:
@@ -342,7 +401,14 @@ def review(a):
             res["buy_rate"] = round(run["buyers"] / run["attended"], 3)
         res["run"] = run
 
-    top = [f for f in fixes][:3]
+    for x in lines:  # fill the three with WATCH lines when there are fewer than three FIX lines
+        if len(fixes) >= 3:
+            break
+        if x["verdict"] == "WATCH" and x["id"] not in {c for c, _ in fixes}:
+            fixes.append((x["id"], x.get("_fix") or WATCH_FIX.get(x["id"], x["detail"])))
+    top = fixes[:3]
+    for x in lines:
+        x.pop("_fix", None)
     md = [f"# {'Rehearsal' if a.kind == 'rehearsal' else 'Run'} scorecard: {(spec or {}).get('title', a.transcript)}"
           f" (version {(spec or {}).get('version', 1)})", "",
           "| Line | Verdict | Detail |", "|---|---|---|"]

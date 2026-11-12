@@ -4,7 +4,7 @@ _One file. Every Build Room session reads it before asking you anything, and upd
 
 **Owner:** [your name]
 **Business:** [business name]
-**File version:** 1.6
+**File version:** 1.7
 **Last updated:** [YYYY-MM-DD] by [session name]
 
 > **How to use this file:** Attach or paste it at the start of any Build Room session. The session will read it, skip every question it already answers, and hand you back an updated copy at the end. Replace your saved copy with the updated one. You can edit anything by hand at any time — your edits win.
@@ -337,7 +337,7 @@ _Built by: Video Director · Requires: §1, §2; best with §3, §4, §17_
 ## 20. Launches & Events
 
 **Status:** not started · **Updated:** — · **By:** —
-_Built by: Event Launcher · Requires: §1, §2, §3; best with §4, §6, §16, §17_
+_Built by: Event Launcher (the Webinar line: Webinar Builder) · Requires: §1, §2, §3; best with §4, §6, §16, §17_
 
 - **Current launch** (name · format · dates and time zone · goal in buyers and cash · status):
 - **The one belief** (and the three that support it):
@@ -348,6 +348,7 @@ _Built by: Event Launcher · Requires: §1, §2, §3; best with §4, §6, §16, 
 - **Launch gate** (pre-invite · day before · close morning · cart — each GO or HOLD with its date):
 - **Results** (registered · live Day 1 / 2 / 3 · at the close · buyers by tier or calls booked, held, closed · cash · booked · refunds):
 - **Lessons for next time** (top three leaks · what to protect):
+- **Webinar** (talk version · format and length · the three beliefs · last check GO or HOLD and date · last rehearsal score · last run's three lessons · folder launches/<slug>/webinar/):
 - **Past launches** (name · date · registered · buyers · cash — one line each):
   - —
 - **Launch folder:** [launches/YYYY-MM-name/]

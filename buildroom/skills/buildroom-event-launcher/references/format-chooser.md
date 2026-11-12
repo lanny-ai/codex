@@ -40,7 +40,7 @@ Teach one thing they can apply that day; work it live; show proof; offer the nex
 
 ## 5. The live webinar (60–90 minutes)
 
-A hook and the host's story; the one belief and three false beliefs broken in turn [practitioner: Brunson's Perfect Webinar structure, via secondary guides; Jason Fladlien's one-to-many method]; the offer in about the last third; Q&A as objection handling. Run it two or three times to a small list; offer a replay with a real expiry.
+A hook and the host's story; the one belief and three false beliefs broken in turn [practitioner: Brunson's Perfect Webinar structure, via secondary guides; Jason Fladlien's one-to-many method]; the offer in about the last third; Q&A as objection handling. Run it two or three times to a small list; offer a replay with a real expiry. The **Webinar Builder** writes the hour itself ("build my webinar"): the minute map, the talk, slides, Q&A bank, moderator sheet and a go-live check; it can also write each bootcamp day's talk.
 
 ## 6. The founding-member launch
 

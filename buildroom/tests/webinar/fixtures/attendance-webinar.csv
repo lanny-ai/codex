@@ -1,0 +1,16 @@
+Attendee Report
+Report Generated:,"Dec 3, 2026 03:30:00 PM"
+Topic,Webinar ID,Actual Start Time,Actual Duration (minutes),# Registered,# Cancelled,Unique Viewers,Total Users,Max Concurrent Views
+How to Price,123 456 789,"Dec 3, 2026 01:55:00 PM",65,12,0,3,5,3
+Host Details,
+Attended,User Name (Original Name),Email,Join Time,Leave Time,Time in Session (minutes),Country/Region Name
+Yes,Dana Ruiz,dana@example.com,"Dec 3, 2026 01:50:00 PM","Dec 3, 2026 03:05:00 PM",75,United States
+Panelist Details,
+Attended,User Name (Original Name),Email,Join Time,Leave Time,Time in Session (minutes),Country/Region Name
+Yes,Sam Ruiz,sam@example.com,"Dec 3, 2026 01:50:00 PM","Dec 3, 2026 03:05:00 PM",75,United States
+Attendee Details,
+Attended,User Name (Original Name),First Name,Last Name,Email,Join Time,Leave Time,Time in Session (minutes),Country/Region Name
+Yes,Pat Lee,Pat,Lee,pat@example.com,"Dec 3, 2026 01:59:00 PM","Dec 3, 2026 03:00:00 PM",61,United States
+Yes,Kim Ode,Kim,Ode,kim@example.com,"Dec 3, 2026 02:01:00 PM","Dec 3, 2026 02:45:00 PM",44,Canada
+Yes,Kim Ode,Kim,Ode,kim@example.com,"Dec 3, 2026 02:47:00 PM","Dec 3, 2026 02:59:00 PM",12,Canada
+No,Lou Grant,Lou,Grant,lou@example.com,--,--,0,United States
