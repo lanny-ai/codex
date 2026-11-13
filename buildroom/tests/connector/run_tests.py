@@ -128,7 +128,7 @@ def main():
         for bad in ("../skills", "buildroom-os/../x", "nope", "", None):
             check(f"start_session refuses skill {bad!r}", text(call(url, key, "buildroom_start_session", {"skill": bad})[1])[1])
         t, _ = text(call(url, key, "buildroom_whats_new")[1])
-        check("whats_new: the newest release first", t.startswith("| `BuildRoom_OS_2026-11-11.zip`"), t[:60])
+        check("whats_new: the newest release first", t.startswith("| `BuildRoom_OS_2026-11-13.zip`"), t[:60])
         check("unknown tool: JSON-RPC -32602", call(url, key, "buildroom_delete_everything")[1]["error"]["code"] == -32602)
 
         # ---- transport edge cases ---------------------------------------------------------

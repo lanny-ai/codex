@@ -20,6 +20,7 @@ Brain/                          the vault, a plain folder on local disk (never O
     prompts/                    reusable prompts and routines
   search/                       the question map, answer-page drafts, the Business Profile record and the monthly citation checks (the Search & Answer Engine)
   launches/                     one folder per launch event, plus a debrief note each and _index.md (the Event Launcher reads these before planning the next one; a webinar's talk, deck and scorecards sit in its webinar/ subfolder)
+  Design/                       the Website Design Studio: Taste Vault/ (screenshots you like, filed and read), one folder per page designed, and System/ (your locked colours, fonts and sizes, read by every skill that designs)
   External/                     what watchers write; never edited by hand until promoted
   memory/                       session logs, tasks/open, tasks/done
   templates/                    the note templates below
@@ -133,5 +134,6 @@ tags: []
 | Gap finder | "Tell me what is thin or missing in my vault for [goal], then research the web to fill the single biggest gap." | Monthly |
 | Save a command | "Save what you just did as a command called /[name] so I can run it with one word." | After any useful run |
 | Watchers | see the Source Watcher elective | Weekly per source |
+| Taste top-up | "Sort my taste vault." (after dropping in three screenshots of designs that caught your eye this week) | Weekly, 5 minutes |
 
 Scheduling is spoken: "run this every weekday at 7am." Confirm which mechanism the tool created (a scheduled task, cron, launchd) and where it logs.

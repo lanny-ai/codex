@@ -34,6 +34,8 @@ Load all five before any other work happens.
 
 **Requires §6 (Funnel & Automation) in the Business File — best with §2 (ICA) and §3 (Signature Offer).** This session builds the front door of a funnel and wires its opt-in to the Decision Machine trigger; §6 tells you whether that funnel and sequence exist yet.
 
+**Design System (§22):** if §22 is `complete`, read `Design/System/tokens.json` and `design-system.md` in the member's vault before designing anything: the landing, opt-in and thank-you pages use `tokens.css` and the photo rules. Don't invent a palette or fonts. If §22 is empty, carry on as before and offer **Website Design Studio** once ("make my website look like me").
+
 If §6 is missing, follow the protocol's two-path fallback: recommend the **Funnel Map** session first, or proceed with the provisional interview — the page and automation still get built, but mark §7 `provisional` and note in the GHL instructions that the Decision Machine trigger step is pending until the funnel session runs.
 
 ## The Member Experience
