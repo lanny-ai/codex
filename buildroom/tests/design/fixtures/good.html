@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en" data-eyebrows="off" data-head-italic="off" data-buttons="solid" data-photo="natural" data-hero="split" data-texture="none" data-density="regular" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Second Act Plan</title>
+<style>
+:root {
+  --c-bg: #ffffff; --c-surface: #eef3f0; --c-ink: #16211c; --c-muted: #43524a;
+  --c-accent: #1f5c46; --c-accent-ink: #ffffff; --c-line: #cdd8d2;
+  --font-head: "Young Serif", Georgia, serif; --font-body: "Atkinson Hyperlegible Next", system-ui, sans-serif;
+  --w-head: 600; --size-base: 19px; --scale: 1.25; --measure: 64ch; --leading: 1.6;
+  --space: 8px; --radius: 4px; --shadow: none; --motion: 1;
+}
+[data-theme="dark"] { --c-bg: #111714; --c-surface: #1b2420; --c-ink: #eef3f0; --c-muted: #b9c6bf; --c-line: #2c3832; --c-accent: #7cc4a5; --c-accent-ink: #0d1411; }
+@media (prefers-reduced-motion: reduce) { :root { --motion: 0; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--c-bg); color: var(--c-ink); font-family: var(--font-body); font-size: var(--size-base); line-height: var(--leading); }
+h1, h2, h3 { font-family: var(--font-head); font-weight: var(--w-head); line-height: 1.15; }
+h1 { font-size: calc(var(--size-base) * var(--scale) * var(--scale) * var(--scale) * var(--scale)); margin: 0 0 calc(var(--space) * 2); }
+main { max-width: 1100px; margin: 0 auto; padding: calc(var(--space) * 4) 16px; }
+.hero { display: grid; gap: calc(var(--space) * 4); align-items: center; }
+[data-hero="split"] .hero { grid-template-columns: 1.1fr 1fr; }
+[data-hero="stacked"] .hero { grid-template-columns: 1fr; }
+@media (max-width: 760px) { [data-hero="split"] .hero { grid-template-columns: 1fr; } }
+.hero img { width: 100%; height: auto; border-radius: var(--radius); }
+[data-photo="mono"] img { filter: grayscale(1); }
+p { max-width: var(--measure); }
+.lede { color: var(--c-muted); }
+.btn { display: inline-block; background: var(--c-accent); color: var(--c-accent-ink); padding: calc(var(--space) * 1.75) calc(var(--space) * 3); border-radius: var(--radius); text-decoration: none; font-weight: 700; box-shadow: var(--shadow); transition: transform calc(var(--motion) * .2s); }
+[data-buttons="outline"] .btn { background: transparent; color: var(--c-accent); border: 2px solid var(--c-accent); }
+.story { background: var(--c-surface); border-top: 1px solid var(--c-line); padding: calc(var(--space) * 4) 16px; }
+[data-texture="paper"] body { background-image: none; }
+[data-density="airy"] main { padding-block: calc(var(--space) * 8); }
+.steps { counter-reset: s; list-style: none; padding: 0; }
+.steps li { margin: 0 0 calc(var(--space) * 3); }
+</style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <div>
+      <h1>Retire from the job, not from yourself</h1>
+      <p class="lede">A 12-week small group for people leaving a long career who want the next ten years to mean something.</p>
+      <a class="btn" href="#join">Book a free call</a>
+    </div>
+    <img src="img/hero.jpg" alt="Margaret on her porch with a notebook" width="800" height="600">
+  </section>
+  <section class="story">
+    <h2>Why the first year is hard</h2>
+    <p>Most people plan the money and forget the Monday mornings. We plan both.</p>
+  </section>
+  <section>
+    <h2>How it works</h2>
+    <ol class="steps">
+      <li><h3>Take stock</h3><p>What you want to keep from work, and what you are glad to leave.</p></li>
+      <li><h3>Try things small</h3><p>Three short experiments before anything big.</p></li>
+      <li><h3>Choose your week</h3><p>A shape for your weeks that you look forward to.</p></li>
+      <li><h3>Keep it going</h3><p>The group keeps you honest after the 12 weeks.</p></li>
+    </ol>
+    <a class="btn" href="#join" id="join">Book a free call</a>
+  </section>
+</main>
+</body>
+</html>

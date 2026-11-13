@@ -36,6 +36,8 @@ Read these before any member-facing work, in this order:
 
 **Requires §2 (Ideal Client Avatar) and §3 (Signature Offer). Substantially better with §4 (Positioning) and a live destination in §5 or §7.** An ad is a promise to a specific person about a specific offer, and it must land on a page that keeps the promise.
 
+**Design System (§22):** if §22 is `complete`, read `Design/System/tokens.json` and `design-system.md` in the member's vault before designing anything: the brand kit's colours, fonts and photo rules come from §22, and the do/don't list goes in every brief. Don't invent a palette or fonts. If §22 is empty, carry on as before and offer **Website Design Studio** once ("make my website look like me").
+
 - §2 or §3 missing: follow the protocol's two-path fallback. Recommend the ICA session first; or run the provisional interview (who, what situation sends them looking, what offer, at what price) and mark §18 `provisional`.
 - §2 holds only `[hypothesis]` language: say the ads will be guesses in the customer's voice, and offer **Audience Insight** first ("Find the words my clients actually use"). Continue if the member chooses; flag every hook that leans on a hypothesis line.
 - No live destination: the ads can be made, but G0 records the destination as proposed and the kit cannot be called upload-ready until the page exists. Route to Lead Capture or Offer Page Copy.

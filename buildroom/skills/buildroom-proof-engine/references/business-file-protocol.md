@@ -1,6 +1,6 @@
 # Business File Protocol
 
-Every Build Room skill follows this protocol. It is what turns 37 standalone sessions into one compounding system: the member's context persists in a single document — the **Build Room Business File** — that every session reads at the start and updates at the end.
+Every Build Room skill follows this protocol. It is what turns 38 standalone sessions into one compounding system: the member's context persists in a single document — the **Build Room Business File** — that every session reads at the start and updates at the end.
 
 A blank copy of the file lives at `references/business-file-template.md`.
 

@@ -4,7 +4,7 @@ _One file. Every Build Room session reads it before asking you anything, and upd
 
 **Owner:** [your name]
 **Business:** [business name]
-**File version:** 1.7
+**File version:** 1.8
 **Last updated:** [YYYY-MM-DD] by [session name]
 
 > **How to use this file:** Attach or paste it at the start of any Build Room session. The session will read it, skip every question it already answers, and hand you back an updated copy at the end. Replace your saved copy with the updated one. You can edit anything by hand at any time — your edits win.
@@ -307,7 +307,7 @@ _Built by: Ad Studio · Requires: §2, §3; best with §4, §7_
 - **Never-say claims:**
 - **Wrong fit** (who the offer is not for):
 - **Proof vault** (location · consented testimonials · real numbers · review count + rating · founder photos):
-- **Brand kit** (1–3 locked assets: face · colour · name · line · shape · fonts):
+- **Brand kit** (1–3 locked assets: face · colour · name · line · shape · fonts; colours and fonts: see §22 once it is complete):
 - **Platforms** (Meta ad account ready · LinkedIn · who approves):
 - **Generation** (provider · monthly cap in provider units · likeness consent on file):
 - **Past results** (campaign · dates · spend · leads · qualified · counting rule):
@@ -372,6 +372,21 @@ _Built by: Search & Answer Engine · Requires: §1, §2; best with §3, §4, §1
 - **Weekly routine** (day · minutes · profile · one page · one mention a month):
 - **Results** (profile calls + directions · bookings by "how did you find us" · Search Console clicks + AI impressions · Bing citations · first citation date):
 - **Search folder:** [search/]
+
+---
+
+## 22. Design System
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: Website Design Studio · Requires: §1, §2; best with §3, §4, §5 or §7, §18_
+
+- **Taste vault** (location · references · collections · "what I keep choosing"):
+- **Directions tried** (names · chosen · why):
+- **Locked system** (palette · fonts · type scale · corners · spacing · motion):
+- **Imagery rules** (own photos / generated · provider · consent):
+- **Do / don't:**
+- **Files** (design-system.md · tokens.json · tokens.css · slides.json · first page):
+- **Used by** (skills that have read it · last date):
 
 ---
 

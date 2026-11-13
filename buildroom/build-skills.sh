@@ -7,7 +7,7 @@ OUT="${1:-dist}"
 mkdir -p "$OUT"
 
 # Skills that carry the shared media toolkit (ledger, generation adapter, provider sign-up).
-MEDIA_SKILLS="buildroom-ad-studio buildroom-video-director"
+MEDIA_SKILLS="buildroom-ad-studio buildroom-video-director buildroom-website-design-studio"
 
 # A shared file edited inside a skill (newer than the shared source and different from it)
 # would be silently overwritten below. Refuse instead, and say where the edit belongs.
