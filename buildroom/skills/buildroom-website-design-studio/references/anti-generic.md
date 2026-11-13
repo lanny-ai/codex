@@ -33,7 +33,7 @@ These are Build Room's own rules, written from what practitioners and the open a
 4. **Hierarchy by size and space, not labels.**
 5. **Spend boldness once.** One memorable element per page (a big photograph, an unusual typeface, a strong colour field). Everything else stays quiet.
 6. **Real over placeholder.** Real copy, real photos, real proof. If something isn't ready, leave a gap the member can see, never a fake.
-7. **The quality floor:** contrast of 4.5:1 or more, body text of 18px or more for a 50+ audience, buttons at least 44px tall, a visible focus ring, works on a 375px phone, a reduced-motion setting.
+7. **The quality floor:** contrast of 4.5:1 or more, body text of 18px or more for a 50+ audience, nothing under 14px (the check blocks text under 12px and warns under 14px), buttons at least 44px tall, a visible focus ring, works on a 375px phone with at least 16px each side, a reduced-motion setting.
 
 ## The A/B, when the member is curious
 

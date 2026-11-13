@@ -32,7 +32,10 @@
   // ---------------------------------------------------------------- state
   var initial = { vars: Object.assign({}, cfg.initial.vars), attrs: Object.assign({}, cfg.initial.attrs) };
   var current = { vars: Object.assign({}, initial.vars), attrs: Object.assign({}, initial.attrs), palette: "", fonts: "" };
-  function setVar(n, v) { current.vars[n] = String(v); root.style.setProperty(n, String(v)); }
+  function isDark() { return root.getAttribute("data-theme") === "dark"; }
+  // While dark mode shows, colour choices are kept for the light look but not painted over the page's dark colours.
+  function setVar(n, v) { current.vars[n] = String(v);
+    if (n.indexOf("--c-") === 0 && isDark()) return; root.style.setProperty(n, String(v)); }
   function setAttr(n, v) { current.attrs[n] = v; root.setAttribute(n, v); }
   var loadedFonts = {};
   function loadFonts(pair) { if (!pair.preview_css || loadedFonts[pair.name]) return; loadedFonts[pair.name] = 1;
@@ -117,11 +120,17 @@
     var span = document.createElement("span"); span.textContent = c.label; wrap.appendChild(span);
     var el;
     if (c.type === "select") { el = document.createElement("select");
+      if (c.id === "palette" || c.id === "fonts") { var ph = document.createElement("option"); ph.value = "";
+        ph.textContent = "As built"; el.appendChild(ph); }
       c.options.forEach(function (o) { var op = document.createElement("option"); op.value = op.textContent = o; el.appendChild(op); }); }
     else if (c.type === "range") { el = document.createElement("input"); el.type = "range"; el.min = c.min; el.max = c.max; el.step = c.step; }
     else { el = document.createElement("input"); el.type = "color"; }
-    el.addEventListener("input", function () { c.apply(el.value); refresh(); });
-    wrap.appendChild(el); g.appendChild(wrap); inputs[c.id] = { c: c, el: el };
+    var out = null;
+    if (c.type === "range") { out = document.createElement("output"); out.className = "bt-val"; }
+    el.addEventListener("input", function () { if (el.value === "" && (c.id === "palette" || c.id === "fonts")) return;
+      c.apply(el.value); if (out) out.textContent = el.value + (c.unit || ""); refresh(); });
+    var holder = document.createElement("span"); holder.className = "bt-in"; holder.appendChild(el); if (out) holder.appendChild(out);
+    wrap.appendChild(holder); g.appendChild(wrap); inputs[c.id] = { c: c, el: el, out: out };
   });
   function syncInputs() {
     C.forEach(function (c) { var el = inputs[c.id].el, v;
@@ -132,7 +141,8 @@
       else if (c.id === "shadow") { var s = getVar("--shadow"); v = Object.keys(SHADOWS).filter(function (k) { return SHADOWS[k] === s; })[0] || "soft"; }
       else if (c.id === "motion") { var m = getVar("--motion"); v = Object.keys(MOTION).filter(function (k) { return MOTION[k] === m; })[0] || "gentle"; }
       else v = root.getAttribute(c.id) || c.options[0];
-      if (v !== undefined && v !== "" && !(typeof v === "number" && isNaN(v))) el.value = v; });
+      if (v !== undefined && !(typeof v === "number" && isNaN(v))) el.value = v;
+      if (inputs[c.id].out) inputs[c.id].out.textContent = el.value + (c.unit || ""); });
   }
   function levels() {
     panel.querySelectorAll(".bt-advanced").forEach(function (n) { n.hidden = !showAdv; });
@@ -174,7 +184,8 @@
   function reset() {
     Object.keys(current.vars).forEach(function (n) { root.style.removeProperty(n); });
     current = { vars: Object.assign({}, initial.vars), attrs: Object.assign({}, initial.attrs), palette: "", fonts: "" };
-    Object.keys(initial.attrs).forEach(function (a) { root.setAttribute(a, initial.attrs[a]); });
+    Object.keys(supportedAttrs).forEach(function (a) {
+      if (Object.prototype.hasOwnProperty.call(initial.attrs, a)) root.setAttribute(a, initial.attrs[a]); else root.removeAttribute(a); });
     syncInputs(); refresh();
   }
   function snapshot(name) {
@@ -184,7 +195,7 @@
     var vars = {}; supportedVars.forEach(function (n) { var v = getVar(n); if (v) vars[n] = v; });
     if (theme === "dark") { root.setAttribute("data-theme", "dark"); COLOR_KEYS.forEach(function (k) { root.style.removeProperty(VAR_OF[k]); }); }
     var attrs = {}; Object.keys(supportedAttrs).forEach(function (a) { var v = root.getAttribute(a); if (v) attrs[a] = v; });
-    if (theme) attrs["data-theme"] = "light";
+    if (theme) attrs["data-theme"] = theme;
     return { name: name, palette: current.palette, fonts: current.fonts, vars: vars, attrs: attrs, saved: new Date().toISOString() };
   }
   function stored() { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { return []; } }
@@ -207,7 +218,8 @@
       var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "tweaks-export.json";
       document.body.appendChild(a); a.click(); a.remove(); }
   });
-  function toggle(show) { panel.hidden = !show; open.setAttribute("aria-expanded", String(show)); if (show) panel.querySelector("select,input,button").focus(); }
+  function toggle(show) { panel.hidden = !show; open.setAttribute("aria-expanded", String(show));
+    root.classList.toggle("bt-is-open", show); if (show) panel.querySelector("select,input,button").focus(); }
   open.addEventListener("click", function () { toggle(panel.hidden); });
   panel.querySelector(".bt-close").addEventListener("click", function () { toggle(false); open.focus(); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !panel.hidden) { toggle(false); open.focus(); } });

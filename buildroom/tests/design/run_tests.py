@@ -240,10 +240,12 @@ def t_directions(tmp, vault):
     share = (P / "share.html").read_text()
     check("--inline puts local images inside the board", code == 0 and "data:image/png;base64" in share)
     check("--inline drops the file links", "Open full size" not in share)
+    code, out = run([PY, DIR, "new", "--project", P, "--name", "Round two A", "--idea", "x", "--for", "y"], tmp)
+    check("a full round refuses a fourth direction unless the next round is started on purpose", code == 1 and "--round 2" in out)
     for n in ("A", "B", "C"):
-        run([PY, DIR, "new", "--project", P, "--name", f"Round two {n}", "--idea", "x", "--for", "y"], tmp)
+        run([PY, DIR, "new", "--project", P, "--name", f"Round two {n}", "--idea", "x", "--for", "y", "--round", "2"], tmp)
     d = pj(run([PY, DIR, "status", "--project", P], tmp)[1])
-    check("a full round moves new directions to the next round", [r["n"] for r in d["rounds"]] == [1, 2], d)
+    check("the next round starts when asked for", [r["n"] for r in d["rounds"]] == [1, 2], d)
     run([PY, DIR, "new", "--project", P, "--name", "Round three", "--idea", "x", "--for", "y", "--round", "3"], tmp)
     code, out = run([PY, DIR, "new", "--project", P, "--name", "Round four", "--idea", "x", "--for", "y", "--round", "4"], tmp)
     check("a fourth round is refused (no slot machine)", code == 1 and "cap" in out)
@@ -350,11 +352,13 @@ console.log(JSON.stringify({info,bg,muted,tells,minSize,adv,warnSmall,darkBg,exp
             check("browser: Escape closes the panel", r["closed"])
             try:
                 e = json.loads(r["exp"])
-                ok = e["presets"][0]["name"] == "Look A" and e["presets"][0]["attrs"].get("data-theme") == "light"
-                export.write_text(r["exp"])
+                ok = (e["presets"][0]["name"] == "Look A" and e["presets"][0]["attrs"].get("data-theme") == "dark"
+                      and e["presets"][0]["vars"].get("--c-bg") == "#ffffff")
+                e["presets"][0]["attrs"]["data-theme"] = "light"      # the member then goes back to light and keeps it
+                export.write_text(json.dumps(e))
             except Exception:
                 ok = False
-            check("browser: Save this look exports the settings (light colours, even in dark mode)", ok, r.get("exp", "")[:200])
+            check("browser: Save this look keeps dark mode as chosen, with the light colours", ok, r.get("exp", "")[:300])
     if not export.exists():
         export.write_text(json.dumps({"schema": "buildroom-tweaks-export/1", "presets": [
             {"name": "Look A", "palette": "Sage", "fonts": "Sturdy & Clear",
@@ -623,6 +627,197 @@ def t_consistency():
     check("the universal CLAUDE.md lists the skill", "buildroom-website-design-studio" in claude)
 
 
+
+# ---------------------------------------------------------------- 8. regressions from the dry run and the review
+def t_regress(tmp):
+    import importlib
+    sys.path.insert(0, str(S))
+    tb = importlib.import_module("tweakbar")
+    w = tmp / "reg"
+    w.mkdir()
+    good = (FX / "good.html").read_text().replace(' <img src="img/hero.jpg" alt="Margaret on her porch with a notebook" width="800" height="600">', "")
+
+    def go(src, *extra, name="r.html", where=None):
+        f = (where or w) / name
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_bytes(src if isinstance(src, bytes) else src.encode())
+        code, out = run([PY, CHECK, "check", "--page", f, *extra], tmp)
+        return code, pj(out)
+    # bake
+    out = tb.bake("<html><style>:root{--c-bg:#fff;--c-ink:#111}</style></html>", {"vars": {"--size-base": "22px"}})
+    check("bake adds a semicolon before a new variable", "--c-ink:#111; --size-base: 22px;" in out, out)
+    out = tb.bake("<html><style>:root{--c-bg:#fff;--size-base:16px} @media (min-width:900px){:root{--size-base:17px}}</style></html>",
+                  {"vars": {"--size-base": "20px"}})
+    check("bake makes the look win over a later :root", "/* buildroom-look */ :root { --size-base: 20px; }" in out, out)
+    out = tb.bake("<html data-theme='light'><style>:root{--c-bg:#fff}</style></html>", {"vars": {"--c-bg": "#fafafa"},
+                                                                                      "attrs": {"data-theme": "dark"}})
+    check("bake replaces a single-quoted toggle instead of adding a second", out.count("data-theme") == 1 and 'data-theme="dark"' in out, out)
+    try:
+        out = tb.bake("<html><style>:root{--c-bg:#fff}</style></html>", {"vars": {"--font-head": '"A\\1", serif'}})
+        ok = "A\\1" in out
+    except Exception as e:
+        ok = False
+    check("bake keeps a backslash in a value without crashing", ok)
+    try:
+        tb.bake("<html><body>no styles</body></html>", {"vars": {"--c-bg": "#fff"}})
+        ok = False
+    except ValueError:
+        ok = True
+    check("bake refuses a page with nowhere to write the look", ok)
+    # palettes
+    fixed, notes = tb.fix_palette({"name": "Sun", "bg": "#ffffff", "surface": "#fff8e1", "ink": "#222222", "muted": "#666666",
+                                   "accent": "#ffd400", "accent_ink": "#ffffff", "line": "#eeeeee"})
+    check("a yellow-accent palette is fixed so every pair passes",
+          fixed and all(dslib.contrast(fixed[f], fixed[b]) >= n for f, b, n in tb.PAIRS), (fixed, notes))
+    check("a palette with no name is refused, not a crash", tb.fix_palette({"bg": "#fff"})[0] is None)
+    check("hsl() colours are accepted in a saved look", not tb.valid_preset({"name": "H", "vars": {"--c-bg": "hsl(210, 20%, 98%)"}}))
+    # the CSS reader feeding the check
+    code, d = go(good.replace("[data-theme=\"dark\"] {", "@media (prefers-color-scheme:dark){:root{--c-bg:#000000;--c-ink:#ffffff}} [data-theme=\"dark\"] {"))
+    check("a minified dark-mode block is not read as the light page", code == 0, d.get("items"))
+    code, d = go(good.replace("--size-base: 19px", "--size-base: 16px").replace("</style>", "@media (min-width:900px){:root{--size-base:19px}}</style>"))
+    check("a bigger size only on wide screens does not pass a phone", code == 1 and "body_size" in items(d))
+    rv = dslib.root_vars(":root{--motion:1} @media (prefers-reduced-motion: reduce){:root{--motion:0}}")
+    check("reduced motion is not the default motion", rv.get("--motion") == "1", rv)
+    code, d = go(good.replace("--c-ink: #16211c", "--c-ink: rgba(22,33,28,.4)"))
+    check("a translucent text colour is a WATCH, not a silent pass", "colour_unread_ink" in items(d))
+    code, d = go(good.replace("--c-ink: #16211c", "--c-ink: lightgray"))
+    check("a named colour is read (and fails contrast)", code == 1 and "contrast_ink_bg" in items(d))
+    code, d = go(good.replace("--size-base: 19px", "--size-base: 1.6rem").replace("* { box-sizing", "html { font-size: 62.5%; } * { box-sizing"))
+    check("rem follows html font-size: 62.5% (1.6rem is 16px)", code == 1 and "body_size" in items(d), d.get("body_px"))
+    css_dir = w / "linked"
+    css_dir.mkdir()
+    (css_dir / "style.css").write_text(":root{--c-bg:#ffffff;--c-ink:#bbbbbb} body{font-size:19px;color:var(--c-ink);background:var(--c-bg)}")
+    bare = '<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>x</title>' \
+           '<link rel="stylesheet" href="style.css?v=2"></head><body><h1>Hi</h1><p>Text</p></body></html>'
+    code, d = go(bare, name="p.html", where=css_dir)
+    check("a stylesheet with ?v=2 is read", code == 1 and "contrast_ink_bg" in items(d), d.get("items"))
+    code, d = go(bare.replace('<link rel="stylesheet" href="style.css?v=2">', ""), name="q.html", where=css_dir)
+    check("a page with no readable colours says so", "contrast_unchecked" in items(d))
+    code, d = go(good.replace(".story {", ".grad { color: #ffffff; background: linear-gradient(#ffffff, #1d4ed8); } .story {"))
+    check("a gradient background is not read as its first colour", "contrast_rule" not in items(d), d.get("items"))
+    code, d = go(good.replace("</main>", '<form><label>Company name <input placeholder="you@example.com"></label></form></main>'))
+    check("a form's 'Company name' label and placeholder hint are not placeholders", "placeholders" not in items(d), d.get("items"))
+    bf = w / "BF.md"
+    bf.write_text("- Clients served so far: 140.\n- 12 weeks\n")
+    code, d = go(good.replace("We plan both.", "We plan both. 140 clients so far."), "--business-file", bf)
+    check("a number from the File followed by a full stop passes", code == 0, d.get("items"))
+    code, d = go(good.replace("We plan both.", "We plan both. 500 happy clients and a 4.9/5 rating."), "--business-file", bf)
+    msg = " ".join(i["message"] for i in d.get("items", []))
+    check("'500 happy clients' and '4.9/5' are caught", code == 1 and "500 happy clients" in msg and "4.9/5" in msg, msg)
+    code, d = go(good, "--business-file", w / "nope.md")
+    check("a mistyped --business-file path is an error, not a quiet pass", code == 2)
+    tok = w / "tokens.json"
+    tok.write_text(json.dumps({"audience": "50plus", "color": {"bg": "#ffffff", "surface": "#eef3f0", "ink": "#16211c", "muted": "#43524a",
+                    "accent": "#1f5c46", "accent_ink": "#ffffff", "line": "#cdd8d2"}, "dark": {},
+                    "font": {"head": {"family": "Young Serif"}, "body": {"family": "Atkinson Hyperlegible Next"}}}))
+    code, d = go(good.replace("h1 { font-size", "h2 { font: 700 2rem 'Papyrus', fantasy; } h1 { font-size"), "--tokens", tok)
+    check("a font set with the font: shorthand is checked against the system", code == 1 and "off_system_fonts" in items(d))
+    code, d = go(good.replace('[data-theme="dark"] {', "[data-theme=dark] {").replace("--c-muted: #b9c6bf", "--c-muted: #333d38"))
+    check("an unquoted [data-theme=dark] block is checked", code == 1 and "contrast_muted_bg_dark" in items(d))
+    check("nested var() fallbacks resolve the outer variable",
+          dslib.resolve("var(--a, var(--b, #000))", {"--a": "#123456"}) == "#123456")
+    code, d = go(good.replace(".lede { color: var(--c-muted); }", ".hero p { color: #8a8a8a; background: #ffffff; } .lede { color: var(--c-muted); }"))
+    check("body text inside .hero gets the 4.5:1 rule, not 3:1", code == 1, d.get("items"))
+    code, d = go(good.replace("</main>", "<details><summary>Question</summary><p>Answer</p></details><button type=\"button\" aria-expanded=\"false\">More</button>"
+                              "<button type=\"button\" aria-expanded=\"false\">Less</button></main>"))
+    check("FAQ and accordion buttons are not competing main actions", "one_action" not in items(d))
+    code, d = go(good.replace(".btn {", '[data-buttons="pill"] .btn { border-radius: 999px; } .btn {'))
+    check("a pill rule kept for the toggle is not a tell", "tell_pill_buttons" not in items(d))
+    code, d = go(good.replace("</main>", '<section><p>Trusted by leading schools</p><img src="x.png" alt="classroom"></section></main>'))
+    check("'trusted by' next to one ordinary photo is still a tell", "tell_empty_logo_row" in items(d))
+    code, d = go(b"\xef\xbb\xbf" + good.replace("We plan both.", "Caf\xe9 mornings.").encode("cp1252", errors="replace"))
+    check("a page saved by Notepad (BOM, Windows-1252) is read, not a traceback", code in (0, 1) and d.get("verdict"))
+    # the taste vault image check with %20 and ?v=
+    v = w / "vault"
+    v.mkdir()
+    run([PY, TV, "init", "--vault", v], tmp)
+    png(v / "Design" / "Taste Vault" / "inbox" / "a.png", 6, 6, (1, 2, 3))
+    run([PY, TV, "sort", "--vault", v], tmp)
+    pg = v / "Design" / "landing-page" / "page"
+    pg.mkdir(parents=True)
+    code, d = go(good.replace("</main>", '<img src="../../Taste%20Vault/collections/unsorted/T-001.png?v=2" alt="x"></main>'), "--vault", v,
+                 name="index.html", where=pg)
+    check("a taste-vault image written with %20 and ?v=2 is caught", code == 1 and "reference_image" in items(d))
+    (v / "Design" / "landing-page" / "design.json").write_text(json.dumps({"audience": "general"}))
+    code, d = go(good.replace("--size-base: 19px", "--size-base: 16px"), name="index.html", where=pg)
+    check("the audience is read from the project's design.json", code == 0 and d.get("audience") == "general", d.get("audience"))
+    # sort keeps the member's folder
+    v2 = w / "vault2"
+    v2.mkdir()
+    run([PY, TV, "init", "--vault", v2], tmp)
+    inbox = v2 / "Design" / "Taste Vault" / "inbox"
+    png(inbox / "a.png", 6, 6, (9, 9, 9))
+    png(inbox / "heroes" / "a.png", 6, 6, (9, 9, 9))
+    d = pj(run([PY, TV, "sort", "--vault", v2], tmp)[1])
+    data = json.loads((v2 / "Design" / "Taste Vault" / "taste.json").read_text())
+    check("a duplicate keeps the member's sub-folder collection", data["refs"][0]["collection"] == "heroes", data["refs"])
+    check("stored paths use forward slashes", "\\" not in data["refs"][0]["file"])
+    # directions: refs, remove, <HEAD>, srcset, pick across depths
+    P = w / "vault" / "Design" / "lp2"
+    run([PY, DIR, "init", "--project", P], tmp)
+    code, out = run([PY, DIR, "new", "--project", P, "--name", "A", "--idea", "x", "--for", "y", "--refs", "T-001,T-404", "--vault", v], tmp)
+    check("a reference not in the taste vault is refused", code == 1 and "T-404" in out)
+    code, out = run([PY, DIR, "new", "--project", P, "--name", "A", "--idea", "x", "--for", "y", "--refs", "T-001", "--vault", v], tmp)
+    check("fewer than three references is a warning", code == 0 and pj(out)["warnings"])
+    code, out = run([PY, DIR, "new", "--project", P, "--name", "B", "--idea", "x", "--for", "y", "--refs", "T-001"], tmp)
+    check("two directions on the same main reference is a warning", any("main reference" in x for x in pj(out)["warnings"]))
+    code, out = run([PY, DIR, "remove", "--project", P, "--name", "B"], tmp)
+    st = pj(run([PY, DIR, "status", "--project", P], tmp)[1])
+    check("remove takes a direction out and keeps its files", code == 0 and st["rounds"][0]["directions"] == ["A"]
+          and (P / "directions" / "removed-r1-b").exists())
+    da = P / "directions" / "r1-a"
+    (da / "img").mkdir(exist_ok=True)
+    png(da / "img" / "s.png", 4, 4, (200, 10, 10))
+    shared = P.parent / "shared"
+    shared.mkdir()
+    png(shared / "bg.png", 4, 4, (10, 200, 10))
+    (da / "css").mkdir()
+    (da / "css" / "s.css").write_text(".x{background:url(../img/s.png)}")
+    (da / "index.html").write_text('<!DOCTYPE html><HTML lang="en"><HEAD class="x"><meta charset="utf-8"><link rel="stylesheet" href="css/s.css">'
+                                   '</HEAD><body><h1>A</h1><img srcset="img/s.png 1x, img/s.png 2x" src="img/s.png" alt="a">'
+                                   '<img src="../../../shared/bg.png" alt="b"></body></HTML>')
+    run([PY, DIR, "board", "--project", P], tmp)
+    board = (P / "directions-round-1.html").read_text()
+    check("the base path goes inside <HEAD class>, never before the doctype",
+          "&lt;HEAD class=&quot;x&quot;&gt;&lt;base href=" in board, board[board.find("srcdoc"):board.find("srcdoc") + 200])
+    run([PY, DIR, "board", "--project", P, "--inline", "--out", "inline.html"], tmp)
+    il = (P / "inline.html").read_text()
+    check("--inline embeds srcset images and a stylesheet's own url()", il.count("data:image/png;base64") >= 4 and "s.png" not in il.split("srcdoc")[1][:0] + il.replace("data:image/png", ""), il.count("data:image/png;base64"))
+    run([PY, DIR, "pick", "--project", P, "--name", "A"], tmp)
+    picked = (P / "page" / "index.html").read_text()
+    check("pick rewrites ../ paths so they still reach the same files", 'src="../../shared/bg.png"' in picked
+          and (P / "page" / "../../shared/bg.png").resolve().exists(), picked[-200:])
+    # the lock
+    sysdir = w / "System"
+    nofont = w / "nofont.json"
+    nofont.write_text(json.dumps({"final": "N", "presets": [{"name": "N", "vars": {"--c-bg": "#ffffff", "--c-surface": "#f3f3f3",
+        "--c-ink": "#111111", "--c-muted": "#444444", "--c-accent": "#1d4ed8", "--c-accent-ink": "#ffffff", "--c-line": "#dddddd",
+        "--size-base": "19px"}}]}))
+    nofont_page = w / "nf.html"
+    nofont_page.write_text("<html><style>:root{--c-bg:#fff}</style></html>")
+    code, out = run([PY, LOCK, "lock", "--tweaks", nofont, "--page", nofont_page, "--out", sysdir], tmp)
+    check("a look with no fonts is refused before anything is written", code == 1 and not sysdir.exists(), out)
+    named = json.loads(nofont.read_text())
+    named["presets"][0]["vars"].update({"--font-head": '"Bitter", serif', "--font-body": '"Source Sans 3", sans-serif'})
+    named["presets"][0]["palette"] = "custom"
+    nofont.write_text(json.dumps(named))
+    code, out = run([PY, LOCK, "lock", "--tweaks", nofont, "--page", nofont_page, "--out", sysdir], tmp)
+    check("the system is named after the look, not 'custom'", code == 0 and json.loads((sysdir / "tokens.json").read_text())["name"] == "N", out)
+    check("design-system.md says 50+, matching the setting", "50+" in (sysdir / "design-system.md").read_text())
+    # the font link on apply
+    page = w / "fl.html"
+    page.write_text('<html><head><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+                    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif"></head>'
+                    '<style>:root{--c-bg:#fff;--font-head:"Young Serif", serif}</style><body></body></html>')
+    out = tb.font_link(tb.bake(page.read_text(), {"fonts": "Dependable", "vars": {}}), {"fonts": "Dependable", "vars": {}})
+    check("apply replaces the direction's own font link with the chosen pair's",
+          out.count("fonts.googleapis.com") == 1 and "Bitter" in out and "gstatic" not in out, out[:300])
+    browser = shutil.which("node") and subprocess.run(["node", "-e", "require('playwright')"], capture_output=True).returncode == 0
+    if browser:
+        code, d = go(good.replace("main { max-width: 1100px; margin: 0 auto; padding: calc(var(--space) * 4) 16px; }",
+                                  "main { max-width: 1100px; margin: 0 auto; padding: calc(var(--space) * 4) 0; }"), "--render")
+        check("render: text touching the phone's edge is a WATCH", "phone_gutter" in items(d), d.get("items"))
+
 def main():
     keep = "--keep" in sys.argv
     tmp = Path(tempfile.mkdtemp(prefix="design-tests-"))
@@ -634,6 +829,7 @@ def main():
         T, page = t_tweakbar(tmp, P)
         sysdir = t_lock(tmp, P, T, page)
         t_check(tmp, vault, sysdir)
+        t_regress(tmp)
         t_consistency()
     finally:
         if keep:

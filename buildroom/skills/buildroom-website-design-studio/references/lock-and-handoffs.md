@@ -16,7 +16,7 @@ design_lock.py lock --tweaks Design/landing-page/tweaks.json --page Design/landi
   - `design-system.md` (the one page for humans, including how to brief a designer or VA)
   - `fonts.md` (what to self-host)
 - Locking again keeps the earlier `tokens.json` as `tokens-v<N>.json` and bumps the version. A re-lock is a deliberate change: say what changed and why, in the Session Log.
-- **Then the check:** `design_check.py check --page <the final page> --tokens Design/System/tokens.json --images Design/landing-page/images.json --vault <vault> --business-file BUILDROOM_BUSINESS_FILE.md --render --out Design/landing-page/check.md`. Only GO goes live.
+- **Then the check:** `design_check.py check --page <the final page> --tokens Design/System/tokens.json --images Design/landing-page/images.json --vault <vault> --business-file BUILDROOM_BUSINESS_FILE.md --copy <approved copy> --render --out Design/landing-page/check.md`. Only GO goes live.
 
 ## The do / don't list
 

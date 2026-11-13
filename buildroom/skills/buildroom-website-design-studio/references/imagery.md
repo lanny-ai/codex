@@ -18,32 +18,36 @@
 
 ## Each batch of images
 
-The shared media toolkit does the paid work (`gen.py` and `ledger.py`, the same copies as Ad Studio and Video Director). Nothing is generated without the member's yes on the list and the cost.
+The shared media toolkit does the paid work (`gen.py` and `ledger.py`, the same copies as Ad Studio and Video Director). Its messages talk about "ads" and "concepts": read them as "the page" and "the images". `render_static.mjs` ships with the toolkit for the Ad Studio and isn't used here. Nothing is generated without the member's yes on the list and the cost.
 
-1. **List what's missing.** For each image: its ID (`IMG-HERO`, `IMG-PLACE`, …), where it goes, the prompt, the shape (16:9 for a hero, 4:5 for a side photo, 1:1 for a small one), and "person: no".
-   - Prompts describe the member's world in plain, specific words.
-   - Name the photo treatment from the system (natural, warm, mono).
-   - Say "no text, no logos, no watermark".
-   - Never "in the style of" a living artist or a reference site.
-2. **Read the prices and model IDs from Kie** before the batch. They change often, and model ID formats vary, so never hard-code them. Write `prices.json` with the date and source (format in `gen.py --help`).
+**Work in one folder:** `Design/landing-page/images/`. Every path below is relative to it.
+
+1. **The list** (`list.md`). For each image:
+   - an ID (`IMG-HERO`, `IMG-PLACE`, …) and where it goes
+   - the prompt, in `<id>.prompt.txt`
+   - the shape: 16:9 for a hero, 4:5 for a side photo, 1:1 for a small one
+   - "person: no"
+
+   Prompts describe the member's world in plain, specific words. Name the photo treatment from the system (natural, warm or mono), and say "no text, no logos, no watermark". Never write "in the style of" a living artist or a reference site.
+2. **Prices and model IDs, read from Kie.ai** before the batch. They change often, and model ID formats vary, so never hard-code them. Write `prices.json` with the date and the source (the format is in `gen.py --help`), then `jobs.json` with one job per image (`kind: image`, `out: ../page/img/<file>`).
    - Rule of thumb [practitioner]: most images cost $0.01–0.12. Three directions with 3–6 images each is usually well under $2 on a mid-tier model.
-3. **The ledger:**
+   - **In demo mode** there are no real prices. Write `prices.json` with `"source": "demo — not real prices"` and say so.
+3. **The quote:** `python3 <skill>/scripts/gen.py --dry-run jobs.json --prices prices.json` prints each request and the total. Show the member the list and the total in credits and dollars.
+4. **The ledger and the member's yes,** in this order, only after the member has seen the quote:
    ```
-   ledger.py init      Design/landing-page/images/project.json --cycle <YYYY-MM>
-   ledger.py gate      P --gate G0 --verdict pass --by producer --ref Design/landing-page/design.json
-   ledger.py plan      P --asset-id IMG-HERO --provider kie --model <resolved id> --prompt-ref images/hero.prompt.txt --kind plate
-   ledger.py gate      P --gate G1 --verdict pass --by reviewer --ref images/list.md
-   ledger.py gate      P --gate G2 --verdict pass --by member --ref "member approved the list and N credits in session"
-   ledger.py authorize P --provider kie --cap <credits the member approved> --units credits --note "…"
-   gen.py --dry-run images/jobs.json --prices images/prices.json      (show the member the quote)
-   gen.py images/jobs.json --project P --prices images/prices.json    (reserve, submit, poll, download)
+   ledger.py init      project.json --cycle <YYYY-MM>            (add --mode demo for a walkthrough: no paid calls)
+   ledger.py gate      project.json --gate G0 --verdict pass --by producer --ref ../design.json
+   ledger.py plan      project.json --asset-id IMG-HERO --provider kie --model <resolved id> --prompt-ref IMG-HERO.prompt.txt --kind plate
+   ledger.py gate      project.json --gate G1 --verdict pass --by reviewer --ref list.md
+   ledger.py gate      project.json --gate G2 --verdict pass --by member --ref "member approved the list and the quote of N credits, <date>"
+   ledger.py authorize project.json --provider kie --cap <the quoted credits plus a small allowance> --units credits --note "…"
+   gen.py jobs.json --project project.json --prices prices.json      (reserve, submit, poll, download)
    ```
-   - **G0** is the design brief.
-   - **G1** is your review of the prompts: no real person, no reference copied, no text in the image.
-   - **G2** is the member's yes, and only the member can give it.
-   - `ledger.py init --mode demo` runs everything except paid calls, for a walkthrough.
-4. **Save each image into the vault straight away.** Kie keeps files for about 14 days and download links expire in about 20 minutes (from the 4o Image docs; unconfirmed for every model). `gen.py` downloads to the `out` path at once.
-5. Compress for the web: about 200 KB per photo, WebP or JPEG, at most 2400px wide for a full-width hero.
+   - Use one `plan` per image, and `--kind plate` for every still image.
+   - **G0** is the design brief. **G1** is your review of the prompts: no real person, no reference copied, no text in the image.
+   - **G2** is the member's yes, and only the member can give it. The ledger's wording for G2 talks about approved ad words; here it means the approved image list and quote.
+5. **Save each image into the vault straight away.** Kie keeps files for about 14 days and download links expire in about 20 minutes (from the 4o Image docs; unconfirmed for every model). `gen.py` downloads to each job's `out` path at once.
+6. Compress for the web: about 200 KB per photo, WebP or JPEG, at most 2400px wide for a full-width hero.
 
 ## images.json: where every picture came from
 

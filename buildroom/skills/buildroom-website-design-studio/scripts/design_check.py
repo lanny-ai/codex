@@ -21,7 +21,7 @@ FIX items block the page (verdict FIX); WATCH items are advice. GO means no FIX 
         missing lang or title · an image not listed in images.json · fixed widths a phone may not fit
 Exit 0 on GO, 1 on FIX, 2 on a usage error. JSON on stdout; --out also writes check.md.
 """
-import argparse, hashlib, json, os, re, shutil, subprocess, sys, tempfile
+import argparse, hashlib, json, os, re, shutil, subprocess, sys, tempfile, urllib.parse
 from datetime import date
 from html.parser import HTMLParser
 from pathlib import Path
@@ -113,11 +113,19 @@ def parse(page_html):
 def page_css(tree, page_dir=None):
     css = "\n".join(tree.styles)
     if page_dir:
-        for href in tree.links:
-            if href and not re.match(r"^(https?:|//|data:)", href):
-                p = Path(page_dir) / href
-                if p.is_file():
-                    css += "\n" + p.read_text(encoding="utf-8", errors="replace")
+        seen = set()
+        todo = [(Path(page_dir), h) for h in tree.links]
+        for m in re.finditer(r"@import\s+(?:url\()?[\"']?([^\"')\s;]+)", css):
+            todo.append((Path(page_dir), m.group(1)))
+        while todo:
+            base, href = todo.pop(0)
+            p = local_path(base, href)
+            if p and p.is_file() and p not in seen:
+                seen.add(p)
+                sub = dslib.read_text(p)
+                css += "\n" + sub
+                for m in re.finditer(r"@import\s+(?:url\()?[\"']?([^\"')\s;]+)", sub):
+                    todo.append((p.parent, m.group(1)))
     inline = []
     for n in tree.root.walk():
         if n is not tree.root and n.attrs.get("style"):
@@ -125,25 +133,37 @@ def page_css(tree, page_dir=None):
     return css + "\n" + "\n".join(inline)
 
 
+def local_path(base, ref):
+    """A local file a page refers to, or None for a web address. Handles %20, ?v=2 and #frag."""
+    if not ref or re.match(r"^(https?:|//|data:|mailto:|tel:|#)", ref.strip(), re.I):
+        return None
+    clean = urllib.parse.unquote(re.split(r"[?#]", ref.strip(), 1)[0])
+    return (Path(base) / clean) if clean else None
+
+
 def to_hex(value, vars_):
+    """An opaque colour as hex, or None (translucent, a gradient, an image, or unreadable)."""
     if not value:
         return None
     v = dslib.resolve(value, vars_).strip().lower()
-    h = dslib.norm_hex(v.split()[0]) if v else None
+    if re.search(r"gradient\(|url\(", v):
+        return None
+    h, _ = dslib.parse_colour(v)
     if h:
         return h
-    m = dslib.RGB_RE.search(v)
-    if m:
-        a = m.group(4)
-        if a is not None:
-            av = float(a.rstrip("%")) / (100 if a.endswith("%") else 1)
-            if av < 0.99:
-                return None
-        return dslib.to_hex(int(m.group(1)), int(m.group(2)), int(m.group(3)))
-    m = dslib.HEX_RE.search(v)
-    if m and len(m.group(0)) not in (5, 9):
-        return dslib.norm_hex(m.group(0))
-    return dslib.NAMED.get(v)
+    first = re.match(r"(#[0-9a-f]{3,8}|(?:rgba?|hsla?)\([^)]*\)|[a-z]+)(?:\s|$)", v)
+    if first:
+        h, _ = dslib.parse_colour(first.group(1))
+        return h
+    return None
+
+
+def colour_problem(value, vars_):
+    if not value:
+        return None
+    v = dslib.resolve(value, vars_).strip().lower()
+    _, why = dslib.parse_colour(v)
+    return why
 
 
 # ---------------------------------------------------------------- the generic tells
@@ -220,7 +240,7 @@ def tells(page_html, page_dir=None):
     # 4. pill buttons everywhere
     pill = html_attrs.get("data-buttons") == "pill"
     for sel, props, _ in rules:
-        if re.search(r"button|\.btn|\.button|\.cta", sel) and "border-radius" in props:
+        if re.search(r"button|\.btn|\.button|\.cta", sel) and "border-radius" in props and "data-buttons" not in sel:
             r = dslib.resolve(props["border-radius"], vars_).strip()
             v = dslib.px(r.split()[0]) if r else None
             if r.endswith("%") and dslib.px(r.split()[0]) and float(re.match(r"[\d.]+", r).group(0)) >= 50:
@@ -261,7 +281,9 @@ def tells(page_html, page_dir=None):
         if n.tag in ("p", "h2", "h3", "span", "div", "small") and LOGO_ROW.search(" ".join(
                 c for c in n.children if isinstance(c, str))):
             box = n.parent or n
-            if not any(d.tag in ("img", "svg", "picture") for d in box.walk()):
+            logos = [d for d in box.walk() if d.tag in ("img", "svg", "picture")]
+            named = [d for d in logos if re.search(r"logo", " ".join(str(d.attrs.get(k, "")) for k in ("src", "alt", "class")), re.I)]
+            if len(logos) < 3 and not named:
                 found.append({"id": "empty_logo_row", "name": "a 'trusted by' line with no real logos",
                               "where": n.all_text()[:60]})
                 break
@@ -270,11 +292,13 @@ def tells(page_html, page_dir=None):
 
 # ---------------------------------------------------------------- the check
 PLACEHOLDER = re.compile(r"lorem ipsum|dolor sit amet|\[write:|\bTODO\b|your (headline|tagline|company|name) here|"
-                         r"headline goes here|example\.com|company name|\bacme\b|john doe|jane doe|\bXX%|\$X\b|"
+                         r"headline goes here|example\.com|\bacme\b|john doe|jane doe|\bXX%|\$X\b|"
                          r"placeholder text", re.I)
 NUMBER_RE = re.compile(r"(?:[$£€]\s?\d[\d,]*(?:\.\d+)?(?:\s?[kKmM]\b)?|\b\d[\d,]*(?:\.\d+)?\s?%|"
-                       r"\b\d[\d,]*\+?\s(?:clients|students|members|people|years|customers|businesses|coaches|reviews|"
-                       r"families|women|men|days|weeks|spots|seats))")
+                       r"\b\d(?:\.\d)?\s?(?:/|out of)\s?5\b|"
+                       r"\b\d[\d,]*\+?\s(?:[a-z-]+\s)?(?:clients|students|members|people|years|customers|businesses|"
+                       r"coaches|reviews|families|women|men|days|weeks|months|spots|seats|subscribers|followers|readers|"
+                       r"sales|downloads|ratings|stars|graduates|leaders|companies|countries|cities|lives|hours))", re.I)
 
 
 def num_core(s):
@@ -289,7 +313,7 @@ def run_render(page, vw=375):
 const {chromium} = require('playwright');
 (async () => {
   const b = await chromium.launch(); const p = await b.newPage({viewport: {width: %d, height: 800}});
-  await p.goto('file://' + process.argv[2], {waitUntil: 'load', timeout: 30000});
+  await p.goto(process.argv[2], {waitUntil: 'load', timeout: 30000});
   const r = await p.evaluate(() => {
     const d = document.documentElement;
     const fs = parseFloat(getComputedStyle(document.body).fontSize);
@@ -297,7 +321,15 @@ const {chromium} = require('playwright');
       if (!el.childNodes.length || ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
       const cs = getComputedStyle(el); if (cs.display === 'none' || cs.visibility === 'hidden') continue;
       min = Math.min(min, parseFloat(cs.fontSize)); }
-    return {scrollWidth: d.scrollWidth, clientWidth: d.clientWidth, bodyPx: fs, minPx: min};
+    let edge = 99, wrapped = [];
+    for (const el of document.querySelectorAll('h1,h2,h3,p,li,blockquote')) {
+      const r = el.getBoundingClientRect(); if (!r.width) continue;
+      edge = Math.min(edge, r.left, d.clientWidth - r.right); }
+    for (const el of document.querySelectorAll('a.btn,a.button,a.cta,button,.btn')) {
+      const cs = getComputedStyle(el), lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.3;
+      const r = el.getBoundingClientRect(); const pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+      if (r.height - pad > lh * 1.6 && el.textContent.trim()) wrapped.push(el.textContent.trim().slice(0, 40)); }
+    return {scrollWidth: d.scrollWidth, clientWidth: d.clientWidth, bodyPx: fs, minPx: min, edge: edge, wrapped: wrapped};
   });
   console.log(JSON.stringify(r)); await b.close();
 })().catch(e => { console.log(JSON.stringify({error: String(e).slice(0, 300)})); process.exit(0); });
@@ -317,7 +349,7 @@ const {chromium} = require('playwright');
                 pass
         env["NODE_PATH"] = os.pathsep.join(paths)
         try:
-            p = subprocess.run([node, str(sp), str(Path(page).resolve())], capture_output=True, text=True, timeout=90,
+            p = subprocess.run([node, str(sp), Path(page).resolve().as_uri()], capture_output=True, text=True, timeout=90,
                                env=env)
         except subprocess.TimeoutExpired:
             return None, "the browser timed out"
@@ -340,7 +372,16 @@ def check(a):
     rules = dslib.css_rules(css)
     vars_ = dslib.root_vars(css)
     tokens = dslib.read_json(a.tokens) if a.tokens else None
-    audience = a.audience or (tokens or {}).get("audience") or "50plus"
+    audience = a.audience or (tokens or {}).get("audience")
+    if not audience:
+        for dj in (page.parent / "design.json", page.parent.parent / "design.json", page.parent.parent.parent / "design.json"):
+            if dj.is_file():
+                audience = dslib.read_json(dj).get("audience")
+                break
+    audience = audience or "50plus"
+    for f in (a.business_file, a.copy, a.images, a.tokens):
+        if f and not Path(f).is_file():
+            return {"ok": False, "error": f"file not found: {f}"}, 2
     min_body = dslib.MIN_BODY_PX_50PLUS if audience == "50plus" else dslib.MIN_BODY_PX
     items = []
 
@@ -348,17 +389,23 @@ def check(a):
         items.append({"level": level, "id": cid, "message": msg, "fix": fix})
 
     # ---- size
-    body_px = dslib.px(dslib.resolve(vars_.get("--size-base"), vars_)) if vars_.get("--size-base") else None
+    root_px = 16.0
+    for sel, props, media in rules:
+        if not media and re.fullmatch(r"\s*(html|:root)\s*", sel) and props.get("font-size"):
+            root_px = dslib.px(dslib.resolve(props["font-size"], vars_), base=16, root=16) or 16.0
+    body_px = dslib.px(dslib.resolve(vars_.get("--size-base"), vars_), root=root_px) if vars_.get("--size-base") else None
     for sel, props, media in rules:
         if re.search(r"(^|[\s,])(body|html)([\s,]|$)", sel) and not media:
             fs = props.get("font-size")
             if not fs and props.get("font"):
                 m = re.search(r"(?:^|\s)((?:var\([^)]*\)|[\d.]+(?:px|rem|em|pt)))\s*(?:/|\s)", dslib.resolve(props["font"], vars_) + " ")
                 fs = m.group(1) if m else None
-            if fs:
-                v = dslib.px(dslib.resolve(fs, vars_))
-                if v and not (sel.strip() == "html" and body_px):
+            if fs and sel.strip() not in ("html", ":root"):
+                v = dslib.px(dslib.resolve(fs, vars_), base=root_px, root=root_px)
+                if v:
                     body_px = v
+                elif not body_px:
+                    body_px = None
     if body_px is None:
         add("WATCH", "body_size", "the body text size is not set; browsers default to 16px",
             f"set --size-base to {min_body}px")
@@ -369,7 +416,7 @@ def check(a):
     for sel, props, media in rules:
         fs = props.get("font-size")
         if fs:
-            v = dslib.px(dslib.resolve(fs, vars_), base=body_px or 16)
+            v = dslib.px(dslib.resolve(fs, vars_), base=body_px or 16, root=root_px)
             if v and (smallest is None or v < smallest[0]):
                 smallest = (v, sel)
     if smallest and smallest[0] < 12:
@@ -387,6 +434,11 @@ def check(a):
                  ("accent_ink", "accent", dslib.AA_TEXT, "button text"),
                  ("accent", "bg", dslib.AA_TEXT if accent_as_text else dslib.AA_LARGE,
                   "links and accent text" if accent_as_text else "buttons against the page")]
+        for k in dslib.COLOR_KEYS:
+            raw = vs.get(dslib.VAR_OF[k])
+            if raw and not c.get(k):
+                add("WATCH", f"colour_unread_{k}{label}", f"{dslib.VAR_OF[k]} ({raw[:30]}) is {colour_problem(raw, vs) or 'unreadable'}, "
+                    "so its contrast was not checked", "use a solid colour (hex, rgb() or hsl()) for the token")
         for fg, bgk, need, what in pairs:
             if c.get(fg) and c.get(bgk):
                 r = dslib.contrast(c[fg], c[bgk])
@@ -396,18 +448,21 @@ def check(a):
                         f"try {dslib.shade_to_contrast(c[fg], c[bgk], need)} for {dslib.VAR_OF[fg]}")
         return c
     colours = pair_check(vars_, "")
+    if not any(colours.values()) and not any(to_hex(props.get("color"), vars_) for _, props, _ in rules):
+        add("WATCH", "contrast_unchecked", "no colours could be read from the page's styles, so contrast was not checked",
+            "put the colours in the --c- variables in a <style> block or a local stylesheet")
     dark = {}
     for sel, props, media in rules:
-        if "data-theme=\"dark\"" in sel.replace("'", "\"") or "prefers-color-scheme: dark" in media:
+        if dslib.is_dark_selector(sel) or "prefers-color-scheme:dark" in dslib.media_key(media):
             dark.update({k: v for k, v in props.items() if k.startswith("--c-")})
     if dark:
         pair_check({**vars_, **dark}, "_dark")
     for sel, props, media in rules:
         fg = to_hex(props.get("color"), vars_)
         bgv = to_hex(props.get("background-color") or props.get("background"), vars_)
-        if fg and bgv and "dark" not in sel and "dark" not in media:
+        if fg and bgv and not dslib.is_dark_selector(sel) and "dark" not in dslib.media_key(media):
             r = dslib.contrast(fg, bgv)
-            large = bool(re.search(r"\bh1\b|\bh2\b|hero|display", sel))
+            large = bool(re.search(r"(^|[\s,>])h[12]\b|\.display\b", sel)) and not re.search(r"\s(p|li|span|a|small)\b", sel)
             need = dslib.AA_LARGE if large else dslib.AA_TEXT
             if r < need and not any(fg in i["message"] and bgv in i["message"] for i in items):
                 add("FIX", "contrast_rule", f"{sel[:50]}: {fg} on {bgv} is {r}:1; it needs {need}:1",
@@ -443,9 +498,12 @@ def check(a):
             fams.add(mono.lower())
         bad = set()
         for sel, props, media in rules:
-            for k in ("font-family", "--font-head", "--font-body"):
+            for k in ("font-family", "--font-head", "--font-body", "font"):
                 if k in props:
-                    f = dslib.first_family(dslib.resolve(props[k], vars_))
+                    val = dslib.resolve(props[k], vars_)
+                    if k == "font":
+                        val = dslib.shorthand_family(val)
+                    f = dslib.first_family(val)
                     if f and f.lower() not in fams and f.lower() not in dslib.GENERIC_FAMILIES:
                         bad.add(f)
         if bad:
@@ -487,25 +545,31 @@ def check(a):
             if r["scrollWidth"] > r["clientWidth"] + 1:
                 add("FIX", "sideways_scroll", f"the page scrolls sideways on a 375px phone ({r['scrollWidth']}px wide)",
                     "find the element wider than the screen: images need max-width:100%")
-            if r.get("bodyPx") and r["bodyPx"] < min_body and not any(i["id"] == "body_size" for i in items):
+            if r.get("edge") is not None and r["edge"] < 12:
+                add("WATCH", "phone_gutter", f"text comes within {max(0, r['edge']):.0f}px of the screen edge on a phone",
+                    "keep at least 16px of space each side")
+            if r.get("wrapped"):
+                add("WATCH", "button_wraps", "a button label wraps onto two lines on a phone: " + "; ".join(r["wrapped"][:3]),
+                    "shorten the label or let the button go full width")
+            if r.get("bodyPx") and r["bodyPx"] < min_body and not any(i["id"] == "body_size" and i["level"] == "FIX" for i in items):
                 add("FIX", "body_size_rendered", f"the body renders at {r['bodyPx']:g}px; this audience needs {min_body}px",
                     "")
 
     # ---- words
     text = tree.root.all_text()
-    ph = sorted({m.group(0) for m in PLACEHOLDER.finditer(src)})
+    ph = sorted({m.group(0) for m in PLACEHOLDER.finditer(text)} | ({"[write: …]"} if "[write:" in src else set()))
     if ph:
         add("FIX", "placeholders", "placeholder text on the page: " + ", ".join(ph[:6]),
             "use the approved copy; never invent a line")
     known = ""
     for f in (a.business_file, a.copy):
         if f and Path(f).is_file():
-            known += Path(f).read_text(encoding="utf-8", errors="replace")
+            known += dslib.read_text(f)
     nums = sorted({m.group(0).strip() for m in NUMBER_RE.finditer(text)})
     if nums:
         if known:
             known_cores = {num_core(m.group(0)) for m in NUMBER_RE.finditer(known)} | set(re.findall(r"\d[\d,.]*", known))
-            known_cores = {k.replace(",", "") for k in known_cores}
+            known_cores = {k.replace(",", "").rstrip(".") for k in known_cores}
             unknown = [n for n in nums if num_core(n).replace(",", "") not in known_cores]
             if unknown:
                 add("FIX", "unsourced_numbers", "numbers on the page that are not in the Business File or the approved "
@@ -537,8 +601,8 @@ def check(a):
             if "taste vault" in s.lower():
                 add("FIX", "reference_image", f"{s[:60]} comes from the taste vault", "references are for mood only")
             continue
-        p = (page.parent / s)
-        if "taste vault" in s.lower() or (p.is_file() and vault_hashes and
+        p = local_path(page.parent, s) or (page.parent / s)
+        if "taste vault" in urllib.parse.unquote(s).lower() or (p.is_file() and vault_hashes and
                                           hashlib.sha256(p.read_bytes()).hexdigest() in vault_hashes):
             add("FIX", "reference_image", f"{s} is a taste-vault reference",
                 "references are for mood only: use the member's photo or a generated image")
@@ -584,8 +648,9 @@ def check(a):
         add("WATCH", "title", "no <title>; the browser tab and search results show the file name", "")
     ctas = set()
     for n in tree.root.walk():
-        if (n.tag == "button" or (n.tag == "a" and re.search(r"\b(btn|button|cta)\b", n.cls()))) and not any(
-                p.tag in ("nav", "header", "footer") for p in ancestors(n)):
+        if ((n.tag == "button" and (n.attrs.get("type") or "submit").lower() == "submit" and "aria-expanded" not in n.attrs)
+                or (n.tag == "a" and re.search(r"\b(btn|button|cta)\b", n.cls()))) and not any(
+                p.tag in ("nav", "header", "footer", "details", "summary") for p in ancestors(n)):
             t = n.all_text().strip().lower()
             if t:
                 ctas.add(t)

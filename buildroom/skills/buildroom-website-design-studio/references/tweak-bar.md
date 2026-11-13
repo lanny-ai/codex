@@ -14,6 +14,7 @@ A panel on the right of the chosen page (a bottom sheet on a phone) with sliders
    ```
 
 2. `tweakbar.py add --page Design/landing-page/page/index.html --palettes Design/landing-page/palettes.json --open`
+   - `--open` starts the panel open; it doesn't open the browser. Open the page yourself (Claude Code: `open page/index.html` on a Mac, `start` on Windows).
    - The page's own colours come first as "As built".
    - A palette that fails contrast is fixed, and the change is reported in `palette_fixes`. Tell the member what changed.
    - The fonts come from the ten vetted pairs (`assets/font-pairs.json`). In the preview they load from Google Fonts; the final page self-hosts them (`fonts.md`).
@@ -29,7 +30,9 @@ A panel on the right of the chosen page (a bottom sheet on a phone) with sliders
 **Built in:**
 - **Shuffle** tries a random combination. It never turns a generic tell on and never drops below the minimum text size.
 - **Reset** goes back to the page as built.
-- **Save this look** names the current settings, keeps them in this browser, and shows them to copy or download.
+- **Save this look** names the current settings, keeps them in this browser, and shows them to copy or download. A look saved in dark mode stays dark: the light colours are saved with it, and the page opens dark.
+
+Each slider shows its value ("21px"). The palette and font menus start on "As built" until the member picks one. On a wide screen the page moves left while the panel is open, so nothing hides behind it.
 
 **Live warnings** sit at the top of the panel:
 - text, quiet text and button text under 4.5:1

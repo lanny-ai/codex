@@ -93,7 +93,7 @@ def _file(a, data, src, collection, kind, source, word):
     dest_dir.mkdir(parents=True, exist_ok=True)
     dest = dest_dir / f"{rid}{Path(src).suffix.lower()}"
     shutil.copy2(src, dest)
-    rec = {"id": rid, "file": str(dest.relative_to(tv(a.vault))), "original_name": Path(src).name,
+    rec = {"id": rid, "file": dest.relative_to(tv(a.vault)).as_posix(), "original_name": Path(src).name,
            "collection": coll, "kind": kind or "other", "source": source or "", "added": str(date.today()),
            "word": word or "", "likes": "", "dislikes": "", "colours": dslib.dominant_colours(dest),
            "sha256": h}
@@ -105,7 +105,8 @@ def cmd_sort(a):
     data = load(a.vault)
     inbox = tv(a.vault) / "inbox"
     added, dupes = [], []
-    for f in sorted(inbox.rglob("*")):
+    # deepest first, so a screenshot the member filed in a sub-folder keeps that collection over a loose copy
+    for f in sorted(inbox.rglob("*"), key=lambda x: (-len(x.relative_to(inbox).parts), str(x))):
         if not f.is_file() or f.suffix.lower() not in IMG:
             continue
         rel = f.relative_to(inbox)
@@ -164,7 +165,7 @@ def cmd_react(a):
             dest = tv(a.vault) / "collections" / new / old.name
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(str(old), dest)
-            r["file"], r["collection"] = str(dest.relative_to(tv(a.vault))), new
+            r["file"], r["collection"] = dest.relative_to(tv(a.vault)).as_posix(), new
     save(a.vault, data)
     return {"ok": True, "ref": {k: v for k, v in r.items() if k != "sha256"}}
 
@@ -270,7 +271,7 @@ def cmd_sheet(a):
         md += [f"## {coll.replace('-', ' ').title()}", ""]
         for r in rs:
             bits = [b for b in (r.get("word"), r.get("likes") and "likes: " + r["likes"],
-                                r.get("dislikes") and "not: " + r["dislikes"]) if b]
+                                r.get("dislikes") and "dislikes: " + r["dislikes"]) if b]
             md += [f"### {r['id']} · {r['kind']}" + (f" · {' · '.join(bits)}" if bits else ""),
                    f"![[{Path(r['file']).name}]]", ""]
             if r.get("source"):
@@ -284,7 +285,7 @@ def cmd_sheet(a):
         items = []
         for r in rs:
             sw = "".join(f'<span class="sw" style="background:{c}" title="{c}"></span>' for c in r.get("colours", []))
-            note = " · ".join(html.escape(b) for b in (r.get("word"), r.get("likes"), r.get("dislikes") and "not " + r["dislikes"]) if b)
+            note = " · ".join(html.escape(b) for b in (r.get("word"), r.get("likes"), r.get("dislikes") and "dislikes: " + r["dislikes"]) if b)
             items.append(f'<figure><img src="{html.escape(r["file"])}" alt="Reference {r["id"]}" loading="lazy">'
                          f'<figcaption><b>{r["id"]}</b> <span class="k">{html.escape(r["kind"])}</span><br>{note}'
                          f'<div>{sw}</div></figcaption></figure>')

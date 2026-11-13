@@ -49,17 +49,40 @@ def supported(src):
 
 
 def fix_palette(p):
-    p = {k: (dslib.norm_hex(v) if k in dslib.COLOR_KEYS else v) for k, v in p.items()}
-    notes = []
+    """Every pair passes after this, or the palette is refused. The accent is settled against the page
+    first, then the text on the accent is the better of white or near-black, shaded only if needed."""
+    if not isinstance(p, dict) or not str(p.get("name", "")).strip():
+        return None, ["a palette with no name"]
+    out = dict(p)
     for k in dslib.COLOR_KEYS:
-        if not p.get(k):
-            return None, [f"palette {p.get('name', '?')}: {k} is missing or not a hex colour"]
-    for fg, bg, need in PAIRS:
-        r = dslib.contrast(p[fg], p[bg])
-        if r < need:
-            new = dslib.shade_to_contrast(p[fg], p[bg], need)
+        h, _ = dslib.parse_colour(str(p.get(k, "")))
+        if not h:
+            return None, [f"palette {p['name']}: {k} is missing or not a solid colour"]
+        out[k] = h
+    p, notes = out, []
+    order = [("accent", "bg", dslib.AA_LARGE)] + [x for x in PAIRS if x[:2] != ("accent", "bg")]
+    for _ in range(4):
+        changed = False
+        for fg, bg, need in order:
+            r = dslib.contrast(p[fg], p[bg])
+            if r >= need:
+                continue
+            if fg == "accent_ink":
+                best = max(("#ffffff", "#111111"), key=lambda c: dslib.contrast(c, p["accent"]))
+                new = best if dslib.contrast(best, p["accent"]) >= need else dslib.shade_to_contrast(p[fg], p[bg], need)
+                if dslib.contrast(new, p["accent"]) < need:
+                    p["accent"] = dslib.shade_to_contrast(p["accent"], new, need)
+                    notes.append(f"{p['name']}: accent changed to {p['accent']} so its text reads")
+            else:
+                new = dslib.shade_to_contrast(p[fg], p[bg], need)
             notes.append(f"{p['name']}: {fg} {p[fg]} on {bg} was {r}:1, changed to {new}")
             p[fg] = new
+            changed = True
+        if not changed:
+            break
+    left = [f"{fg} on {bg}" for fg, bg, need in PAIRS if dslib.contrast(p[fg], p[bg]) < need]
+    if left:
+        return None, [f"palette {p['name']}: could not make {', '.join(left)} pass; choose other colours"]
     return p, notes
 
 
@@ -71,7 +94,7 @@ def cmd_add(a):
     page = Path(a.page)
     if not page.is_file():
         dslib.emit({"ok": False, "error": f"page not found: {page}"}, 1)
-    src = strip_bar(page.read_text(encoding="utf-8"))
+    src = strip_bar(dslib.read_text(page))
     vars_, attrs = supported(src)
     if not vars_:
         dslib.emit({"ok": False, "error": "the page uses none of the token variables (var(--c-bg) and the rest); "
@@ -130,7 +153,7 @@ def cmd_add(a):
 
 def cmd_remove(a):
     page = Path(a.page)
-    src = page.read_text(encoding="utf-8")
+    src = dslib.read_text(page)
     out = strip_bar(src)
     dslib.write_atomic(page, out)
     return {"ok": True, "removed": out != src, "page": str(page)}
@@ -147,7 +170,7 @@ def valid_preset(p):
     for k, v in (p.get("vars") or {}).items():
         if k not in CONTRACT_VARS:
             errs.append(f"{p['name']}: {k} is not a token variable")
-        elif k.startswith("--c-") and not (dslib.norm_hex(v) or dslib.RGB_RE.search(v)):
+        elif k.startswith("--c-") and not dslib.parse_colour(str(v))[0]:
             errs.append(f"{p['name']}: {k} = {v} is not a colour")
         elif re.search(r"[<>{};]", str(v)):
             errs.append(f"{p['name']}: {k} has characters a CSS value cannot hold")
@@ -159,7 +182,7 @@ def valid_preset(p):
 
 def cmd_save(a):
     try:
-        exp = json.loads(Path(getattr(a, "from")).read_text(encoding="utf-8"))
+        exp = json.loads(Path(getattr(a, "from")).read_text(encoding="utf-8-sig"))
     except (OSError, ValueError) as e:
         dslib.emit({"ok": False, "error": f"could not read the saved looks: {e}"}, 1)
     presets = exp.get("presets") if isinstance(exp, dict) else exp
@@ -199,31 +222,63 @@ def cmd_final(a):
     return {"ok": True, "final": p["name"]}
 
 
+ATTR_RE = r'{k}\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)'
+LOOK_RE = re.compile(r"\n?/\* buildroom-look \*/\s*:root\s*\{[^}]*\}\n?")
+
+
+def _set_var(body, k, v):
+    pat = re.compile(r"(^|[;{\s])" + re.escape(k) + r"\s*:\s*[^;}]*")
+    if pat.search(body):
+        return pat.sub(lambda m: f"{m.group(1)}{k}: {v}", body, count=1)
+    body = body.rstrip()
+    if body and not body.endswith(";"):
+        body += ";"
+    return body + f" {k}: {v};"
+
+
 def bake(src, preset):
-    """Write the preset's values into the first :root { } block and the <html> attributes."""
-    vars_ = preset.get("vars", {})
+    """Write the look into the page: the main :root block (the one with the colour variables) gets each
+    value; if any other :root block (later, or inside a media query) also sets one of them, a final
+    marked :root block at the end of the last <style> makes the look win. Then the <html> toggles.
+    Refuses (ValueError) when there is nowhere to write."""
+    vars_ = {k: str(v) for k, v in (preset.get("vars") or {}).items()}
+    src = LOOK_RE.sub("\n", src)
     blocks = list(re.finditer(r":root\s*\{([^}]*)\}", src))
     m = max(blocks, key=lambda x: x.group(1).count("--c-"), default=None)
-    if m is not None and "--c-" not in m.group(1):
-        m = blocks[0]
-    if not m:
-        block = ":root { " + " ".join(f"{k}: {v};" for k, v in vars_.items()) + " }\n"
-        src = re.sub(r"<style>", "<style>\n" + block, src, count=1) if "<style>" in src else src
-    else:
-        body = m.group(1)
-        for k, v in vars_.items():
-            pat = re.compile(re.escape(k) + r"\s*:\s*[^;]*;")
-            body = pat.sub(lambda _: f"{k}: {v};", body, count=1) if pat.search(body) else body.rstrip() + f" {k}: {v};"
-        src = src[:m.start(1)] + body + src[m.end(1):]
+    if vars_:
+        if m is None:
+            sm = re.search(r"<style\b[^>]*>", src, re.I)
+            if not sm:
+                hm = re.search(r"</head>", src, re.I)
+                if not hm:
+                    raise ValueError("the page has no <style> block or <head> to hold the look")
+                src = src[:hm.start()] + "<style>\n</style>\n" + src[hm.start():]
+                sm = re.search(r"<style\b[^>]*>", src, re.I)
+            block = ":root { " + " ".join(f"{k}: {v};" for k, v in vars_.items()) + " }\n"
+            src = src[:sm.end()] + "\n" + block + src[sm.end():]
+        else:
+            body = m.group(1)
+            for k, v in vars_.items():
+                body = _set_var(body, k, v)
+            src = src[:m.start(1)] + body + src[m.end(1):]
+            others = [b for b in re.finditer(r":root\s*\{([^}]*)\}", src) if b.start() != m.start()]
+            if any(re.search(re.escape(k) + r"\s*:", b.group(1)) for b in others for k in vars_):
+                ends = list(re.finditer(r"</style>", src, re.I))
+                if ends:
+                    e = ends[-1].start()
+                    over = "/* buildroom-look */ :root { " + " ".join(f"{k}: {v};" for k, v in vars_.items()) + " }\n"
+                    src = src[:e] + "\n" + over + src[e:]
     hm = re.search(r"<html\b([^>]*)>", src, re.I)
     if hm:
         attrs_txt = hm.group(1)
         for k, v in (preset.get("attrs") or {}).items():
-            if re.search(re.escape(k) + r'="[^"]*"', attrs_txt):
-                attrs_txt = re.sub(re.escape(k) + r'="[^"]*"', f'{k}="{html.escape(v)}"', attrs_txt)
-            else:
-                attrs_txt += f' {k}="{html.escape(v)}"'
+            pat = re.compile(ATTR_RE.format(k=re.escape(k)))
+            new = f'{k}="{html.escape(v)}"'
+            attrs_txt = pat.sub(lambda _: new, attrs_txt, count=1) if pat.search(attrs_txt) else attrs_txt + " " + new
         src = src[:hm.start(1)] + attrs_txt + src[hm.end(1):]
+    elif preset.get("attrs"):
+        src = re.sub(r"<html\b", lambda _: "<html " + " ".join(f'{k}="{html.escape(v)}"' for k, v in preset["attrs"].items()),
+                     src, count=1, flags=re.I) if re.search(r"<html\b", src, re.I) else src
     return src
 
 
@@ -240,6 +295,9 @@ def font_link(src, preset, fonts_file=None):
     if not pair or not pair.get("preview_css"):
         return src
     src = FONT_LINK_RE.sub("", src)
+    # the direction's own Google Fonts link goes too: the chosen pair replaces it
+    src = re.sub(r'<link[^>]*href="https://fonts\.googleapis\.com/[^"]*"[^>]*>\n?', "", src)
+    src = re.sub(r'<link[^>]*href="https://fonts\.gstatic\.com"[^>]*>\n?', "", src)
     tag = f'<link rel="stylesheet" href="{html.escape(pair["preview_css"])}" data-buildroom-fonts>\n'
     return re.sub(r"</head>", lambda _: tag + "</head>", src, count=1, flags=re.I) if "</head>" in src.lower() else tag + src
 
@@ -251,7 +309,10 @@ def cmd_apply(a):
     if errs:
         dslib.emit({"ok": False, "error": "; ".join(errs)}, 1)
     page = Path(a.page)
-    out = font_link(bake(strip_bar(page.read_text(encoding="utf-8")), p), p)
+    try:
+        out = font_link(bake(strip_bar(dslib.read_text(page)), p), p)
+    except ValueError as e:
+        dslib.emit({"ok": False, "error": str(e)}, 1)
     dest = Path(a.out) if a.out else page
     dslib.write_atomic(dest, out)
     return {"ok": True, "look": p["name"], "page": str(dest), "vars": len(p.get("vars", {})),

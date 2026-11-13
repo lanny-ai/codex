@@ -41,11 +41,7 @@ LABELS = {"bg": "Page background", "surface": "Panels and cards", "ink": "Text",
 def colour(v):
     if v is None:
         return None
-    h = dslib.norm_hex(v.strip())
-    if h:
-        return h
-    m = dslib.RGB_RE.search(v)
-    return dslib.to_hex(int(m.group(1)), int(m.group(2)), int(m.group(3))) if m else None
+    return dslib.parse_colour(v.strip())[0]
 
 
 def split_family(v):
@@ -58,7 +54,7 @@ def split_family(v):
 def dark_block(page_src):
     out = {}
     for sel, props, media in dslib.css_rules(page_src):
-        if 'data-theme="dark"' in sel.replace("'", '"'):
+        if dslib.is_dark_selector(sel):
             for k, v in props.items():
                 if k in dslib.VAR_OF.values():
                     h = colour(v)
@@ -75,11 +71,19 @@ def num(v, default=None):
 def cmd_lock(a):
     t = tweakbar.load_tweaks(a.tweaks)
     p = tweakbar.get_preset(t, a.name)
-    page_src = Path(a.page).read_text(encoding="utf-8") if a.page and Path(a.page).is_file() else ""
+    if a.page and not Path(a.page).is_file():
+        dslib.emit({"ok": False, "error": f"page not found: {a.page}"}, 1)
+    page_src = dslib.read_text(a.page) if a.page else ""
     base_vars = dslib.root_vars(page_src) if page_src else {}
     vars_ = {**{k: v for k, v in base_vars.items() if k in tweakbar.CONTRACT_VARS}, **p.get("vars", {})}
     attrs = dict(p.get("attrs") or {})
-    audience = a.audience or "50plus"
+    audience = a.audience
+    if not audience and a.page:
+        for dj in (Path(a.page).parent / "design.json", Path(a.page).parent.parent / "design.json"):
+            if dj.is_file():
+                audience = dslib.read_json(dj).get("audience")
+                break
+    audience = audience or "50plus"
     min_px = dslib.MIN_BODY_PX_50PLUS if audience == "50plus" else dslib.MIN_BODY_PX
     col = {}
     for k in dslib.COLOR_KEYS:
@@ -105,13 +109,16 @@ def cmd_lock(a):
         for fg, bg, need in tweakbar.PAIRS:
             if dslib.contrast(dfull[fg], dfull[bg]) < need:
                 dark_problems.append(f"dark mode {fg} on {bg} is {dslib.contrast(dfull[fg], dfull[bg])}:1")
-    head_f, head_fb = split_family(vars_.get("--font-head"))
-    body_f, body_fb = split_family(vars_.get("--font-body"))
+    head_f, head_fb = split_family(dslib.resolve(vars_.get("--font-head"), vars_))
+    body_f, body_fb = split_family(dslib.resolve(vars_.get("--font-body"), vars_))
+    if not head_f or not body_f:
+        dslib.emit({"ok": False, "error": "the look sets no heading or body font (--font-head, --font-body); "
+                    "pick a font pairing on the tweak bar, save, and lock again"}, 1)
     pairs = dslib.read_json(Path(a.fonts) if a.fonts else HERE.parent / "assets" / "font-pairs.json")["pairs"]
     pair = next((x for x in pairs if x["head"]["family"] == head_f and x["body"]["family"] == body_f), None)
     weight = int(num(vars_.get("--w-head"), 700))
     tokens = {
-        "schema": "buildroom-design/1", "name": a.direction or p.get("palette") or p["name"], "look": p["name"],
+        "schema": "buildroom-design/1", "name": a.direction or p["name"], "look": p["name"],
         "locked": str(date.today()), "audience": audience, "version": 1,
         "color": col, "dark": dark,
         "font": {"head": {"family": head_f, "fallback": head_fb, "weight": weight,
@@ -140,15 +147,16 @@ def cmd_lock(a):
     prev = out / "tokens.json"
     if prev.exists():
         old = dslib.read_json(prev)
-        n = int(old.get("version", 1))
-        shutil.copy2(prev, out / f"tokens-v{n}.json")
-        tokens["version"] = n + 1
-    dslib.write_json(prev, tokens)
-    dslib.write_atomic(out / "tokens.css", tokens_css(tokens))
+        tokens["version"] = int(old.get("version", 1)) + 1
     slides = slides_json(tokens, pair)
+    files = {"tokens.css": tokens_css(tokens), "design-system.md": system_md(tokens, slides),
+             "fonts.md": fonts_md(tokens, pair)}          # everything is built before anything is written
+    if prev.exists():
+        shutil.copy2(prev, out / f"tokens-v{tokens['version'] - 1}.json")
+    dslib.write_json(prev, tokens)
     dslib.write_json(out / "slides.json", slides)
-    dslib.write_atomic(out / "design-system.md", system_md(tokens, slides))
-    dslib.write_atomic(out / "fonts.md", fonts_md(tokens, pair))
+    for name, text in files.items():
+        dslib.write_atomic(out / name, text)
     return {"ok": True, "system": str(out), "name": tokens["name"], "version": tokens["version"],
             "files": ["tokens.json", "tokens.css", "slides.json", "design-system.md", "fonts.md"],
             "dark_mode_problems": dark_problems, "slides_flags": slides["flags"],
@@ -180,7 +188,7 @@ def tokens_css(t):
 
 
 def slides_json(t, pair):
-    theme = "dark" if dslib.luminance(t["color"]["bg"]) < 0.18 else "light"
+    theme = "dark" if (t.get("attrs", {}).get("data-theme") == "dark" or dslib.luminance(t["color"]["bg"]) < 0.18) else "light"
     acc = dslib.shade_to_contrast(t["color"]["accent"], SLIDE_BG[theme], 4.5)
     font = ((pair or {}).get("slides_fonts") or {}).get("body") or (
         "Georgia" if "serif" in t["font"]["body"]["fallback"] and "sans" not in t["font"]["body"]["fallback"] else "Arial")
@@ -206,7 +214,7 @@ def system_md(t, slides):
            "both": "the member's own photos first; Kie.ai for scenes, textures and backgrounds"}[t["imagery"]["source"]]
     return f"""# Design System: {t['name']}
 
-_Version {t['version']} · locked {t['locked']} · for a {'55+' if t['audience'] == '50plus' else 'general'} audience · look "{t['look']}"_
+_Version {t['version']} · locked {t['locked']} · for a {'50+' if t['audience'] == '50plus' else 'general'} audience · look "{t['look']}"_
 
 This is how everything you publish looks: your pages, slides, ads, one-pagers and lead magnets. Every Build Room session reads it before it designs anything.
 
@@ -290,7 +298,8 @@ def cmd_section(a):
     if proj:
         names = [d["name"] for r in proj["rounds"] for d in r["directions"]]
         pk = proj.get("picked") or {}
-        tried = f"{', '.join(names)} · chosen {pk.get('name', '—')}" + (f" ({pk['mix']})" if pk.get("mix") else "")
+        why = "; ".join(x for x in (pk.get("mix"), pk.get("note")) if x)
+        tried = f"{', '.join(names)} · chosen {pk.get('name', '—')}" + (f" · {why}" if why else "")
     tv = ""
     if taste:
         tv = (f"{a.taste_vault} · {len(taste['refs'])} references · "
@@ -305,7 +314,8 @@ def cmd_section(a):
         f"- **Imagery rules** (own photos / generated · provider · consent): {t['imagery']['source']}"
         + (f" · {t['imagery']['rules']}" if t["imagery"]["rules"] else ""),
         f"- **Do / don't:** {'; '.join(t['dos'][:3]) or '—'} / {'; '.join(t['donts'][:3]) or '—'}",
-        f"- **Files** (design-system.md · tokens.json · tokens.css · slides.json · first page): {sysdir}/",
+        f"- **Files** (design-system.md · tokens.json · tokens.css · slides.json · first page): {sysdir}/"
+        + (f" · {Path(a.project) / 'page' / 'index.html'}" if a.project else ""),
         "- **Used by** (skills that have read it · last date): —",
     ]
     return {"ok": True, "section": "22", "lines": lines}

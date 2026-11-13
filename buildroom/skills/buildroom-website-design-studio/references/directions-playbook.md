@@ -23,7 +23,7 @@ Pick three that fit the member's references and audience. Then change them so ea
 | **Kitchen Table** | warm, personal; the founder's photo large; a letter-like opening | relationship-led coaching, retirement, wellness |
 | **Front Page** | editorial; big type; a strong standfirst; no photo above the fold | authors, speakers, thought leaders |
 | **Quiet Studio** | lots of white; one accent; small framed photos | premium advisors, designers, therapists |
-| **Bold Field** | one strong colour field behind the words | energetic offers, workshops, events |
+| **Bold Field** | one strong colour field behind the words (use `--c-surface` or `--c-accent` for the field, with `--c-ink` or `--c-accent-ink` on it, checked) | energetic offers, workshops, events |
 | **Evening** | dark and rich; light text; one warm accent | high-end retreats, masterminds |
 | **The Plan** | a clear numbered sequence early; the method shown | process-led services, consultants |
 | **Portrait** | the founder full-height; the words in a column beside | personal brands |
@@ -34,13 +34,14 @@ Pick three that fit the member's references and audience. Then change them so ea
 
 ## How to write each page
 
-1. `directions.py new --project Design/landing-page --name "Field Guide" --idea "…" --for "…" --refs T-001,T-004,T-009` writes the starter on the token contract (`design-principles.md` §2).
+1. `directions.py new --project Design/landing-page --name "Field Guide" --idea "…" --for "…" --refs T-001,T-004,T-009 --vault <vault>` writes the starter on the token contract (`design-principles.md` §2). With `--vault`, it refuses a reference that isn't in the taste vault. It warns when a direction names fewer than three references or shares its main reference with another. A fourth direction in a round is refused; replace one with `directions.py remove --name …`.
 2. Write the whole page in that `index.html`. Use one file, with CSS inside, using only the contract variables. Put local images in an `img/` folder next to it.
 3. Use the **approved copy** word for word: headline, sub, sections, the one action. Don't rewrite copy in this skill. If a line is too long for a direction, say so and ask; the Copy Engine or Offer Page Copy owns the words.
 4. Put the member's own photos in where they exist. Generate only what's missing, through `imagery.md`, and only after the member approves the image list and cost.
 5. Add CSS for the toggles the direction can sensibly support (hero layout, buttons, photo treatment, density, dark mode). The tweak bar shows only what the page supports.
 6. Before showing it, read it against `anti-generic.md`. `directions.py board` prints the tells it finds; fix any you didn't choose on purpose.
-7. Make the page work at 375px wide: one column, images `max-width: 100%`, buttons at least 44px tall.
+7. Make the page work at 375px wide: one column, at least 16px of space each side, images `max-width: 100%`, buttons at least 44px tall with labels that fit on one line. The first screen on a phone must show the headline, not only a photo.
+8. Look at it in every toggle combination you built CSS for, especially dark mode with each hero layout: the check reads the page as built, not every combination.
 
 ## Showing them
 
@@ -49,7 +50,7 @@ Pick three that fit the member's references and audience. Then change them so ea
 - Log each reaction: `taste_vault.py feedback --vault <vault> --direction "Field Guide" --text "love the photo, hate the green"`. The next round reads these.
 - Then offer the three paths:
   - **Pick one:** `directions.py pick --name …`, then on to the tweak bar.
-  - **Three more like #2:** the next round, each a different variation of the winner. Change structure and type, not just colour.
+  - **Three more like #2:** the next round (`--round 2`, started on purpose: it's one of three), each a different variation of the winner. Change structure and type, not just colour.
   - **Mix:** "the hero of #1 with the colours of #3". Write one new direction that does exactly that, then pick it with `--mix "…"`.
 - After round 3, the cap: "We've got as far as rounds can take us. Let's pick the closest one and fine-tune it with the sliders."
 

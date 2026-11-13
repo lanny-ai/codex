@@ -74,7 +74,7 @@ Then **the plan on one screen**: the deliverable, the copy you'll use, the audie
 
 1. `taste_vault.py init --vault <vault>`. Give the member the references card (`where-to-find-taste.md`): 5–15 screenshots into `Design/Taste Vault/inbox/`, at least one from their own field, and a sub-folder per kind if they like.
 2. When they say they're done: `taste_vault.py sort --vault <vault>` (add `--kind gallery` or `--kind niche` for a batch). Look at every reference yourself.
-3. Get one word per reference, plus what they like and don't like, asking a few at a time: `taste_vault.py react --vault <vault> --id T-003 --word calm --likes "…" --dislikes "…" --kind niche`. For a JPEG with no colours read, name 2–4 colours by eye with `--colours`.
+3. Get one word per reference, plus what they like and don't like, asking a few at a time: `taste_vault.py react --vault <vault> --id T-003 --word calm --likes "…" --dislikes "…" --kind niche`. Where no colours were read (`no_colours` in the output: the computer had no tool to shrink a JPEG or a large retina screenshot), name 2–4 colours by eye with `--colours`.
 4. **The read.** From `taste_vault.py read` and your own look at the images, say back 3–5 patterns in plain words: "You keep choosing big real photos, lots of white space, one strong green, and no textures." The member confirms or corrects. Then `taste_vault.py confirm --vault <vault> --read "…" --read "…"`.
 5. `taste_vault.py sheet --vault <vault>` writes the Obsidian note and the contact sheet.
 6. **Gate:** `read` → `gate.ready`. At least 5 references, one from their own field, 3 with a word, and the read confirmed. If it's not ready, say exactly what's missing.
@@ -88,12 +88,12 @@ Then **the plan on one screen**: the deliverable, the copy you'll use, the audie
 ### Phase 3 — Three directions
 
 1. `directions.py init --project Design/landing-page --deliverable "landing page" --audience 50plus --copy <approved copy>`.
-2. For each of three directions: `directions.py new --project … --name "…" --idea "…" --for "…" --refs T-…,T-…,T-…`, then write the whole page in its `index.html` on the token contract, using the approved copy word for word (`directions-playbook.md`). Each direction differs on at least three of the six dimensions and draws on at least three references.
-3. Review each against `anti-generic.md` and fix any tell you didn't choose on purpose. `design_check.py check --page …` on each must have no FIX on contrast, size or phone fit before the member sees it.
+2. For each of three directions: `directions.py new --project … --name "…" --idea "…" --for "…" --refs T-…,T-…,T-… --vault <vault>`, then write the whole page in its `index.html` on the token contract, using the approved copy word for word (`directions-playbook.md`). Each direction differs on at least three of the six dimensions and draws on at least three references.
+3. Review each against `anti-generic.md` and fix any tell you didn't choose on purpose. `design_check.py check --page … --render` on each must have no FIX on contrast, size or phone fit before the member sees it. Look at each yourself at 375px wide and in dark mode; the check can't judge every toggle combination.
 4. `directions.py board --project …` (add `--inline` to share it as one file or show it as an artifact). Introduce each in one line, then ask what they like and don't like about each.
 5. Log every reaction (`taste_vault.py feedback …`). Then take the member's path:
    - **pick:** `directions.py pick --name …`
-   - **three more like one:** the next round, at most three in all
+   - **three more like one:** the next round, started on purpose with `--round N` (at most three in all; `directions.py remove` replaces one without spending a round)
    - **mix two:** write one new direction that does it, then `pick --mix "…"`
 
 ### Phase 4 — Tweak bar
