@@ -31,7 +31,7 @@ Read these reference files before any member-facing work:
 
 Follow the protocol. From the file: niche and target customer (§1, §2), what they sell (§3 or §1), the current language bank and objections (§2) so you know what's guessed and what's real. Confirm the three research inputs in one message; if the member says "you decide," state the assumption and proceed.
 
-Then ask once, plainly: **"Do you have anything real from clients or prospects? Emails, DMs, reviews, testimonials, call notes, intake forms, community threads. Paste anything you've got."** Member-provided material is the highest-value source and gets tagged `client` in provenance. Nothing they paste is edited into something they didn't say.
+Then ask once, plainly: **"Do you have anything real from clients or prospects? Emails, DMs, reviews, testimonials, call notes, intake forms, community threads. Paste anything you've got."** Member-provided material is the highest-value source and gets tagged `client` in provenance when it comes from the member's own clients or prospects. A public thread or review page the member pastes that was written by strangers is tagged `[web: source name]` instead, because those people are not their clients. Nothing they paste is edited into something they didn't say.
 
 ### Phase 1 — The research sweep
 
@@ -47,7 +47,7 @@ Build `[Niche]_Audience_Playbook.md` in the exact format from the source: method
 
 1. Deliver the playbook. Tell the member to save it as its own document.
 2. Update the Business File per the protocol. §2's language bank has two parts; write to them separately:
-   - **§2 · Sourced language** — up to ten phrases, each with a provenance tag: `[client]` for member-provided material, `[web: short source name]` for research. Exact words, quotation marks, no polishing.
+   - **§2 · Sourced language** — up to ten phrases, each with a provenance tag: `[client]` for material from the member's own clients or prospects, `[web: short source name]` for research. Exact words, quotation marks, no polishing. A phrase goes here only if you read those exact words on the page itself or in what the member pasted. A search-result summary, a paraphrase, or a "near-verbatim" swipe-file line you cannot find word for word goes under Hypothesis language instead.
    - **§2 · Hypothesis language** — leave whatever was there and label it `[hypothesis]` if it wasn't already. Never promote a hypothesis to sourced.
    - **§2 · Pain stack and top objections** — add sourced items with tags; ask before replacing anything the member wrote by hand.
    - **§2 · Audience Playbook** — the document name.

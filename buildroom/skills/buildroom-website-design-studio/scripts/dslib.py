@@ -547,7 +547,7 @@ def read_json(path, default=None):
     if not p.exists():
         if default is not None:
             return default
-        raise FileNotFoundError(str(p))
+        emit({"ok": False, "error": f"file not found: {p}"}, 1)
     try:
         return json.loads(p.read_text(encoding="utf-8-sig"))
     except ValueError as e:

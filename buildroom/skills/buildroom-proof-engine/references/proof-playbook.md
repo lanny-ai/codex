@@ -23,7 +23,7 @@ Five short questions, in the member's voice, for the member to send by hand (ema
 
 Then **the scoped permission ask**, which names the places so the answer can be recorded as scope:
 
-> "Can I use your words and result? Say yes or no to each: on my website · in my emails · on LinkedIn or social posts · in paid ads · on video or audio. With your name and company, or anonymous? May I use your photo or logo? You'll see the exact wording before it goes anywhere, and you can withdraw any time."
+> "Can I use your words and result? Say yes or no to each: on my website · in my emails · on LinkedIn or social posts · in paid ads · on video or audio · read out or shown at a live event, webinar or sales call. With your name and company, or anonymous? May I use your photo or logo? You'll see the exact wording before it goes anywhere, and you can withdraw any time."
 
 The right of review is a promise, kept: the client sees the final wording in place before it is published. Ask within a week of the win. If the client already wrote it (an email, a message, a review), quote it verbatim and still send the scoped ask before it goes anywhere.
 

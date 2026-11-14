@@ -31,6 +31,8 @@ If §1 is missing, follow the protocol's two-path fallback — but note that §1
 
 Follow the protocol. Pre-fill from the file: what they do, team size, tools (§1); offer and delivery structure (§3, if present — it tells you what the delivery process actually involves); funnel and automation tooling (§6, if present).
 
+If §9 is already in the file with `By: Rent Calculator`, the member pasted the block the Rent Calculator page exports: a ranked list under *Top undocumented processes*, a *Rent baseline* line and a triage table with the Frequency, Pain, Owner-Lock and Variance scores. That is the member's own triage. Show it back, confirm it once, and use its scores as the starting point of Phase 1 rather than scoring from scratch. Still ask the questions below that it does not answer. When you rewrite §9 at the end, keep the *Rent baseline* line exactly as it is.
+
 Then collect the input template's remaining fields, **one question at a time**: what they actually did last week (push for 8-12 uncurated items — the small annoying ones matter most), the last three things that went wrong, what only they can do, what they've already tried to delegate and how it failed, and who will use these SOPs.
 
 The "what I actually did last week" list is the raw material for the entire session. If the member gives you a tidy, curated five-item list, push back once: ask what they did that they'd be embarrassed to admit still takes their time.
@@ -51,7 +53,7 @@ Quality bar throughout: no vague verbs survive; every step names its tool and fi
 
 1. Deliver the **complete Operations Pack** — the triage table, every SOP with its checklist, the handoff briefs, the recording shot list, and the library index. Tell the member to save it as its own document.
 2. Update the Business File per the protocol:
-   - **§9 Operations & SOPs** — processes documented (names and owners), the top-priority processes still undocumented, where the SOP library lives, the naming convention, the review cadence, the maintenance trigger, the automation candidates line (process · go/no-go · current stage: mapped / evals / shadow / approve-each / autonomous), and a link to the full Operations Pack. Status per the inheritance rule.
+   - **§9 Operations & SOPs** — processes documented (names and owners), the top-priority processes still undocumented, where the SOP library lives, the naming convention, the review cadence, the maintenance trigger, the automation candidates line (process · go / no-go / partial · current stage: mapped / evals / shadow / approve-each / autonomous), and a link to the full Operations Pack. Status per the inheritance rule.
    - **§1** — update team size or tools if anything surfaced today.
    - **§8 Session Log** — append the row; ask for the 1–5 rating.
 3. Emit the entire updated file in one code block with the "what changed" summary.

@@ -15,8 +15,8 @@ Updated: 2026-10-24 · Consented (named or anonymous): 4 (D 3 · B 1) · Pending
 
 | ID | Origin | Kind | Permission | Scope | Result (one line) | Proves | Placed |
 |---|---|---|---|---|---|---|---|
-| P-01 | D | result | named | site, emails, social; no ads; photo no | 13-week cash view in 20 minutes a week, 6 weeks | Cash Flow Program | offer page proof section; launch 2026-12 Day 2 |
-| P-02 | B | money | anonymous | site, emails | First paid client 9 days after the free workshop | Workshop → program | LinkedIn post 2026-10-20 |
+| P-01 | D | result | named | site, emails, social, events; no ads; photo no | 13-week cash view in 20 minutes a week, 6 weeks | Cash Flow Program | offer page proof section; launch 2026-12 Day 2 |
+| P-02 | B | money | anonymous | site, emails, social | First paid client 9 days after the free workshop | Workshop → program | LinkedIn post 2026-10-20 |
 | P-03 | U | transformation | pending | — | Bootcamp quote, words not yet matched to the recording | — | — |
 ```
 
@@ -33,7 +33,7 @@ source: interview by email, 2026-10-22 (proof/consents/P-01-2026-10-23.eml)
 origin: D                  # A B D E H X R U
 kind: result               # money | result | transformation | freedom
 permission: named          # named | anonymous | pending | declined | withdrawn
-scope: site, emails, social   # site emails social ads video events
+scope: site, emails, social, events   # site emails social ads video events
 name: yes
 company: yes
 photo_or_logo: no

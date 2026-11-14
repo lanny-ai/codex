@@ -160,7 +160,11 @@ def cmd_remove(a):
 
 
 def load_tweaks(p):
-    return dslib.read_json(p, default={"schema": "buildroom-tweaks/1", "presets": [], "final": None})
+    t = dslib.read_json(p, default={"schema": "buildroom-tweaks/1", "presets": [], "final": None})
+    if not isinstance(t, dict) or not isinstance(t.get("presets", []), list):
+        dslib.emit({"ok": False, "error": f"{Path(p).name} is not a saved-looks file; save the looks again with tweakbar.py save"}, 1)
+    t.setdefault("presets", [])
+    return t
 
 
 def valid_preset(p):

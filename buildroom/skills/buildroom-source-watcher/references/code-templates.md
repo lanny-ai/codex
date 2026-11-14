@@ -322,7 +322,8 @@ def check_source_for_new_items(sources, seen_guids, max_age_days=7):
                 max_results=25,
                 sort_by=arxiv.SortCriterion.SubmittedDate,
             )
-            for result in search.results():
+            # Search.results() was removed in arxiv 2.0; the Client runs the search
+            for result in arxiv.Client().results(search):
                 if result.entry_id in seen_guids:
                     continue
                 if result.published < cutoff:
@@ -388,8 +389,13 @@ from youtube_transcript_api import YouTubeTranscriptApi
 
 def fetch_content(item):
     try:
-        transcript = YouTubeTranscriptApi.get_transcript(item['video_id'])
-        return " ".join([entry['text'] for entry in transcript])
+        if hasattr(YouTubeTranscriptApi, 'get_transcript'):
+            # youtube-transcript-api before 1.0
+            transcript = YouTubeTranscriptApi.get_transcript(item['video_id'])
+            return " ".join([entry['text'] for entry in transcript])
+        # youtube-transcript-api 1.0 and later (get_transcript was removed)
+        transcript = YouTubeTranscriptApi().fetch(item['video_id'])
+        return " ".join([snippet.text for snippet in transcript])
     except Exception as e:
         print(f"      ⚠️  Transcript unavailable: {e}")
         return None
@@ -507,7 +513,11 @@ Score this."""
         result = json.loads(resp.choices[0].message.content)
         return int(result.get("score", 0)), result.get("reason", "")
     except Exception as e:
-        return 0, f"Error: {e}"
+        # Raise, never return a score: a failed call (bad key, no credit, rate
+        # limit) scored as 0 would mark the item as seen and it would never be
+        # tried again. The orchestrator counts this as an error and retries
+        # the item on the next run.
+        raise RuntimeError(f"Scoring failed: {e}") from e
 
 
 def _sample(text, max_chars=12000):
@@ -547,8 +557,16 @@ def write_to_vault(item, knowledge, score, vault_root_path, external_folder, sou
     Will never overwrite existing files.
     """
     vault_root = Path(vault_root_path).resolve()
-    external_base = vault_root / external_folder
-    external_base.mkdir(exist_ok=True)
+    external_base = (vault_root / external_folder).resolve()
+    
+    # SAFETY: the external folder must be a folder INSIDE the vault, never the
+    # vault itself and never a path that leads out of it. Checked before
+    # anything is created.
+    if vault_root not in external_base.parents:
+        raise SecurityError(
+            f"EXTERNAL_FOLDER must be a folder inside the vault. Got: {external_folder!r}"
+        )
+    external_base.mkdir(parents=True, exist_ok=True)
     
     # Build target path
     pub_date = _parse_date(item.get('pub_date'))
@@ -668,8 +686,8 @@ def _parse_date(date_str):
 
 def _safe_filename(item, pub_date):
     date_str = pub_date.strftime("%Y-%m-%d")
-    source = re.sub(r'[\\/:*?"<>|]', '', item.get('source_name', 'Source')).strip()
-    title = re.sub(r'[\\/:*?"<>|]', '', item.get('title', 'Untitled')).strip()
+    source = re.sub(r'[\\/:*?"<>|\r\n\t]', '', item.get('source_name', 'Source')).strip()
+    title = re.sub(r'[\\/:*?"<>|\r\n\t]', '', item.get('title', 'Untitled')).strip()
     if len(title) > 80:
         title = title[:77] + "..."
     return f"{date_str} - {source} - {title}.md"

@@ -16,7 +16,7 @@ Read these reference files before any member-facing work:
 
 1. **`references/kern-framework.md`** — the eight-step process, persuasion philosophy, credibility patterns, tone rules, and the two structural patterns (the private-client letter, the mastermind letter).
 2. **`references/halbert-writing-system.md`** — the complete Halbert system: research before writing, the 40/40/20 rule, the greased slide, writing to one person, the A-pile principle, headlines, bullets, proof, offers, and the letter structures.
-3. **`references/business-file-protocol.md`** — how you read the member's Build Room Business File. This skill reads everything and writes only §8.
+3. **`references/business-file-protocol.md`** — how you read the member's Build Room Business File. This skill reads everything and writes only §8 (and, on the member's confirmation, a page status in §5 or §7).
 
 ## Prerequisites
 
@@ -33,7 +33,7 @@ Follow the protocol. From the file, fill the fact sheet both masters demand befo
 | Who the reader is, their situation, their pain and inner monologue | §2 one-line profile, pain stack, awareness stage |
 | Their exact words | §2 sourced language first; hypothesis language only if labeled as such in the draft notes |
 | What's being sold, the transformation, the deliverables, the price | §3 |
-| Proof | §3 guarantee and pitch, §5 proof assets and credibility anchor |
+| Proof | §3 guarantee and pitch, §5 proof assets and credibility anchor, §18 proof vault and never-say claims, and `proof/proof-bank.md` if it exists (only stories whose permission is `named` or `anonymous` and whose scope covers where this piece will run) |
 | What makes it different, the villain, for/not-for | §4 |
 | Existing headline, page, and lead magnet | §5, §7 |
 | Where the copy goes and what it must trigger | §6 funnel map and conversion event |
@@ -48,6 +48,8 @@ Show one summary and get a confirm-or-correct. Then ask, one question at a time,
 Under Kern: run the eight steps silently from the fact sheet, state the objective, the argument, and the counter-beliefs you'll dismantle in three lines, propose the structure, and get a yes before drafting. Under Halbert: confirm the starving crowd and the offer are right (the 40/40/20 check), then plan the slide: headline, opening, proof, bullets, offer, risk reversal, close, P.S.
 
 Then write the full piece. Both voices share the house rules: plain English, short sentences and paragraphs, bold claims backed immediately, damaging admissions where they're true, questions as commands, a specific and frictionless call to action, a P.S. that carries urgency or the last objection, and no em dashes anywhere, except inside a quotation: a quote keeps its exact words and punctuation, because a style rule never edits what someone said.
+
+**The references' patterns are structure only.** Every testimonial, client name, result, statistic, guarantee, deadline and "only N spots" line in the finished piece comes from the Business File, the proof bank or the member in this session, never from an example in `kern-framework.md` or `halbert-writing-system.md` and never from you. Where the structure calls for proof the member does not have, leave a visible slot such as `[PROOF NEEDED: a client result with their permission]`, list each slot in the notes, and offer the honest stand-in: the member's own story, or the method shown. A composite keeps its `[composite result based on typical client outcomes]` label. A `[client]` line from §2 is the customer's vocabulary, not a testimonial: it is not attributed to a person unless the proof bank records their permission. Nothing on §18's never-say list is used.
 
 Sourced customer language goes in as written. Hypothesis language is fine in a draft but is flagged in the notes so the member knows which lines are guesses about how their customer talks.
 

@@ -16,7 +16,7 @@ Usage
   ghl_push.py --probe                        one GET on the location to confirm key, location id, scopes
   ghl_push.py build.json [--out report.json] push tags, fields, templates; check pipeline; print the build sheet
 
-Environment (the member's .env; never printed)
+Environment (read from the nearest .env: this folder or up to three parents; never printed)
   GHL_API_KEY        private integration key for the sub-account
   GHL_LOCATION_ID    the sub-account (location) id
   GHL_API_BASE       default https://services.leadconnectorhq.com
@@ -46,6 +46,7 @@ succeeded and the vendor's error text names any field to fix. Pipelines are read
 GET /opportunities/pipelines?locationId=; missing stages are reported for the browser build.
 """
 import argparse, json, os, sys, urllib.request, urllib.error, urllib.parse
+from pathlib import Path
 
 BASE_DEFAULT = "https://services.leadconnectorhq.com"
 VERSION_DEFAULT = "2021-07-28"
@@ -54,6 +55,50 @@ VERSION_DEFAULT = "2021-07-28"
 EMAIL_SHAPE = {"path": "/emails/builder", "type": "html",
                "f_location": "locationId", "f_title": "title", "f_type": "type",
                "f_html": "dnd" , "f_subject": "subject"}
+
+
+def load_dotenv():
+    """Read the nearest .env (cwd and up to three parents) without printing anything."""
+    for d in [Path.cwd(), *Path.cwd().parents][:4]:
+        f = d / ".env"
+        if f.is_file():
+            for line in f.read_text(encoding="utf-8-sig", errors="replace").splitlines():
+                line = line.strip()
+                if line.startswith("export "): line = line[7:].lstrip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+            return
+
+
+def load_build(path):
+    """Read and check build.json; stop with a plain message instead of a traceback."""
+    try:
+        b = json.loads(Path(path).read_text(encoding="utf-8-sig"))
+    except FileNotFoundError:
+        sys.exit(f"{path} was not found. Nothing was pushed.")
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as e:
+        sys.exit(f"{path} could not be read as JSON ({e}). Nothing was pushed.")
+    bad = []
+    if not isinstance(b, dict):
+        sys.exit(f"{path} must be a JSON object with tags, custom_fields, emails, workflows. Nothing was pushed.")
+    for key in ("tags", "custom_fields", "emails", "workflows", "launch_test"):
+        if not isinstance(b.get(key, []), list): bad.append(f'"{key}" must be a list')
+    if not bad:
+        if any(not isinstance(t, str) or not t.strip() for t in b.get("tags", [])):
+            bad.append('every entry in "tags" must be a tag name in quotes')
+        for key in ("custom_fields", "emails", "workflows"):
+            if any(not isinstance(x, dict) or not isinstance(x.get("name"), str) or not x["name"].strip() for x in b.get(key, [])):
+                bad.append(f'every entry in "{key}" must be an object with a "name"')
+        if any(isinstance(w, dict) and not isinstance(w.get("steps", []), list) for w in b.get("workflows", [])):
+            bad.append('"steps" in a workflow must be a list')
+    pl = b.get("pipeline")
+    if pl and (not isinstance(pl, dict) or not isinstance(pl.get("name"), str) or not pl["name"].strip()
+               or not isinstance(pl.get("stages", []), list)):
+        bad.append('"pipeline" must be an object with a "name" and a list of "stages"')
+    if bad:
+        sys.exit(f"{path} is not in the build.json shape:\n  - " + "\n  - ".join(bad) + "\nNothing was pushed.")
+    return b
 
 
 def env():
@@ -70,8 +115,12 @@ def call(method, url, key, version, body=None, timeout=60):
                                           "Content-Type": "application/json", "Accept": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
-            txt = r.read().decode()
-            return r.status, (json.loads(txt) if txt.strip() else {})
+            txt = r.read().decode(errors="replace")
+            try:
+                data = json.loads(txt) if txt.strip() else {}
+            except json.JSONDecodeError:
+                return 0, {"error": f"{url} answered HTTP {r.status} but not with JSON; check GHL_API_BASE"}
+            return r.status, (data if isinstance(data, dict) else {"data": data})
     except urllib.error.HTTPError as e:
         return e.code, {"error": e.read().decode(errors="replace")[:1500]}
     except (urllib.error.URLError, TimeoutError, OSError) as e:
@@ -129,6 +178,10 @@ def main():
     ap.add_argument("--dry-run", action="store_true"); ap.add_argument("--probe", action="store_true")
     ap.add_argument("--out"); ap.add_argument("--skip-emails", action="store_true", help="push tags/fields only")
     a = ap.parse_args()
+    for stream in (sys.stdout, sys.stderr):   # a Windows pipe defaults to cp1252 and cannot print the sheet
+        try: stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError): pass
+    load_dotenv()
 
     if a.probe:
         key, loc, base, ver = env()
@@ -146,7 +199,7 @@ def main():
         return
 
     if not a.build: ap.error("build.json is required unless --probe")
-    b = json.load(open(a.build, encoding="utf-8"))
+    b = load_build(a.build)
     loc = os.environ.get("GHL_LOCATION_ID", "LOCATION_ID")
     plan = req_tags(loc, b.get("tags", [])) + req_fields(loc, b.get("custom_fields", []))
     if not a.skip_emails: plan += req_emails(loc, b.get("emails", []))

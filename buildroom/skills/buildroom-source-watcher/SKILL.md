@@ -39,9 +39,9 @@ Before any other work, read these reference files in order:
 3. **`references/filter-templates.md`** — 8 pre-built filter templates the member can pick from
 4. **`references/vault-protection.md`** — The proprietary content protection architecture
 5. **`references/code-templates.md`** — The Python code patterns used to generate each watcher
-6. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. This skill reads §1–§4, §12 and §13 to pre-fill the interests profile, and writes only a §1 tools line, one §13 row, and §8. If there is no Business File, skip the protocol entirely; this skill is complete without it.
+6. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. This skill reads §1–§4, §12 and §13 (and §17 when it is filled) to pre-fill the interests profile, and writes only a §1 tools line, one §13 row, and §8. If there is no Business File, skip the protocol entirely; this skill is complete without it.
 
-Also on hand, unchanged from the founder's repositories: `references/video-to-vault/` (the Week 2 YouTube skills `/watch-to-vault` and `/channel-to-vault` with their README and installer) and `references/podcast-watcher-README.md` (the Week 3 podcast watcher). If the member is in Claude Code and the source is a YouTube video or channel, offer the Video-to-Vault skills first: no code to generate, no key needed.
+Also on hand, unchanged from the founder's repositories: `references/video-to-vault/` (the Week 2 YouTube skills `/watch-to-vault` and `/channel-to-vault` with their README and installer) and `references/podcast-watcher-README.md` (the Week 3 podcast watcher). If the member is in Claude Code and the source is a YouTube video or channel, offer the Video-to-Vault skills first: no code to generate, no key needed. To install them from this folder, copy `references/video-to-vault/watch-to-vault.md` to `~/.claude/skills/watch-to-vault/SKILL.md` and `references/video-to-vault/channel-to-vault.md` to `~/.claude/skills/channel-to-vault/SKILL.md`, then set the vault path as step 3 of their README says (the README's `cp -r` lines and `install.sh` assume the founder's repository, not this folder). Tell the member first that these two skills file their notes in `sources/videos` unless SOURCE_FOLDER is changed, and that they look up the names of existing notes to link to; the /External rules below describe the watchers this skill generates.
 
 Load all of them before Phase 1.
 
@@ -237,7 +237,7 @@ Show them their 7-day setup plan:
 ```
 ━━ YOUR WATCHER IS READY ━━
 
-DOWNLOAD: [source-name]-watcher.zip
+WHERE IT IS: [the folder you wrote it to, or the ZIP file if you delivered one]
 CONFIGURED FOR:
 - Source: [source type with count]
 - Filter: [their filter template]
@@ -245,7 +245,7 @@ CONFIGURED FOR:
 - Importance threshold: [score]/10
 
 YOUR 7-DAY SETUP:
-Day 1: Download and unzip
+Day 1: Open the watcher folder (unzip it first if you were given a ZIP)
 Day 2: Install Python dependencies (`pip install -r requirements.txt`)
 Day 3: Set up .env file with API keys and vault path
 Day 4: Test run (`python watcher.py`)

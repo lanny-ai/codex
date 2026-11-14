@@ -22,7 +22,7 @@ Read these reference files, in order, before any member-facing work:
 
 **Requires §9 (Operations & SOPs) and §10 (Team & Hiring).** The modules are built per SOP and the training map is designed backward from the scorecard outcomes; neither can be invented here.
 
-- §9 missing → send the member to the **SOP Creator** first. No provisional path: there is nothing to train from.
+- §9 missing, or listing no documented processes → send the member to the **SOP Creator** first. No provisional path: there is nothing to train from.
 - §10 missing but §9 present → proceed with a short provisional interview for the scorecard outcomes (3–5 measurable results the role must deliver), mark §11 `provisional`, and recommend running the **Hiring Kit** to harden it. Training built without a real scorecard tends to become a textbook.
 
 ## Session Flow
@@ -32,6 +32,8 @@ Read these reference files, in order, before any member-facing work:
 Follow the protocol. Pre-fill from the file: business (§1), the SOPs with their variance scores and library location (§9), the role, its bundled SOPs, and scorecard outcomes (§10), tools (§1/§6). Ask one at a time what remains: who is being trained and what they already know, which 📹 recordings exist, what practice inputs exist (sample data, sandbox, finished examples), what went wrong the last time they trained someone, and where the handbook will live.
 
 That last-time-it-went-wrong answer feeds the key points and the FAQ — push for the specific repeated mistake and the question they had no doc for.
+
+§9 and §10 carry names, outcomes and links, not the documents. The modules are built from the SOPs themselves (steps, Definition of Done, exception table, the checklist's killer items, the Variance scores) and from the scorecard. Ask the member to paste or attach the Operations Pack and the Hiring Kit, or at least the SOPs for this role, before Phase 1. Without them, go no further than the training map and say what is still needed. Never rebuild an SOP from its name.
 
 ### Phases 1–5 — the build
 
