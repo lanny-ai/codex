@@ -59,8 +59,6 @@ DEADLINE = re.compile(r"\b(midnight|deadline|expires?|expiring|doors? close|cart
 HONEST_WINDOW = re.compile(r"\b(replay|recording)\b[^.]{0,40}\b(expires?|available until|until)\b|\b(window|follow-?up)\b[^.]{0,30}"
                            r"\bends?\b|\bavailable until\b", re.I)
 RELATIVE_DAY = re.compile(r"\b(tonight|tomorrow|this (friday|saturday|sunday|monday|tuesday|wednesday|thursday|weekend))\b", re.I)
-CLOSE_DEADLINE = re.compile(r"^\s*(?:[-*]\s*)?\**\s*(deadline|enrol?l?ment closes|cart closes|doors close)\b\**\s*[:\-–—]?\s*\**(.*)$",
-                            re.I | re.M)
 EARN = re.compile(r"\b(made|make|makes|earn(ed|s)?|revenue|income|profit|grew|increase[sd]?|doubled|tripled|more money)\b", re.I)
 PCT = re.compile(r"\b\d{1,3}(\.\d)?\s?%")
 REFUSED = {
@@ -220,14 +218,366 @@ def deck_text(path):
                          for n in z.namelist() if re.fullmatch(r"ppt/slides/slide\d+\.xml", n))
 
 
-def close_deadline(text):
-    """(has_deadline, the value) from close.md's deadline line."""
-    for kind, val in CLOSE_DEADLINE.findall(text or ""):
-        v = val.strip().strip("*").strip()
-        if re.match(r"(none|no deadline|n/?a|—|-)\b", v, re.I) or not v:
-            return False, v
-        return True, v
-    return False, ""
+# ---------------------------------------------------------------- close.md, one reader for every command
+
+CLOSE_SHAPE = """close.md is read one element per line, each line starting with its name:
+
+- **Close mode:** checkout
+- **Door 1: The Pricing Program** for owners ready to raise one price. $1,997 in full, or 4 payments of $549 ($2,196 total). Checkout: https://...
+- Backup payment link (moderator only): https://...
+- **Guarantee (signed off 2026-11-20):** ...
+- **Deadline:** enrolment closes January 9, 2027 at midnight Pacific
+  (with no deadline: - **Deadline:** none; follow-up ends January 20)
+
+Close mode is checkout, call or both. Two other shapes are read the same way: a heading with its value on the
+next line ("## Deadline", then "January 9, 2027 at midnight Pacific"), and a table with two columns, the element
+and its value ("| Deadline | January 9, 2027 |"). A table with more columns is not read. What attendees may see
+can go under a "## For attendees" heading: the one-pager then copies only that part."""
+CLOSE_SHAPE_SHORT = ("Write one element per line, each starting with its name (\"- **Close mode:** checkout\", "
+                     "\"- **Deadline:** January 9, 2027\" or \"- **Deadline:** none\"); a heading with its value on the next "
+                     "line, or a two-column table of element and value, is read the same way. "
+                     "Run webinar_check.py lint --close close.md to see what is read.")
+DEADLINE_NAME = r"(?:deadline|enrol?l?ment closes|cart closes|doors close)"
+CLOSE_DEADLINE_AT = re.compile(r"(" + DEADLINE_NAME + r")\b(?:\s*\([^)]*\))?\**\s*[:\-–—]?\s*\**(.*)$", re.I)
+NO_DEADLINE_AT = re.compile(r"(no deadline)\b\**\s*[:;,.\-–—]?\s*\**(.*)$", re.I)
+CLOSE_LABEL = re.compile(r"(?P<label>[A-Za-z][^:|]{0,70}?)\s*\**\s*:(?=\s|\*|$)\**\s*(?P<value>.*)$")
+CLOSE_INTERNAL = (  # elements the attendee one-pager never carries
+    ("close_mode", re.compile(r"close mode\b", re.I)),
+    ("backup", re.compile(r"(?:backup|back-up|fallback|second (?:checkout|payment))\b", re.I)),
+    ("signoff", re.compile(r"(?:signed[- ]off|sign[- ]?off|approved by)\b", re.I)),
+    ("note", re.compile(r"(?:(?:internal|moderator|team|private|host)(?:[ -]only)?[ ]?)?notes?\b|"
+                        r"(?:internal|moderator|team)(?:[ -]only)?$|for the (?:moderator|team)\b", re.I)),
+)
+CLOSE_MARKED = re.compile(r"moderator only|\(internal\)|internal only", re.I)
+CLOSE_HEADER_WORDS = {"", "element", "elements", "field", "item", "name", "what", "key", "part", "value", "values", "detail",
+                      "details", "description", "setting", "answer"}
+URL = re.compile(r"https?://[^\s)>|]+|\bwww\.[^\s)>|]+", re.I)
+SIGNOFF_PAREN = re.compile(r"\s*\((?:as )?signed off[^)]*\)", re.I)
+SIGNOFF_TAIL = re.compile(r"\s*[,;]\s*(?:as )?signed off\b[^.;|]*", re.I)
+SIGNOFF_AS = re.compile(r"\s*,?\s*as signed off\b", re.I)
+UNSAFE_WORDS = re.compile(r"\bsigned[- ]off\b|\bsign-?off\b|\bclose mode\b|moderator only|\(internal\)|internal only", re.I)
+BACKUP_WORD = re.compile(r"\b(?:backup|back-up|fallback)\b", re.I)
+
+
+def _bare(s):
+    """A line or a cell without its bullet and its bold or code marks."""
+    s = re.sub(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)?", "", s)
+    return re.sub(r"^[*_`\s]+|[*_`\s]+$", "", s)
+
+
+def _close_kind(label):
+    """close_mode, backup, signoff, note (all internal), deadline, or other."""
+    lab = re.sub(r"\s*\([^)]*\)", "", label).strip()
+    for kind, rx in CLOSE_INTERNAL:
+        if rx.match(lab):
+            return kind
+    if re.match(DEADLINE_NAME + r"\b|no deadline\b", lab, re.I):
+        return "deadline"
+    return "other"
+
+
+def _close_labelled(line):
+    """(name, value) when the line is "Name: value" (or starts with a deadline name), else None."""
+    b = _bare(line)
+    m = NO_DEADLINE_AT.match(b)
+    if m:
+        return "Deadline", ("none; " + _bare(m.group(2))).rstrip("; ")
+    m = CLOSE_DEADLINE_AT.match(b)
+    if m:
+        return m.group(1), _bare(m.group(2))
+    m = CLOSE_LABEL.match(b)
+    if m:
+        lab = _bare(m.group("label"))
+        if lab and len(lab.split()) <= 8 and not re.search(r"[.!?]\s", lab) and not re.match(r"https?$", lab, re.I):
+            return lab, _bare(m.group("value"))
+    return None
+
+
+def close_mode_of(value):
+    """checkout, call or both from the Close mode value; None when it says something else."""
+    v = (value or "").lower()
+    co, ca = bool(re.search(r"\bcheckout\b|\bcart\b", v)), bool(re.search(r"\bcalls?\b|\bapplications?\b|\bbooking\b", v))
+    if re.search(r"\bboth\b", v) or (co and ca):
+        return "both"
+    return "checkout" if co else "call" if ca else None
+
+
+def _deadline_state(value):
+    v = (value or "").strip().strip("*").strip()
+    if not v:
+        return "empty"
+    if re.match(r"(none|no deadline|n/?a)\b", v, re.I) or v in ("—", "-", "–"):
+        return "none"
+    if re.search(r"\bpending\b", v, re.I):
+        return "pending"
+    return "set"
+
+
+def read_close(raw):
+    """Read close.md in any of its three accepted shapes into the same elements.
+
+    Returns {"ok", "problems", "elements", "items", "mode", "deadline_state" (set, none, pending), "deadline",
+    "pending", "shapes", "attendee_part", "text"}. "ok" is False when the file would not be read correctly:
+    "problems" then says, in plain words, what could not be read. PENDING elements are reported, not refused."""
+    text = re.sub(r"<!--.*?-->", "", raw or "", flags=re.S)
+    text = re.sub(r"\A\s*---[ \t]*\r?\n(?=[A-Za-z_][\w-]*:).*?\r?\n---[ \t]*(?:\r?\n|\Z)", "", text, flags=re.S)  # a vault note's frontmatter
+    lines = text.splitlines()
+    items, problems = [], []
+    internal_level = attendee_level = None
+    attendee_part = False
+    waiting = None  # a heading still waiting for its value on the next non-blank line
+
+    def add(kind, n, raw_line, **kw):
+        it = {"type": kind, "line": n + 1, "raw": raw_line, "internal": internal_level is not None,
+              "attendee": attendee_level is not None}
+        it.update(kw)
+        if kind == "element":
+            it["kind"] = _close_kind(it["name"])
+            it["internal"] = it["internal"] or it["kind"] in ("close_mode", "backup", "signoff", "note") or bool(CLOSE_MARKED.search(raw_line))
+        elif kind == "free":
+            b = _bare(raw_line)
+            it["internal"] = (it["internal"] or bool(CLOSE_MARKED.search(raw_line))
+                              or any(rx.match(b) for k, rx in CLOSE_INTERNAL if k != "note"))
+        items.append(it)
+        return it
+
+    i = 0
+    while i < len(lines):
+        ln = lines[i]
+        s = ln.strip()
+        if not s:
+            add("blank", i, "")
+            i += 1
+            continue
+        h = re.match(r"\s{0,3}(#{1,6})\s+(.*?)\s*#*\s*$", ln)
+        if h:
+            level, title = len(h.group(1)), _bare(h.group(2))
+            if internal_level is not None and level <= internal_level:
+                internal_level = None
+            if attendee_level is not None and level <= attendee_level:
+                attendee_level = None
+            waiting = None
+            if level == 1:
+                add("title", i, ln)
+            elif re.fullmatch(r"for (?:the )?attendees", title.rstrip(":"), re.I):
+                add("attendee_heading", i, ln)
+                attendee_level, attendee_part = level, True
+            else:
+                lab = _close_labelled(title)
+                if lab:  # "## Deadline: January 9"
+                    add("element", i, ln, name=lab[0], value=lab[1], shape="line")
+                else:
+                    kind = _close_kind(title)
+                    if kind in ("close_mode", "backup", "signoff", "note"):
+                        internal_level = level  # everything under an internal heading stays internal
+                    waiting = add("heading", i, ln, name=title, kind=kind)
+            i += 1
+            continue
+        if s.startswith("|"):
+            j, rows = i, []
+            while j < len(lines) and lines[j].strip().startswith("|"):
+                cells = [_bare(c) for c in lines[j].strip().strip("|").split("|")]
+                rows.append((j, lines[j], cells, all(re.fullmatch(r":?-{1,}:?", c.strip()) for c in lines[j].strip().strip("|").split("|"))))
+                j += 1
+            data = [r for r in rows if not r[3]]
+            widths = sorted({len(r[2]) for r in data})
+            if widths != [2]:
+                head = " | ".join(data[0][2]) if data else ""
+                problems.append(f"the table at line {i + 1} has {widths[-1] if widths else 0} column{'s' if not widths or widths[-1] != 1 else ''}"
+                                f" ({head[:80]}): with more or fewer than two columns there is no telling which one "
+                                "holds the value. Use two columns, the element and its value, or one element per line")
+                for r in rows:
+                    add("table_unread", r[0], r[1])
+            else:
+                for k, r in enumerate(rows):
+                    if r[3]:
+                        add("table_frame", r[0], r[1])
+                        continue
+                    is_head = (k == 0 and len(rows) > 1 and rows[1][3] and _close_kind(r[2][0]) == "other"
+                               and (r[2][0].lower() in CLOSE_HEADER_WORDS or r[2][1].lower() in CLOSE_HEADER_WORDS))
+                    if is_head:
+                        add("table_frame", r[0], r[1])
+                    else:
+                        add("element", r[0], r[1], name=r[2][0], value=r[2][1], shape="table")
+            waiting = None
+            i = j
+            continue
+        lab = _close_labelled(ln)
+        if lab:
+            add("element", i, ln, name=lab[0], value=lab[1], shape="line")
+        elif waiting is not None:  # the heading's value
+            waiting.update(type="element", value=_bare(ln), shape="heading")
+            waiting["internal"] = waiting["internal"] or bool(CLOSE_MARKED.search(ln))
+            add("value", i, ln, internal=None)
+            items[-1]["internal"] = waiting["internal"]
+        else:
+            add("free", i, ln)
+        waiting = None
+        i += 1
+
+    elements = [it for it in items if it["type"] == "element"]
+    empty_heads = [it for it in items if it["type"] == "heading"]
+    pending = [ln.strip() for ln in lines if re.search(r"\bpending\b", ln, re.I)]
+    mode = deadline = None
+    deadline_state = "missing"
+    if not elements and not problems:
+        problems.append("nothing in it reads as an element (a name and its value)")
+    elif elements or not problems:
+        # close mode
+        modes = [e for e in elements if e["kind"] == "close_mode"]
+        if not modes:
+            hd = next((h_ for h_ in empty_heads if h_["kind"] == "close_mode"), None)
+            problems.append(f"the heading \"{hd['name']}\" (line {hd['line']}) has no value on the line under it" if hd else
+                            "no Close mode element (checkout, call or both)")
+        else:
+            vals = {close_mode_of(e["value"]) for e in modes if not re.search(r"\bpending\b", e["value"], re.I)}
+            if None in vals:
+                bad = next(e for e in modes if close_mode_of(e["value"]) is None and not re.search(r"\bpending\b", e["value"], re.I))
+                problems.append(f"Close mode says {bad['value']!r} (line {bad['line']}): it must be checkout, call or both")
+            elif len(vals) > 1:
+                problems.append("Close mode is written more than once with different values (" +
+                                ", ".join(f"line {e['line']}: {e['value']}" for e in modes) + ")")
+            elif vals:
+                mode = vals.pop()
+        # deadline
+        dls = [e for e in elements if e["kind"] == "deadline"]
+        if not dls:
+            hd = next((h_ for h_ in empty_heads if h_["kind"] == "deadline"), None)
+            problems.append(f"the heading \"{hd['name']}\" (line {hd['line']}) has no value on the line under it" if hd else
+                            "no Deadline element (write the deadline, or \"Deadline: none\" when there is none)")
+        else:
+            states = [(_deadline_state(e["value"]), e) for e in dls]
+            st0, e0 = states[0]
+            if st0 == "empty":
+                problems.append(f"{e0['name']} (line {e0['line']}) has no value: write the deadline, or \"none\"")
+            else:
+                clash = None
+                for st_, e in states[1:]:
+                    if {st0, st_} == {"set", "none"} or (st0 == st_ == "set" and dates(e0["value"]) and dates(e["value"])
+                                                         and not dates(e0["value"]) & dates(e["value"])):
+                        clash = e
+                        break
+                if clash:
+                    problems.append(f"the deadline is written more than once and the lines disagree (line {e0['line']}: "
+                                    f"{e0['value'][:50]!r}; line {clash['line']}: {clash['value'][:50]!r})")
+                else:
+                    deadline_state = st0
+                    deadline = e0["value"].strip().strip("*").strip() if st0 in ("set", "none") else None
+        # the offer itself, by close mode
+        shown = [e for e in elements if not e["internal"] and e["kind"] != "deadline"]
+        frees = [it for it in items if it["type"] in ("free", "value") and not it["internal"]]
+        shown_txt = "\n".join(it["raw"] for it in shown + frees)
+        if mode in ("checkout", "both") and not figures(shown_txt) and not pending:
+            problems.append(f"Close mode is {mode} but no price was found outside the internal lines "
+                            "(write each door with its price, for example \"- **Door 1: The Program** $1,997\")")
+        elif mode == "call" and not shown and not pending:
+            problems.append("Close mode is call but no door was found: say what the call or application is, and who it is for")
+    return {"ok": not problems, "problems": problems, "elements": elements, "items": items, "mode": mode,
+            "deadline_state": deadline_state, "deadline": deadline, "pending": pending,
+            "shapes": sorted({e["shape"] for e in elements}), "attendee_part": attendee_part, "text": text}
+
+
+def load_close(path):
+    """read_close() on a file; a file that cannot be opened comes back as not ok, with the reason."""
+    try:
+        raw = Path(path).read_text()
+    except Exception as e:
+        return {"ok": False, "problems": [f"cannot read {path}: {e}"], "elements": [], "items": [], "mode": None,
+                "deadline_state": "missing", "deadline": None, "pending": [], "shapes": [], "attendee_part": False,
+                "text": "", "unreadable": True}
+    return read_close(raw)
+
+
+def close_refusal(rc, short=False):
+    """The plain message for a close.md that would not be read correctly."""
+    return ("close.md was not read: " + "; ".join(rc["problems"]) + "." +
+            (" " + CLOSE_SHAPE_SHORT if short else "\n\n" + CLOSE_SHAPE))
+
+
+def close_onepager(rc):
+    """What attendees may see, from a close.md read_close() accepted: (lines, left_out, problems).
+
+    The "## For attendees" part when there is one, otherwise everything. Either way without the close mode, backup
+    links, sign-off notes, internal notes and anything marked "moderator only" or "(internal)". "problems" is not
+    empty when a line cannot be told safe from internal: nothing is then published."""
+    src = [it for it in rc["items"] if it["attendee"]] if rc["attendee_part"] else rc["items"]
+    keep, left, problems = [], [], []
+    for it in src:
+        t = it["type"]
+        if t in ("title", "attendee_heading", "table_frame"):
+            if t == "title":
+                left.append(it["raw"])
+            continue
+        if t == "blank":
+            keep.append("")
+            continue
+        if it["internal"] or t == "table_unread":
+            left.append(it["raw"])
+            continue
+        out = f"- **{it['name']}:** {it['value']}" if t == "element" and it["shape"] == "table" else it["raw"]
+        out = SIGNOFF_AS.sub("", SIGNOFF_TAIL.sub("", SIGNOFF_PAREN.sub("", out)))
+        keep.append(out.rstrip())
+    hidden = {u.rstrip(".,;") for it in rc["items"] if it["internal"] for u in URL.findall(it["raw"])}
+    for ln in keep:
+        if UNSAFE_WORDS.search(ln):
+            problems.append(f"this line mixes an internal note with attendee wording: {ln.strip()[:120]!r}")
+        elif (BACKUP_WORD.search(ln) and URL.search(ln)) or any(u.rstrip(".,;") in hidden for u in URL.findall(ln)):
+            problems.append(f"this line carries a backup or internal link: {ln.strip()[:120]!r}")
+    if not any(ln.strip() for ln in keep):
+        problems.append("the \"## For attendees\" part is empty" if rc["attendee_part"] else "nothing is left for attendees to read")
+    while keep and not keep[0].strip():
+        keep.pop(0)
+    while keep and not keep[-1].strip():
+        keep.pop()
+    return keep, left, problems
+
+
+def describe_close(rc):
+    """The elements as read, in plain words, one per line."""
+    out = []
+    for e in rc["elements"]:
+        tag = {"close_mode": "internal", "backup": "internal", "signoff": "internal", "note": "internal"}.get(e["kind"]) or \
+              ("internal" if e["internal"] else "")
+        out.append(f"  {e['name']}: {e['value'] or '(no value)'}" + (f"  [{tag}: kept off the one-pager]" if tag else ""))
+    return out
+
+
+def run_lint(a):
+    """lint --close close.md: what the scripts read from close.md; exit 1 when it would not be read correctly."""
+    rc = load_close(a.close)
+    keep, left, unsafe = close_onepager(rc) if rc["ok"] else ([], [], [])
+    ok = rc["ok"] and not unsafe
+    if a.json:
+        print(json.dumps({"ok": ok, "problems": rc["problems"] + unsafe, "close_mode": rc["mode"],
+                          "deadline": rc["deadline"], "deadline_state": rc["deadline_state"], "shapes": rc["shapes"],
+                          "elements": [{"name": e["name"], "value": e["value"], "internal": e["internal"], "line": e["line"]}
+                                       for e in rc["elements"]], "pending": rc["pending"], "one_pager": keep}, indent=2))
+        sys.exit(0 if ok else 2 if rc.get("unreadable") else 1)
+    if rc.get("unreadable"):
+        print(rc["problems"][0])
+        sys.exit(2)
+    if rc["elements"]:
+        print(f"Read from {a.close} ({len(rc['elements'])} elements):")
+        print("\n".join(describe_close(rc)))
+        print()
+    if not rc["ok"]:
+        print("NOT READ CORRECTLY. " + close_refusal(rc))
+        sys.exit(1)
+    print("Close mode: " + (rc["mode"] or "still PENDING"))
+    print("Deadline: " + {"set": rc["deadline"] or "", "none": "none (" + (rc["deadline"] or "none") + ")",
+                          "pending": "still PENDING"}[rc["deadline_state"]])
+    if unsafe:
+        print("\nNOT SAFE TO SHOW ATTENDEES. " + "; ".join(unsafe) + ".\nPut each internal note on a line of its own that "
+              "starts with Backup, Close mode, Signed off or Notes, or put the attendee wording under a \"## For attendees\" heading.")
+        sys.exit(1)
+    print(f"\nThe one-pager would show attendees these {sum(1 for x in keep if x.strip())} lines"
+          + (" (the \"## For attendees\" part):" if rc["attendee_part"] else ":"))
+    print("\n".join("  " + x for x in keep if x.strip()))
+    if rc["pending"]:
+        print(f"\n{len(rc['pending'])} line(s) still PENDING: the check holds and the one-pager is not written until the "
+              "member settles them.")
+    print("\nOK: close.md reads correctly.")
+    sys.exit(0)
 
 
 def run(a):
