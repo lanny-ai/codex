@@ -46,7 +46,7 @@ Run as soon as one client has a result, then ten minutes a week. Every page, ema
 
 | # | Session | Skill | Builds (file §) | Requires |
 |---|---|---|---|---|
-| 1 | Proof Engine (trigger → 3-question interview → filed with permission and class → one placement) | `buildroom-proof-engine` | §18 proof vault, §19 count, §13 rows | §1 (best with §3) |
+| 1 | Proof Engine (trigger → five-question interview → filed with permission and class → one placement) | `buildroom-proof-engine` | §18 proof vault, §19 count, §13 rows | §1 (best with §3) |
 
 ### Search — Search & Answer Engine
 Run once §2 exists and the member has a website or meets customers in person; then a weekly routine of about two and a half hours. Profile first, pages second, listings and mentions third, YouTube fourth, ChatGPT last.
@@ -158,7 +158,7 @@ When routing, give the member the exact words to start the session:
 - Search & Answer Engine → "Get found on Google" · "Fix my Google Business Profile" · "Get more Google reviews" · "Answer this question on my website" · "Publish this page" · "Am I showing up in ChatGPT" · "Search week"
 - AI Momentum Labs Book Builder → "Write my book" · "Plan my book" · "Write the next chapter" · "Edit my book" · "Review my book" · "Have readers test my book" · "Is my book ready" · "How is my book coming along"
 - Website Design Studio → "Make my website look like me" · "Design my landing page" · "My pages look like AI made them" · "Set up my taste vault" · "Tweak my page" · "Is my page ready to go live" · "Change my brand colours"
-- Webinar Builder → "Build my webinar" · "Write my webinar title and registration page" · "Make my webinar slides" · "Rehearse my webinar" · "How did my webinar go" · "Why didn't my webinar sell" · "Make my webinar evergreen"
+- Webinar Builder → "Build my webinar" · "Write my webinar title and registration page" · "Make my webinar slides" · "Is my webinar ready" · "Rehearse my webinar" · "How did my webinar go" · "Why didn't my webinar sell" · "Make my webinar evergreen"
 - Event Launcher → "Plan my launch" · "Help me run a challenge" · "I want to do a 3-day bootcamp" · "Write my launch emails" · "Run sheet for day 2" · "Plan the close" · "Launch partners" · "Is my launch ready" · "How did my launch do"
 - Sales Conversations → "Help me with my sales call"
 - Ad Studio → "Make me ads"

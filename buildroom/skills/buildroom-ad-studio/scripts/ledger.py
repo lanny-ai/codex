@@ -266,6 +266,15 @@ def cmd_record(data, a):
     if len(jobs) != 1:
         raise ValueError("no such job key")
     j = jobs[0]
+    if a.status == j["status"] and j["status"] in {"completed", "failed", "canceled"}:
+        # The provider's real charge is usually known only after the job has ended. Recording it is
+        # the one change a finished job takes: nothing else about it moves.
+        if a.charged is None or not a.charge_evidence:
+            raise ValueError(f"this job is already {j['status']}; the only thing left to record is the actual charge "
+                             "(--charged N --charge-evidence \"provider receipt, or balance before and after\")")
+        j["charged"], j["charge_evidence"] = str(amount(a.charged)), a.charge_evidence
+        j["history"].append({"status": j["status"], "at": now(), "evidence": a.evidence, "charged": a.charged})
+        return
     if a.status not in STATES[j["status"]] and not (a.status == j["status"] == "pending"):
         raise ValueError(f"invalid transition {j['status']} -> {a.status}")
     if j["status"] == "reserved" and a.status == "submitting":

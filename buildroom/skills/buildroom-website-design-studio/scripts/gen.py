@@ -340,7 +340,8 @@ def finish(project, provider, job, job_id, root):
         download(urls[0], root / job["out"])
         rec(project, job["key"], "completed", result=str(job["out"]))
         print(f"  done → {job['out']}  (record the actual charge when the provider shows it:"
-              f" ledger.py record --key {job['key']} --status completed --charged N --charge-evidence ...)")
+              f" ledger.py record {project} --key {job['key']} --status completed --charged N"
+              f" --charge-evidence \"receipt or balance before and after\")")
     elif state == "failed":
         err = dig(body, PROVIDERS[provider]["s_error"]) if body else None
         rec(project, job["key"], "failed", evidence=str(err or "provider reported failure")[:300])
