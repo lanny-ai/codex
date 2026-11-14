@@ -1,5 +1,7 @@
 # Frank Kern Copywriting Framework Reference
 
+> **Structure only.** Every figure, name, guarantee, deadline and count of places in this reference is an example of a pattern from someone else's copy. Never reuse one, and never invent one to fill the pattern. A member's copy uses only their own numbers, their own clients' stories with permission, the guarantee their offer really carries and deadlines that are true. Where they have nothing real for a slot, leave a visible `[PROOF NEEDED: …]` note and say so.
+
 ## Table of Contents
 1. The 8-Step Process
 2. Persuasion Philosophy

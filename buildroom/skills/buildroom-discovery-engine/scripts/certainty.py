@@ -38,9 +38,11 @@ Output: one record per item with
   certainty     confirmed (>= threshold) | likely (>= 0.5) | inferred (< 0.5)
   raw           the provider's answer object, untouched
 
-Keys stay in the environment. This script never prints them.
+Keys are read from the environment or the nearest .env (this folder or up to three
+parents). This script never prints them.
 """
 import argparse, json, os, sys, urllib.request, urllib.error
+from pathlib import Path
 
 # ---------- OpenAI Decisions API shape (UNVERIFIED: adjust after --probe) ----------
 OPENAI_SHAPE = {
@@ -61,13 +63,92 @@ JEV_MODEL_DEFAULT = "typesafe/jev-1.13"
 JEV_BASE_DEFAULT = "https://thejevai.com"
 
 
+def load_dotenv():
+    """Read the nearest .env (cwd and up to three parents) without printing anything."""
+    for d in [Path.cwd(), *Path.cwd().parents][:4]:
+        f = d / ".env"
+        if f.is_file():
+            for line in f.read_text(encoding="utf-8-sig", errors="replace").splitlines():
+                line = line.strip()
+                if line.startswith("export "):
+                    line = line[7:].lstrip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+            return
+
+
+def load_sheet(path):
+    """Read and check sheet.json; stop with a plain message instead of a traceback."""
+    try:
+        sheet = json.loads(Path(path).read_text(encoding="utf-8-sig"))
+    except FileNotFoundError:
+        sys.exit(f"{path} was not found. Nothing was scored.")
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as e:
+        sys.exit(f"{path} could not be read as JSON ({e}). Nothing was scored.")
+    bad = []
+    if not isinstance(sheet, dict):
+        sys.exit(f"{path} must be a JSON object with subject and items. Nothing was scored.")
+    if not isinstance(sheet.get("subject"), str) or not sheet["subject"].strip():
+        bad.append('"subject" (the business name) is missing')
+    items = sheet.get("items")
+    if not isinstance(items, list) or not items:
+        bad.append('"items" must be a list with at least one question')
+    else:
+        seen = set()
+        for n, it in enumerate(items, 1):
+            if not isinstance(it, dict) or not isinstance(it.get("id"), str) or not isinstance(it.get("question"), str):
+                bad.append(f'item {n} needs an "id" and a "question" in quotes'); continue
+            if it["id"] in seen or it["id"] == "identity":
+                bad.append(f'item {n}: id "{it["id"]}" is used twice or is reserved')
+            seen.add(it["id"])
+            ev = it.get("evidence")
+            if isinstance(ev, str):
+                it["evidence"] = [ev]
+            elif ev is None:
+                it["evidence"] = []
+            elif not isinstance(ev, list) or any(not isinstance(x, str) for x in ev):
+                bad.append(f'item {n}: "evidence" must be a list of lines in quotes')
+    ident = sheet.get("identity")
+    if ident is not None:
+        cands = ident.get("candidates") if isinstance(ident, dict) else None
+        if not isinstance(cands, list) or any(not isinstance(c, dict) or not isinstance(c.get("name"), str) for c in cands):
+            bad.append('"identity" must be {"candidates": [{"name": "...", "description": "..."}]}')
+    if bad:
+        sys.exit(f"{path} is not in the sheet.json shape:\n  - " + "\n  - ".join(bad) + "\nNothing was scored.")
+    return sheet
+
+
+def _prob(v):
+    """A probability is a number from 0 to 1; anything else counts as not scored."""
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not 0 <= v <= 1:
+        return None
+    return v
+
+
+def _key(provider):
+    name = "JEV_API_KEY" if provider == "jev" else "OPENAI_API_KEY"
+    key = os.environ.get(name)
+    if not key:
+        sys.exit(f"{name} is not set (keep it in .env, never in the chat). Nothing was sent.")
+    return key
+
+
 def _post(url, key, body, timeout=60):
     req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST",
                                  headers={"Content-Type": "application/json",
                                           "Authorization": f"Bearer {key}"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
-            return json.loads(r.read().decode())
+            txt = r.read().decode(errors="replace")
+            try:
+                data = json.loads(txt)
+            except json.JSONDecodeError:
+                sys.exit(f"{url} answered but not with JSON. Check the base URL; nothing was scored.")
+            if not isinstance(data, dict):
+                sys.exit(f"{url} answered with JSON that is not an object. Fix the shape at the top of "
+                         f"certainty.py; nothing was scored. The vendor sent:\n{txt[:2000]}")
+            return data
     except urllib.error.HTTPError as e:
         detail = e.read().decode(errors="replace")[:2000]
         sys.exit(f"{url} -> HTTP {e.code}. The vendor said:\n{detail}\n"
@@ -119,15 +200,18 @@ def openai_request(subject, items, identity=None):
 
 # ---------- response readers ----------
 def jev_read(resp):
-    answers = (resp.get("result") or {}).get("answers") or resp.get("answers") or {}
+    result = resp.get("result")
+    answers = (result if isinstance(result, dict) else {}).get("answers") or resp.get("answers") or {}
     out = {}
-    for qid, a in answers.items():
+    for qid, a in (answers.items() if isinstance(answers, dict) else []):
+        if not isinstance(a, dict):
+            a = {"noul": a}
         if qid == "identity":
             out[qid] = {"selected": a.get("selected") or a.get("choice"), "probabilities": a.get("probabilities"),
                         "confidence": a.get("confidence"), "raw": a}
         else:
             p = a.get("noul", a.get("probability"))
-            out[qid] = {"p_answered": p, "raw": a}
+            out[qid] = {"p_answered": _prob(p), "raw": a}
     return out
 
 
@@ -135,14 +219,16 @@ def openai_read(resp):
     S = OPENAI_SHAPE
     answers = resp.get(S["answers_field"]) or resp.get("output") or []
     if isinstance(answers, dict):
-        answers = [dict(v, **{S["a_id"]: k}) for k, v in answers.items()]
+        answers = [dict(v if isinstance(v, dict) else {S["a_probability"]: v}, **{S["a_id"]: k}) for k, v in answers.items()]
     out = {}
-    for a in answers:
+    for a in (answers if isinstance(answers, list) else []):
+        if not isinstance(a, dict):
+            continue
         qid = a.get(S["a_id"])
         if qid == "identity":
             out[qid] = {"selected": a.get(S["a_answer"]), "probabilities": a.get(S["a_probabilities"]), "raw": a}
         else:
-            out[qid] = {"p_answered": a.get(S["a_probability"]), "raw": a}
+            out[qid] = {"p_answered": _prob(a.get(S["a_probability"])), "raw": a}
     return out
 
 
@@ -173,6 +259,12 @@ def main():
     ap.add_argument("--probe", action="store_true", help="one tiny call to confirm the schema")
     ap.add_argument("--out", help="write scored JSON here (default: stdout)")
     a = ap.parse_args()
+    for stream in (sys.stdout, sys.stderr):   # a Windows pipe defaults to cp1252
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+    load_dotenv()
 
     provider = pick_provider(a.provider)
     if a.probe:
@@ -183,12 +275,12 @@ def main():
         if provider == "jev":
             body = jev_request("Example Co", items)
             url = os.environ.get("JEV_API_BASE_URL", JEV_BASE_DEFAULT).rstrip("/") + "/v1/systemone"
-            resp = _post(url, os.environ["JEV_API_KEY"], body)
+            resp = _post(url, _key("jev"), body)
             print(json.dumps({"provider": "jev", "parsed": jev_read(resp), "raw_response": resp}, indent=2))
         else:
             body = openai_request("Example Co", items)
             url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com").rstrip("/") + OPENAI_SHAPE["path"]
-            resp = _post(url, os.environ["OPENAI_API_KEY"], body)
+            resp = _post(url, _key("openai"), body)
             print(json.dumps({"provider": "openai", "parsed": openai_read(resp), "raw_response": resp}, indent=2))
             print("\nIf 'parsed' is empty, the field names in OPENAI_SHAPE do not match: "
                   "compare raw_response and edit OPENAI_SHAPE once.", file=sys.stderr)
@@ -196,7 +288,7 @@ def main():
 
     if not a.sheet:
         ap.error("sheet.json is required unless --probe")
-    sheet = json.load(open(a.sheet, encoding="utf-8"))
+    sheet = load_sheet(a.sheet)
     subject, items, identity = sheet["subject"], sheet["items"], sheet.get("identity")
 
     if a.dry_run:
@@ -210,10 +302,10 @@ def main():
 
     if provider == "jev":
         url = os.environ.get("JEV_API_BASE_URL", JEV_BASE_DEFAULT).rstrip("/") + "/v1/systemone"
-        parsed = jev_read(_post(url, os.environ["JEV_API_KEY"], jev_request(subject, items, identity)))
+        parsed = jev_read(_post(url, _key("jev"), jev_request(subject, items, identity)))
     else:
         url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com").rstrip("/") + OPENAI_SHAPE["path"]
-        parsed = openai_read(_post(url, os.environ["OPENAI_API_KEY"], openai_request(subject, items, identity)))
+        parsed = openai_read(_post(url, _key("openai"), openai_request(subject, items, identity)))
 
     scored = []
     for it in items:
@@ -221,7 +313,17 @@ def main():
         state, cert = classify(r.get("p_answered"), a.threshold)
         scored.append({"id": it["id"], "question": it["question"], "state": state,
                        "p_answered": r.get("p_answered"), "certainty": cert, "raw": r.get("raw")})
+    unscored = [s["id"] for s in scored if s["p_answered"] is None]
+    if len(unscored) == len(scored):
+        sys.exit(f"The {provider} response held no probability for any item, so nothing was scored and nothing "
+                 f"was written. Run --probe, compare raw_response with the shape at the top of certainty.py, "
+                 f"and fix it once. Until then, use the three-word scale.")
+    if unscored:
+        print(f"NOT SCORED by {provider} (no probability came back; shown as gap, rate these by hand): "
+              + ", ".join(unscored), file=sys.stderr)
     result = {"provider": provider, "threshold": a.threshold, "subject": subject, "items": scored}
+    if unscored:
+        result["unscored"] = unscored
     if "identity" in parsed:
         result["identity"] = parsed["identity"]
     text = json.dumps(result, indent=2)

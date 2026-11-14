@@ -47,7 +47,15 @@ def load(vault):
     p = tv(vault) / "taste.json"
     if not p.exists():
         dslib.emit({"ok": False, "error": f"no taste vault at {tv(vault)}; run init first"}, 1)
-    return dslib.read_json(p)
+    data = dslib.read_json(p)
+    if not isinstance(data, dict) or not isinstance(data.get("refs", []), list):
+        dslib.emit({"ok": False, "error": f"{p} is not a taste vault file; restore it from a backup or run init in a new vault"}, 1)
+    for key, blank in (("refs", []), ("direction_feedback", []), ("read", []), ("read_confirmed", None)):
+        data.setdefault(key, blank)
+    for r in data["refs"]:          # a hand-edited reference may lack these
+        r.setdefault("kind", "other")
+        r.setdefault("collection", "unsorted")
+    return data
 
 
 def save(vault, data):

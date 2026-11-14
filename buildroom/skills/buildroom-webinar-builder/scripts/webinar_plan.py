@@ -19,7 +19,8 @@ Usage
       --runsheet writes the webinar as a day in the Event Launcher's runsheet.json (created if missing; the
       day with the same date is replaced), with the lobby, the recording notice, a checkout test 30 minutes
       before the start and the roles and links merged in, so run_sheet.py build checks it with the launch.
-      --close sets the run sheet's deadline from close.md (removed when close.md says there is none). Blank and
+      --close sets the run sheet's deadline from close.md (removed when close.md says there is none; left as it
+      was, with a "deadline_note", when close.md has no deadline line or it is still PENDING). Blank and
       placeholder roles and links in runsheet.json are filled from webinar.json; a real value that differs is kept
       and reported under "conflicts". A day on the same date that the Event Launcher wrote (not marked "webinar")
       is replaced only with --force (exit 1 otherwise).
@@ -443,7 +444,8 @@ def is_blank(v):
 
 
 def close_deadline_line(path):
-    """The deadline from close.md (None when it says there is none)."""
+    """(state, deadline) from close.md: "set" with the deadline; "none" when the line says there is none; "pending"
+    when the line is still PENDING; "missing" when no deadline line was found (or it is empty)."""
     try:
         text = re.sub(r"<!--.*?-->", "", Path(path).read_text(), flags=re.S)
     except Exception as e:
@@ -451,10 +453,16 @@ def close_deadline_line(path):
     m = re.search(r"^\s*(?:[-*]\s*)?\**\s*(deadline|enrol?l?ment closes|cart closes|doors close)\b\**\s*[:\-–—]?\s*\**(.*)$",
                   text, re.I | re.M)
     if not m:
-        return None
+        return "missing", None
     v = m.group(2).strip().strip("*").strip()
     v = v.rstrip(" .;")
-    return None if (not v or re.match(r"(none|no deadline|n/?a|—|-)\b", v, re.I)) else v
+    if not v:
+        return "missing", None
+    if re.match(r"(none|no deadline|n/?a|—|-)\b", v, re.I):
+        return "none", None
+    if re.search(r"\bpending\b", v, re.I):
+        return "pending", None
+    return "set", v
 
 
 def cmd_render(a):
@@ -483,7 +491,7 @@ def cmd_render(a):
         if same and not same[0].get("webinar") and not a.force:
             refuse(f"{rp} already has a day on {spec['date']} that the Event Launcher wrote (not a webinar day); pass --force "
                    "to replace it, or give the webinar another date", 1)
-        conflicts = []
+        conflicts, deadline_note = [], None
         rs.setdefault("title", spec.get("title"))
         rs.setdefault("allow_early_pitch", False)
         rs.setdefault("close", spec.get("close", "checkout"))
@@ -500,11 +508,16 @@ def cmd_render(a):
         merge(roles, dict(spec.get("roles") or {}, closer=(spec.get("roles") or {}).get("host", "")))
         merge(rs.setdefault("links", {}), spec.get("links") or {})
         if a.close:
-            dl = close_deadline_line(a.close)
-            if dl:
+            state, dl = close_deadline_line(a.close)
+            if state == "set":
                 rs["deadline"] = dl
-            else:
+            elif state == "none":
                 rs.pop("deadline", None)
+            else:  # never drop the Event Launcher's deadline because close.md could not be read for one
+                deadline_note = ("the deadline in close.md is still PENDING" if state == "pending" else
+                                 "close.md has no line starting Deadline, Enrolment closes, Cart closes or Doors close "
+                                 "(write the deadline on its own line, or \"Deadline: none\")") + \
+                                "; the run sheet's deadline was left as it was"
         day = runsheet_day(spec, segs, t0)
         days = [d for d in rs.get("days", []) if d.get("date") != spec["date"]]
         days.append(day)
@@ -513,6 +526,8 @@ def cmd_render(a):
         rp.write_text(json.dumps(rs, indent=2, ensure_ascii=False) + "\n")
         summary["runsheet"] = str(rp)
         summary["deadline"] = rs.get("deadline")
+        if deadline_note:
+            summary["deadline_note"] = deadline_note
         if conflicts:
             summary["conflicts"] = conflicts
         if not a.close:
@@ -535,6 +550,7 @@ def cmd_offer_summary(a):
         print(json.dumps({"ok": False, "pending": pend,
                           "say": "close.md still has PENDING elements; settle them with the member first."}))
         sys.exit(1)
+    text = re.sub(r"\A\s*---[ \t]*\r?\n(?=[A-Za-z_][\w-]*:).*?\r?\n---[ \t]*(?:\r?\n|\Z)", "", text, flags=re.S)  # a vault note's frontmatter
     sec = re.search(r"^##\s*For attendees\s*$(.*?)(?=^##\s|\Z)", text, re.M | re.S | re.I)
     src = sec.group(1) if sec else text
     keep, dropped = [], []

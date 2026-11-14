@@ -1,5 +1,7 @@
 # The Complete Gary Halbert Writing System
 
+> **Structure only.** Every figure, name, guarantee, deadline and count of places in this reference is an example of a pattern from someone else's copy. Never reuse one, and never invent one to fill the pattern. A member's copy uses only their own numbers, their own clients' stories with permission, the guarantee their offer really carries and deadlines that are true. Where they have nothing real for a slot, leave a visible `[PROOF NEEDED: …]` note and say so.
+
 This reference contains the deep tactical knowledge behind Gary Halbert's copywriting method. Read this when you need the full detail behind any principle referenced in the main SKILL.md.
 
 ## Table of Contents

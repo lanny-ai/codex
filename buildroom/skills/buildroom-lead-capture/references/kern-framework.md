@@ -1,5 +1,7 @@
 # Frank Kern Copywriting Framework
 
+> **Structure only.** Every figure, name, guarantee, deadline and count of places in this reference is an example of a pattern from someone else's copy. Never reuse one, and never invent one to fill the pattern. A member's copy uses only their own numbers, their own clients' stories with permission, the guarantee their offer really carries and deadlines that are true. Where they have nothing real for a slot, leave a visible `[PROOF NEEDED: …]` note and say so.
+
 This is the persuasion-first framework distilled from Frank Kern's teaching. Use this whenever you write copy that will go to an end customer — landing pages, headlines, opt-in forms, thank you pages, delivery emails.
 
 ## The Core Philosophy

@@ -74,7 +74,13 @@ def load(p):
     f = proj(p) / "design.json"
     if not f.exists():
         dslib.emit({"ok": False, "error": f"no design project at {p}; run init first"}, 1)
-    return dslib.read_json(f)
+    data = dslib.read_json(f)
+    if not isinstance(data, dict) or not isinstance(data.get("rounds", []), list):
+        dslib.emit({"ok": False, "error": f"{f} is not a design project file; restore it from a backup"}, 1)
+    for key, blank in (("deliverable", "landing page"), ("audience", "50plus"), ("copy", ""), ("rounds", []),
+                       ("picked", None), ("cap_rounds", CAP_ROUNDS)):
+        data.setdefault(key, blank)
+    return data
 
 
 def save(p, data):
@@ -84,7 +90,7 @@ def save(p, data):
 def cmd_init(a):
     f = proj(a.project) / "design.json"
     if f.exists():
-        return {"ok": True, "project": str(proj(a.project)), "created": False, **status(dslib.read_json(f))}
+        return {"ok": True, "project": str(proj(a.project)), "created": False, **status(load(a.project))}
     if a.deliverable not in DELIVERABLES:
         dslib.emit({"ok": False, "error": f"--deliverable must be one of {', '.join(DELIVERABLES)}"}, 1)
     data = {"schema": "buildroom-design-project/1", "project": proj(a.project).name, "created": str(date.today()),
