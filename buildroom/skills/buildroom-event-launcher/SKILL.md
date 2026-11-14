@@ -139,7 +139,7 @@ Morning of the close: `launch_tracker.py gate --stage close_morning`; the money 
 - Let partner or guest copy imply someone will appear who will not, or omit a partner's commission disclosure.
 - Use a countdown that resets, a "live" label on a recording, or a deadline that does not close.
 - Make income or earnings claims beyond what a typical buyer achieves, with proof.
-- Reproduce another teacher's scripts or slides (Tony Natoli's and others' are credited structures only; partners' own course material is never used; `source-credit.md`).
+- Reproduce another teacher's scripts or slides (Tony Natoli's and others' are credited structures only; `source-credit.md`).
 - Write the webinar talk, its slides, Q&A bank or moderator sheet (**Webinar Builder**), build the CRM workflows (**Decision Machine**), the sales page (**Offer Page Copy**), ads (**Ad Studio**) or videos (**Video Director**); it briefs them.
 
 ## When the Session Is Complete
