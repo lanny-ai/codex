@@ -80,6 +80,7 @@ Then **the plan on one screen**: the stages ahead, what the member does at each,
 
 1. Work through `intake.md`: confirm what the Business File already answers, ask the rest one at a time, record each (`book_plan.py answer`).
 2. Build the source packet as you go (`book_plan.py source add`): transcripts of the member teaching, talks, articles, client stories with their permission. Put text files in `book/<slug>/sources/`.
+   - **When the member keeps an Obsidian vault** (or any folder of their own notes), run `book_plan.py source scan --vault <vault folder>` once the first intake answers are in. It reads the notes and lists the ones that share the book's words. Read the list to the member and add the ones they choose with `source add --ref "<path to the note>"`; the note stays where it is and the checks read it there. Nothing is added without their yes. Run it again after the outline is approved, when the chapter titles sharpen the match.
 3. Run **P1** on the intake and sources. HOLD means asking the follow-up questions. `book_plan.py intake-gate --verdict ready` only when the material can carry the book.
 
 ### Phase 2 — The outline

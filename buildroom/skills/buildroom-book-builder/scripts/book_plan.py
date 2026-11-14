@@ -15,6 +15,8 @@ Usage
   book_plan.py intake-gate --book B --verdict ready|hold [--gap "…"]... [--question "…"]... --by editor
   book_plan.py source   --book B add --title "…" --kind own|client|public|transcript [--ref path-or-url]
                                      [--permission "documented: signed release 2026-10-02" | "not needed"]
+  book_plan.py source   --book B scan [--vault path] [--query "words"] [--limit 25]
+                        notes in the member's Obsidian vault that look relevant; adds nothing by itself
   book_plan.py source   --book B list | remove --id S-003 | set --id S-003 --permission "documented: …"
   book_plan.py plan-check --book B                       validates plan.json and writes plan.md
   book_plan.py approve  --book B --what outline|sample --by member [--note "…"] [--feedback "…"]
@@ -166,12 +168,63 @@ def cmd_intake_gate(a):
     return {"ok": True, "verdict": a.verdict.upper(), "stage": data["stages"]["intake"]}
 
 
+SCAN_SKIP = {"book", "backups", "node_modules", "templates", "attachments", "dist"}
+SCAN_STOP = set("about after again their there these those which while would could should being because before between "
+                "people thing things every other really through where still little always never might first".split())
+
+
+def scan_vault(book, vault, query, limit):
+    """Notes in the member's vault (or any folder of their own writing) that look relevant to this book, ranked
+    by how many of the book's own words they share. Read-only: nothing is added until the member says so."""
+    root = Path(vault).resolve()
+    if not root.is_dir():
+        bl.refuse(f"no folder at {vault}")
+    ans = bl.read_json(Path(book) / "intake.json", {"answers": {}})["answers"]
+    plan = bl.read_json(Path(book) / "plan.json", {"chapters": []})
+    seed = " ".join((ans.get(k) or {}).get("text", "") for k in ("about", "reader", "method", "mistake", "myth", "lessons"))
+    seed += " " + str(plan.get("title", "")) + " " + " ".join(str(c.get("title", "")) + " " + str(c.get("idea", ""))
+                                                               for c in plan.get("chapters") or [] if isinstance(c, dict))
+    keys = {w for w in re.findall(r"[a-z][a-z'-]{4,}", (seed + " " + (query or "")).lower()) if w not in SCAN_STOP}
+    if not keys:
+        bl.refuse("nothing to match on yet: answer the intake first, or give --query \"words about the book\"")
+    have = {str(s.get("ref", "")) for s in bl.read_json(Path(book) / "sources.json", {"sources": []})["sources"]}
+    book_dir = Path(book).resolve()
+    rows, seen = [], 0
+    for f in sorted(root.rglob("*")):
+        rel = f.relative_to(root)
+        if not f.is_file() or f.suffix.lower() not in (".md", ".txt") or any(p.startswith(".") or p.lower() in SCAN_SKIP for p in rel.parts[:-1]):
+            continue
+        if book_dir in f.resolve().parents or f.name.startswith("BUILDROOM_BUSINESS_FILE") or f.stat().st_size > 2_000_000:
+            continue
+        seen += 1
+        text = bl.read_text(f)
+        n = bl.words(text)
+        if n < 150:
+            continue
+        low = set(re.findall(r"[a-z][a-z'-]{4,}", text.lower()))
+        hit = sorted(keys & low)
+        if len(hit) < 3:
+            continue
+        head = next((ln.lstrip("# ").strip() for ln in text.splitlines() if ln.startswith("#")), f.stem)
+        rows.append({"path": str(f), "title": head[:80], "words": n, "matches": len(hit), "matched": hit[:8],
+                     "already_a_source": str(f) in have or str(rel) in have})
+    rows.sort(key=lambda r: (-r["matches"], -r["words"]))
+    return {"ok": True, "vault": str(root), "notes_read": seen, "candidates": rows[:limit], "more": max(0, len(rows) - limit),
+            "next": "read the list to the member; for each note they choose: book_plan.py source add --title \"…\" --kind "
+                    "own|transcript|client|public --ref \"<path>\". The checks then read the note where it sits.",
+            "care": "a match on words is not a judgment: the member decides what is theirs to use. Notes about clients "
+                    "are client sources and need permission; notes copied from other authors are public sources, quoted "
+                    "and credited, never passed off as the author's own."}
+
+
 def cmd_source(a):
     bl.load_book(a.book)
     p = Path(a.book) / "sources.json"
     d = bl.read_json(p, {"sources": []})
     if a.action == "list":
         return {"ok": True, "sources": d["sources"]}
+    if a.action == "scan":
+        return scan_vault(a.book, a.vault or ".", a.query, a.limit)
     if a.action in ("remove", "set"):
         src = next((x for x in d["sources"] if str(x.get("id", "")).lower() == (a.id or "").lower()), None)
         if not src:
@@ -414,7 +467,8 @@ def main():
     x = p("intake-gate"); x.add_argument("--verdict", choices=["ready", "hold"], required=True)
     x.add_argument("--gap", action="append", default=[]); x.add_argument("--question", action="append", default=[])
     x.add_argument("--by", default="editor")
-    x = p("source"); x.add_argument("action", choices=["add", "list", "remove", "set"]); x.add_argument("--title")
+    x = p("source"); x.add_argument("action", choices=["add", "list", "remove", "set", "scan"]); x.add_argument("--title")
+    x.add_argument("--vault"); x.add_argument("--query"); x.add_argument("--limit", type=int, default=25)
     x.add_argument("--kind"); x.add_argument("--ref"); x.add_argument("--permission"); x.add_argument("--id")
     p("plan-check")
     x = p("approve"); x.add_argument("--what", choices=["outline", "sample"], required=True); x.add_argument("--by", required=True)

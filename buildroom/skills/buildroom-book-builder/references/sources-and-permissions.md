@@ -5,6 +5,18 @@ Everything the book may draw on, each item with an ID. A claim in the manuscript
 
 `book_plan.py source add --title "Podcast interview, March" --kind transcript --ref sources/podcast-march.txt`
 
+### From the member's Obsidian vault
+No plugin is needed: the vault is a folder of text files, and the session reads it directly.
+
+`book_plan.py source scan --vault <vault folder> [--query "cash flow, trades"]`
+
+It reads every note (skipping hidden folders, the book folder and the Business File), and lists those that share at least three of the book's own words, taken from the intake and the plan, best match first. It adds nothing. Read the list to the member. For each note they choose, `source add --kind … --ref "<path to the note>"`; the note stays in the vault and the checks read it there, so a number or a quotation in that note counts as supplied by the author.
+
+Three cautions:
+- A word match isn't a judgment. The member decides what is theirs to use.
+- A note about a client is a `client` source and needs permission like any other.
+- A note copied from someone else's book, course or article is a `public` source: quoted and credited, never passed off as the author's own.
+
 | Kind | What it is | Permission |
 |---|---|---|
 | `own` | the author's own stories, talks, articles, frameworks | not needed |

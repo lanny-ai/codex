@@ -872,6 +872,34 @@ def t_review(tmp):
     check("D16: the Word file does not print 'Title Page' as a heading", "Title Page" not in doc and "Second Chapter" in doc)
 
 
+    # ---- the Obsidian vault as a source of sources
+    vault = tmp / "vault"
+    (vault / ".obsidian").mkdir(parents=True)
+    (vault / "My Talks").mkdir()
+    (vault / "My Talks" / "second chapter talk.md").write_text("# The talk\n\n" + "My answer about method and transformation for the reader I coached. " * 40)
+    (vault / "soup.md").write_text("# Soup\n\n" + "Chop onions and carrots and simmer gently for an hour. " * 40)
+    (vault / ".obsidian" / "cache.md").write_text("answer method transformation reader coached " * 80)
+    (vault / "BUILDROOM_BUSINESS_FILE.md").write_text("answer method transformation reader coached " * 80)
+    d = pj(run([PY, PLAN, "source", "--book", B, "scan", "--vault", vault], tmp)[1])
+    got = [Path(c["path"]).name for c in d["candidates"]]
+    check("V: the vault scan finds the note that shares the book's words", got == ["second chapter talk.md"], d)
+    check("V: it skips hidden folders, the Business File and unrelated notes", d["notes_read"] == 2)
+    n0 = len(json.loads((B / "sources.json").read_text())["sources"])
+    check("V: the scan adds nothing by itself", len(pj(run([PY, PLAN, "source", "--book", B, "list"], tmp)[1])["sources"]) == n0)
+    (vault / "My Talks" / "second chapter talk.md").write_text("# The talk\n\nI told 250 owners about it. " + "My answer about method for the reader and clients I coached. " * 40)
+    run([PY, PLAN, "source", "--book", B, "add", "--title", "Talk", "--kind", "own", "--ref", vault / "My Talks" / "second chapter talk.md"], tmp)
+    nums = bc.number_sets(bc.known_text(B, None))
+    check("V: a note added from the vault is read where it sits", not bc.unsourced_numbers("I told 250 owners about it.", nums))
+    d = pj(run([PY, PLAN, "source", "--book", B, "scan", "--vault", vault], tmp)[1])
+    check("V: a note already in the packet is marked", d["candidates"][0]["already_a_source"])
+    code, out = run([PY, PLAN, "source", "--book", B, "scan", "--vault", tmp / "nope"], tmp)
+    check("V: a vault path that does not exist is refused", code == 1)
+    bf = tmp / "bf4.md"
+    bf.write_text('- **Retired lines:** "the roofer I saved in thirty days" (retired 2026-08: he asked me to stop); old tagline here (2025)\n')
+    check("V: a note after a banned line is not part of the line", [x for _, x in bc.banned_lines(bf)] ==
+          ["the roofer I saved in thirty days", "old tagline here"], bc.banned_lines(bf))
+
+
 # ---------------------------------------------------------------- 8. consistency and wiring
 def t_consistency():
     skill = (SK / "SKILL.md").read_text()

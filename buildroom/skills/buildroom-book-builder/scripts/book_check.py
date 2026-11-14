@@ -253,7 +253,9 @@ def banned_lines(business_file):
             if len(parts) == 1 and len(bodies) == 1:
                 quoted = re.findall(r'"([^"]{4,})"', line)
                 parts = quoted if len(quoted) > 1 else (line.split(",") if "," in line and '"' not in line else parts)
-            items += [x.strip().strip('"') for x in parts]
+            for x in parts:
+                q = re.search(r'"([^"]{4,})"', x)      # a quoted phrase is the item; a note after it is not
+                items.append(q.group(1) if q else re.sub(r"\s*\([^)]*\)\s*$", "", x.strip()).strip('"'))
         for x in items:
             x = re.sub(r"\s+", " ", x).strip(" .-*")
             if len(x) >= 6 and not x.startswith(("[", "(")) and x not in ("—", "none", "None yet"):
