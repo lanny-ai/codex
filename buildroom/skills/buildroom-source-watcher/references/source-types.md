@@ -13,13 +13,13 @@ The 8 source types this skill can generate watchers for. Each includes technical
 - Spotify: hides RSS — use Castos's RSS finder
 - Direct: most podcast websites show an RSS icon in the footer
 
-**Transcript sources (in fallback order):**
-1. RSS-embedded transcripts (rare, free)
-2. Listen Notes API ($180/year, best quality)
-3. Apple Podcasts public transcripts (free, hit-or-miss)
-4. Whisper transcription of audio ($0.006/min, always works)
+**Transcript sources (the two the generated watcher supports, in the order it tries them):**
+1. Listen Notes API (needs a key on a paid plan that includes transcripts; not every episode has one)
+2. Speech-to-text of the audio through the member's OpenAI key (off until `WHISPER_ENABLED=true`; billed per minute of audio; needs `ffmpeg` installed for audio files over 25 MB)
 
-**Cost estimate:** $3-5/month for 20 podcasts (using gpt-4o-mini for filtering)
+The member must turn on at least one. With neither, the watcher captures nothing and says so. Transcripts published inside the feed itself and Apple Podcasts transcripts are not read by the generated watcher.
+
+**Cost estimate:** $3-5/month for 20 podcasts for scoring and summaries (using gpt-4o-mini for filtering). Speech-to-text is extra: the founder's figure was $0.006 a minute, about 36 cents for an hour-long episode. Check OpenAI's current price before turning it on for many shows.
 
 **Reliability:** High (RSS is stable, has been since 2003)
 
@@ -32,8 +32,8 @@ The 8 source types this skill can generate watchers for. Each includes technical
 **Access path:** YouTube Data API v3 + transcript scraping
 
 **How to find channel IDs:**
-- Channel page URL: `youtube.com/@channelname` → use channel handle
-- Or click "About" tab → "Share channel" → "Copy channel ID"
+- The watcher needs the channel ID, which starts with `UC`. A handle (`@channelname`) or a channel URL will not work in `sources.json`.
+- Open the channel page, click "About", then "Share channel", then "Copy channel ID". Store that ID.
 
 **Transcript sources:**
 1. YouTube's auto-generated captions (free, available for 95%+ of videos)

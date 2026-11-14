@@ -53,7 +53,14 @@ Follow the protocol only if the member has a Business File. Note silently: what 
 
 Say this once, before the member chooses: every watcher scores and summarises what it finds with an AI model, so it needs an OpenAI API key and a few dollars of credit, whichever source they pick. The key goes in the project's `.env` file, never in chat.
 
-**Podcasts, Twitter and newsletters are a custom path.** The templates here carry working checkers and fetchers for YouTube, RSS or blogs and arXiv. For podcasts the transcript step (a transcript service or local speech-to-text) and the note writer are not included, and Twitter and newsletters have no template at all. Tell the member so if they choose one, build and test that part with them, and never ship a watcher whose fetch step has not returned real content in a test run. For a first watcher, recommend YouTube or a blog feed.
+**Podcasts need a transcript, and the member chooses how to get it.** The templates carry the full podcast watcher: feed checker, transcript fetcher, scorer, extractor and note writer. A podcast feed only gives the audio, so before generating, tell the member the two ways the watcher can get the words and ask which they want:
+
+- **Listen Notes.** A Listen Notes API key on a paid plan that includes transcripts, set as `LISTEN_NOTES_API_KEY` in `.env`. No audio is downloaded. Not every episode has a transcript there.
+- **Speech-to-text through their OpenAI key.** Set `WHISPER_ENABLED=true` in `.env`. No extra key, but it is billed per minute of audio (the founder's figure was $0.006 a minute, about 36 cents for an hour-long episode; have the member check OpenAI's current price), each episode takes a few minutes to download and transcribe, and `ffmpeg` must be installed for any audio file over 25 MB, which is most full episodes. Episodes longer than `MAX_AUDIO_MINUTES` (default 90) are skipped.
+
+The default is both off: no Listen Notes key and speech-to-text off, because speech-to-text spends money. With both off the watcher captures nothing and says so on every run, so do not deliver a podcast watcher until the member has picked one. With both on, Listen Notes is tried first and speech-to-text is the fallback. An episode with no transcript yet is not marked as seen; it is tried again on each run until it is older than 14 days. Before the first real run, do one test run with the member and confirm that at least one episode came back with text.
+
+**Twitter and newsletters are a custom path.** They have no template here. Tell the member so if they choose one, build and test the checker and fetcher with them, and never ship a watcher whose fetch step has not returned real content in a test run. For a first watcher, recommend YouTube or a blog feed.
 
 **YouTube channels are stored by their channel ID** (it starts with `UC`). A handle (`@name`) or a channel URL will not work in `sources.json`: open the channel page, find the ID (About, then Share channel, then Copy channel ID), and store that.
 

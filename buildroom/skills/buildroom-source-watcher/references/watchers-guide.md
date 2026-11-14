@@ -2,7 +2,7 @@
 
 Reconstructed from the Build Room session of 2026-06-17 (host Lanny Morton, AI Momentum Labs), which taught the Podcast Watcher and then generated the Watcher Master live, plus the sibling Video-to-Vault sessions of 06-10, 06-11, 06-24, 06-29 and 06-30 and the 08-05 and 08-06 sessions. These Zoom transcripts carry no timestamps, so quotes are cited `[date Lnnn]` by transcript line. *(inference)* marks a reading, not a statement.
 
-The generator skill beside this guide (`SKILL.md` and `source-types.md`, `filter-templates.md`, `vault-protection.md`, `code-templates.md`) is the founder's Watcher Master, unchanged. `video-to-vault/` holds the Week 2 YouTube skills and `podcast-watcher-README.md` the Week 3 podcast watcher's README, unchanged. This guide is what the sessions taught around them.
+The generator skill beside this guide (`SKILL.md` and `source-types.md`, `filter-templates.md`, `vault-protection.md`, `code-templates.md`) is the founder's Watcher Master, adapted: the code templates now carry the podcast watcher's transcript fetcher and knowledge extractor, with fixes found in testing. `video-to-vault/` holds the Week 2 YouTube skills and `podcast-watcher-README.md` the Week 3 podcast watcher's README, unchanged. This guide is what the sessions taught around them.
 
 ## 1. What a watcher is, and the lesson underneath
 
