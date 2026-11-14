@@ -92,7 +92,7 @@ For each concept, decide the **picture layer**, in this order of preference:
 
 Then write `specs/<ad>.json` per ad (layout, picture layer, brand kit, exact copy from the manifest).
 
-**Video concepts.** When a concept is best as video (founder to camera, a client's words, a demonstration), it goes to the **Video Director** with the ad playbook (`buildroom-video-director`, "make me a video ad from concept C2"). The director works in `ads/YYYY-MM/video/`, uses this ledger and this copy manifest, writes the three hooks as three openings on one body, and returns videos that passed its own G3 and G4 review into `kit/videos/`. Statics and videos of the same concept share the angle, the proof and the landing headline.
+**Video concepts.** When a concept is best as video (founder to camera, a client's words, a demonstration), it goes to the **Video Director** with the ad playbook (`buildroom-video-director`, "make me a video ad from concept C2"). The director works in `ads/YYYY-MM/video/`, uses this ledger and this copy manifest, writes the three hooks as three openings on one body, and builds the videos that passed its own G3 and G4 review into their own kit folder, `ads/YYYY-MM/kit-video/`, beside this studio's `kit/`. Statics and videos of the same concept share the angle, the proof and the landing headline.
 
 **First time only — setup** (`generation-router.md`): if any plate needs generating, the member chooses Higgsfield (default) or Kie.ai (pay-as-you-go). If they have no account, give the sign-up link with the disclosure line next to it, word for word. Keys go in `.env` by the member, never pasted in chat. Confirm Chromium for the renderer (`npx playwright install chromium` once, or `CHROME_PATH` to an installed Chrome).
 
@@ -108,7 +108,7 @@ Run `scripts/review_pack.py sheet` to build the contact sheet and the review che
 
 ### Phase 7 — Member approval and the launch kit
 
-Show the contact sheet. The member approves each ad, or sends it back with a note. No gate can be skipped by a "looks good." Then `scripts/review_pack.py kit` builds `kit/`: named files, `ads.csv` (primary text, headline, description, CTA, URL with UTM per ad), angle-matched landing headlines, the test plan and the disclosure sheet (`launch-kit.md`). The kit stops at upload-ready. The member uploads; this skill never opens Ads Manager, sets budgets or launches anything.
+Show the contact sheet. The member approves each ad, or sends it back with a note. No gate can be skipped by a "looks good." Then `scripts/review_pack.py kit` builds `kit/` (statics only; the Video Director's videos have their own folder, `kit-video/`): named files, `ads.csv` (primary text, headline, description, CTA, URL with UTM per ad), angle-matched landing headlines, the test plan and the disclosure sheet (`launch-kit.md`). The kit refuses any ad whose file changed after it was recorded for review: record it again with `ledger.py ad`, then it is reviewed and approved again. The kit stops at upload-ready. The member uploads; this skill never opens Ads Manager, sets budgets or launches anything.
 
 ### Phase 8 — Business File update
 
@@ -135,7 +135,7 @@ Show the contact sheet. The member approves each ad, or sends it back with a not
 - Spend outside the ledger, above the cap, or before a quote was shown and authorised.
 - Make political, election or social-issue ads.
 - Launch, upload, set budgets, change campaigns or touch Ads Manager.
-- Make videos itself. A video concept goes to the **Video Director** (ad playbook), which inherits the brief, the concept, the approved copy and this ledger, and returns reviewed videos into this kit.
+- Make videos itself. A video concept goes to the **Video Director** (ad playbook), which inherits the brief, the concept, the approved copy and this ledger, and delivers reviewed videos in their own kit folder (`ads/YYYY-MM/kit-video/`) beside this one.
 - Run the results loop (a later release; until then the Funnel Scorecard reads ad results).
 
 ## When the Session Is Complete

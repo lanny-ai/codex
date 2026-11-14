@@ -16,6 +16,8 @@ videos/2026-10-install-explainer/      (or ads/2026-10/video/ when the Ad Studio
   kit/                     ready to publish
 ```
 
+For the ad playbook the kit is not inside `video/`: it is `ads/YYYY-MM/kit-video/`, its own folder beside the Ad Studio's `kit/` (`--out ads/YYYY-MM/kit-video`). The studio's `kit/` holds the static ads only; never build the video kit into it.
+
 ## `videos.json` (the manifest the kit reads)
 
 ```json
@@ -53,6 +55,10 @@ videos/2026-10-install-explainer/      (or ads/2026-10/video/ when the Ad Studio
 - `thumbnails/` a frame per video, taken from the clean cut so no caption crosses it (the member may replace it with a designed thumbnail from the renderer);
 - `publish.csv` one row per placement: file, placement, ratio, title, caption, description, CTA, the URL with UTM parameters, and a note (embeds: autoplay off, poster, caption track);
 - `disclosure-sheet.md`, with a "Before upload" list when something still needs the member's eyes (captions on an approximate alignment).
+
+The builder marks the folder it makes with a small `.kit-type` file (`video`). `--force` rebuilds only a video kit. It never replaces the Ad Studio's static kit, or a folder with no marker: for a kit made before the marker existed, move the old folder away first.
+
+The kit also checks that each video it ships is the file that was reviewed. The ledger keeps a checksum of every recorded render. If a file changed since then (a new cut, new captions, even under the same name), the kit refuses that video: record it again with `ledger.py ad --renders …`, review it again, and ask the member to watch and approve it again. For a ledger from before checksums, the kit still builds and lists those videos under "Before upload".
 
 A `--preview` kit is labelled `NOT-READY.txt` and is never handed over as ready.
 

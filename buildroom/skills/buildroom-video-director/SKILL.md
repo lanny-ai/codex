@@ -90,7 +90,7 @@ Run `scripts/review_video.py check` on every final. Then a **separate reviewer**
 
 ### Phase 10 — The kit and the Business File
 
-`scripts/review_video.py kit` builds the kit (`delivery.md`): named videos per ratio, SRT captions, thumbnails, the publish sheet with UTM links, the disclosure sheet. It refuses until G3, G4 and the member's approval are recorded. The kit is ready to publish; this skill never posts, uploads or changes an account.
+`scripts/review_video.py kit` builds the kit (`delivery.md`): named videos per ratio, SRT captions, thumbnails, the publish sheet with UTM links, the disclosure sheet. For the ad playbook the kit goes in its own folder, `ads/YYYY-MM/kit-video/`, beside the Ad Studio's `kit/` (never inside it). It refuses until G3, G4 and the member's approval are recorded, and it refuses any video whose file changed after it was recorded for review: record it again with `ledger.py ad`, then it is reviewed and approved again. The kit is ready to publish; this skill never posts, uploads or changes an account.
 
 Update the Business File per the protocol: **§19 Video** (the playbook run, footage and video library locations, video brand kit, caption template, consent status, content series, last delivered); the playbook's other line (proof → §18 proof vault entry; content → §14 content line; sales → the §5 or §15 reference; ad → the Ad Studio updates §18); §13 rows for what the video needs next (a landing variant, a reshoot, a testimonial to collect); §8 with the 1–5 rating. Emit the whole file with the "what changed" summary. Close with the next step the playbook names.
 

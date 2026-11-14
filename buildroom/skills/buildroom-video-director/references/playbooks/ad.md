@@ -4,7 +4,7 @@
 
 ## Where it comes from
 
-Always the **Ad Studio**. The studio has already done the brief (G0), the matrix and the concept (G1), and the copy (G2): angle, hook tactics, primary text, headline, the proof IDs, the destination. The director inherits those gates and the studio's ledger (`ads/YYYY-MM/project.json`), works in `ads/YYYY-MM/video/`, and hands finished videos back into the studio's kit. A member who asks the director for an ad directly is sent to the studio first ("Make me ads"), because an ad without a concept is a guess.
+Always the **Ad Studio**. The studio has already done the brief (G0), the matrix and the concept (G1), and the copy (G2): angle, hook tactics, primary text, headline, the proof IDs, the destination. The director inherits those gates and the studio's ledger (`ads/YYYY-MM/project.json`), works in `ads/YYYY-MM/video/`, and builds the finished videos into their own kit folder, `ads/YYYY-MM/kit-video/`, beside the studio's `kit/`. A member who asks the director for an ad directly is sent to the studio first ("Make me ads"), because an ad without a concept is a guess.
 
 ## Shape
 
@@ -29,7 +29,7 @@ What the line names: the situation (the desk at 7am, the phone buzzing, the empt
 
 ## Deliverables
 
-Per concept: three hook variants × two ratios, captioned, at −14 LUFS, through the studio's review and the member's approval, named into the studio's kit (`kit/videos/`) with the publish sheet rows. The studio's test plan covers them: judge on hook rate (3-second views ÷ impressions), hold rate, CTR and cost per qualified lead against the account's own baseline.
+Per concept: three hook variants × two ratios, captioned, at −14 LUFS, through the studio's review and the member's approval, named into the video kit (`ads/YYYY-MM/kit-video/videos/`, beside the studio's `kit/`) with the publish sheet rows. The studio's test plan covers them: judge on hook rate (3-second views ÷ impressions), hold rate, CTR and cost per qualified lead against the account's own baseline.
 
 ## Business File
 

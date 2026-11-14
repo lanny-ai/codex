@@ -279,7 +279,7 @@ def kit(a):
         shutil.rmtree(out)
     for d in ("videos", "captions", "thumbnails"):
         (out / d).mkdir(parents=True, exist_ok=True)
-    rows, disc, notes = [], [], []
+    rows, disc, notes, unchecked = [], [], [], []
     led = {x["id"]: x for x in data["ads"]}
     for v in m["videos"]:
         if v["id"] not in led:  # a video the ledger never saw was never reviewed or approved
@@ -303,7 +303,10 @@ def kit(a):
             if v["id"] in led:  # the file about to ship must be the file that was reviewed
                 e, n = ledger.kit_file_problems(led[v["id"]], [src])
                 errs += e
-                notes += [x for x in n if x not in notes]
+                for x in n:  # an older ledger with no checksums: said in the kit, not refused
+                    if x not in notes:
+                        notes.append(x)
+                        unchecked.append(x)
             dst = out / "videos" / f"{name}_{r}.mp4"
             shutil.copy2(src, dst)
             files[r] = dst.name
@@ -367,7 +370,7 @@ def kit(a):
     if final_out.exists():
         shutil.rmtree(final_out)
     out.rename(final_out)
-    for n in notes:
+    for n in unchecked:
         print(f"note: {n}")
     if errs:
         print(f"kit PREVIEW written to {final_out} · {len(m['videos'])} videos · NOT ready (see NOT-READY.txt)")

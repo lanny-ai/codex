@@ -15,7 +15,8 @@ ads/2026-10/
   project.json         the ledger
   renders/             <ad>_<ratio>.png, _safe.png overlays, reports
   review/              contact_sheet.html, checklist.md, reviewer verdicts
-  kit/                 the upload-ready kit
+  kit/                 the upload-ready kit (static ads)
+  kit-video/           the Video Director's kit for this cycle's video ads (its own folder)
 ads/learning-library.csv   one row per ad per cycle, results filled in later
 ```
 
@@ -59,12 +60,17 @@ The single record of approved words. The renderer's specs must match it exactly;
 Built by `review_pack.py kit`, only when the ledger says every ad passed G3 and G4 and was approved:
 
 - `ads/` — every approved static ad in every ratio, named as above.
-- `videos/` — video ads made by the Video Director from this cycle's concepts, with their own publish rows and disclosure entries (built by the director's `review_video.py kit` into this folder).
 - `ads.csv` — per ad: name, files, primary text, headline, description, CTA button, and the URL with UTM parameters (`utm_source=meta`, `utm_medium=paid_social`, `utm_campaign=YYMM_<concept>`, `utm_content=<ad name>`).
 - `landing-headlines.md` — one angle-matched headline per concept for the landing page (message match). Each one that needs a page change becomes a §13 row.
 - `test-plan.md` — the plan below, filled in.
 - `disclosure-sheet.md` — per ad: generated imagery, real people and consent, AI label, claims and proof IDs, review verdicts (see `compliance.md`).
 - The cycle's rows appended to `ads/learning-library.csv`.
+
+Video ads made by the Video Director from this cycle's concepts are not in this folder. They have their own kit beside it, `ads/YYYY-MM/kit-video/`, built by the director's `review_video.py kit`, with their own publish sheet and disclosure sheet. Upload from both folders.
+
+Each kit builder marks the folder it makes with a small `.kit-type` file (`static` or `video`). `--force` rebuilds only a folder the same builder made. It never replaces the other kit, or a folder with no marker: for a kit made before the marker existed, move the old folder away first.
+
+The kit also checks that each file it ships is the file that was reviewed. The ledger keeps a checksum of every recorded render (`ledger.md`, rule 7). If a file changed since then, the kit refuses that ad and says so: record it again with `ledger.py ad`, review it again, and ask the member to approve it again. For a ledger from before checksums, the kit still builds and lists those ads under "Before upload" in the disclosure sheet.
 
 A `--preview` kit (gates open) is labelled `NOT-READY.txt` and never enters the learning library. Never hand a preview to a member as upload-ready.
 
