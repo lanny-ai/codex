@@ -62,6 +62,13 @@ Run before the first page goes live (Lead Capture or Offer Page Copy), or any ti
 |---|---|---|---|---|
 | 1 | Website Design Studio (taste vault of screenshots in the Obsidian vault → the "what you keep choosing" read → three very different directions of a landing page, side by side, at most three rounds → the tweak bar → Kie.ai images where the member's photos run out → the lock: colours, fonts, sizes, do and don't → the go-live check) | `buildroom-website-design-studio` | §22, the §18 brand kit pointer, §13 rows | §1 §2 (best with §3 §4 §5 or §7 §18) |
 
+### Book — AI Momentum Labs Book Builder
+Run once the member knows their reader (§2) and, ideally, has an offer for the book to lead to (§3). A book is many sessions; `book.json` holds the state.
+
+| # | Session | Skill | Builds (file §) | Requires |
+|---|---|---|---|---|
+| 1 | AI Momentum Labs Book Builder (fifteen-question intake, mostly from the file → sufficiency gate → an outline the member approves → chapters one at a time from their material → developmental memo → sample-chapter edit and the member's decision → line edit → independent review and fact audit → simulated and real test readers → copyedit → regression check → the gate; thirteen chapters by default, any shape the member wants; manuscript only) | `buildroom-book-builder` | §23, §13 rows | §1 §2 (best with §3 §4 §17 §18) |
+
 ### Launch sequence — Event Launcher
 Run once there is a decided offer (§3) and a list or audience to invite; repeat each quarter or each cohort. The debrief from each launch feeds the next.
 
@@ -148,6 +155,7 @@ When routing, give the member the exact words to start the session:
 - LinkedIn Engine → "Build my LinkedIn engine" · "Fix my LinkedIn profile" · "Write my LinkedIn posts" · "Plan my LinkedIn week" · "Who should I message on LinkedIn today" · "How is my LinkedIn doing"
 - Proof Engine → "Capture this win" · "Ask for a testimonial" · "Build my proof bank" · "What proof can I use"
 - Search & Answer Engine → "Get found on Google" · "Fix my Google Business Profile" · "Get more Google reviews" · "Answer this question on my website" · "Publish this page" · "Am I showing up in ChatGPT" · "Search week"
+- AI Momentum Labs Book Builder → "Write my book" · "Plan my book" · "Write the next chapter" · "Edit my book" · "Review my book" · "Have readers test my book" · "Is my book ready" · "How is my book coming along"
 - Website Design Studio → "Make my website look like me" · "Design my landing page" · "My pages look like AI made them" · "Set up my taste vault" · "Tweak my page" · "Is my page ready to go live" · "Change my brand colours"
 - Webinar Builder → "Build my webinar" · "Write my webinar title and registration page" · "Make my webinar slides" · "Rehearse my webinar" · "How did my webinar go" · "Why didn't my webinar sell" · "Make my webinar evergreen"
 - Event Launcher → "Plan my launch" · "Help me run a challenge" · "I want to do a 3-day bootcamp" · "Write my launch emails" · "Run sheet for day 2" · "Plan the close" · "Launch partners" · "Is my launch ready" · "How did my launch do"

@@ -611,7 +611,7 @@ def t_consistency():
         check(f"scripts/{f} is the shared copy", dst.exists() and dst.read_bytes() == src.read_bytes())
     tpl = (ROOT / "templates/BUILDROOM_BUSINESS_FILE.md").read_text()
     check("the template has §22 Design System", "## 22. Design System" in tpl and "Built by: Website Design Studio" in tpl)
-    check("the template is version 1.8", re.search(r"1\.8", tpl.split("\n", 6)[-1][:2000] + tpl[:600]) is not None)
+    check("the template is version 1.8 or later", re.search(r"File version:\*\* (1\.[89]|[2-9])", tpl) is not None)
     check("§18 Brand kit points to §22", "§22" in tpl.split("## 18. Advertising")[1].split("## 19.")[0])
     spec = (ROOT / "BUSINESS-FILE-SPEC.md").read_text()
     check("the spec documents §22", "22" in spec and "Design System" in spec)
