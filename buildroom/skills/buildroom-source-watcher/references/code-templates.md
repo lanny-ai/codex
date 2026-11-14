@@ -113,7 +113,8 @@ def main():
             # Get full content
             content = fetch_content(item)
             if not content:
-                seen.add(item['guid'])
+                # A transcript is often published hours after the item. Leave it unseen so the
+                # next run tries again; it drops out by itself once it is older than max_age_days.
                 skipped += 1
                 continue
             
@@ -478,7 +479,7 @@ THEIR INTERESTS:
 {interests}
 
 THEIR FILTER PREFERENCE:
-{FILTER_TEMPLATE}
+{(filter_profile or '').strip() or FILTER_TEMPLATE}
 
 You score 1-10:
 - 1-3: skip

@@ -106,7 +106,7 @@ Then **the plan on one screen**: the deliverable, the copy you'll use, the audie
 ### Phase 5 — Lock and check
 
 1. Write the do/don't list with the member (3–5 of each, in their words).
-2. `design_lock.py lock --tweaks … --page … --out Design/System --direction "…" --refs … --do "…" --dont "…" --imagery own|kie|both`. A refusal names the problem; fix the look and lock again.
+2. `design_lock.py lock --tweaks … --page … --out Design/System --direction "…" --refs … --do "…" --dont "…" --imagery own|kie|both --photo-rules "…"`. The photo rules are one line in the member's words (what photos to use, and whose consent is on file); other skills read them from §22. A refusal names the problem; fix the look and lock again.
 3. Make the final page match the system (`tokens.css`), and swap the preview font link for self-hosted fonts when the member is ready to publish (`fonts.md`).
 4. **The gate:** `design_check.py check --page Design/landing-page/page/index.html --tokens Design/System/tokens.json --images Design/landing-page/images.json --vault <vault> --business-file BUILDROOM_BUSINESS_FILE.md --copy <approved copy> --render --out Design/landing-page/check.md`. **GO** only when no FIX remains. Read each WATCH out with its fix and let the member decide.
 5. Publishing goes to **Lead Capture** (its deploy route or GoHighLevel, with the form embedded). Website Design Studio hands over the page and the system; it doesn't deploy.
@@ -126,7 +126,7 @@ Then **the plan on one screen**: the deliverable, the copy you'll use, the audie
    - **Size check:** if the file is over about 2,500 words, say so and offer to distil it.
 3. Emit the entire updated file in one code block, with the "what changed" summary.
 4. Close with what happens next:
-   - "Build my landing page" (Lead Capture) to publish it.
+   - "Help me build my opt-in page" (Lead Capture) to publish it.
    - "Make my webinar slides" uses the new `slides.json`.
    - "Add three references to my taste vault" whenever something catches the member's eye.
 

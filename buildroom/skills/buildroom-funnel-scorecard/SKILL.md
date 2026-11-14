@@ -16,7 +16,7 @@ Read these reference files before any member-facing work:
 
 1. **`references/leak-finder-guide.md`** — the founder's funnel test in his words: stages as failure points, where the numbers live, cadence equals window, what a leak is, propose then approve, the feedback rule, the snapshot gate, the don'ts.
 2. **`references/scorecard-method.md`** — the stage table, the leak definition and revenue-at-risk ranking (a design choice, labelled), the fix taxonomy with its routing table, the "what moved" line, the scorecard document format, and the routine prompt.
-3. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. This skill reads §1, §3, §6, §7, §12, §13, §16 and writes the §6 scorecard lines, §13 rows, §12 metric rows, and §8.
+3. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. This skill reads §1, §3, §6, §7, §12, §13, §16 (and §18 when it reads ad results) and writes the §6 scorecard lines, §13 rows, §12 metric rows, the §18 current-cycle line on the member's confirmation, and §8.
 
 ## Prerequisites
 

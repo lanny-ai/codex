@@ -5,7 +5,8 @@
 ```
 design_lock.py lock --tweaks Design/landing-page/tweaks.json --page Design/landing-page/page/index.html \
   --out Design/System --direction "Field Guide" --refs T-001,T-004,T-009 \
-  --do "Real photos of me at work" --dont "No beach stock photos" --imagery both
+  --do "Real photos of me at work" --dont "No beach stock photos" --imagery both \
+  --photo-rules "My own photos of me and the workshop; client photos only with consent on file"
 ```
 
 - It refuses a look that fails contrast, or one whose body text is under the audience minimum. Fix the look on the tweak bar and save again.

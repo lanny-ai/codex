@@ -51,6 +51,12 @@ Follow the protocol only if the member has a Business File. Note silently: what 
 
 ## Phase 1 — Source Selection
 
+Say this once, before the member chooses: every watcher scores and summarises what it finds with an AI model, so it needs an OpenAI API key and a few dollars of credit, whichever source they pick. The key goes in the project's `.env` file, never in chat.
+
+**Podcasts, Twitter and newsletters are a custom path.** The templates here carry working checkers and fetchers for YouTube, RSS or blogs and arXiv. For podcasts the transcript step (a transcript service or local speech-to-text) and the note writer are not included, and Twitter and newsletters have no template at all. Tell the member so if they choose one, build and test that part with them, and never ship a watcher whose fetch step has not returned real content in a test run. For a first watcher, recommend YouTube or a blog feed.
+
+**YouTube channels are stored by their channel ID** (it starts with `UC`). A handle (`@name`) or a channel URL will not work in `sources.json`: open the channel page, find the ID (About, then Share channel, then Copy channel ID), and store that.
+
 Open with this:
 
 > "Welcome. I'm going to help you build a watcher that monitors a source, filters high-signal content, and adds it to your Obsidian vault. None of your existing notes will be touched.
