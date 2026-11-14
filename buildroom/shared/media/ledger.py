@@ -25,13 +25,14 @@ Usage
   ledger.py gate      P --gate G0|G1|G2 --verdict pass|revise|unverified --by producer --ref brief.md
                         (a G2 pass is the member's sign-off on the words: --by member, except in demo mode)
   ledger.py ad        P --ad C1-H1 --concept C1 --layout photo-hook --spec specs/C1-H1.json [--renders a.png b.png ...]
+                        (records a sha256 per render; a file that changed since it was last recorded resets G3, G4 and approval)
   ledger.py gate      P --ad C1-H1 --gate G3|G4 --verdict pass --by reviewer --ref review/review.md
   ledger.py repair    P --ad C1-H1 --note "headline overflowed 9x16; shortened sub"  (ceiling: 2, or --ceiling N if the member set one)
   ledger.py approve   P --ad C1-H1 --note "member approved in session"
   ledger.py check     P [--for-production | --for-kit]
   ledger.py summary   P
 """
-import argparse, json, os, sys, tempfile
+import argparse, hashlib, json, os, sys, tempfile
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
@@ -53,6 +54,9 @@ GATES_PROJECT = ("G0", "G1", "G2")
 GATES_AD = ("G3", "G4")
 VERDICTS = {"pass", "revise", "unverified"}
 DEFAULT_REPAIR_CEILING = 2
+KIT_MARKER = ".kit-type"  # written into every kit folder by the builder that made it
+KIT_KINDS = {"static": ("static ad kit", "review_pack.py", "ads/YYYY-MM/kit/"),
+             "video": ("video kit", "review_video.py", "ads/YYYY-MM/kit-video/ (or kit/ inside a videos/ project folder)")}
 
 
 def now():
@@ -126,6 +130,80 @@ def project_path(value):
     if p == skill_root or skill_root in p.parents:
         raise ValueError("keep the ledger in the member's project folder (ads/ or videos/), not inside the skill")
     return p
+
+
+# ---------- file checksums (a changed file is reviewed again) ----------
+
+def file_sha256(path):
+    """The file's sha256, or None when it cannot be read."""
+    h = hashlib.sha256()
+    try:
+        with open(path, "rb") as fh:
+            for chunk in iter(lambda: fh.read(1 << 20), b""):
+                h.update(chunk)
+    except OSError:
+        return None
+    return h.hexdigest()
+
+
+def render_file(ledger_path, name):
+    """Where a recorded render lives: absolute as given, else beside the ledger, else under the current folder."""
+    p = Path(name).expanduser()
+    if p.is_absolute() or not ledger_path:
+        return p
+    beside = Path(ledger_path).expanduser().resolve().parent / p
+    if beside.exists() or not (Path.cwd() / p).exists():
+        return beside
+    return Path.cwd() / p
+
+
+def kit_file_problems(ad, files):
+    """For the kit builders: compare the files about to ship with the checksums recorded for this ad or video.
+
+    Returns (errors, notes). An ad recorded by an older version has no checksums: that is a note, not an error.
+    """
+    sums = ad.get("render_sha256")
+    if sums is None:
+        return [], [f"{ad['id']}: no checksums on record (an older ledger), so the kit could not confirm these are the files "
+                    "that were reviewed. Run `ledger.py ad` with the same --renders once to record them"]
+    by_name = {Path(k).name: v for k, v in sums.items()}
+    errs = []
+    for f in files:
+        name = Path(f).name
+        if name not in by_name:
+            errs.append(f"{ad['id']}: {name} is not among the files recorded for review; record it again and re-review")
+        elif by_name[name] is None:
+            errs.append(f"{ad['id']}: {name} could not be read when it was recorded, so it was never checked; record it again and re-review")
+        elif file_sha256(f) != by_name[name]:
+            errs.append(f"{ad['id']}: {name} changed since it was reviewed; record it again and re-review")
+    return errs, []
+
+
+# ---------- kit folders (each builder only ever replaces a folder it made) ----------
+
+def kit_folder_check(folder, kind, force):
+    """Raise ValueError unless this builder may write its kit into `folder`."""
+    folder = Path(folder)
+    if not folder.exists() or not any(folder.iterdir()):
+        return
+    label, _tool, home = KIT_KINDS[kind]
+    marker = folder / KIT_MARKER
+    made_by = marker.read_text(encoding="utf-8").strip() if marker.is_file() else None
+    if made_by == kind:
+        if not force:
+            raise ValueError(f"{folder} is not empty; pass --force to rebuild it")
+        return
+    if made_by in KIT_KINDS:
+        other_label, other_tool, _ = KIT_KINDS[made_by]
+        raise ValueError(f"{folder} holds the {other_label} (made by {other_tool}), and --force will not replace it. "
+                         f"The {label} has its own folder: {home}. Pass that folder as --out")
+    raise ValueError(f"{folder} is not empty and was not made by this kit builder (it has no {KIT_MARKER} file), so it will not "
+                     f"be replaced, even with --force. The {label} goes in {home}. Pass that folder as --out, "
+                     "or move the old folder away yourself first")
+
+
+def kit_folder_mark(folder, kind):
+    (Path(folder) / KIT_MARKER).write_text(kind + "\n", encoding="utf-8")
 
 
 # ---------- money ----------
@@ -325,15 +403,46 @@ def cmd_ad(data, a):
     for k in ("concept", "layout", "spec"):
         if getattr(a, k):
             ad[k] = getattr(a, k)
+    notices = []
     if a.renders:
-        if ad.get("renders") and ad["renders"] != a.renders:
-            for g in GATES_AD:  # changed files must be reviewed again
+        base = getattr(a, "path", None)
+        new_sums = {r: file_sha256(render_file(base, r)) for r in a.renders}
+        old_list, old_sums = ad.get("renders"), ad.get("render_sha256")
+        changed = []
+        if old_list and old_sums is None:  # recorded by an older version: nothing to compare the contents with
+            if old_list != a.renders:
+                changed = [r for r in a.renders if r not in old_list] + [f"{r} (removed)" for r in old_list if r not in a.renders] \
+                          or ["the order of the files"]
+            else:
+                notices.append(f"{a.ad}: checksums recorded for the first time (older ledger). Review and approval were kept. "
+                               "From now on a changed file resets them.")
+        elif old_list:
+            for r in a.renders:
+                if r not in old_sums:
+                    changed.append(f"{r} (new)")
+                elif old_sums[r] is None or new_sums[r] is None or old_sums[r] != new_sums[r]:
+                    changed.append(r)
+            changed += [f"{r} (removed)" for r in old_list if r not in a.renders]
+            if not changed and old_list != a.renders:
+                changed = ["the order of the files"]
+        if changed:  # changed files must be reviewed again
+            had = [g for g in GATES_AD if g in ad] + (["the member's approval"] if "approved" in ad else [])
+            for g in GATES_AD:
                 if g in ad:
-                    ad[g] = {"verdict": "unverified", "at": now(), "by": "ledger", "ref": "renders changed"}
+                    ad[g] = {"verdict": "unverified", "at": now(), "by": "ledger", "ref": "renders changed: " + ", ".join(changed)}
             ad.pop("approved", None)
+            notices.append(f"{a.ad}: changed since last recorded: {', '.join(changed)}. "
+                           + (f"Reset: {', '.join(had)}. Review these files again, then ask the member to approve again."
+                              if had else "No review or approval was on record yet, so nothing was reset."))
+        unread = [r for r in a.renders if new_sums[r] is None]
+        if unread:
+            notices.append(f"{a.ad}: could not read {', '.join(unread)}, so no checksum was recorded. "
+                           "These count as changed next time, and the kit will refuse them until they are recorded again.")
         ad["renders"] = a.renders
+        ad["render_sha256"] = new_sums
     if a.assets:
         ad["assets"] = a.assets
+    return notices or None
 
 
 def cmd_gate(data, a):
@@ -422,14 +531,17 @@ def main():
                 handler = {"authorize": cmd_authorize, "plan": cmd_plan, "reserve": cmd_reserve,
                            "record": cmd_record, "ad": cmd_ad, "gate": cmd_gate, "repair": cmd_repair,
                            "approve": cmd_approve}.get(a.cmd)
+                notices = None
                 if handler:
-                    handler(data, a)
+                    notices = handler(data, a)
                     save(path, data)
                 elif a.cmd == "check":
                     errs = errors_for(data, production=a.for_production, kit=a.for_kit)
                     if errs:
                         raise ValueError("; ".join(errs))
             out = summary(data)
+            if a.cmd != "init" and notices:
+                out["notices"] = notices
             if a.cmd == "check":
                 out["ok"] = True
                 out["note"] = "Structure only. Truth, taste and compliance need the reviewer and the member."
@@ -445,6 +557,7 @@ def apply(path, fn, **kwargs):
     path = project_path(path)
     with locked(path):
         data = load(path)
+        kwargs.setdefault("path", str(path))
         result = fn(data, argparse.Namespace(**kwargs))
         save(path, data)
         return result, data

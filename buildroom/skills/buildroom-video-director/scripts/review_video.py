@@ -23,7 +23,11 @@
       Rebuilds review/checklist.md from every check so far.
 
   review_video.py kit --project project.json --manifest videos.json --renders renders/ --out kit/ [--preview] [--force]
-      Refuses unless the ledger says every video passed G3 and G4 and the member approved it.
+      (for the ad playbook: --out ads/YYYY-MM/kit-video/, its own folder beside the Ad Studio's kit/)
+      Refuses unless the ledger says every video passed G3 and G4 and the member approved it, and
+      refuses any video whose file no longer matches the checksum the ledger recorded for review.
+      The folder is marked as the video kit (.kit-type). --force rebuilds only a folder this builder
+      made: it never replaces the static ad kit or a folder someone else made.
       Builds kit/: videos/ (structured names), captions/*.srt, thumbnails/*.jpg (from the clean cut),
       publish.csv (one row per placement: title, caption, description, CTA, UTM-keyed URL, note),
       disclosure-sheet.md. Also refuses when a generated person appears without the AI label, and
@@ -265,8 +269,10 @@ def kit(a):
     cycle = m.get("cycle") or data["cycle"]
     yymm = re.sub(r"\D", "", cycle)[2:6] or cycle
     final_out, renders = Path(a.out), Path(a.renders)
-    if final_out.exists() and any(final_out.iterdir()) and not a.force:
-        raise SystemExit(f"{final_out} is not empty; pass --force to rebuild it")
+    try:  # --force only ever replaces a video kit; never the static ad kit or a folder someone else made
+        ledger.kit_folder_check(final_out, "video", a.force)
+    except ValueError as exc:
+        raise SystemExit(str(exc))
     ffmpeg_bin()  # fail before touching anything if ffmpeg is missing
     out = final_out.with_name(final_out.name + ".building")  # built aside, swapped in only when complete
     if out.exists():
@@ -294,6 +300,10 @@ def kit(a):
             src = renders / f"{v['id']}_{r}.mp4"
             if not src.exists():
                 raise SystemExit(f"{v['id']}: missing final {src}")
+            if v["id"] in led:  # the file about to ship must be the file that was reviewed
+                e, n = ledger.kit_file_problems(led[v["id"]], [src])
+                errs += e
+                notes += [x for x in n if x not in notes]
             dst = out / "videos" / f"{name}_{r}.mp4"
             shutil.copy2(src, dst)
             files[r] = dst.name
@@ -353,9 +363,12 @@ def kit(a):
         raise SystemExit("kit refused: " + "; ".join(errs))
     if errs:
         (out / "NOT-READY.txt").write_text("PREVIEW ONLY. Not ready to publish:\n- " + "\n- ".join(errs) + "\n", encoding="utf-8")
+    ledger.kit_folder_mark(out, "video")
     if final_out.exists():
         shutil.rmtree(final_out)
     out.rename(final_out)
+    for n in notes:
+        print(f"note: {n}")
     if errs:
         print(f"kit PREVIEW written to {final_out} · {len(m['videos'])} videos · NOT ready (see NOT-READY.txt)")
     else:

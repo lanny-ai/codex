@@ -27,6 +27,10 @@ from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 
+# Load .env BEFORE importing the modules: they read their keys and settings
+# (OPENAI_API_KEY, LISTEN_NOTES_API_KEY, WHISPER_ENABLED, model names) at import.
+load_dotenv(Path(__file__).parent / ".env")
+
 sys.path.insert(0, str(Path(__file__).parent / "modules"))
 
 from source_checker import check_source_for_new_items
@@ -34,8 +38,6 @@ from content_fetcher import fetch_content
 from importance_filter import score_importance
 from knowledge_extractor import extract_knowledge
 from obsidian_writer import write_to_vault
-
-load_dotenv()
 
 CONFIG_DIR = Path(__file__).parent / "config"
 DATA_DIR = Path(__file__).parent / "data"
@@ -190,8 +192,14 @@ def check_source_for_new_items(sources, seen_guids, max_age_days=14):
                 if hasattr(entry, 'enclosures'):
                     for enc in entry.enclosures:
                         if 'audio' in enc.get('type', ''):
-                            audio_url = enc.get('href')
+                            audio_url = enc.get('href') or enc.get('url')
                             break
+                
+                # Episode length, when the feed states it (podcasts only).
+                # The transcript fetcher uses it to skip very long episodes.
+                duration_seconds = None
+                if hasattr(entry, 'itunes_duration'):
+                    duration_seconds = _parse_duration(entry.itunes_duration)
                 
                 new_items.append({
                     'guid': guid,
@@ -200,6 +208,7 @@ def check_source_for_new_items(sources, seen_guids, max_age_days=14):
                     'title': entry.get('title', 'Untitled'),
                     'link': entry.get('link', ''),
                     'audio_url': audio_url,
+                    'duration_seconds': duration_seconds,
                     'pub_date': pub_date.isoformat() if pub_date else None,
                     'description': entry.get('summary', ''),
                 })
@@ -208,6 +217,24 @@ def check_source_for_new_items(sources, seen_guids, max_age_days=14):
     
     new_items.sort(key=lambda x: x.get('pub_date') or '', reverse=True)
     return new_items
+
+
+def _parse_duration(duration_str):
+    """Read an iTunes duration (HH:MM:SS, MM:SS or plain seconds) as seconds."""
+    if not duration_str:
+        return None
+    try:
+        text = str(duration_str).strip()
+        if ':' in text:
+            parts = [int(p) for p in text.split(':')]
+            if len(parts) == 3:
+                return parts[0] * 3600 + parts[1] * 60 + parts[2]
+            if len(parts) == 2:
+                return parts[0] * 60 + parts[1]
+            return None
+        return int(float(text))
+    except (ValueError, IndexError):
+        return None
 ```
 
 ### Template for YOUTUBE:
@@ -356,30 +383,204 @@ Gets the full content (transcript, full text, article body) for an item.
 
 ### Template for PODCASTS:
 
-```python
-"""Fetch podcast transcripts via Listen Notes / Whisper fallback."""
-import os
-import requests
-from pathlib import Path
+A podcast feed gives the audio, not the words. This fetcher gets the words in one of two ways, and the member must turn on at least one in `.env`:
 
-LISTEN_NOTES_KEY = os.getenv("LISTEN_NOTES_API_KEY")
+1. **Listen Notes** (used when `LISTEN_NOTES_API_KEY` is set). Needs a paid Listen Notes plan that includes transcripts. Not every episode has one.
+2. **Speech-to-text through OpenAI** (used when `WHISPER_ENABLED=true`). Uses the member's OpenAI key and is billed per minute of audio. Off by default.
+
+With both on, Listen Notes is tried first and speech-to-text is the fallback. With neither on, `fetch_content` returns `None` for every episode and prints why.
+
+```python
+"""Fetch a podcast episode's transcript.
+
+Order of attempts:
+1. Listen Notes API (paid plan, optional). Used when LISTEN_NOTES_API_KEY is set.
+2. Speech-to-text of the audio file through OpenAI (billed per minute, optional).
+   Used when WHISPER_ENABLED=true.
+
+Returns None when neither gave any text. The orchestrator then leaves the
+episode unseen, so the next run tries it again.
+"""
+import os
+import re
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
+from urllib.parse import urlparse
+
+import requests
+
+LISTEN_NOTES_API_KEY = os.getenv("LISTEN_NOTES_API_KEY")
+LISTEN_NOTES_BASE = "https://listen-api.listennotes.com/api/v2"
 WHISPER_ENABLED = os.getenv("WHISPER_ENABLED", "false").lower() == "true"
 
+# Cost control: episodes longer than this are not sent to speech-to-text.
+MAX_AUDIO_MINUTES = int(os.getenv("MAX_AUDIO_MINUTES", "90"))
+
+# OpenAI speech-to-text model. The OpenAI library lists "whisper-1" with an
+# announced shutdown date of 2027-02-26, so the name is a setting, not a constant.
+TRANSCRIBE_MODEL = os.getenv("TRANSCRIBE_MODEL", "whisper-1")
+
+# OpenAI refuses audio uploads above 25 MB.
+MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+
+_AUDIO_SUFFIXES = {".mp3", ".m4a", ".mp4", ".mpeg", ".mpga", ".wav", ".webm", ".ogg", ".flac"}
+_warned_no_option = False
+
+
 def fetch_content(item):
-    # Try Listen Notes first
-    if LISTEN_NOTES_KEY:
+    """Return the episode's transcript as text, or None if none could be had."""
+    global _warned_no_option
+    
+    if not LISTEN_NOTES_API_KEY and not WHISPER_ENABLED:
+        if not _warned_no_option:
+            print("      No transcript option is on. Set LISTEN_NOTES_API_KEY or "
+                  "WHISPER_ENABLED=true in .env, or no episode can be captured.")
+            _warned_no_option = True
+        return None
+    
+    # Strategy 1: Listen Notes (a ready-made transcript, no audio download)
+    if LISTEN_NOTES_API_KEY:
         transcript = _try_listen_notes(item)
         if transcript:
             return transcript
     
-    # Whisper fallback
+    # Strategy 2: speech-to-text of the audio file (always costs money)
     if WHISPER_ENABLED and item.get('audio_url'):
-        return _try_whisper(item)
+        duration_sec = item.get('duration_seconds') or 0
+        if duration_sec > MAX_AUDIO_MINUTES * 60:
+            print(f"      Audio too long ({duration_sec // 60} min, limit "
+                  f"{MAX_AUDIO_MINUTES}). Not sent to speech-to-text.")
+            return None
+        transcript = _try_whisper(item)
+        if transcript:
+            return transcript
     
     return None
 
-# Full Listen Notes and Whisper functions inline
-# (same as podcast-watcher v1)
+
+def _norm(text):
+    """Lowercase letters and digits only, for comparing two titles."""
+    return re.sub(r'[^a-z0-9]+', '', (text or '').lower())
+
+
+def _try_listen_notes(item):
+    """Find the episode on Listen Notes and return its transcript, or None."""
+    try:
+        headers = {"X-ListenAPI-Key": LISTEN_NOTES_API_KEY}
+        
+        # Listen Notes has its own episode ids, so search for the episode first.
+        params = {
+            "q": f"{item.get('source_name', '')} {item.get('title', '')[:50]}".strip(),
+            "type": "episode",
+            "len_min": 5,
+        }
+        r = requests.get(f"{LISTEN_NOTES_BASE}/search", headers=headers, params=params, timeout=10)
+        if r.status_code != 200:
+            print(f"      Listen Notes search failed (HTTP {r.status_code})")
+            return None
+        
+        # Only accept a result whose title is this episode's title. Taking the
+        # top result blindly could file another episode's words under this one.
+        wanted = _norm(item.get('title'))
+        episode_id = None
+        for result in r.json().get('results', []):
+            found = _norm(result.get('title_original') or result.get('title'))
+            if wanted and found and (wanted == found or wanted in found or found in wanted):
+                episode_id = result.get('id')
+                break
+        if not episode_id:
+            return None
+        
+        # The transcript comes with the episode record when show_transcript=1.
+        r = requests.get(f"{LISTEN_NOTES_BASE}/episodes/{episode_id}",
+                         headers=headers, params={"show_transcript": 1}, timeout=15)
+        if r.status_code != 200:
+            print(f"      Listen Notes episode fetch failed (HTTP {r.status_code})")
+            return None
+        transcript = r.json().get('transcript')
+        if isinstance(transcript, str) and transcript.strip():
+            return transcript.strip()
+    
+    except Exception as e:
+        print(f"      Listen Notes error: {e}")
+    
+    return None
+
+
+def _try_whisper(item):
+    """Download the audio and turn it into text with OpenAI speech-to-text."""
+    audio_url = item.get('audio_url')
+    if not audio_url:
+        return None
+    
+    work_dir = Path(tempfile.mkdtemp(prefix="podcast_audio_"))
+    try:
+        from openai import OpenAI
+        client = OpenAI()
+        
+        # Download the audio to a temporary file
+        print("      Downloading audio...")
+        r = requests.get(audio_url, stream=True, timeout=60)
+        if r.status_code != 200:
+            print(f"      Audio download failed (HTTP {r.status_code})")
+            return None
+        
+        suffix = Path(urlparse(audio_url).path).suffix.lower()
+        if suffix not in _AUDIO_SUFFIXES:
+            suffix = ".mp3"
+        audio_path = work_dir / f"episode{suffix}"
+        with open(audio_path, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+        
+        # Most full episodes are over the 25 MB upload limit: make them smaller first
+        if audio_path.stat().st_size > MAX_UPLOAD_BYTES:
+            audio_path = _shrink_audio(audio_path, work_dir)
+            if audio_path is None:
+                return None
+        
+        print("      Transcribing (this takes a few minutes)...")
+        with open(audio_path, 'rb') as audio_file:
+            result = client.audio.transcriptions.create(
+                model=TRANSCRIBE_MODEL,
+                file=audio_file,
+            )
+        text = result if isinstance(result, str) else getattr(result, 'text', '')
+        return text.strip() or None
+    
+    except Exception as e:
+        print(f"      Speech-to-text error: {e}")
+        return None
+    
+    finally:
+        # Never leave audio behind, whatever happened
+        shutil.rmtree(work_dir, ignore_errors=True)
+
+
+def _shrink_audio(audio_path, work_dir):
+    """Re-encode to small mono speech audio with ffmpeg. Returns the new path, or None."""
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        print("      Audio is over 25 MB and ffmpeg is not installed, so it cannot "
+              "be made small enough to transcribe. Install ffmpeg and run again.")
+        return None
+    
+    small_path = work_dir / "episode_small.mp3"
+    done = subprocess.run(
+        [ffmpeg, "-y", "-loglevel", "error", "-i", str(audio_path),
+         "-vn", "-ac", "1", "-ar", "16000", "-b:a", "32k", str(small_path)],
+        capture_output=True, text=True, timeout=900,
+    )
+    if done.returncode != 0 or not small_path.exists():
+        print(f"      ffmpeg could not convert the audio: {done.stderr.strip()[:200]}")
+        return None
+    if small_path.stat().st_size > MAX_UPLOAD_BYTES:
+        print("      Audio is still over 25 MB after shrinking (episode too long). Skipping.")
+        return None
+    return small_path
 ```
 
 ### Template for YOUTUBE:
@@ -532,9 +733,111 @@ def _sample(text, max_chars=12000):
 
 ## File 5: modules/knowledge_extractor.py (Universal)
 
-Same code for every source. Adapts to source type via the item dict.
+Same code for every source. Adapts to source type via the item dict. It runs only on items that passed the importance filter, so it uses the stronger model.
 
-(Pattern matches the podcast-watcher's `knowledge_extractor.py` from Week 2/3. Universal.)
+```python
+"""Knowledge extractor: pulls structured insights from a high-importance item."""
+import os
+import json
+from openai import OpenAI
+
+MODEL = os.getenv("EXTRACTOR_MODEL", "gpt-4o")
+client = OpenAI()
+
+
+def extract_knowledge(item, content, interests):
+    """
+    Extract structured knowledge from one item.
+    
+    Args:
+        item: item metadata dict from the source checker
+        content: full text (transcript, article body, paper text)
+        interests: the member's interest profile
+    
+    Returns:
+        dict with the fields the vault writer turns into a note
+    
+    Raises:
+        RuntimeError if the model call fails or its reply is not usable.
+    """
+    # Extraction reads far more of the text than the filter does
+    content_for_extraction = content[:80000]  # roughly 20k tokens
+    
+    system_prompt = f"""You are an expert at extracting durable knowledge from podcasts, videos, articles and papers.
+
+You are extracting for THIS specific person, given their interests:
+
+THEIR INTERESTS:
+{interests}
+
+Extract content that will be useful to them WEEKS or MONTHS from now. Not surface-level summaries. Real insights, frameworks, mental models, and durable knowledge.
+
+Output a JSON object with this exact structure:
+{{
+  "why_this_matters": "<2-3 sentences on why this is relevant to THEIR specific interests>",
+  "tldr": "<3-5 sentence high-level summary>",
+  "key_insights": [
+    {{"insight": "<the insight>", "timestamp": "<HH:MM:SS or null if unknown>"}},
+    ...
+  ],
+  "best_quotes": [
+    {{"quote": "<verbatim quote>", "speaker": "<who said it>", "timestamp": "<HH:MM:SS or null>"}},
+    ...
+  ],
+  "frameworks_or_models": [
+    {{"name": "<framework name>", "description": "<brief explanation>"}}
+  ],
+  "topics_discussed": ["<topic 1>", "<topic 2>", ...],
+  "tags": ["<lowercase-tag-1>", "<lowercase-tag-2>", ...],
+  "action_items": ["<thing to investigate, read, or try>", ...],
+  "people_mentioned": ["<notable person 1>", "<notable person 2>", ...],
+  "books_or_resources_mentioned": ["<resource 1>", "<resource 2>", ...]
+}}
+
+GUIDELINES:
+- Aim for 3-7 key insights (quality over quantity)
+- Quotes should be substantive, not throwaway
+- Tags should be lowercase, hyphenated, specific (e.g., "founder-mindset" not "business")
+- If a section has nothing to extract, return an empty array
+- Timestamps are best-effort; null is acceptable
+- Do NOT fabricate timestamps or quotes. Only include what is actually in the content"""
+    
+    user_prompt = f"""SOURCE: {item.get('source_name', '')}
+TITLE: {item.get('title', '')}
+GUEST: {item.get('guest') or 'Unknown'}
+HOST: {item.get('host') or 'Unknown'}
+
+CONTENT:
+{content_for_extraction}
+
+Extract structured knowledge now."""
+    
+    try:
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            response_format={"type": "json_object"},
+            temperature=0.4,
+        )
+        knowledge = json.loads(response.choices[0].message.content)
+        if not isinstance(knowledge, dict):
+            raise ValueError("the model did not return a JSON object")
+    except Exception as e:
+        # Raise, never return a placeholder: a note that says "Extraction failed"
+        # would be written to the vault and the item marked as seen for good.
+        # The orchestrator counts this as an error and retries on the next run.
+        raise RuntimeError(f"Extraction failed: {e}") from e
+    
+    # The vault writer adds these to the note's tags, so they must be a list of text
+    tags = knowledge.get('tags')
+    knowledge['tags'] = [str(t) for t in tags] if isinstance(tags, list) else []
+    return knowledge
+```
+
+The note writer (File 6) renders `why_this_matters`, `tldr`, `key_insights`, `best_quotes`, `frameworks_or_models`, `topics_discussed`, `action_items` and `tags`. The other fields are returned for a member who wants to extend the note.
 
 ---
 
@@ -751,6 +1054,7 @@ The filter template they chose in Phase 3, with any custom adjustments.
 Source-dependent:
 
 **Podcasts/RSS:** `feedparser openai python-dotenv requests pyyaml`
+**Podcasts, speech-to-text only:** nothing more from pip. Audio files over 25 MB (most episodes longer than about 25 minutes) are made smaller with `ffmpeg` before they are sent, so `ffmpeg` must be installed on the computer (`brew install ffmpeg` on a Mac, `winget install ffmpeg` on Windows, `apt install ffmpeg` on Linux). Without it, long episodes are skipped with a message.
 **YouTube:** Add `google-api-python-client youtube-transcript-api`
 **Twitter:** Add `tweepy`
 **Reddit:** Add `praw`
@@ -769,16 +1073,30 @@ EXTERNAL_FOLDER=External
 IMPORTANCE_THRESHOLD=7
 
 # Source-specific (only include relevant ones):
-LISTEN_NOTES_API_KEY=
 YOUTUBE_API_KEY=
 REDDIT_CLIENT_ID=
 REDDIT_CLIENT_SECRET=
 TWITTER_BEARER_TOKEN=
 
-# Models
+# Podcasts only. A podcast watcher needs a transcript for each episode.
+# Turn on at least one of the two options below, or nothing will be captured.
+# Option 1: a Listen Notes API key on a paid plan that includes transcripts.
+LISTEN_NOTES_API_KEY=
+# Option 2: speech-to-text of the audio through your OpenAI key. Off by default
+# because it is billed per minute of audio. Set to true to turn it on.
+WHISPER_ENABLED=false
+# Episodes longer than this many minutes are not sent to speech-to-text.
+MAX_AUDIO_MINUTES=90
+# Speech-to-text model.
+TRANSCRIBE_MODEL=whisper-1
+
+# Models. OpenAI retires model names over time. If a run stops with a
+# "model not found" error, put a current model name here.
 FILTER_MODEL=gpt-4o-mini
 EXTRACTOR_MODEL=gpt-4o
 ```
+
+For a podcast watcher keep the whole "Podcasts only" block. For every other source leave that block out.
 
 ---
 
