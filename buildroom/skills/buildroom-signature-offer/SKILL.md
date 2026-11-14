@@ -26,7 +26,7 @@ If §2 is missing or `not started`, follow the protocol's two-path fallback — 
 
 ### Phase 0 — Business File intake
 
-Follow the protocol. From the file, pre-fill: dream outcome statement and best-client language (§2), current price and engagement facts (§1). The input template's remaining fields — core service, best result, typical result, engagement structure, top 3 reasons clients don't get results — are asked one at a time. Push for honesty on "typical result": that's the floor the promise stands on.
+Follow the protocol. From the file, pre-fill: dream outcome statement and best-client language (§2; client phrases from *Sourced language* only, never a `[hypothesis]` line presented as something a client said), current price and engagement facts (§1). The input template's remaining fields — core service, best result, typical result, engagement structure, top 3 reasons clients don't get results — are asked one at a time. Push for honesty on "typical result": that's the floor the promise stands on.
 
 ### Phases 1–5 — the build
 
@@ -44,7 +44,7 @@ Quality bar: no generic language; every element specific to this ICA's situation
 
 1. Assemble the **complete Signature Offer Document** and tell the member to save it as its own document.
 2. Update the Business File per the protocol:
-   - **§3 Signature Offer** — offer name, transformation promise, structure, phases + outcomes, named deliverables, value stack total, investment, full guarantee wording, 60-second pitch, link to the full document. Status `complete` (or `provisional` if built on a provisional §2 — inherit the flag).
+   - **§3 Signature Offer** — offer name, transformation promise, structure, phases + outcomes, named deliverables, value stack total, investment (one price: if the session produced tiers, ask the member which tier is the main offer and record that one; the other tiers stay in the full document), full guarantee wording, 60-second pitch, link to the full document. Status `complete` (or `provisional` if built on a provisional §2 — inherit the flag).
    - **§1** — update price fields if they changed today.
    - **§8 Session Log** — append the row; ask for the 1–5 rating.
 3. Emit the entire updated file in one code block with the "what changed" summary.
@@ -62,6 +62,7 @@ Quality bar: no generic language; every element specific to this ICA's situation
 - Write the offer page (that's the Offer Page Copy session) or positioning (next session).
 - Set a price for the member without their input — you architect and anchor; they decide.
 - Inflate value-stack numbers beyond what the deliverables defensibly justify.
+- Invent a client, a result, a testimonial or a number. The proof-of-concept sentence uses only the best or typical result the member gave at intake, with no client name unless the member supplies one; the price anchors use the member's own figures or assumptions shown as assumptions and confirmed. Where there is nothing real, say so and leave the gap.
 
 ## When the Session Is Complete
 

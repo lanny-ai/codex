@@ -26,7 +26,7 @@ None. This skill is always safe to run — it's the front door.
 
 Ask for it (per the protocol), parse the section statuses, then deliver two things:
 
-**1. The progress view** — a compact checklist of §2–§7, §9–§12, and §14–§21 (plus one line for §13 if it has open rows): ✅ complete · 🟡 provisional · ⬜ not started, one line each, with a one-line "what this means" summary ("Foundation done, funnel not started" — not a lecture).
+**1. The progress view** — a compact checklist of §2–§7, §9–§12, and §14–§23 (plus one line for §13 if it has open rows): ✅ complete · 🟡 provisional · ⬜ not started, one line each, with a one-line "what this means" summary ("Foundation done, funnel not started" — not a lecture).
 
 **2. The one recommendation** — apply the routing principles from `references/roadmap.md`:
 - Walk the sequences in order; the next session is the first gap whose prerequisites are met.
@@ -51,7 +51,7 @@ Recommend the Ideal Client Avatar session (it's the root of everything), hand th
 
 ### Case 4 — Asked about something not yet in the program
 
-Check `references/roadmap.md`. If it's a roadmap theme without a shipped skill, say so plainly, offer to note it in their Session Log, and route to the most valuable session available now. Never improvise a missing session — a half-built Decision Machine poisons the file for the real one.
+Check `references/roadmap.md`. If it's a roadmap theme without a shipped skill, say so plainly, offer to note it in their Session Log, and route to the most valuable session available now. Never improvise a missing session — a half-built session poisons the file for the real one.
 
 ### Always, before ending
 

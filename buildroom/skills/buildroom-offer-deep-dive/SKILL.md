@@ -38,7 +38,7 @@ Follow the protocol. Pre-fill from the file and show one summary for confirm-or-
 | Q3 Customer's biggest desire or pain | §2 pain stack (identity line first), dream state |
 | Q4 Existing offers and pricing | §3 investment, value stack total; §1 price range |
 | Q5 Uniqueness / new opportunity | §4 differentiator, unfair advantage (confirm; push if generic) |
-| Q7 Proof and credibility | §3 pitch, §5 proof assets |
+| Q7 Proof and credibility | §18 proof vault (and never-say claims), §5 proof assets, §3 pitch |
 | Q8 Common enemy | §4 villain statement |
 | Q11 Risk reversal | §3 guarantee |
 

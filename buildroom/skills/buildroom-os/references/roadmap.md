@@ -127,18 +127,19 @@ Capture turns a raw brainstorm (board export, transcript, notes) into outcome re
 | Finish It | `buildroom-finish-it` | The finishing crew for an existing project: snapshot, audit (STATE.md), the owner's questions, scope cut to the smallest shippable version (GOAL.md, LATER.md), then Build It's crew and a ship checklist. |
 | Build It | `buildroom-build-it` | The finishing crew for a new idea: brainstorm, Pursue Goal (GOAL.md), then planner, builder, QA, four reviewers, a five-persona panel seeded from §2, docs and a release judge. |
 | Continuity System | `buildroom-continuity` | From community member Jenn: PROJECT, STATE and DECISIONS in `projects/<name>/continuity/` keep any long project resumable across threads and between Claude and Codex. Reads the Business File, never writes it. |
+| Discovery Engine | `buildroom-discovery-engine` | The founder's Magic Business Genie (36 questions + ten prompts) rebuilt per the 2026-10-07 co-design: research first, score and confirm, scripted gaps, then the prompts. Three subjects: own business, client (separate file), prospect (brief). |
 
 ### Sessions kept as notes, not skills
 | Session | Why not a skill | Where it lives |
 |---|---|---|
 | Buzz (2026-08-12) | A third-party open-source desktop app where humans and agents share channels, shown as a demo. The founder called it "just an operation layer" over the second brain, told members not to let it distract from money-making, and by 08-26 was off the stock app and onto a custom build. No Build Room artifact, unstable vendor onboarding, no member follow-through. If a member asks: the vault is still the brain; the Second Brain and Source Watcher electives are the durable parts. | This note. |
 | Agent Forge app (2026-07-29) | The hosted builder never reached members (workspace-gated publish). The thirteen elements it encoded are the `buildroom-agent-forge` elective. | `buildroom-agent-forge` |
-| Discovery Engine | `buildroom-discovery-engine` | The founder's Magic Business Genie (36 questions + ten prompts) rebuilt per the 2026-10-07 co-design: research first, score and confirm, scripted gaps, then the prompts. Three subjects: own business, client (separate file), prospect (brief). |
 
 ## Trigger phrases to hand the member
 
 When routing, give the member the exact words to start the session:
 
+- Build Room OS (this navigator, and the five-minute onboarding other sessions send a member back to) → "Where do I start?"
 - Ideal Client Avatar → "Help me build my ideal client avatar"
 - Signature Offer → "Help me build my signature offer"
 - Positioning & Messaging → "Help me position my business"
@@ -147,7 +148,7 @@ When routing, give the member the exact words to start the session:
 - Lead Capture → "Help me build my opt-in page"
 - Decision Machine → "Build my follow-up system"
 - Funnel Scorecard → "Where is my funnel leaking?"
-- SOP Creator → "Help me document my process"
+- SOP Creator → "Help me document my processes"
 - Hiring Kit → "Help me hire for this role"
 - Training Docs → "Help me train my new hire"
 - Ops Dashboard → "What numbers should I be watching every week?"
@@ -166,7 +167,6 @@ When routing, give the member the exact words to start the session:
 - Offer Deep Dive → "Make my offer a no-brainer"
 - Copy Engine → "Write me [the piece]"
 - Discovery Engine (anytime) → "Run discovery on this business"
-- Funnel Scorecard (funnel) → "Where is my funnel leaking?"
 - Agent Forge (elective) → "Make me an agent"
 - Triage (elective) → "Triage my projects"
 - Finish It (elective) → "Finish it"
@@ -183,14 +183,14 @@ When routing, give the member the exact words to start the session:
 
 Offer Clarity & Positioning · Lead Generation Engine · Sales Conversations · Content That Converts · Client Delivery Systems · Operations & SOPs · Automation & Funnels · Retention & Revenue Growth · Year-End Reset & 2027 Launch.
 
-When a member asks for something no current skill covers (e.g. discovery call scripts, SOPs, retention), say it's on the roadmap, note it in their Session Log if they want, and route them to the most valuable session available *now* instead.
+When a member asks for something no current skill covers (e.g. client delivery systems, retention, a year-end reset), say it's on the roadmap, note it in their Session Log if they want, and route them to the most valuable session available *now* instead.
 
 ## Routing principles
 
 1. **The file is the map.** Section statuses tell you exactly where the member is. Never make them re-explain their progress.
-6. **Captured ideas are commitments waiting for a date.** If §13 has `captured` rows older than four weeks, mention it once: schedule it, park it, or ship it.
 2. **One recommendation.** Members come confused; give them the single next session and why — not a menu.
 3. **Goal-first routing.** "I want X" → find X's section, walk its `Requires` chain back to the first gap, and show the path: "Sales page needs avatar → offer → positioning. You have the avatar. Next: Signature Offer, then two sessions later you're writing the page."
 4. **Hypothesis language is debt too.** If §2's sourced bank is empty and the member is heading for §5 or §7, route to Audience Insight first: a landing page built on guessed customer words ships guesses to real prospects.
 4b. **Provisional debt counts as a gap.** A `provisional` section works, but flag it: the session that hardens it is usually worth running before building higher.
 5. **Ship-state beats build-state.** If §5 or §7 says `draft` for weeks, the highest-value "next session" may be: publish what's built. Say so.
+6. **Captured ideas are commitments waiting for a date.** If §13 has `captured` rows older than four weeks, mention it once: schedule it, park it, or ship it.
