@@ -49,7 +49,7 @@ The gate runs in four stages, each with its own items (`launch_tracker.py gate -
 - **[refund_commissions] Refunds reverse partner commissions** (GoHighLevel does not do this automatically).
 - **[chargeback_ready] Chargeback exposure understood**: Visa's US "excessive" dispute ratio fell to 1.5% from April 2026; a clear refund path is cheaper than a dispute.
 
-**A webinar or bootcamp day written by the Webinar Builder** carries its own go-live check (`webinar_check.py`): every price, date and place count on the slides and in the script against `close.md`, proof by ID and class, retired lines, the refused tactics, the recording notice. Its GO, with the date, is the note for the talk and slides on `proof_classified`, `real_deadlines`, `single_source`, `retired_lines` and `claims_substantiated`.
+**A webinar or bootcamp day written by the Webinar Builder** carries its own go-live check (`webinar_check.py`): every price, date and place count on the slides and in the script against `close.md`, proof by ID and class, retired lines, the refused tactics, the recording notice. Its GO, with the date, is the note for the talk and slides on `proof_classified`, `real_deadlines`, `single_source` and `retired_lines`. It does not check `claims_substantiated`: read the talk for performance claims yourself.
 
 ## How to run the gate with a member
 

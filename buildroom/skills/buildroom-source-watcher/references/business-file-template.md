@@ -1,13 +1,13 @@
 # Build Room Business File
 
-_One file. Every Build Room session reads it before asking you anything, and updates it before ending. Keep it with your business documents and bring it to every session._
+_One file. Every Build Room session reads it before asking you anything, and updates it before ending. It stays in your Build Room folder, where every session finds it._
 
 **Owner:** [your name]
 **Business:** [business name]
 **File version:** 1.9
 **Last updated:** [YYYY-MM-DD] by [session name]
 
-> **How to use this file:** Attach or paste it at the start of any Build Room session. The session will read it, skip every question it already answers, and hand you back an updated copy at the end. Replace your saved copy with the updated one. You can edit anything by hand at any time — your edits win.
+> **How to use this file:** Leave it in your Build Room folder. Each session reads it, skips every question it already answers, saves its changes here and tells you what changed. You can edit anything by hand at any time — your edits win.
 
 ---
 

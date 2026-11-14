@@ -764,7 +764,19 @@ def cmd_robots(a):
         print(text, end="")
 
 
+
+def utf8_output():
+    """Print as UTF-8 whatever the console's code page, so a name or a question with a character outside cp1252
+    (or the → in a next-step line) does not crash the script on Windows after the file has been written."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
+
+
 def main(argv=None):
+    utf8_output()
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("new"); s.add_argument("question"); s.add_argument("--slug", default=""); s.add_argument("--title", default="")

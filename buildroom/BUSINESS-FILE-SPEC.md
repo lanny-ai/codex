@@ -24,7 +24,7 @@ The Business File moves that discipline into the skills. It is **one markdown do
 | `shared/business-file-protocol.md` | The behavioral contract every skill embeds (read/write/conflict/size rules). |
 | `skills/*/references/business-file-{template,protocol}.md` | Per-skill embedded copies (skills are standalone installers; `build-skills.sh` syncs them from the canonical sources). |
 
-## Section registry (v1.0)
+## Section registry (v1.9)
 
 | § | Section | Written by | Requires |
 |---|---|---|---|
@@ -60,7 +60,7 @@ The **Video Director** writes §19 and, by playbook, a §18 proof vault entry (p
 
 §13 is the one section any session may **append** to (never rewrite): when a build session surfaces an idea outside its scope, it adds a `captured` row rather than losing it. Only Brainstorm Capture edits existing rows.
 
-Future months extend the registry by **adding sections** (e.g. §9 Sales Conversations, §10 Content System) — never by restructuring existing ones. A skill built against v1.0 must still parse a v1.x file.
+Future months extend the registry by **adding sections** (e.g. §24 Content System) — never by restructuring existing ones. A skill built against v1.0 must still parse a v1.x file.
 
 ## Rules for authoring new Build Room skills
 

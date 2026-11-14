@@ -8,7 +8,7 @@ One file. Every session builds on the last.
 |---|---|
 | `START-HERE.md` | Read this first: the two-minute install for Claude Code or Codex. |
 | `tools/BuildRoom_OS_Quick_Start.html` | Open in any browser — the visual guide to the program and every trigger phrase. |
-| `Rent_Calculator.html` | Open in any browser — score your processes, see what your head is charging you in rent, and copy a §9 block straight into your Business File. |
+| `tools/Rent_Calculator.html` | Open in any browser — score your processes, see what your head is charging you in rent, and copy a §9 block straight into your Business File. |
 | `buildroom-os` | The navigator. Tells you what to run next, tracks your progress. |
 | `buildroom-ideal-client-avatar` | Session 1 — your Ideal Client Avatar. |
 | `buildroom-signature-offer` | Session 2 — your Signature Offer. |
@@ -45,12 +45,12 @@ One file. Every session builds on the last.
 | `buildroom-website-design-studio` | Website Design Studio (your look) — pages that look like your business, not like every other page AI makes: drop screenshots of designs you like into your Obsidian vault and hear back what you keep choosing, react to three very different versions of your landing page side by side, fine-tune the one you pick with sliders, add images made with Kie.ai where your own photos run out, and lock your colours, fonts and sizes so every page, deck and ad after it matches. A check before it goes live makes sure it reads easily on a phone. Say "Make my website look like me." |
 | `buildroom-book-builder` | AI Momentum Labs Book Builder (your book) — your own non-fiction book, in your voice, to a manuscript that has been edited, checked and read: a few questions (most already answered in your Business File), an outline you approve, chapters written one at a time from your own stories and method, an edit you sign off on, an independent review, a fact check, and test readers before it is called ready. Twelve chapters unless you want a different shape. Nothing is ever made up. Say "Write my book." |
 | `buildroom-ad-studio` | Ad Studio (advertising) — a one-screen brief from your file, three genuinely different concepts with three hooks each, copy one ad at a time, finished static ads in 1:1, 4:5 and 9:16 built around your real face and real proof (AI makes only the scenery), a separate review, and an upload-ready kit with a test plan and a disclosure sheet. Paid image generation goes through a spend ledger with a quote first. Say "Make me ads." |
-| `buildroom-funnel-scorecard` | Funnel Scorecard (funnel) — every failure point in your funnel measured, the top three leaks ranked, fixes you approve one at a time, and an optional weekly routine that re-runs it and fails loud. Run after a week of real traffic. Say "Where is my funnel leaking?." |
-| `Business_File_Viewer.html` | Open in any browser — paste your Business File and see your whole business on one screen: every section's status, your progress, the one session to run next, and your Build Plan. |
-| `Brainstorm_Board.html` | Open in any browser — frame a question, diverge on a timer, cluster, dot-vote, decide, and copy the whole board into Claude. |
+| `buildroom-funnel-scorecard` | Funnel Scorecard (funnel) — every failure point in your funnel measured, the top three leaks ranked, fixes you approve one at a time, and an optional weekly routine that re-runs it and fails loud. Run after a week of real traffic. Say "Where is my funnel leaking?" |
+| `tools/Business_File_Viewer.html` | Open in any browser — paste your Business File and see your whole business on one screen: every section's status, your progress, the one session to run next, and your Build Plan. |
+| `tools/Brainstorm_Board.html` | Open in any browser — frame a question, diverge on a timer, cluster, dot-vote, decide, and copy the whole board into Claude. |
 | `buildroom-brainstorm` | Anytime — Claude facilitates the brainstorm alongside the board (or in chat) and ends it on an owner and a first step. |
 | `buildroom-brainstorm-capture` | Anytime — turns any brainstorm, transcript, or notes into decision records, proto-SOPs, build briefs, and Build Plan rows in your Business File. |
-| `BUILDROOM_BUSINESS_FILE.md` | The blank Business File (your first session can also create it for you). |
+| `templates/BUILDROOM_BUSINESS_FILE_TEMPLATE.md` | The blank Business File. Your first session copies it to `BUILDROOM_BUSINESS_FILE.md` in the folder; that copy is yours. |
 
 ## Install (2 minutes)
 
@@ -62,13 +62,13 @@ Want the skills in every project? Run `install.sh` (Mac) or `install.ps1` (Windo
 
 ## The one habit that makes this work
 
-**Bring your Business File to every session, and save the updated copy it hands back.** That's it. Do that, and every session gets shorter while the output gets sharper — because Claude already knows your avatar, your offer, your positioning, and your funnel before you say a word.
+**Keep your Business File in this folder and open Claude Code or Codex here.** Every session reads the file first and writes it back at the end. That's it. Do that, and every session gets shorter while the output gets sharper — because Claude already knows your avatar, your offer, your positioning, and your funnel before you say a word.
 
 Already ran some Build Room sessions the old way? Bring your existing documents (ICA, offer doc, Messaging Bible) to the navigator and say "set me up" — it will build your Business File from what you have.
 
 ## Upgrading from an earlier zip
 
-Replace the whole folder with this one, then copy your `BUILDROOM_BUSINESS_FILE.md` back in. Nothing else carries over.
+Do not unzip the new release over your folder, and do not replace your folder. Unzip the new release somewhere else (your Downloads folder), then run its `update.sh` (Mac) or `update.ps1` (Windows) with the path of your own folder. It replaces only the Build Room skills, tools and instructions, saves what it replaces in `backups/`, and leaves your Business File and everything you made untouched. The exact commands are in `START-HERE.md` under "Updating to a new release".
 
 ---
 Build Room · AI Momentum Labs · buildroom.ai

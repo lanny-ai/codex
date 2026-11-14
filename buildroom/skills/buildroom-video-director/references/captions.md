@@ -21,6 +21,7 @@ SubMagic sets animated, styled captions with word-level timing and handles empha
 ```sh
 python3 scripts/ledger.py plan project.json --asset-id CAPTIONS-V1-916 --provider submagic --model "<template>" --prompt-ref edit.json --kind captions
 python3 scripts/submagic.py --dry-run --video renders/V1_9x16.cut.mp4 --template "<template>"
+python3 scripts/ledger.py authorize project.json --provider submagic --cap 3 --units minutes --note "member approved SubMagic minutes, session 2026-10-14"   # once; the cap the member agreed
 python3 scripts/submagic.py --project project.json --asset-id CAPTIONS-V1-916 --video renders/V1_9x16.cut.mp4 --out renders/V1_9x16.mp4 --template "<template>" --cost 1 --quote "SubMagic plan minutes"
 ```
 

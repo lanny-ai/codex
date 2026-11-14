@@ -570,6 +570,8 @@ def check(a):
     nums = sorted({m.group(0).strip() for m in NUMBER_RE.finditer(text)})
     if nums:
         if known:
+            # section numbers ("## 22.", "§22"), dates and the file version are not the member's figures
+            known = re.sub(r"(?m)^#{1,6}\s*\d+\.|§\s?\d+(?:\s?[-\u2013]\s?\d+)?|\b\d{4}-\d{2}-\d{2}\b|^.*File version.*$", " ", known)
             known_cores = {num_core(m.group(0)) for m in NUMBER_RE.finditer(known)} | set(re.findall(r"\d[\d,.]*", known))
             known_cores = {k.replace(",", "").rstrip(".") for k in known_cores}
             unknown = [n for n in nums if num_core(n).replace(",", "") not in known_cores]

@@ -32,8 +32,8 @@
  *                                                         featured and carousel warn when there is none)
  *  "brand": {"name": "Ruiz Advisory", "display_font": "Fraunces", "body_font": "Source Sans 3",
  *            "font_files": {"display": [{"src": "../brand/fonts/Fraunces-700.ttf", "weight": 700}], "body": [...]},
- *            "bg": "#0f1424", "fg": "#f4f6fa", "accent": "#f97316", "muted": "#a9b2c6", "logo": "brand/logo.png"},
- *  "photo": "brand/headshot.jpg",            (card and featured only, optional; a real photo, never generated)
+ *            "bg": "#0f1424", "fg": "#f4f6fa", "accent": "#f97316", "muted": "#a9b2c6", "logo": "../brand/logo.png"},
+ *  "photo": "../brand/headshot.jpg",         (card and featured only, optional; a real photo, never generated)
  *  "copy": {"promise": "...", "proof": "...", "cta": "...",        (banner)
  *           "kicker": "...", "headline": "...", "sub": "...",      (card; featured: kicker + a 3–5 word headline)
  *           "author": "Dana Ruiz · Fractional CFO",               (card byline, carousel footer)
@@ -296,6 +296,10 @@ async function renderOne(browser, specPath, outDir, overlay) {
   const b = spec.brand || {}, bg = b.bg || '#0f1424', fg = b.fg || onColor(bg);
   const report = { id, layout, size: [W, H], title: spec.title ?? null, alt: spec.alt ?? null, files: [], checks: [], warnings: [] };
   const fail = (what) => report.checks.push({ check: what, result: 'FAIL' });
+  // a photo or logo path that does not resolve would render as an empty frame and still pass every other check
+  for (const [what, rel] of [['photo', layout === 'card' || layout === 'featured' ? spec.photo : null], ['logo', layout === 'banner' ? b.logo : null]]) {
+    if (rel && !fs.existsSync(path.resolve(base, rel))) fail(`${what} file found (${rel} is not at ${path.resolve(base, rel)}; paths are relative to the spec file)`);
+  }
   const cr = contrast(fg, bg);
   report.checks.push({ check: 'text contrast ≥ 4.5', result: cr == null || cr >= 4.5 ? 'pass' : 'FAIL', detail: cr });
   // accent carries the kicker, CTA, numerals and hints; muted carries proof, subs and bylines

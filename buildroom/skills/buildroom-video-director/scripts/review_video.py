@@ -130,6 +130,13 @@ def check(a):
                 res["unverified"].append("words said vs the approved script: the transcript was aligned from the script (no speech engine), so it cannot show a departure. Listen, or transcribe with a speech engine.")
             else:
                 add("words match the approved script", not diffs, f"{ratio_m:.0%} match" + ("" if not diffs else "; " + "; ".join(diffs[:8])))
+                # --snap-to-script puts the approved word in place of the heard one, so a slip of the tongue cannot show above
+                swaps = [f"{w['start']:.2f} s heard '{w['snapped_from']}', transcript shows '{w['w']}'" for w in words
+                         if w.get("snapped_from") and "".join(norm_words(str(w["snapped_from"]))) != "".join(norm_words(w["w"]))]
+                if swaps:
+                    res["unverified"].append("words replaced by the approved script (snap-to-script): " + "; ".join(swaps[:12])
+                                             + (f"; and {len(swaps) - 12} more" if len(swaps) > 12 else "")
+                                             + ". Listen at each time: if what was said differs from the script, it is a reshoot or a script change")
         # captions geometry (burned by the director)
         rep_path = base / edl.get("out_dir", "renders") / f"{edl['id']}.assemble.json"
         cap = (edl.get("captions") or {})
@@ -269,6 +276,8 @@ def kit(a):
     rows, disc, notes = [], [], []
     led = {x["id"]: x for x in data["ads"]}
     for v in m["videos"]:
+        if v["id"] not in led:  # a video the ledger never saw was never reviewed or approved
+            errs.append(f"{v['id']}: in the manifest but not recorded in the ledger (ledger.py ad), so not reviewed or approved")
         name = f"{yymm}_{v['playbook']}_{slug(v.get('slug') or v.get('title', v['id']))}_{v['id']}"
         copy = v.get("platform_copy", {})
         ratios = v.get("ratios", ["9x16"])

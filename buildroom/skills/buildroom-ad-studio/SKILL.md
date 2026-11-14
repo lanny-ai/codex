@@ -36,7 +36,7 @@ Read these before any member-facing work, in this order:
 
 **Requires §2 (Ideal Client Avatar) and §3 (Signature Offer). Substantially better with §4 (Positioning) and a live destination in §5 or §7.** An ad is a promise to a specific person about a specific offer, and it must land on a page that keeps the promise.
 
-**Design System (§22):** if §22 is `complete`, read `Design/System/tokens.json` and `design-system.md` in the member's vault before designing anything: the brand kit's colours, fonts and photo rules come from §22, and the do/don't list goes in every brief. Don't invent a palette or fonts. If §22 is empty, carry on as before and offer **Website Design Studio** once ("make my website look like me").
+**Design System (§22):** if §22 is `complete` or `provisional` (say so when it is provisional), read `Design/System/tokens.json` and `design-system.md` before designing anything (§22's Files line says where they are; if you can't open them, ask the member to attach `design-system.md` or `tokens.css`): the brand kit's colours, fonts and photo rules come from §22, and the do/don't list goes in every brief. Don't invent a palette or fonts. If §22 is empty, carry on as before and offer **Website Design Studio** once ("make my website look like me").
 
 - §2 or §3 missing: follow the protocol's two-path fallback. Recommend the ICA session first; or run the provisional interview (who, what situation sends them looking, what offer, at what price) and mark §18 `provisional`.
 - §2 holds only `[hypothesis]` language: say the ads will be guesses in the customer's voice, and offer **Audience Insight** first ("Find the words my clients actually use"). Continue if the member chooses; flag every hook that leans on a hypothesis line.
@@ -100,7 +100,7 @@ Then write `specs/<ad>.json` per ad (layout, picture layer, brand kit, exact cop
 
 ### Phase 5 — Generate and compose
 
-Generate plates through `scripts/gen.py` (or, in an interactive session with the Higgsfield MCP connected, through its tools, recording every job in the ledger with `ledger.py reserve/record` by hand). Inspect each plate against its prompt before it is used; a failed plate is repaired upstream, at most two passes. Then render every ad: `node scripts/render_static.mjs specs/<ad>.json --out renders/`. Each hook × each ratio is one file: three concepts × three hooks × three ratios = 27 statics. The renderer reports overflow and safe-zone results per file; fix copy or layout until both pass. Text is never rendered by the image model.
+Generate plates through `scripts/gen.py` (or, in an interactive session with the Higgsfield MCP connected, through its tools, recording every job in the ledger with `ledger.py reserve/record` by hand). Inspect each plate against its prompt before it is used; a failed plate is repaired upstream, at most two passes. Then render every ad: `node scripts/render_static.mjs specs/<ad>.json --out renders/ --ratios 1x1,4x5,9x16`. Each hook × each ratio is one file: three concepts × three hooks × three ratios = 27 statics. The renderer reports overflow and safe-zone results per file; fix copy or layout until both pass. Text is never rendered by the image model.
 
 ### Phase 6 — Review (Gates G3 and G4)
 

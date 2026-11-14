@@ -18,6 +18,24 @@
 
 The offer itself (`close.md`), the one belief (`belief.md`), the proof bank (`proof-bank.md`) and the run sheet (`runsheet.json`) stay in the launch folder, owned by the Event Launcher. This skill reads them. With `render --runsheet`, it adds the webinar as a day in `runsheet.json` (marked `"webinar"`), fills only blank or placeholder roles and links, and never replaces a day the Event Launcher wrote without `--force`.
 
+## `close.md`, as the scripts read it
+
+A plain list, one element per line, each line starting with its name:
+
+```
+- **Close mode:** checkout
+- **Door 1: The Pricing Program** for owners ready to raise one price. $1,997 in full, or 4 payments of $549 ($2,196 total). Checkout: https://…
+- Backup payment link (moderator only): https://…
+- **Guarantee (signed off 2026-11-20):** …
+- **Deadline:** enrolment closes January 9, 2027 at midnight Pacific, because the cohort starts January 12.
+- **Cohort start:** January 12, 2027
+- **Replay:** available until December 10, 2026
+```
+
+- The deadline is read only from a line that starts with Deadline, Enrolment closes, Cart closes or Doors close. With no deadline, write `- **Deadline:** none; follow-up ends <date>`. A deadline under a heading or in a table is not found: `render` then leaves the run sheet's deadline as it was and says so (`deadline_note`), and the check treats the talk's deadline as one `close.md` does not have.
+- The one-pager copies every line word for word except a line that starts with Backup or Close mode, or is marked "moderator only" or "(internal)". When `close.md` has a `## For attendees` section, only that section is copied.
+- PENDING anywhere in it holds the check and the one-pager until the member settles it.
+
 ## The proof bank, as the check reads it
 
 Cite stories by the Proof Engine's IDs. The check reads the launch's `proof-bank.md` in either layout:

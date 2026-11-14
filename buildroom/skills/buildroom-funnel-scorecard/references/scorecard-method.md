@@ -19,7 +19,7 @@ If stages don't exist in the CRM yet, the first deliverable is the **pipeline to
 
 A leak is any stage whose rate fell against the prior window, or whose rate is the lowest in the table when there is no prior window.
 
-Revenue at risk for a stage = (prior rate − current rate) × entered × value of one conversion downstream. Value downstream = the §3 investment × the product of the conversion rates between this stage and the conversion event. With no prior window, use (best plausible rate for this gate − current rate) and label the number provisional.
+Revenue at risk for a stage = (prior rate − current rate) × entered × value of one conversion downstream. Value downstream = the §3 investment × the product of the conversion rates between this stage and the conversion event. With no prior window there is nothing to compare against, so no dollar figure is given: rank the stages by their current rate, say "revenue at risk: not available until the second run", and never use a guessed or "plausible" rate.
 
 Rank leaks by revenue at risk. Report the top three. A stage with `UNREAD` counts is reported as "unmeasured", ranked above everything else, with the fix "install the measurement".
 

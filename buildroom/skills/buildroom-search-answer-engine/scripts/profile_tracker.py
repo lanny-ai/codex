@@ -13,6 +13,14 @@ may go before or after the command:
   python3 profile_tracker.py init --name "Harbor Coaching" --legal-name "Harbor Coaching" --type none        # no in-person contact: no profile
   python3 profile_tracker.py set eligible=yes owner_verified=yes hours_set=yes phone="(555) 010-0100" website=https://example.com
   python3 profile_tracker.py set review_ask=no            # a profession whose code bars asking clients (therapists, counsellors)
+  python3 profile_tracker.py set reviews_count=18 reviews_rating=4.7 nap_address="12 Main St, Boise" service_area="Boise, Meridian"
+
+`set` keys: business, legal_name, type, eligible, review_ask, owner_verified, primary_category, secondary_categories
+(comma-separated), description, hours_set, phone, website, appointment_url, attributes (comma-separated), opening_date,
+service_area, review_link, ask_method, ask_timing, photos_count, photos_last, posts_last, reviews_count, reviews_rating
+(the rating the profile shows; `log review` adds to the count but does not change it), reviews_unanswered,
+reviews_oldest_unanswered_days, reviews_last, nap_name, nap_address, nap_phone (the name, address and phone the
+listings are compared against).
   python3 profile_tracker.py service add "Bookkeeping clean-up" --description "..."
   python3 profile_tracker.py log photo --n 3 | post | review-ask --n 4 | review --rating 5 [--replied] | reply --n 2 | update
   python3 profile_tracker.py check [--md]
@@ -164,7 +172,9 @@ def cmd_init(a):
         "none": "No profile: this business meets nobody in person, so Google would suspend one. Listings (Facebook, LinkedIn, BBB, the professional body), the answer pages, LinkedIn and mentions carry the load. Set the phone and website first (`set phone=… website=…`) so the listings can be checked against them.",
     }
     print(json.dumps({"ok": True, "file": str(p), "type": a.type, "note": notes[a.type],
-                      "next": "set eligible=yes once in-person contact is confirmed; the name here must be the one on signage and invoices"}, indent=2))
+                      "next": "set phone=… website=…, then `listings add` for each listing" if a.type == "none" else
+                              "set eligible=yes once in-person contact is confirmed; the name here must be the one on signage and invoices"},
+                     indent=2, ensure_ascii=False))
 
 
 BOOL_KEYS = {"hours_set", "owner_verified"}
@@ -223,7 +233,9 @@ def cmd_set(a):
         elif k in data and not isinstance(data[k], (dict, list)):
             data[k] = v
         else:
-            die(f"unknown key '{k}'")
+            keys = sorted([x for x, v0 in data.items() if not isinstance(v0, (dict, list)) and x not in ("created", "updated")]
+                          + list(LIST_KEYS) + list(NESTED))
+            die(f"unknown key '{k}'; the keys are: {', '.join(keys)}")
         changed[k] = v
     save(data, p)
     print(json.dumps({"ok": True, "changed": changed}, indent=2, ensure_ascii=False))
@@ -498,7 +510,8 @@ def cmd_listings(a):
         out = {"ok": not mism, "mismatches": mism, "core_missing": missing, "not_checked_90_days": stale,
                "note": "Citations weigh little for rank now, but three of the top AI-visibility inputs are listing-type, and a wrong phone on a directory costs real calls."}
         if base_missing and data.get("type") != "none":
-            out["note"] = f"Set the profile's own {' and '.join(base_missing)} first (`set …`) so listings can be compared. " + out["note"]
+            keys = " ".join("nap_address=\"…\"" if k == "address" else "phone=…" for k in base_missing)
+            out["note"] = f"Set the profile's own {' and '.join(base_missing)} first (`set {keys}`) so listings can be compared. " + out["note"]
         print(json.dumps(out, indent=2, ensure_ascii=False))
         sys.exit(1 if mism else 0)
     else:
@@ -534,7 +547,19 @@ def cmd_report(a):
     print(json.dumps(rep, indent=2, ensure_ascii=False))
 
 
+
+def utf8_output():
+    """Print as UTF-8 whatever the console's code page, so a name or a question with a character outside cp1252
+    (or the → in a next-step line) does not crash the script on Windows after the file has been written."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
+
+
 def main(argv=None):
+    utf8_output()
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--folder", default="search")
     sub = ap.add_subparsers(dest="cmd", required=True)

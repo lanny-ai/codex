@@ -20,5 +20,6 @@ for TARGET in "$HOME/.claude/skills" "$HOME/.codex/skills"; do
 done
 
 echo
-echo "Done. Open Claude Code or Codex anywhere and say: I'm new to the Build Room — set me up."
+echo "Done. Open Claude Code or Codex in this folder and say: I'm new to the Build Room — set me up."
+echo "Always start Build Room sessions in this folder, so they find your Business File."
 echo "Your Business File stays in this folder: $HERE/BUILDROOM_BUSINESS_FILE.md"

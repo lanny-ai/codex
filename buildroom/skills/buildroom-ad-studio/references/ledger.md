@@ -33,7 +33,7 @@ python3 $S/ledger.py plan $P --asset-id PLATE-C2 --provider higgsfield --model <
 python3 $S/gen.py --dry-run ads/2026-10/jobs.json --prices ads/2026-10/prices.json     # show the member
 python3 $S/ledger.py authorize $P --provider higgsfield --cap 12 --units credits --note "member approved quote in session 2026-10-14"
 python3 $S/gen.py ads/2026-10/jobs.json --project $P --prices ads/2026-10/prices.json
-node $S/render_static.mjs ads/2026-10/specs/*.json --out ads/2026-10/renders --overlay
+node $S/render_static.mjs ads/2026-10/specs/*.json --out ads/2026-10/renders --overlay --ratios 1x1,4x5,9x16
 python3 $S/ledger.py ad $P --ad C2-H1 --concept C2 --layout photo-hook --spec ads/2026-10/specs/C2-H1.json --renders <the three pngs> --assets PLATE-C2
 python3 $S/review_pack.py sheet --renders ads/2026-10/renders --manifest ads/2026-10/copy-manifest.json --out ads/2026-10/review
 #   → separate reviewer → ledger.py gate --ad … --gate G3/G4 --by reviewer

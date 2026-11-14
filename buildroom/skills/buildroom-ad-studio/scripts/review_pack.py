@@ -11,7 +11,7 @@
       Refuses unless the ledger says every ad passed G3 and G4 and the member approved it.
       Builds kit/: ads/ with structured names, ads.csv (primary text, headline, description,
       CTA, UTM-keyed URL per ad), landing-headlines.md, test-plan.md, disclosure-sheet.md,
-      and appends this cycle's rows to learning-library.csv next to the kit.
+      and appends this cycle's rows to ads/learning-library.csv (above the cycle folder that holds project.json).
 
 Stdlib only. The manifest format is in references/launch-kit.md.
 """
@@ -166,6 +166,11 @@ def cmd_kit(a):
     concepts = {c["id"]: c for c in manifest.get("concepts", [])}
     reps = load_reports(a.renders)
     led_ads = {x["id"]: x for x in data["ads"]}
+    for ad in manifest.get("ads", []):  # an ad the ledger never saw was never reviewed or approved
+        if ad.get("id") not in led_ads:
+            errs.append(f"{ad.get('id')}: in the copy manifest but not recorded in the ledger (ledger.py ad), so not reviewed or approved")
+    if errs and not a.preview:
+        raise SystemExit("kit refused: " + "; ".join(errs))
     final_out = Path(a.out)
     if final_out.exists() and any(final_out.iterdir()) and not a.force:
         raise SystemExit(f"{final_out} is not empty; pass --force to rebuild it")
@@ -235,7 +240,9 @@ def cmd_kit(a):
           "Keep the original generated files; their provenance metadata is part of the record. "
           "This sheet records the checks made; it is not legal advice or a guarantee of platform approval."]
     (out / "disclosure-sheet.md").write_text("\n".join(ds) + "\n", encoding="utf-8")
-    libf = final_out.parent / "learning-library.csv"
+    # ads/learning-library.csv: one library across cycles (the ledger sits in ads/YYYY-MM/); else next to the kit
+    libdir = proj.parent.parent if proj.parent.parent.name.lower() == "ads" else final_out.resolve().parent
+    libf = libdir / "learning-library.csv"
     if errs:
         (out / "NOT-READY.txt").write_text("PREVIEW ONLY. Not upload-ready:\n- " + "\n- ".join(errs) + "\n", encoding="utf-8")
     if final_out.exists():
@@ -246,12 +253,17 @@ def cmd_kit(a):
         print(f"kit PREVIEW written to {out} · {len(rows)} ads · NOT upload-ready (see NOT-READY.txt)")
         return
     new = not libf.exists()
+    have = set()
+    if not new:  # a rebuilt kit never adds a second row for the same ad, and never touches results already filled in
+        with open(libf, newline="", encoding="utf-8") as fh:
+            have = {(r.get("cycle"), r.get("ad_name")) for r in csv.DictReader(fh)}
+    fresh = [r for r in lib if (r["cycle"], r["ad_name"]) not in have]
     with open(libf, "a", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=list(lib[0]))
         if new:
             w.writeheader()
-        w.writerows(lib)
-    print(f"kit written to {out} · {len(rows)} ads · learning library rows appended to {libf}")
+        w.writerows(fresh)
+    print(f"kit written to {out} · {len(rows)} ads · {len(fresh)} learning library row(s) appended to {libf}")
 
 
 def main():

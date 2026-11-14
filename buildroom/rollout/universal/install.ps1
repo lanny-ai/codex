@@ -18,5 +18,5 @@ foreach ($Target in @((Join-Path $env:USERPROFILE ".claude\skills"), (Join-Path 
   Write-Host "Installed $n Build Room skills into $Target"
 }
 Write-Host ""
-Write-Host "Done. Open Claude Code or Codex anywhere and say: I'm new to the Build Room - set me up."
+Write-Host "Done. Open Claude Code or Codex in this folder and say: I'm new to the Build Room - set me up."
 Write-Host "Your Business File stays in this folder: $(Join-Path $Here 'BUILDROOM_BUSINESS_FILE.md')"

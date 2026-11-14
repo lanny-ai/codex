@@ -25,7 +25,7 @@ Not a source any more: Google Business Profile Q&A (removed December 2025; Gemin
 | **Answerable** | the member would be guessing | can answer from good sources | can answer from their own counted jobs, numbers and photos |
 | **Freshness** | the answer never changes | changes every few years | changed this year (a rule, a price, a tool) |
 
-A question needs **answerable 60 or more** (a mark of 3 or better) to be chosen; the engines cite experience, and a guessed page fails the gate. Imported questions arrive unrated at 60 each; rate them before `next`. A question tagged `[hypothesis]` (from §2's hypothesis bank or Audience Insight's guesses) is capped at 40 until a real person has asked it: the protocol never puts invented words in a customer's mouth. Rating 15 to 25 questions is 75 to 125 judgments, too many for one sitting: the session pre-rates from the file and the member's answers, shows the top ten, and the member confirms or corrects those.
+A question needs **answerable 60 or more** (a mark of 3 or better) to be chosen; the engines cite experience, and a guessed page fails the gate. Imported questions arrive unrated at 60 each; rate them before `next`. A question tagged `[hypothesis]` (from §2's hypothesis bank or Audience Insight's guesses) is capped at 40 until a real person has asked it: the protocol never puts invented words in a customer's mouth. When someone does ask it, `question_map.py set Q-NN --source "<where it was asked>" --rate d,v,g,a,f` records that and lifts the cap. Rating 15 to 25 questions is 75 to 125 judgments, too many for one sitting: the session pre-rates from the file and the member's answers, shows the top ten, and the member confirms or corrects those.
 
 ## 3. Intents and clusters
 

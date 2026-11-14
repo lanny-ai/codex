@@ -55,7 +55,7 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 
 | Path | What it is |
 |---|---|
-| `BUILDROOM_BUSINESS_FILE.md` | **Your** Business File. One file, twenty-one sections, every session builds on it. Your first session creates it from `templates/`. |
+| `BUILDROOM_BUSINESS_FILE.md` | **Your** Business File. One file, twenty-three sections, every session builds on it. Your first session creates it from `templates/`. |
 | `templates/BUILDROOM_BUSINESS_FILE_TEMPLATE.md` | The blank Business File the first session copies. Releases carry only this blank copy, never a file named like yours, so an update cannot replace your file. |
 | `update.sh`, `update.ps1` | Install a new release into this folder safely (see Updating below). |
 | `BuildRoom_OS_Say_These_Words.pdf` | Print it, keep it by your computer: every trigger phrase, what it needs, what it writes. |
