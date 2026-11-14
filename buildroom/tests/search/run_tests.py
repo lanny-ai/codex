@@ -227,6 +227,45 @@ def answer_tests(tmp, qm_cwd):
         d = pj(out)
         check(f"ac an honest sentence passes typical_result and claims_supported ({label})",
               ok and d["gates"]["typical_result"] and d["gates"]["claims_supported"], out[:400])
+    # a quantifier word is not a basis: "most", "average", "typically" in front of an outcome is a results claim, and the
+    # typical-result statement beside a claim needs how it was counted (a count, "N of M clients", [own] or a source)
+    self_certified = [
+        ("Most clients doubled their revenue.", "Most clients doubled their revenue.", "the owner's example"),
+        ("The average client saves thousands.", "The average client saves thousands.", "'the average client' in the present tense"),
+        ("Typically our members triple their bookings.", "Typically our members triple their bookings.", "a leading 'typically'"),
+        ("Clients usually save money in the first quarter.", "Clients usually save money in the first quarter.", "'usually' before the outcome"),
+        ("Most clients doubled their revenue last year.", "Most clients doubled their revenue last year.", "a period alone is not a basis"),
+        ("Our clients doubled their revenue. Results vary.", "Our clients doubled their revenue.", "'results vary' with no basis"),
+        ("Our clients cut their late fees after the clean-up. The typical client sees a small drop.",
+         "Our clients cut their late fees after the clean-up.", "a typical-result statement with no basis"),
+        ("Most clients saved a lot on late fees [method].", "Most clients saved a lot on late fees", "[method] is an opinion, not a basis"),
+    ]
+    for i, (sentence, quoted, label) in enumerate(self_certified):
+        n = variant(fh, [("## What doubles it?", sentence + "\n\n## What doubles it?")], cwd, f"self-certified-{i}.md")
+        ok, out, code = run([PY, AC, "check", n, "--site", "https://example.com"], cwd, ok_codes=(1,))
+        msg = pj(out).get("fails", {}).get("typical_result", "")
+        check(f"ac a quantifier with no basis does not certify a results claim ({label})",
+              code == 1 and quoted in msg and "no basis" in msg and "how many clients" in msg and "over what period" in msg
+              and "take the claim out" in msg, out[:400])
+    with_basis = [
+        ("Our clients cut their late fees after the clean-up. The typical client sees a small drop, across 38 jobs in 2025 [own].",
+         "a typical statement with a count and a period"),
+        ("Nine of our twelve clients cut their late fees last year; the typical drop was small.", "the 'N of M clients' form"),
+        ("Our clients cut their late fees after the clean-up. Most saw no change in the first month, and we tracked every job last year.",
+         "a modest typical result with its basis"),
+        ("Most clients doubled their revenue, according to our 2025 client survey.", "a named source"),
+        ("Most clean-ups take two weeks.", "a service description using 'most'"),
+        ("We usually reply within one business day.", "'usually', not about client results"),
+        ("We help most owners save time on their books.", "what the service does, with 'most'"),
+        ("Most owners save their receipts in a shoebox.", "'save' with an object that is not a result"),
+        ("Most owners who lost receipts need extra time [method].", "an opinion about owners with no figure"),
+    ]
+    for i, (sentence, label) in enumerate(with_basis):
+        n = variant(fh, [("## What doubles it?", sentence + "\n\n## What doubles it?")], cwd, f"with-basis-{i}.md")
+        ok, out, _ = run([PY, AC, "check", n, "--site", "https://example.com"], cwd)
+        d = pj(out)
+        check(f"ac a typical statement with a basis, or no results claim, passes ({label})",
+              ok and d["gates"]["typical_result"] and d["gates"]["claims_supported"], out[:400])
     n = variant(fh, [("## What doubles it?", "A fixed fee saved thousands over hourly billing.\n\n## What doubles it?")], cwd, "vague-unmarked.md")
     ok, out, code = run([PY, AC, "check", n, "--site", "https://example.com"], cwd, ok_codes=(1,))
     check("ac a vague quantity used as a result needs a marker (claims_supported)",

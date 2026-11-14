@@ -78,7 +78,7 @@ EXEMPT = [  # removed from a paragraph before looking for a number that needs a 
     r"\]\([^)]*\)",                                                     # link targets
     r"\[(?:S\d+|own|method)\]",                                         # the markers themselves
 ]
-TYPICAL = re.compile(r"\b(typical|typically|most (?:clients|customers|patients|people|members|businesses|homeowners|owners|jobs)|on average|average|usual|usually|"
+TYPICAL = re.compile(r"\b(typical|typically|most of (?:them|our|my|the|these|those)|most (?:saw|see|did|do|got|get|had|have|report(?:ed)?)|most (?:clients|customers|patients|people|members|businesses|homeowners|owners|jobs)|on average|average|usual|usually|"
                      r"not everyone|results vary|range)\b", re.I)
 MARKER = re.compile(r"\[(S\d+|own|method)\]")
 
@@ -101,7 +101,7 @@ _GOT_PAST = (r"(?:doubled|tripled|quadrupled|grew(?!\s+(?:up|tired|frustrated|wo
              r"increases?|improvements?|success|a return|an increase|a jump|a boost)|"
              r"(?:booked|closed|won|landed|sold|got|added)\s+(?:more|twice|double|triple|\w+ times)\b|"
              r"went from\b|hit\s+(?:\w+\s+){0,2}(?:figures|goals?|targets?))")
-_GOT_PRESENT = (r"(?:doubles?|triples?|grows?|increases?|boosts?|saves?|earns?|gains?|recovers?|"
+_GOT_PRESENT = (r"(?:doubles?|triples?|grows?(?!\s+(?:up|tired|frustrated|worried|impatient|bored|old|weary|concerned|anxious|out)\b)|increases?|boosts?|saves?|earns?|gains?|recovers?|"
                 r"(?:makes?|nets?)(?=\s+(?:(?:over|about|around|nearly|almost|up to|at least)\s+)*" + _MONEY + r")|"
                 r"(?:gets?|sees?|achieves?)\s+(?:\w+\s+){0,2}(?:results?|growth|gains?|returns?|savings))")
 _AUX = (r"(?:(?:have|has|had|'ve|all|each|both|also|even|often|then|soon|quickly|easily|together|typically|usually|generally|"
@@ -122,6 +122,34 @@ VAGUE_QTY = re.compile(r"\b(?:thousands|hundreds|millions|tens of thousands|(?:t
 VAGUE_COUNT = re.compile(r"\b(?:thousands|hundreds|millions|tens of thousands)\s+of\s+(?:\w+\s+)?(?:clients?|customers?|patients?|members?|students?|homeowners?|owners?|people|"
                          r"businesses|companies|firms|jobs|projects|users?|subscribers?|readers?|families)\b", re.I)
 RESULT_WORD = re.compile(OUTCOME.pattern + r"|\b(?:ma[dk]e|makes|quadrupled|boosted|back)\b", re.I)
+# A quantifier in front of an outcome ("the average client saves thousands", "clients typically double their bookings",
+# "typically, members save money") is a results claim, not the typical-result statement that supports one.
+_FREQ = r"(?:typically|usually|generally|normally|commonly|often|routinely|consistently|regularly|on average|in most cases|most of the time)"
+QUANTIFIED_GETS = (
+    re.compile(r"\b(?:average|typical|usual|median|ordinary)\s+(?:\w+\s+)?" + _CLIENT + r"\s+(?P<gap>" + _REL + r"?" + _AUX + r"{0,3})(?:" + _GOT_PRESENT + r")\b", re.I),
+    re.compile(r"\b(?:most|many|nearly all|almost all|the majority|a majority|the bulk)\s+(?:of\s+)?(?:(?:our|my|the)\s+)?(?:\w+\s+)?" + _CLIENT
+               + r"\s+(?P<gap>" + _REL + r"?" + _AUX + r"{0,3})(?:" + _GOT_PRESENT + r")\b", re.I),
+    re.compile(r"\b" + _CLIENT + r"\s+(?P<gap>" + _REL + r"?" + _FREQ + r"\s+" + _AUX + r"{0,2})(?:" + _GOT_PRESENT + r")\b", re.I),
+    re.compile(r"\b" + _FREQ + r",?\s+(?:(?:our|my|the|a|an|most|many)\s+)?(?:\w+\s+)?" + _CLIENT + r"\s+(?P<gap>" + _REL + r"?" + _AUX + r"{0,3})(?:" + _GOT_PRESENT + r")\b", re.I),
+)
+NOT_A_RESULT = re.compile(r"\s+(?:(?:their|his|her|its|the|a|an|all|every|each|our|your|these|those)\s+)?(?:[\w'’-]+\s+)?"   # "save their receipts"
+                          r"(?:receipts?|records?|files?|documents?|paperwork|emails?|invoices?|statements?|questions?|copies|copy|access|certificates?|living)\b", re.I)
+# --- the basis of a typical-result statement ---------------------------------------------------------------------------
+_NUM = (r"(?:(?<![$\d.,])\d[\d,]*(?![\d.,]*\s?%)|\b(?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|"
+        r"sixty|seventy|eighty|ninety|a dozen|a hundred))")
+_COUNTED = (r"(?:clients?|customers?|patients?|members?|students?|homeowners?|owners?|jobs?|projects?|clean-?ups?|cases?|engagements?|files?|"
+            r"accounts?|households?|families|businesses|companies|firms|practices|people|installs?|installations?|visits?)\b")
+BASIS_MARKER = re.compile(r"\[(?:S\d+|own)\]")
+N_OF_M = re.compile(_NUM + r"\s+(?:out\s+)?of\s+(?:(?:our|my|the)\s+)?(?:(?:last|past)\s+)?" + _NUM + r"\s+(?:[\w'’-]+\s+){0,2}" + _COUNTED, re.I)
+COUNT_OF = re.compile(_NUM + r"\s+(?:(?!(?:things|ways|steps|times|reasons|minutes|hours|days|weeks|months|years|percent|more|new|extra)\b)[\w'’-]+\s+)?" + _COUNTED, re.I)
+RESULT_BEFORE_COUNT = re.compile(r"\b(?:book(?:s|ed)?|clos(?:e|es|ed)|w[io]ns?|land(?:s|ed)?|sold|sells?|got|gets?|add(?:s|ed)?|gain(?:s|ed)?|los[te]s?|"
+                                 r"sign(?:s|ed)?|ke(?:eps?|pt)|retain(?:s|ed)?|sav(?:e|es|ed)|sees?|saw|average[sd]?)\s+"
+                                 r"(?:(?:over|about|around|nearly|almost|up to|at least|another|an extra|more than|an average of)\s+)*$", re.I)
+COUNT_PHRASE = re.compile(r"\bby (?:our|my) (?:own )?(?:count|records|numbers|books|files|tally|tracking|data)\b|"
+                          r"\b(?:we|i) (?:have |'ve )?(?:counted|tracked|tallied|measured|surveyed)\b|"
+                          r"\bbased on (?:our|my|the) (?:own )?(?:[\w'’-]+\s+){0,3}(?:count|records|files|books|data|jobs|clients|clean-?ups|projects|cases|numbers|tally|log)\b|"
+                          r"\b(?:our|my) (?:own )?(?:count|tally|records|tracking|job log|client files) (?:of|from|for|shows?|says?|across)\b|"
+                          r"\baccording to\b|\b(?:survey|study|report|analysis) (?:of|by|from|found|shows?)\b", re.I)
 
 
 def claim_sentences(para):
@@ -152,9 +180,27 @@ def client_results(para):
                 hit = True                    # "our clients save ...", but not "we help our clients save ..."
         if WE_GOT_CLIENTS.search(s):
             hit = True
+        for rx in QUANTIFIED_GETS:            # "the average client saves ...", "clients typically double ..."
+            for m in rx.finditer(s):
+                if (not re.search(_NOTGOT, m.group("gap"), re.I) and not re.search(_SERVICE, s[:m.start()], re.I)
+                        and not NOT_A_RESULT.match(s[m.end():])):
+                    hit = True
         if hit:
             out.append(s)
     return out
+
+
+def has_basis(para):
+    """True when the paragraph says what a typical-result statement rests on: an [own] or [S#] marker, "N of M clients",
+    a count of clients or jobs that is not itself the result ("across 38 jobs", not "booked 12 jobs"), a counting phrase
+    ("by our own count", "we tracked") or a named source ("according to ..."). A quantifier word, a period on its own
+    ("last year") and a [method] marker are not a basis."""
+    if BASIS_MARKER.search(para):
+        return True
+    t = plain_text(para)
+    if N_OF_M.search(t) or COUNT_PHRASE.search(t):
+        return True
+    return any(not RESULT_BEFORE_COUNT.search(t[:m.start()]) for m in COUNT_OF.finditer(t))
 FENCE = re.compile(r"```(\w*)\n(.*?)```", re.S)
 INLINE_LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
 NEXT_LINK = re.compile(r"^(https?://|/|mailto:|tel:|sms:)")
@@ -529,27 +575,41 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
         warns.append("no --business-file given, so §18 never-say claims and §1 retired lines were not checked")
 
     # typical result beside any results claim, whatever the marker: an outcome with a number or a client noun and a marker,
-    # or a sentence saying what clients got (no number or marker needed), or a marked vague quantity used as a result
-    bare = []
+    # or a sentence saying what clients got (no number or marker needed), or a marked vague quantity used as a result.
+    # The typical-result statement needs its basis in the same paragraph: a quantifier word ("most clients", "average",
+    # "typically") does not support a claim on its own, and a claim led by one is still a claim
+    bare, no_basis = [], []
     for heading, sec in sections:
         if heading.lower().startswith("sources"):
             continue
         for para in paragraphs(sec):
             if is_furniture(para, fm):
                 continue
-            if TYPICAL.search(para):
-                continue
             got = client_results(para)
+            numbered = bool(NUMBER.search(unexempt(para)))
+            loose = False
             if got:                             # what clients got, with or without a number or a marker
-                bare.append(got[0][:200])
-            elif OUTCOME.search(para) and MARKER.search(para) and (NUMBER.search(unexempt(para)) or CLIENT_NOUNS.search(para)):
-                bare.append(plain_text(para)[:200])
+                claim = got[0][:200]
+            elif OUTCOME.search(para) and MARKER.search(para) and (numbered or CLIENT_NOUNS.search(para)):
+                claim = plain_text(para)[:200]
+                loose = not numbered            # an outcome word near a client noun, no figure and no client-got sentence
             elif MARKER.search(para) and vague_results(para):
-                bare.append(vague_results(para)[0][:200])
+                claim = vague_results(para)[0][:200]
+            else:
+                continue
+            if not TYPICAL.search(para):
+                bare.append(claim)
+            elif not loose and not has_basis(para):
+                no_basis.append(claim)
     if bare:
         fail("typical_result", f"{len(bare)} paragraph(s) make a results claim without saying what is typical: '{bare[0]}'. "
                                "State the typical result with its basis in the same paragraph (what most clients get, and how it was counted), "
                                "or take the claim out")
+    if no_basis:
+        fail("typical_result", f"{len(no_basis)} paragraph(s) make a results claim and say what is typical with no basis: '{no_basis[0]}'. "
+                               "A word such as most, average, typically or usually does not support the claim on its own. To make this the "
+                               "typical result with its basis, say in the same paragraph how many clients this is based on and over what "
+                               "period, or take the claim out")
 
     # placeholders
     ph = set(PLACEHOLDER_WORDS.findall(body_nocode)) | set(PLACEHOLDER_BRACKETS.findall(body_nocode))
