@@ -16,6 +16,7 @@ may go before or after the command:
   python3 question_map.py score [--top 10]
   python3 question_map.py next [--intent cost]
   python3 question_map.py set Q-03 --status published --url https://example.com/answers/x
+  python3 question_map.py set Q-05 --source "asked on a sales call, March" --rate 4,4,3,4,2   # a [hypothesis] question a real person has now asked
   python3 question_map.py list [--status queued]
   python3 question_map.py md
 
@@ -125,7 +126,8 @@ def find_duplicate(data, question, slug):
 def apply_hypothesis(q):
     if "hypothesis" in (q.get("source") or "").lower() or "[hypothesis]" in q["question"].lower():
         q["scores"]["answerable"] = min(q["scores"]["answerable"], HYPOTHESIS_CAP)
-        q["notes"] = (q.get("notes", "") + " [hypothesis: not a real person's question yet; confirm it before answering]").strip()
+        if "[hypothesis:" not in q.get("notes", ""):
+            q["notes"] = (q.get("notes", "") + " [hypothesis: not a real person's question yet; confirm it before answering]").strip()
 
 
 def add_question(data, question, intent, cluster, source, rates, notes=""):
@@ -188,7 +190,7 @@ def cmd_import(a):
         die(f"{src} not found")
     added, skipped, notes = [], [], []
     for raw in src.read_text(encoding="utf-8-sig").splitlines():
-        line = raw.strip().lstrip("-*• ").strip()
+        line = re.sub(r"^\d{1,3}[.)]\s+", "", raw.strip().lstrip("-*• ").strip())   # a bullet or a list number is not part of the question
         if not line or line.startswith("#"):
             continue
         cluster, intent = a.cluster, a.intent
@@ -279,6 +281,10 @@ def cmd_set(a):
         if a.intent not in INTENTS:
             die(f"--intent must be one of {', '.join(INTENTS)}")
         q["intent"] = a.intent
+    if a.source:   # e.g. a [hypothesis] question a real person has now asked: name where, then re-rate it
+        q["source"] = a.source
+        if "hypothesis" not in a.source.lower():
+            q["notes"] = (q.get("notes") or "").replace("[hypothesis: not a real person's question yet; confirm it before answering]", "").strip()
     if a.rate:
         q["scores"] = parse_rate(a.rate)
         q["rated"] = True
@@ -336,7 +342,19 @@ def cmd_md(a):
     print(json.dumps({"ok": True, "wrote": str(out)}, indent=2))
 
 
+
+def utf8_output():
+    """Print as UTF-8 whatever the console's code page, so a name or a question with a character outside cp1252
+    (or the → in a next-step line) does not crash the script on Windows after the file has been written."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
+
+
 def main(argv=None):
+    utf8_output()
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--folder", default="search", help="the search folder (default: search)")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -354,7 +372,7 @@ def main(argv=None):
     s = sp("score", cmd_score); s.add_argument("--top", type=int, default=15)
     s = sp("next", cmd_next); s.add_argument("--intent", default="")
     s = sp("set", cmd_set); s.add_argument("id"); s.add_argument("--status", default=""); s.add_argument("--url", default="")
-    s.add_argument("--slug", default=""); s.add_argument("--cluster", default=""); s.add_argument("--intent", default="")
+    s.add_argument("--slug", default=""); s.add_argument("--cluster", default=""); s.add_argument("--intent", default=""); s.add_argument("--source", default="")
     s.add_argument("--rate", default=""); s.add_argument("--notes", default=None); s.add_argument("--updated", action="store_true")
     s = sp("list", cmd_list); s.add_argument("--status", default="")
     sp("md", cmd_md)

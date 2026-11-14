@@ -23,7 +23,7 @@ Read these reference files, in order, before any member-facing work:
 
 **Requires §2 (ICA), §3 (Signature Offer), and §4 (Positioning & Messaging).** The input template for this session is, by design, a pull-sheet from those three sections — a complete file means Phase 0 is one confirmation message.
 
-**Design System (§22):** if §22 is `complete`, read `Design/System/tokens.json` and `design-system.md` in the member's vault before designing anything: the sales page build uses `tokens.css` and the do/don't list; the words stay this skill's. Don't invent a palette or fonts. If §22 is empty, carry on as before and offer **Website Design Studio** once ("make my website look like me").
+**Design System (§22):** if §22 is `complete` or `provisional` (say so when it is provisional), read `Design/System/tokens.json` and `design-system.md` before designing anything (§22's Files line says where they are; if you can't open them, ask the member to attach `design-system.md` or `tokens.css`): the sales page build uses `tokens.css` and the do/don't list; the words stay this skill's. Don't invent a palette or fonts. If §22 is empty, carry on as before and offer **Website Design Studio** once ("make my website look like me").
 
 If any are missing, follow the protocol's two-path fallback. Be direct about the tradeoff: this page is only as strong as the three documents beneath it, and the right move is almost always to run the missing session first. A page written from a provisional interview gets marked `provisional` and flagged for a rewrite pass once the foundations exist.
 

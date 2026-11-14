@@ -89,6 +89,7 @@ Offer it, don't impose it: "Want to run this live? I'll play your prospect." On 
 - Write outreach messages to get the call booked — that's the **Lead Gen Machine** (§14).
 - Write follow-up email sequences — that's the funnel (§6).
 - Use pushy closes, fake urgency, yes ladders, feature dumps, or any high-pressure tactic, ever.
+- Invent a client story, a result, a number, a guarantee or a deadline for the script. A client story is told only if the proof bank (`proof/proof-bank.md`, §18 proof vault) records it as `named` or `anonymous`; a `pending` or `declined` story is not told. Where the member has none, the script uses their own story or leaves a visible slot for one.
 
 ## When the Session Is Complete
 

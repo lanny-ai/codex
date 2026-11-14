@@ -3,12 +3,12 @@
 ## Knowledge Base
 
 ### The Core Truth
-Your next client almost certainly already knows you. Alex Hormozi built his first $4,000/month by messaging everyone he already knew. Warm outreach achieves response rates up to 45% vs. cold email's 1-5%. Word-of-mouth generates 2x+ sales of paid advertising (McKinsey). Referred customers have 37% higher retention (Harvard Business School).
+Your next client almost certainly already knows you. People who know you answer far more often than strangers do, and a client who comes through someone they trust tends to stay longer. Start here before any cold outreach.
 
 ### Framework 1: Hormozi's Core Four + Warm First Principle
 From $100M Leads — four ways to let people know about your business: (1) Warm outreach, (2) Content posting, (3) Cold outreach, (4) Paid ads. Sequencing: "Start with warm outreach. It's the fastest path to first revenue."
 
-**Process:** Compile contacts (aim for 1,000). Apply Rule of 100 — contact 100/day, first 4 hours. Follow up 2-3 times with non-responders.
+**Process:** Compile contacts (everyone you can honestly say knows you; a few hundred is plenty). Reach out to a set number each working day that you can keep up and still write to each person as a person: 10 to 20 is a good start. Follow up twice with people who don't answer, then stop.
 
 **The ACA Framework (Acknowledge, Compliment, Ask):**
 "Hey [Name], I know you're connected to some serious people in [industry]. [Compliment — raise their status as a connector.] I just launched [specific service] that helps [specific ICA] get [specific result]. Who's the one person you know right now who might benefit? I'd love to help them out."
@@ -49,7 +49,7 @@ Focus first week entirely on A contacts (most have 20-50 un-activated).
 2. People want to help people they like (Cialdini liking principle)
 3. The Status Trap — ask for connection and advice, not sales
 4. Specificity enables referrals — generic descriptions produce zero referrals
-5. Reciprocity compounds (Yale SOM) — referrers become MORE loyal advocates
+5. Reciprocity compounds — people who refer you tend to become more loyal advocates
 
 ### Common Failures
 1. Being too vague about what you need
@@ -57,7 +57,7 @@ Focus first week entirely on A contacts (most have 20-50 un-activated).
 3. Asking once and giving up
 4. Never asking at all
 5. No tracking
-6. Neglecting past clients (40% likely to buy again — UserGems)
+6. Neglecting past clients, who are the people most likely to buy again
 
 ### Message Templates
 **Template A — Reconnect + Curiosity (Tier 3):** "Hey [Name] — it's been too long. Hope you're doing well. I've been heads-down building [specific thing] for [specific type of person]. Quick question — do you still know people in [specific industry]? Working on something I think could be genuinely useful for them."

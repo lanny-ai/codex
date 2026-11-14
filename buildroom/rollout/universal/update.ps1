@@ -18,6 +18,7 @@ if (-not (Test-Path -LiteralPath $Existing -PathType Container)) { Stop-Update "
 $Target = (Resolve-Path -LiteralPath $Existing).Path.TrimEnd('\')
 
 if (-not (Test-Path -LiteralPath (Join-Path $Src "skills\buildroom-os"))) { Stop-Update "This script must run from a complete, unzipped Build Room OS release." }
+if (Test-Path -LiteralPath (Join-Path $Src "BUILDROOM_BUSINESS_FILE.md")) { Stop-Update "This update.ps1 is in a folder that has a Business File, so it is your own Build Room folder, not a new release. Run the update.ps1 inside the NEW release folder you just unzipped, and give it the path of your own folder." }
 if ($Src -ieq $Target) { Stop-Update "That is this release folder. Give the path of your OLD Build Room folder, the one with your Business File in it." }
 if (($Target + '\').StartsWith($Src + '\', [StringComparison]::OrdinalIgnoreCase)) { Stop-Update "Your old folder is inside the new release folder. Unzip the release somewhere else first." }
 if (($Src + '\').StartsWith($Target + '\', [StringComparison]::OrdinalIgnoreCase)) { Stop-Update "The new release was unzipped inside your old folder. Unzip it somewhere else (your Downloads folder) first." }
@@ -79,4 +80,4 @@ Write-Host "Updated $n Build Room skills in: $Target"
 Write-Host "Everything replaced was saved first in: $Backup"
 if ($Before -eq "none") { Write-Host "There is no Business File in that folder yet. Your first session creates it." } else { Write-Host "Your Business File was not touched (checked byte for byte)." }
 Write-Host "Your own files (deliverables, launches\, search\, proof\, projects\, .env) were not touched."
-Write-Host "Open Claude Code or Codex in that folder and say: what changed in Build Room OS?"
+Write-Host "Open Claude Code or Codex in that folder and say: where do I start?"

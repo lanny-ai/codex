@@ -25,6 +25,7 @@ SRC="$(cd "$(dirname "$0")" && pwd -P)"
 TARGET="$(cd "$1" && pwd -P)"
 
 [ -d "$SRC/skills/buildroom-os" ] || fail "This script must run from a complete, unzipped Build Room OS release."
+[ ! -e "$SRC/BUILDROOM_BUSINESS_FILE.md" ] || fail "This update.sh is in a folder that has a Business File, so it is your own Build Room folder, not a new release. Run the update.sh inside the NEW release folder you just unzipped, and give it the path of your own folder."
 [ "$SRC" != "$TARGET" ] || fail "That is this release folder. Give the path of your OLD Build Room folder, the one with your Business File in it."
 case "$TARGET/" in "$SRC"/*) fail "Your old folder is inside the new release folder. Unzip the release somewhere else first." ;; esac
 case "$SRC/" in "$TARGET"/*) fail "The new release was unzipped inside your old folder. Unzip it somewhere else (your Downloads folder) first." ;; esac
@@ -87,4 +88,4 @@ else
   say "Your Business File was not touched (checked byte for byte)."
 fi
 say "Your own files (deliverables, launches/, search/, proof/, projects/, .env) were not touched."
-say "Open Claude Code or Codex in that folder and say: what changed in Build Room OS?"
+say "Open Claude Code or Codex in that folder and say: where do I start?"

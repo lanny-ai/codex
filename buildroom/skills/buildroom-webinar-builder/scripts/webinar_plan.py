@@ -19,16 +19,21 @@ Usage
       --runsheet writes the webinar as a day in the Event Launcher's runsheet.json (created if missing; the
       day with the same date is replaced), with the lobby, the recording notice, a checkout test 30 minutes
       before the start and the roles and links merged in, so run_sheet.py build checks it with the launch.
-      --close sets the run sheet's deadline from close.md (removed when close.md says there is none). Blank and
+      --close sets the run sheet's deadline from close.md (removed when close.md says there is none; left as it
+      was, with a "deadline_note", while it is still PENDING). A close.md that would not be read correctly
+      (webinar_check.py lint --close close.md shows why) is refused before anything is written, exit 1. Blank and
       placeholder roles and links in runsheet.json are filled from webinar.json; a real value that differs is kept
       and reported under "conflicts". A day on the same date that the Event Launcher wrote (not marked "webinar")
       is replaced only with --force (exit 1 otherwise).
       Prints a JSON summary. Exit 0, or 2 when the spec is refused (unreadable, an unknown kind, a bad time).
   webinar_plan.py offer-summary --close close.md --out offer-summary.md [--title "…"]
-      The "what's on offer" one-pager, copied from close.md word for word: a "## For attendees" section when
-      close.md has one; otherwise all of it except backup links, lines marked "moderator only" or "(internal)", the
-      close mode and sign-off notes. Refuses (exit 1) while close.md still has a PENDING element (case does not
-      matter; HTML comments are ignored), or when a price in close.md would be missing from the page.
+      The "what's on offer" one-pager, copied from close.md word for word: its "## For attendees" part when
+      close.md has one; otherwise all of it. Either way without the close mode, backup links, sign-off notes,
+      internal notes and anything marked "moderator only" or "(internal)"; a table row is written as a line.
+      close.md is read by the same reader as the check (one element per line, a heading with its value on the
+      next line, or a two-column table). Refuses (exit 1) when close.md would not be read correctly, while it
+      still has a PENDING element (case does not matter; HTML comments are ignored), when a line mixes internal
+      and attendee wording so it cannot tell what is safe to show, or when a price would be missing from the page.
 
 Standard library only.
 """
@@ -442,24 +447,23 @@ def is_blank(v):
     return v in (None, "") or (isinstance(v, str) and bool(re.search(r"\[write:|\[.*\]|\bTBD\b|\bTODO\b", v)))
 
 
-def close_deadline_line(path):
-    """The deadline from close.md (None when it says there is none)."""
-    try:
-        text = re.sub(r"<!--.*?-->", "", Path(path).read_text(), flags=re.S)
-    except Exception as e:
-        refuse(f"cannot read {path}: {e}")
-    m = re.search(r"^\s*(?:[-*]\s*)?\**\s*(deadline|enrol?l?ment closes|cart closes|doors close)\b\**\s*[:\-–—]?\s*\**(.*)$",
-                  text, re.I | re.M)
-    if not m:
-        return None
-    v = m.group(2).strip().strip("*").strip()
-    v = v.rstrip(" .;")
-    return None if (not v or re.match(r"(none|no deadline|n/?a|—|-)\b", v, re.I)) else v
+def read_close_or_refuse(path):
+    """close.md through the one shared reader (webinar_check.read_close); exit 1 with the plain reason and the
+    expected shape when it would not be read correctly."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import webinar_check as wc
+    rc = wc.load_close(path)
+    if not rc["ok"]:
+        print(json.dumps({"ok": False, "problems": rc["problems"], "say": wc.close_refusal(rc),
+                          "next": f"Fix close.md, then run webinar_check.py lint --close {path}"}))
+        sys.exit(1)
+    return wc, rc
 
 
 def cmd_render(a):
     spec = load_spec(a.spec)
     segs, t0 = timed(spec)
+    close = read_close_or_refuse(a.close)[1] if a.close else None  # before anything is written
     out = Path(a.out_dir) if a.out_dir else Path(a.spec).parent
     out.mkdir(parents=True, exist_ok=True)
     files = {"script.md": render_script(spec, segs), "speaker-notes.md": render_notes(spec, segs),
@@ -483,7 +487,7 @@ def cmd_render(a):
         if same and not same[0].get("webinar") and not a.force:
             refuse(f"{rp} already has a day on {spec['date']} that the Event Launcher wrote (not a webinar day); pass --force "
                    "to replace it, or give the webinar another date", 1)
-        conflicts = []
+        conflicts, deadline_note = [], None
         rs.setdefault("title", spec.get("title"))
         rs.setdefault("allow_early_pitch", False)
         rs.setdefault("close", spec.get("close", "checkout"))
@@ -499,12 +503,17 @@ def cmd_render(a):
         roles = rs.setdefault("roles", {})
         merge(roles, dict(spec.get("roles") or {}, closer=(spec.get("roles") or {}).get("host", "")))
         merge(rs.setdefault("links", {}), spec.get("links") or {})
-        if a.close:
-            dl = close_deadline_line(a.close)
-            if dl:
-                rs["deadline"] = dl
-            else:
+        if close:
+            state = close["deadline_state"]
+            if state == "set":
+                rs["deadline"] = close["deadline"].rstrip(" .;")
+            elif state == "none":
                 rs.pop("deadline", None)
+            else:  # never drop the Event Launcher's deadline while close.md's is still open
+                deadline_note = "the deadline in close.md is still PENDING; the run sheet's deadline was left as it was"
+            if close["mode"] and spec.get("close", "checkout") != close["mode"]:
+                summary["close_mode_note"] = (f"webinar.json says \"close\": \"{spec.get('close', 'checkout')}\" but close.md "
+                                              f"says Close mode: {close['mode']}; the check will hold until they agree")
         day = runsheet_day(spec, segs, t0)
         days = [d for d in rs.get("days", []) if d.get("date") != spec["date"]]
         days.append(day)
@@ -513,6 +522,8 @@ def cmd_render(a):
         rp.write_text(json.dumps(rs, indent=2, ensure_ascii=False) + "\n")
         summary["runsheet"] = str(rp)
         summary["deadline"] = rs.get("deadline")
+        if deadline_note:
+            summary["deadline_note"] = deadline_note
         if conflicts:
             summary["conflicts"] = conflicts
         if not a.close:
@@ -521,33 +532,23 @@ def cmd_render(a):
 
 
 def cmd_offer_summary(a):
-    """The attendee-facing one-pager from close.md: a "## For attendees" section when there is one, otherwise
-    close.md without its internal lines (backup links, moderator-only notes, the close mode, sign-off notes)."""
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import webinar_check as wc
-    try:
-        raw = Path(a.close).read_text()
-    except Exception as e:
-        refuse(f"cannot read {a.close}: {e}")
-    text = re.sub(r"<!--.*?-->", "", raw, flags=re.S)
-    pend = [ln.strip() for ln in text.splitlines() if re.search(r"\bpending\b", ln, re.I)]
-    if pend:
-        print(json.dumps({"ok": False, "pending": pend,
+    """The attendee-facing one-pager from close.md: its "## For attendees" part when there is one, otherwise
+    close.md without its internal elements (the close mode, backup links, sign-off notes, internal notes, anything
+    marked "moderator only" or "(internal)"). Refuses instead of publishing a line it cannot tell is safe."""
+    wc, rc = read_close_or_refuse(a.close)
+    if rc["pending"]:
+        print(json.dumps({"ok": False, "pending": rc["pending"],
                           "say": "close.md still has PENDING elements; settle them with the member first."}))
         sys.exit(1)
-    sec = re.search(r"^##\s*For attendees\s*$(.*?)(?=^##\s|\Z)", text, re.M | re.S | re.I)
-    src = sec.group(1) if sec else text
-    keep, dropped = [], []
-    for ln in src.splitlines():
-        bare = re.sub(r"^\s*[-*]\s*\**\s*", "", ln).lower()
-        if (bare.startswith("backup") or "moderator only" in ln.lower() or "(internal)" in ln.lower()
-                or bare.startswith("close mode") or re.match(r"^\s*#\s", ln)):
-            dropped.append(ln)
-            continue
-        ln = re.sub(r"\s*\((?:as )?signed off[^)]*\)", "", ln, flags=re.I)
-        ln = re.sub(r"\s*,?\s*as signed off\b", "", ln, flags=re.I)
-        keep.append(ln.rstrip())
+    keep, dropped, unsafe = wc.close_onepager(rc)
+    if unsafe:
+        print(json.dumps({"ok": False, "problems": unsafe,
+                          "say": "Not written: " + "; ".join(unsafe) + ". Put each internal note on a line of its own that "
+                                 "starts with Backup, Close mode, Signed off or Notes, or put the attendee wording under a "
+                                 "\"## For attendees\" heading. Then run webinar_check.py lint --close " + str(a.close)}))
+        sys.exit(1)
     body = re.sub(r"\n{3,}", "\n\n", "\n".join(keep)).strip()
+    src = "\n".join(it["raw"] for it in rc["items"] if it["attendee"] or not rc["attendee_part"])
     missing = sorted(wc.figures(src) - wc.figures("\n".join(dropped)) - wc.figures(body), key=float)
     if missing:
         print(json.dumps({"ok": False, "missing": ["$" + x for x in missing],
@@ -558,7 +559,7 @@ def cmd_offer_summary(a):
            f"webinar. Questions? Just ask: reply to any email from us._\n")
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     Path(a.out).write_text(out)
-    print(json.dumps({"ok": True, "written": a.out, "lines": len(keep),
+    print(json.dumps({"ok": True, "written": a.out, "lines": len(keep), "left_out": [x.strip() for x in dropped if x.strip()],
                       "next": "Turn it into a PDF (print to PDF) or a page, and put its link in webinar.json links as "
                               "offer_summary so the moderator can post it."}))
 

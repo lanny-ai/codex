@@ -44,4 +44,4 @@ These margins are the commonly cited platform zones; check them against each pla
 
 ## Output
 
-H.264 High, yuv420p, the edit's frame rate, AAC 48 kHz stereo, faststart. The script writes a clean cut (`_cut.mp4`), the voice alone (`.voice.wav`, for transcription), the captioned final (`.mp4`), an SRT, and `<id>.assemble.json` with every command, input checksum, duration and loudness. Every ratio must land within 0.1 s of the edit's duration.
+H.264 High, yuv420p, the edit's frame rate, AAC 48 kHz stereo, faststart. The script writes a clean cut (`<id>_<ratio>.cut.mp4`), the voice alone (`.voice.wav`, for transcription), the captioned final (`.mp4`), an SRT, and `<id>.assemble.json` with every command, input checksum, duration and loudness. Every ratio must land within 0.1 s of the edit's duration.

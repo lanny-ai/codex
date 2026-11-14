@@ -38,7 +38,7 @@ Follow the protocol. Pre-fill from the file and show one summary for confirm-or-
 | Q3 Customer's biggest desire or pain | §2 pain stack (identity line first), dream state |
 | Q4 Existing offers and pricing | §3 investment, value stack total; §1 price range |
 | Q5 Uniqueness / new opportunity | §4 differentiator, unfair advantage (confirm; push if generic) |
-| Q7 Proof and credibility | §3 pitch, §5 proof assets |
+| Q7 Proof and credibility | §18 proof vault (and never-say claims), §5 proof assets, §3 pitch |
 | Q8 Common enemy | §4 villain statement |
 | Q11 Risk reversal | §3 guarantee |
 
@@ -50,7 +50,7 @@ Ask the open questions in the source's order, one per turn. Coach between them: 
 
 ### Phase 2 — The synthesis
 
-Produce the ten-part offer document from the source, in full: the one belief (sixteen-word format), the named core offer, the value stack with honest standalone values totaled, the offer math against alternatives, the risk reversal written out, the real urgency, the common enemy, the proof to lead with, the ninety-second pitch, and the honest million-dollar math with the one or two leverage points.
+Produce the ten-part offer document from the source, in full: the one belief (sixteen-word format), the named core offer, the value stack with honest standalone values totaled, the offer math against alternatives, the risk reversal written out, the real urgency, the common enemy, the proof to lead with, the ninety-second pitch with a sixty-second cut of it (the same pitch with the common enemy, the credibility line and "how it works" trimmed to a clause each, about 150 spoken words; read it aloud against a timer), and the honest million-dollar math with the one or two leverage points.
 
 Premium, not bonus: each stack item should be sellable on its own, and ideally wanted more than the core offer.
 
@@ -58,7 +58,7 @@ Premium, not bonus: each stack item should be sellable on its own, and ideally w
 
 1. Deliver the offer document. Tell the member to save it as `Offer_Deep_Dive_[business].md`.
 2. Update the Business File per the protocol:
-   - **§3 Signature Offer** — offer name if it changed; the one belief; the value stack (item · standalone value) and total; investment; the guarantee's full wording; urgency (why now); the 60-second pitch replaced by the tightened version if the member prefers it; the deep-dive document name. Ask before replacing anything the Signature Offer session wrote that the member liked. Status `complete` if §3 was complete, otherwise `provisional`.
+   - **§3 Signature Offer** — offer name if it changed; the one belief; the value stack (item · standalone value) and total; investment; the guarantee's full wording; urgency (why now); the 60-second pitch replaced by the sixty-second cut if the member prefers it (never the ninety-second version: the Sales Conversations script and the Video Director read this field as sixty seconds; the ninety-second pitch stays in the deep-dive document); the deep-dive document name. Ask before replacing anything the Signature Offer session wrote that the member liked. Status `complete` if §3 was complete, otherwise `provisional`.
    - **§4** — the common enemy as the villain statement, if §4 has none (confirm first; that section belongs to another session).
    - **§8 Session Log** — append the row; ask for the 1–5 rating.
 3. Emit the entire updated file in one code block with the "what changed" summary.

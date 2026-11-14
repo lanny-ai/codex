@@ -38,7 +38,7 @@ Run the five prompts from `references/prompt-system.md` in order, one at a time,
 1. **JTBD-First ICA Profile** — the avatar built around the job they're hiring the member to do: functional, emotional, identity.
 2. **Full Switching Force Map** — push, pull, anxiety, habit; what actually moves them off the status quo.
 3. **Awareness Stage Analysis & Buying Journey Map** — where they sit on Schwartz's five stages and how they travel to a decision.
-4. **Verbatim Language Bank** — the exact phrases this client uses, organized for reuse in copy. This bank is the single most reused asset in the entire Build Room — be rigorous about keeping it verbatim.
+4. **Verbatim Language Bank** — the exact phrases this client uses, organized for reuse in copy. This bank is the single most reused asset in the entire Build Room — be rigorous about keeping it verbatim. In the ICA Document, as in the file, tag every phrase `[client]` (the member gave it from a real client) or `[hypothesis]` (generated in this session), and head the "testimonial fragments" as predictions of what a client might say, never to be used as testimonials.
 5. **Objection Bank + Negative Avatar** — the top spoken and unspoken objections, pre-handled, plus the explicit definition of who this business refuses to serve.
 
 Quality bar throughout: specific over general, verbatim over paraphrased, psychological over demographic. If the member's input is thin, dig with follow-up questions rather than padding with plausible invention — an avatar built on fiction poisons every downstream session.

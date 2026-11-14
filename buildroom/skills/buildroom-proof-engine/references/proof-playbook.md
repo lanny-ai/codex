@@ -23,7 +23,7 @@ Five short questions, in the member's voice, for the member to send by hand (ema
 
 Then **the scoped permission ask**, which names the places so the answer can be recorded as scope:
 
-> "Can I use your words and result? Say yes or no to each: on my website · in my emails · on LinkedIn or social posts · in paid ads · on video or audio. With your name and company, or anonymous? May I use your photo or logo? You'll see the exact wording before it goes anywhere, and you can withdraw any time."
+> "Can I use your words and result? Say yes or no to each: on my website · in my emails · on LinkedIn or social posts · in paid ads · on video or audio · read out or shown at a live event, webinar or sales call. With your name and company, or anonymous? May I use your photo or logo? You'll see the exact wording before it goes anywhere, and you can withdraw any time."
 
 The right of review is a promise, kept: the client sees the final wording in place before it is published. Ask within a week of the win. If the client already wrote it (an email, a message, a review), quote it verbatim and still send the scoped ask before it goes anywhere.
 
@@ -38,7 +38,8 @@ The right of review is a promise, kept: the client sees the final wording in pla
 | **named** | The client agreed to their name (and company, if they said so) and their words, for the channels in scope | In the channels in scope, as written |
 | **anonymous** | The client agreed to their words and result without their name, for the channels in scope | As "a [client type]" with no detail that would identify them (in a small niche, loosen the role and place too) |
 | **pending** | Asked, not answered | Nowhere: not on a page, not in an email, not on a call. An unconfirmed endorsement is still an endorsement |
-| **declined** | The client said no | Never, in any form, forever; the entry stays so nobody asks again |
+| **no answer** | Asked, nudged once at 7 days, no reply by day 30 | Nowhere, exactly like pending. Silence is not a no and not a yes. The client may be asked once more, after 90 days or when a new win gives a natural reason; a second silence stays `no answer` and nobody chases |
+| **declined** | The client said no, in words | Never, in any form, forever; the entry stays so nobody asks again |
 | **withdrawn** | Permission given, then taken back | Removed from every placement within 10 business days; the client is told when it is done; print or video that cannot be recalled is noted and not reprinted or re-published |
 
 **Scope,** recorded per entry: `site`, `emails`, `social` (LinkedIn and other posts), `ads`, `video` (and audio), `events` (read aloud or shown live); plus `name: yes|no`, `company: yes|no`, `photo_or_logo: yes|no`. A story may be used only in the channels its scope allows. Video and audio need the Video Director's consent form as well; a yes to "video" here is the invitation to send it.

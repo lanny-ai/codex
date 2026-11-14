@@ -355,7 +355,7 @@ def a_date(s):
 def read_manual(path, alerts):
     """manual.json: the typed numbers. Unknown keys are warned with the valid ones; None when unreadable."""
     try:
-        manual = json.loads(Path(path).read_text(encoding="utf-8"))
+        manual = json.loads(Path(path).read_text(encoding="utf-8-sig"))   # utf-8-sig: Notepad may add a BOM
     except (OSError, ValueError) as e:
         return None, f"cannot read {path} ({e}); it must be JSON like {{\"profile_viewers\": 41}}"
     if not isinstance(manual, dict):
@@ -376,6 +376,9 @@ def cmd_week(a):
     start = a_date(a.start) if a.start else li_pipeline.last_full_week(on)
     if start is None:
         return refused(f"--from must be a real date as YYYY-MM-DD (got {a.start!r})")
+    if start.weekday() != 0:   # the card is filed by ISO week: any other start day would overwrite that week's real card
+        monday = start - dt.timedelta(days=start.weekday())
+        return refused(f"--from must be the Monday of the week ({a.start} is not a Monday; that week starts {monday.isoformat()})")
     end = start + dt.timedelta(days=7)
     alerts = []
     no_pipeline = bool(a.no_pipeline)
@@ -406,7 +409,8 @@ def cmd_week(a):
         covers = per and dt.date.fromisoformat(per[0]) <= start and dt.date.fromisoformat(per[1]) >= end - dt.timedelta(days=1)
         if per and not covers:
             msg = (f"the export covers {per[0]} to {per[1]}, but this scorecard is for {c['from']} to {c['to']}. "
-                   f"Export again with a custom range {c['from']} to {c['to']}, or run with --from {per[0]} if that is the week you mean.")
+                   f"Export again with a custom range {c['from']} to {c['to']}"
+                   + (f", or run with --from {per[0]} if that is the week you mean." if dt.date.fromisoformat(per[0]).weekday() == 0 else "."))
             if not a.allow_mismatch:
                 return refused(msg)
             alerts.append("export range does not match: " + msg)
@@ -528,6 +532,7 @@ def cmd_inspect(a):
 
 
 def main(argv=None):
+    li_pipeline.utf8_output()
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("inspect"); s.add_argument("xlsx")

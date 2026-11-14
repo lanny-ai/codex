@@ -23,7 +23,11 @@
       Rebuilds review/checklist.md from every check so far.
 
   review_video.py kit --project project.json --manifest videos.json --renders renders/ --out kit/ [--preview] [--force]
-      Refuses unless the ledger says every video passed G3 and G4 and the member approved it.
+      (for the ad playbook: --out ads/YYYY-MM/kit-video/, its own folder beside the Ad Studio's kit/)
+      Refuses unless the ledger says every video passed G3 and G4 and the member approved it, and
+      refuses any video whose file no longer matches the checksum the ledger recorded for review.
+      The folder is marked as the video kit (.kit-type). --force rebuilds only a folder this builder
+      made: it never replaces the static ad kit or a folder someone else made.
       Builds kit/: videos/ (structured names), captions/*.srt, thumbnails/*.jpg (from the clean cut),
       publish.csv (one row per placement: title, caption, description, CTA, UTM-keyed URL, note),
       disclosure-sheet.md. Also refuses when a generated person appears without the AI label, and
@@ -130,6 +134,13 @@ def check(a):
                 res["unverified"].append("words said vs the approved script: the transcript was aligned from the script (no speech engine), so it cannot show a departure. Listen, or transcribe with a speech engine.")
             else:
                 add("words match the approved script", not diffs, f"{ratio_m:.0%} match" + ("" if not diffs else "; " + "; ".join(diffs[:8])))
+                # --snap-to-script puts the approved word in place of the heard one, so a slip of the tongue cannot show above
+                swaps = [f"{w['start']:.2f} s heard '{w['snapped_from']}', transcript shows '{w['w']}'" for w in words
+                         if w.get("snapped_from") and "".join(norm_words(str(w["snapped_from"]))) != "".join(norm_words(w["w"]))]
+                if swaps:
+                    res["unverified"].append("words replaced by the approved script (snap-to-script): " + "; ".join(swaps[:12])
+                                             + (f"; and {len(swaps) - 12} more" if len(swaps) > 12 else "")
+                                             + ". Listen at each time: if what was said differs from the script, it is a reshoot or a script change")
         # captions geometry (burned by the director)
         rep_path = base / edl.get("out_dir", "renders") / f"{edl['id']}.assemble.json"
         cap = (edl.get("captions") or {})
@@ -258,17 +269,21 @@ def kit(a):
     cycle = m.get("cycle") or data["cycle"]
     yymm = re.sub(r"\D", "", cycle)[2:6] or cycle
     final_out, renders = Path(a.out), Path(a.renders)
-    if final_out.exists() and any(final_out.iterdir()) and not a.force:
-        raise SystemExit(f"{final_out} is not empty; pass --force to rebuild it")
+    try:  # --force only ever replaces a video kit; never the static ad kit or a folder someone else made
+        ledger.kit_folder_check(final_out, "video", a.force)
+    except ValueError as exc:
+        raise SystemExit(str(exc))
     ffmpeg_bin()  # fail before touching anything if ffmpeg is missing
     out = final_out.with_name(final_out.name + ".building")  # built aside, swapped in only when complete
     if out.exists():
         shutil.rmtree(out)
     for d in ("videos", "captions", "thumbnails"):
         (out / d).mkdir(parents=True, exist_ok=True)
-    rows, disc, notes = [], [], []
+    rows, disc, notes, unchecked = [], [], [], []
     led = {x["id"]: x for x in data["ads"]}
     for v in m["videos"]:
+        if v["id"] not in led:  # a video the ledger never saw was never reviewed or approved
+            errs.append(f"{v['id']}: in the manifest but not recorded in the ledger (ledger.py ad), so not reviewed or approved")
         name = f"{yymm}_{v['playbook']}_{slug(v.get('slug') or v.get('title', v['id']))}_{v['id']}"
         copy = v.get("platform_copy", {})
         ratios = v.get("ratios", ["9x16"])
@@ -285,6 +300,13 @@ def kit(a):
             src = renders / f"{v['id']}_{r}.mp4"
             if not src.exists():
                 raise SystemExit(f"{v['id']}: missing final {src}")
+            if v["id"] in led:  # the file about to ship must be the file that was reviewed
+                e, n = ledger.kit_file_problems(led[v["id"]], [src])
+                errs += e
+                for x in n:  # an older ledger with no checksums: said in the kit, not refused
+                    if x not in notes:
+                        notes.append(x)
+                        unchecked.append(x)
             dst = out / "videos" / f"{name}_{r}.mp4"
             shutil.copy2(src, dst)
             files[r] = dst.name
@@ -344,9 +366,12 @@ def kit(a):
         raise SystemExit("kit refused: " + "; ".join(errs))
     if errs:
         (out / "NOT-READY.txt").write_text("PREVIEW ONLY. Not ready to publish:\n- " + "\n- ".join(errs) + "\n", encoding="utf-8")
+    ledger.kit_folder_mark(out, "video")
     if final_out.exists():
         shutil.rmtree(final_out)
     out.rename(final_out)
+    for n in unchecked:
+        print(f"note: {n}")
     if errs:
         print(f"kit PREVIEW written to {final_out} · {len(m['videos'])} videos · NOT ready (see NOT-READY.txt)")
     else:

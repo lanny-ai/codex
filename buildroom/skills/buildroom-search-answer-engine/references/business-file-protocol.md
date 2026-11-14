@@ -1,6 +1,6 @@
 # Business File Protocol
 
-Every Build Room skill follows this protocol. It is what turns 38 standalone sessions into one compounding system: the member's context persists in a single document — the **Build Room Business File** — that every session reads at the start and updates at the end.
+Every Build Room skill follows this protocol. It is what turns 39 standalone sessions into one compounding system: the member's context persists in a single document — the **Build Room Business File** — that every session reads at the start and updates at the end.
 
 A blank copy of the file lives at `references/business-file-template.md`.
 
@@ -21,6 +21,8 @@ A blank copy of the file lives at `references/business-file-template.md`.
 Open every session with (adapt wording to the skill's voice):
 
 > "Do you have your **Build Room Business File**? Paste it or attach it and I'll pick up exactly where your business left off. If you don't have one yet, no problem — I'll create it for you as we go."
+
+**Where you can read files** (Claude Code or Codex on the member's computer): look for `BUILDROOM_BUSINESS_FILE.md` in the working folder first, read it there, and don't ask the member to paste it. If it isn't there, ask once whether they keep it in another folder or in an Obsidian vault before you create anything, and work from that copy: a member must never end up with two Business Files. If you find two, show the member both and ask which is current; the other goes to `backups/`, never deleted.
 
 **If they provide the file:**
 - Parse the section statuses and content.

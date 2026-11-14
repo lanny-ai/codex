@@ -10,7 +10,7 @@ Exit code 0 when every check passes.
 """
 import sys
 sys.dont_write_bytecode = True  # noqa: E402  (no __pycache__ in the skill folders or here)
-import json, os, shutil, subprocess, tempfile, threading  # noqa: E402
+import hashlib, json, os, shutil, subprocess, tempfile, threading  # noqa: E402
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -285,6 +285,146 @@ def main():
     rows = list(_csv.DictReader(open(work / "kit-p/publish.csv", encoding="utf-8"))) if ok else []
     check("kit: one publish row per placement, each with its own UTM medium",
           len(rows) == 3 and "utm_medium=email" in rows[2]["url"] and rows[2]["caption"] == "see you on the call", out[-300:])
+
+    # ---- a changed file needs review and approval again (ledger checksums) ----
+    CP = work / "ads/2026-10/project.json"
+    rdir = CP.parent / "renders"
+    rdir.mkdir(parents=True)
+    sh([py, L, "init", CP, "--cycle", "2026-10"], work)
+    for g in ("G0", "G1", "G2"):
+        sh([py, L, "gate", CP, "--gate", g, "--verdict", "pass", "--by", "member" if g == "G2" else "producer", "--ref", "x"], work)
+    pngs = [f"renders/C1-H1_{r}.png" for r in ("1x1", "4x5")]
+    for i, f in enumerate(pngs):
+        (CP.parent / f).write_bytes(b"\x89PNG\r\n\x1a\n" + bytes([i]) * 64)
+
+    def led_ad(pid="C1-H1"):
+        return next(x for x in json.loads(CP.read_text())["ads"] if x["id"] == pid)
+
+    def review_and_approve(pid="C1-H1"):
+        for g in ("G3", "G4"):
+            sh([py, L, "gate", CP, "--ad", pid, "--gate", g, "--verdict", "pass", "--by", "reviewer", "--ref", "review"], work)
+        sh([py, L, "approve", CP, "--ad", pid, "--note", "member approved"], work)
+
+    def reviewed(pid="C1-H1"):
+        x = led_ad(pid)
+        return all(x.get(g, {}).get("verdict") == "pass" for g in ("G3", "G4")) and bool(x.get("approved"))
+
+    rec = [py, L, "ad", CP, "--ad", "C1-H1", "--concept", "C1", "--layout", "photo-hook", "--spec", "specs/C1-H1.json", "--renders", *pngs]
+    ok, out, _ = sh(rec, work)  # run from the folder above the ledger's: paths resolve beside the ledger
+    sums = led_ad().get("render_sha256", {})
+    check("ledger records a sha256 for every render (paths relative to the ledger's folder)",
+          ok and all(sums.get(f) == hashlib.sha256((CP.parent / f).read_bytes()).hexdigest() for f in pngs), out[-300:])
+    review_and_approve()
+    ok, out, _ = sh(rec, work)
+    check("ledger: recording the same unchanged files keeps review and approval", ok and reviewed() and "notices" not in out, out[-300:])
+    (CP.parent / pngs[0]).write_bytes(b"\x89PNG\r\n\x1a\n" + b"re-rendered under the same name")
+    ok, out, _ = sh(rec, work)
+    x = led_ad()
+    check("ledger: a re-render under the same name resets G3, G4 and approval",
+          ok and x["G3"]["verdict"] == "unverified" and x["G4"]["verdict"] == "unverified" and "approved" not in x)
+    check("ledger: the output names the changed file and says what was reset",
+          pngs[0] in out and pngs[1] not in out.split("notices")[-1] and "Reset: G3, G4, the member's approval" in out, out[-400:])
+    review_and_approve()
+    ok, out, _ = sh([py, L, "ad", CP, "--ad", "C1-H1", "--renders", *pngs, "renders/missing.png"], work)
+    x = led_ad()
+    check("ledger: a file that cannot be read is recorded as such and said so",
+          ok and x["render_sha256"]["renders/missing.png"] is None and "could not read renders/missing.png" in out and not reviewed(), out[-400:])
+    review_and_approve()
+    (rdir / "missing.png").write_bytes(b"now it is here")
+    ok, out, _ = sh([py, L, "ad", CP, "--ad", "C1-H1", "--renders", *pngs, "renders/missing.png"], work)
+    check("ledger: a file that was unreadable counts as changed the next time", ok and not reviewed() and "renders/missing.png" in out)
+    sh(rec, work)  # back to the two real files (the list changed: reset again)
+    review_and_approve()
+    old = json.loads(CP.read_text())
+    for x in old["ads"]:
+        x.pop("render_sha256", None)  # a ledger written before checksums existed
+    CP.write_text(json.dumps(old))
+    ok, out, _ = sh(rec, work)
+    check("ledger: an older entry with no checksums records them on first sight without resetting",
+          ok and reviewed() and "first time" in out and all(led_ad()["render_sha256"].values()), out[-400:])
+    ok, out, _ = sh([py, L, "ad", CP, "--ad", "C1-H1", "--renders", str(CP.parent / pngs[0]), pngs[1]], CP.parent)
+    check("ledger: an absolute path is read as given",
+          ok and led_ad()["render_sha256"].get(str(CP.parent / pngs[0])) == hashlib.sha256((CP.parent / pngs[0]).read_bytes()).hexdigest(), out[-300:])
+    sh(rec, work)
+    review_and_approve()
+
+    # ---- static kit: ships only the files that were reviewed; --force only replaces its own folder ----
+    RP = AD / "review_pack.py"
+    (rdir / "C1-H1.report.json").write_text(json.dumps({"id": "C1-H1", "spec": "specs/C1-H1.json", "layout": "photo-hook", "concept": "C1",
+        "files": [{"file": f"ads/2026-10/{f}", "ratio": f.split("_")[-1][:-4], "pass": True} for f in pngs]}))
+    (CP.parent / "copy-manifest.json").write_text(json.dumps({"cycle": "2026-10", "destination": "https://example.com/book",
+        "concepts": [{"id": "C1", "angle": "No-shows", "angle_slug": "no-shows", "layout": "photo-hook"}],
+        "ads": [{"id": "C1-H1", "concept": "C1", "hook_tactic": "confession", "layout": "photo-hook", "copy": {"hook": "h"},
+                 "primary_text": "p", "headline": "h", "cta_button": "BOOK_NOW"}]}))
+    skit = [py, RP, "kit", "--project", CP, "--renders", "ads/2026-10/renders", "--manifest", "ads/2026-10/copy-manifest.json", "--out", "ads/2026-10/kit"]
+    KIT = CP.parent / "kit"
+    ok, out, _ = sh(skit, work, env)
+    check("static kit built from reviewed files, and marked as the static kit",
+          ok and len(list((KIT / "ads").glob("*.png"))) == 2 and (KIT / ".kit-type").read_text().strip() == "static", out[-300:])
+    ok, out, _ = sh(skit, work, env, ok_codes=(1,))
+    check("static kit: a non-empty kit folder still needs --force", ok and "--force" in out)
+    ok, out, _ = sh(skit + ["--force"], work, env)
+    check("static kit: --force rebuilds its own folder", ok and (KIT / "ads.csv").exists(), out[-300:])
+    (CP.parent / pngs[1]).write_bytes(b"\x89PNG\r\n\x1a\n" + b"changed after approval")
+    ok, out, _ = sh(skit + ["--force"], work, env, ok_codes=(1,))
+    check("static kit refuses an ad whose file changed since it was reviewed",
+          ok and "C1-H1_4x5.png changed since it was reviewed; record it again and re-review" in out and (KIT / "ads.csv").exists(), out[-300:])
+    ok, out, _ = sh(rec, work)
+    ok2, out2, _ = sh(skit + ["--force"], work, env, ok_codes=(1,))
+    check("static kit stays refused after the change is recorded, until review and approval are redone",
+          ok and ok2 and "G3 has not passed" in out2 and "not approved" in out2, out2[-300:])
+    review_and_approve()
+    ok, out, _ = sh(skit + ["--force"], work, env)
+    check("static kit builds again once the changed file is reviewed and approved again", ok and "no checksums" not in out, out[-300:])
+    old = json.loads(CP.read_text())
+    for x in old["ads"]:
+        x.pop("render_sha256", None)
+    CP.write_text(json.dumps(old))
+    ok, out, _ = sh(skit + ["--force"], work, env)
+    check("static kit: an older ledger with no checksums still builds, and the kit says so",
+          ok and "no checksums on record" in out and "no checksums on record" in (KIT / "disclosure-sheet.md").read_text(), out[-300:])
+    loose = work / "ads/2026-10/old-kit"
+    (loose / "ads").mkdir(parents=True)
+    (loose / "ads/keep.png").write_bytes(b"x")
+    ok, out, _ = sh(skit[:-1] + [loose, "--force"], work, env, ok_codes=(1,))
+    check("static kit: --force refuses a non-empty folder it did not make (no marker)",
+          ok and ".kit-type" in out and "ads/YYYY-MM/kit/" in out and (loose / "ads/keep.png").exists(), out[-300:])
+
+    # ---- video kit: its own folder, its own marker, and only the files that were reviewed ----
+    VK = [py, VD / "review_video.py", "kit", "--project", VP, "--manifest", "videos.json", "--renders"]
+    check("video kit is marked as the video kit", (work / "kit/.kit-type").read_text().strip() == "video")
+    ok, out, _ = sh(VK + ["renders", "--out", "kit"], work, env, ok_codes=(1,))
+    check("video kit: a non-empty kit folder still needs --force", ok and "--force" in out, out[-300:])
+    ok, out, _ = sh(VK + ["renders", "--out", "kit", "--force"], work, env)
+    check("video kit: --force rebuilds its own folder", ok and len(list((work / "kit/videos").glob("*.mp4"))) == 2, out[-300:])
+    ok, out, _ = sh(VK + ["renders", "--out", KIT, "--force"], work, env, ok_codes=(1,))
+    check("video kit: --force never replaces the static ad kit, and names kit-video",
+          ok and "static ad kit" in out and "kit-video" in out and (KIT / "ads.csv").exists() and not (KIT / "videos").exists(), out[-300:])
+    ok, out, _ = sh(skit[:-1] + [work / "kit", "--force"], work, env, ok_codes=(1,))
+    check("static kit: --force never replaces the video kit",
+          ok and "video kit" in out and len(list((work / "kit/videos").glob("*.mp4"))) == 2 and not (work / "kit/ads.csv").exists(), out[-300:])
+    ok, out, _ = sh(VK + ["renders", "--out", loose, "--force"], work, env, ok_codes=(1,))
+    check("video kit: --force refuses a non-empty folder it did not make (no marker)",
+          ok and ".kit-type" in out and "kit-video" in out and (loose / "ads/keep.png").exists(), out[-300:])
+    (work / "renders2").mkdir()
+    for r in ("9x16", "4x5"):
+        shutil.copy2(work / f"renders/T_{r}.mp4", work / f"renders2/T_{r}.mp4")
+    ok, out, _ = sh(VK + ["renders2", "--out", "ads/2026-10/kit-video"], work, env)
+    check("video kit builds beside the static kit in kit-video/ when the files match what was reviewed",
+          ok and len(list((work / "ads/2026-10/kit-video/videos").glob("*.mp4"))) == 2 and (KIT / "ads.csv").exists(), out[-300:])
+    with open(work / "renders2/T_4x5.mp4", "ab") as fh:
+        fh.write(b"re-cut after approval")
+    ok, out, _ = sh(VK + ["renders2", "--out", "ads/2026-10/kit-video", "--force"], work, env, ok_codes=(1,))
+    check("video kit refuses a video whose file changed since it was reviewed",
+          ok and "T_4x5.mp4 changed since it was reviewed; record it again and re-review" in out and "T_9x16.mp4 changed" not in out
+          and len(list((work / "ads/2026-10/kit-video/videos").glob("*.mp4"))) == 2, out[-300:])
+    old = json.loads(VP.read_text())
+    for x in old["ads"]:
+        x.pop("render_sha256", None)  # a ledger written before checksums existed
+    VP.write_text(json.dumps(old))
+    ok, out, _ = sh(VK + ["renders", "--out", "ads/2026-10/kit-video", "--force"], work, env)
+    check("video kit: an older ledger with no checksums still builds, and the kit says so",
+          ok and "no checksums on record" in out and "no checksums on record" in (work / "ads/2026-10/kit-video/disclosure-sheet.md").read_text(), out[-300:])
 
     # ---- renderer (optional) ----
     if shutil.which("node"):

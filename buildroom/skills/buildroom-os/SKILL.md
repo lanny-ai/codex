@@ -26,7 +26,7 @@ None. This skill is always safe to run — it's the front door.
 
 Ask for it (per the protocol), parse the section statuses, then deliver two things:
 
-**1. The progress view** — a compact checklist of §2–§7, §9–§12, and §14–§21 (plus one line for §13 if it has open rows): ✅ complete · 🟡 provisional · ⬜ not started, one line each, with a one-line "what this means" summary ("Foundation done, funnel not started" — not a lecture).
+**1. The progress view** — a compact checklist of §2–§7, §9–§12, and §14–§23 (plus one line for §13 if it has open rows): ✅ complete · 🟡 provisional · ⬜ not started, one line each, with a one-line "what this means" summary ("Foundation done, funnel not started" — not a lecture).
 
 **2. The one recommendation** — apply the routing principles from `references/roadmap.md`:
 - Walk the sequences in order; the next session is the first gap whose prerequisites are met.
@@ -47,11 +47,11 @@ Welcome them in four sentences or less: what the Build Room is (guided weekly bu
 
 Then create their file: run the §1 Business Snapshot intake — the six snapshot fields, one question at a time, five minutes. Don't interview beyond §1; the build sessions do their own intake.
 
-Recommend the Ideal Client Avatar session (it's the root of everything), hand them the trigger phrase, and emit their new Business File per the protocol so they can save it before they go.
+Recommend the Ideal Client Avatar session first (it's the root of everything) and hand them the trigger phrase. Mention the Compass once as an optional thirty-minute start ("Build my compass") for a member who wants every later session to sound like them from day one; it is never a requirement, and the Avatar comes first either way. Then and emit their new Business File per the protocol so they can save it before they go.
 
 ### Case 4 — Asked about something not yet in the program
 
-Check `references/roadmap.md`. If it's a roadmap theme without a shipped skill, say so plainly, offer to note it in their Session Log, and route to the most valuable session available now. Never improvise a missing session — a half-built Decision Machine poisons the file for the real one.
+Check `references/roadmap.md`. If it's a roadmap theme without a shipped skill, say so plainly, offer to note it in their Session Log, and route to the most valuable session available now. Never improvise a missing session — a half-built session poisons the file for the real one.
 
 ### Always, before ending
 

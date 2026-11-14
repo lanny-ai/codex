@@ -18,10 +18,10 @@ The research, the confirmation conversation, the scripted call, and the ten Geni
 
 ## How to run it
 
-1. The member puts a key in their `.env`: `JEV_API_KEY` or `OPENAI_API_KEY`. Never paste a key into the chat; never write one into the Business File or any deliverable.
+1. The member puts a key in their `.env`: `JEV_API_KEY` or `OPENAI_API_KEY`. Never paste a key into the chat; never write one into the Business File or any deliverable. Run the script from the member's project folder: it reads `.env` there itself (that folder or up to three above it), so never open or print `.env` to see whether a key exists; `--probe` says "No key found" when there is none.
 2. Build the answer sheet as JSON (the script's docstring shows the shape: subject, items with id / question / evidence lines carrying their `[web: URL]` or `[client]` tags, optional identity candidates).
 3. First time only: `python3 scripts/certainty.py --probe --provider jev` (or `openai`). One tiny call. It prints the parsed result and the raw response.
-4. Then: `python3 scripts/certainty.py sheet.json --out scored.json`. Read the states back into the answer sheet and show the member the probabilities next to each item.
+4. Then: `python3 scripts/certainty.py sheet.json --out scored.json`. Read the states back into the answer sheet and show the member the probabilities next to each item. Any id the script lists as NOT SCORED got no probability back: rate it by hand on the three-word scale, never as a gap by default.
 
 `--dry-run sheet.json` prints both request bodies and calls nothing. Use it to show a member what will be sent before they decide to spend anything.
 

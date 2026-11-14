@@ -46,7 +46,7 @@ Run as soon as one client has a result, then ten minutes a week. Every page, ema
 
 | # | Session | Skill | Builds (file §) | Requires |
 |---|---|---|---|---|
-| 1 | Proof Engine (trigger → 3-question interview → filed with permission and class → one placement) | `buildroom-proof-engine` | §18 proof vault, §19 count, §13 rows | §1 (best with §3) |
+| 1 | Proof Engine (trigger → five-question interview → filed with permission and class → one placement) | `buildroom-proof-engine` | §18 proof vault, §19 count, §13 rows | §1 (best with §3) |
 
 ### Search — Search & Answer Engine
 Run once §2 exists and the member has a website or meets customers in person; then a weekly routine of about two and a half hours. Profile first, pages second, listings and mentions third, YouTube fourth, ChatGPT last.
@@ -61,6 +61,13 @@ Run before the first page goes live (Lead Capture or Offer Page Copy), or any ti
 | # | Session | Skill | Builds (file §) | Requires |
 |---|---|---|---|---|
 | 1 | Website Design Studio (taste vault of screenshots in the Obsidian vault → the "what you keep choosing" read → three very different directions of a landing page, side by side, at most three rounds → the tweak bar → Kie.ai images where the member's photos run out → the lock: colours, fonts, sizes, do and don't → the go-live check) | `buildroom-website-design-studio` | §22, the §18 brand kit pointer, §13 rows | §1 §2 (best with §3 §4 §5 or §7 §18) |
+
+### Book — AI Momentum Labs Book Builder
+Run once the member knows their reader (§2) and, ideally, has an offer for the book to lead to (§3). A book is many sessions; `book.json` holds the state.
+
+| # | Session | Skill | Builds (file §) | Requires |
+|---|---|---|---|---|
+| 1 | AI Momentum Labs Book Builder (fifteen-question intake, mostly from the file → sufficiency gate → an outline the member approves → chapters one at a time from their material → developmental memo → sample-chapter edit and the member's decision → line edit → independent review and fact audit → simulated and real test readers → copyedit → regression check → the gate; twelve chapters by default, any shape the member wants; manuscript only) | `buildroom-book-builder` | §23, §13 rows | §1 §2 (best with §3 §4 §17 §18) |
 
 ### Launch sequence — Event Launcher
 Run once there is a decided offer (§3) and a list or audience to invite; repeat each quarter or each cohort. The debrief from each launch feeds the next.
@@ -120,18 +127,19 @@ Capture turns a raw brainstorm (board export, transcript, notes) into outcome re
 | Finish It | `buildroom-finish-it` | The finishing crew for an existing project: snapshot, audit (STATE.md), the owner's questions, scope cut to the smallest shippable version (GOAL.md, LATER.md), then Build It's crew and a ship checklist. |
 | Build It | `buildroom-build-it` | The finishing crew for a new idea: brainstorm, Pursue Goal (GOAL.md), then planner, builder, QA, four reviewers, a five-persona panel seeded from §2, docs and a release judge. |
 | Continuity System | `buildroom-continuity` | From community member Jenn: PROJECT, STATE and DECISIONS in `projects/<name>/continuity/` keep any long project resumable across threads and between Claude and Codex. Reads the Business File, never writes it. |
+| Discovery Engine | `buildroom-discovery-engine` | The founder's Magic Business Genie (36 questions + ten prompts) rebuilt per the 2026-10-07 co-design: research first, score and confirm, scripted gaps, then the prompts. Three subjects: own business, client (separate file), prospect (brief). |
 
 ### Sessions kept as notes, not skills
 | Session | Why not a skill | Where it lives |
 |---|---|---|
 | Buzz (2026-08-12) | A third-party open-source desktop app where humans and agents share channels, shown as a demo. The founder called it "just an operation layer" over the second brain, told members not to let it distract from money-making, and by 08-26 was off the stock app and onto a custom build. No Build Room artifact, unstable vendor onboarding, no member follow-through. If a member asks: the vault is still the brain; the Second Brain and Source Watcher electives are the durable parts. | This note. |
 | Agent Forge app (2026-07-29) | The hosted builder never reached members (workspace-gated publish). The thirteen elements it encoded are the `buildroom-agent-forge` elective. | `buildroom-agent-forge` |
-| Discovery Engine | `buildroom-discovery-engine` | The founder's Magic Business Genie (36 questions + ten prompts) rebuilt per the 2026-10-07 co-design: research first, score and confirm, scripted gaps, then the prompts. Three subjects: own business, client (separate file), prospect (brief). |
 
 ## Trigger phrases to hand the member
 
 When routing, give the member the exact words to start the session:
 
+- Build Room OS (this navigator, and the five-minute onboarding other sessions send a member back to) → "Where do I start?"
 - Ideal Client Avatar → "Help me build my ideal client avatar"
 - Signature Offer → "Help me build my signature offer"
 - Positioning & Messaging → "Help me position my business"
@@ -140,7 +148,7 @@ When routing, give the member the exact words to start the session:
 - Lead Capture → "Help me build my opt-in page"
 - Decision Machine → "Build my follow-up system"
 - Funnel Scorecard → "Where is my funnel leaking?"
-- SOP Creator → "Help me document my process"
+- SOP Creator → "Help me document my processes"
 - Hiring Kit → "Help me hire for this role"
 - Training Docs → "Help me train my new hire"
 - Ops Dashboard → "What numbers should I be watching every week?"
@@ -148,8 +156,9 @@ When routing, give the member the exact words to start the session:
 - LinkedIn Engine → "Build my LinkedIn engine" · "Fix my LinkedIn profile" · "Write my LinkedIn posts" · "Plan my LinkedIn week" · "Who should I message on LinkedIn today" · "How is my LinkedIn doing"
 - Proof Engine → "Capture this win" · "Ask for a testimonial" · "Build my proof bank" · "What proof can I use"
 - Search & Answer Engine → "Get found on Google" · "Fix my Google Business Profile" · "Get more Google reviews" · "Answer this question on my website" · "Publish this page" · "Am I showing up in ChatGPT" · "Search week"
+- AI Momentum Labs Book Builder → "Write my book" · "Plan my book" · "Write the next chapter" · "Edit my book" · "Review my book" · "Have readers test my book" · "Is my book ready" · "How is my book coming along"
 - Website Design Studio → "Make my website look like me" · "Design my landing page" · "My pages look like AI made them" · "Set up my taste vault" · "Tweak my page" · "Is my page ready to go live" · "Change my brand colours"
-- Webinar Builder → "Build my webinar" · "Write my webinar title and registration page" · "Make my webinar slides" · "Rehearse my webinar" · "How did my webinar go" · "Why didn't my webinar sell" · "Make my webinar evergreen"
+- Webinar Builder → "Build my webinar" · "Write my webinar title and registration page" · "Make my webinar slides" · "Is my webinar ready" · "Rehearse my webinar" · "How did my webinar go" · "Why didn't my webinar sell" · "Make my webinar evergreen"
 - Event Launcher → "Plan my launch" · "Help me run a challenge" · "I want to do a 3-day bootcamp" · "Write my launch emails" · "Run sheet for day 2" · "Plan the close" · "Launch partners" · "Is my launch ready" · "How did my launch do"
 - Sales Conversations → "Help me with my sales call"
 - Ad Studio → "Make me ads"
@@ -158,7 +167,6 @@ When routing, give the member the exact words to start the session:
 - Offer Deep Dive → "Make my offer a no-brainer"
 - Copy Engine → "Write me [the piece]"
 - Discovery Engine (anytime) → "Run discovery on this business"
-- Funnel Scorecard (funnel) → "Where is my funnel leaking?"
 - Agent Forge (elective) → "Make me an agent"
 - Triage (elective) → "Triage my projects"
 - Finish It (elective) → "Finish it"
@@ -175,14 +183,14 @@ When routing, give the member the exact words to start the session:
 
 Offer Clarity & Positioning · Lead Generation Engine · Sales Conversations · Content That Converts · Client Delivery Systems · Operations & SOPs · Automation & Funnels · Retention & Revenue Growth · Year-End Reset & 2027 Launch.
 
-When a member asks for something no current skill covers (e.g. discovery call scripts, SOPs, retention), say it's on the roadmap, note it in their Session Log if they want, and route them to the most valuable session available *now* instead.
+When a member asks for something no current skill covers (e.g. client delivery systems, retention, a year-end reset), say it's on the roadmap, note it in their Session Log if they want, and route them to the most valuable session available *now* instead.
 
 ## Routing principles
 
 1. **The file is the map.** Section statuses tell you exactly where the member is. Never make them re-explain their progress.
-6. **Captured ideas are commitments waiting for a date.** If §13 has `captured` rows older than four weeks, mention it once: schedule it, park it, or ship it.
 2. **One recommendation.** Members come confused; give them the single next session and why — not a menu.
 3. **Goal-first routing.** "I want X" → find X's section, walk its `Requires` chain back to the first gap, and show the path: "Sales page needs avatar → offer → positioning. You have the avatar. Next: Signature Offer, then two sessions later you're writing the page."
 4. **Hypothesis language is debt too.** If §2's sourced bank is empty and the member is heading for §5 or §7, route to Audience Insight first: a landing page built on guessed customer words ships guesses to real prospects.
 4b. **Provisional debt counts as a gap.** A `provisional` section works, but flag it: the session that hardens it is usually worth running before building higher.
 5. **Ship-state beats build-state.** If §5 or §7 says `draft` for weeks, the highest-value "next session" may be: publish what's built. Say so.
+6. **Captured ideas are commitments waiting for a date.** If §13 has `captured` rows older than four weeks, mention it once: schedule it, park it, or ship it.

@@ -371,7 +371,12 @@ def check(a):
     css = page_css(tree, page.parent)
     rules = dslib.css_rules(css)
     vars_ = dslib.root_vars(css)
+    for f in (a.business_file, a.copy, a.images, a.tokens):
+        if f and not Path(f).is_file():
+            return {"ok": False, "error": f"file not found: {f}"}, 2
     tokens = dslib.read_json(a.tokens) if a.tokens else None
+    if tokens is not None and not isinstance(tokens, dict):
+        return {"ok": False, "error": f"{a.tokens} is not a Design System tokens.json (lock the system first)"}, 2
     audience = a.audience or (tokens or {}).get("audience")
     if not audience:
         for dj in (page.parent / "design.json", page.parent.parent / "design.json", page.parent.parent.parent / "design.json"):
@@ -379,9 +384,6 @@ def check(a):
                 audience = dslib.read_json(dj).get("audience")
                 break
     audience = audience or "50plus"
-    for f in (a.business_file, a.copy, a.images, a.tokens):
-        if f and not Path(f).is_file():
-            return {"ok": False, "error": f"file not found: {f}"}, 2
     min_body = dslib.MIN_BODY_PX_50PLUS if audience == "50plus" else dslib.MIN_BODY_PX
     items = []
 
@@ -568,6 +570,8 @@ def check(a):
     nums = sorted({m.group(0).strip() for m in NUMBER_RE.finditer(text)})
     if nums:
         if known:
+            # section numbers ("## 22.", "§22"), dates and the file version are not the member's figures
+            known = re.sub(r"(?m)^#{1,6}\s*\d+\.|§\s?\d+(?:\s?[-\u2013]\s?\d+)?|\b\d{4}-\d{2}-\d{2}\b|^.*File version.*$", " ", known)
             known_cores = {num_core(m.group(0)) for m in NUMBER_RE.finditer(known)} | set(re.findall(r"\d[\d,.]*", known))
             known_cores = {k.replace(",", "").rstrip(".") for k in known_cores}
             unknown = [n for n in nums if num_core(n).replace(",", "") not in known_cores]
@@ -585,8 +589,12 @@ def check(a):
             'describe the picture in a few words, or alt="" if it is decoration')
     manifest = {}
     if a.images and Path(a.images).is_file():
-        for im in dslib.read_json(a.images).get("images", []):
-            manifest[str(Path(im.get("file", "")).as_posix())] = im
+        listed = dslib.read_json(a.images)
+        if isinstance(listed, dict):
+            listed = listed.get("images", [])
+        for im in (listed if isinstance(listed, list) else []):
+            if isinstance(im, dict):
+                manifest[str(Path(str(im.get("file", ""))).as_posix())] = im
     vault_hashes = set()
     if a.vault:
         tvdir = Path(a.vault) / "Design" / "Taste Vault"

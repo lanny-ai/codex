@@ -12,8 +12,8 @@ The owner has more started projects than finished ones. Your job is one decision
 
 Read `references/business-file-protocol.md` before anything else. This skill reads §1 (what the business does) and §13 Build Plan, and writes §13 and §8 only. The member's Business File lives in their Build Room folder; if this session is opened somewhere else, ask once for its path, and if there is none, carry on without it. The decision never waits on the file.
 
-- **Read:** every §13 *Ideas & builds* row with status `scheduled` or `building` is a candidate, alongside any project folders the member points you at. §13 *Parked* rows past their revisit date are candidates too.
-- **Write, once the member says yes:** the chosen project's §13 row moves to `building` with next step "say finish it in its folder"; every other candidate goes to §13 *Parked* with why and a revisit date 30 days out; anything the member calls dead is removed from §13 and named in the §8 line. One §8 Session Log line: "Triage: finishing <project>; parked <n>." PORTFOLIO.md is written as below either way.
+- **Read:** every §13 *Ideas & builds* row with status `scheduled` or `building` is a possible candidate, alongside any project folders the member points you at. Not every such row is a project: a Boardroom decision, a dated first step from Brainstorm Capture or a scheduled agent sits there too. Read the list to the member and let them strike what isn't an unfinished project before you score anything; struck rows are left exactly as they are. §13 *Parked* rows past their revisit date are candidates too.
+- **Write, once the member says yes:** the chosen project's §13 row moves to `building` with next step "say finish it in its folder"; every other candidate the member confirmed as a project goes to §13 *Parked* with why and a revisit date 30 days out (the "Next" two in PORTFOLIO.md are parked too, and named first when the date comes); anything the member calls dead also moves to *Parked*, with the reason "killed <date>" and no revisit date, and is named in the §8 line. No row is ever deleted. One §8 Session Log line: "Triage: finishing <project>; parked <n>." PORTFOLIO.md is written as below either way.
 
 ## Gather the list
 
@@ -36,7 +36,7 @@ Present the top one with two sentences of reasoning and the runner-up in one sen
 
 ## Write it down
 
-Write PORTFOLIO.md:
+Write PORTFOLIO.md beside the Business File (or in the folder the member names when there is no file). If one is already there, keep it: add a dated section at the top and leave the earlier ones below.
 
 - Finishing now: the one project, the date, and the words to start: open the folder and say finish it.
 - Next: at most two.
@@ -47,4 +47,4 @@ Write PORTFOLIO.md:
 
 - One project leaves this session marked finishing now. Never two.
 - Do not start finish-it inside this session. End with the single next action and stop.
-- If the owner adds a new project during triage, write it under Parked with today's date and move on.
+- If the owner adds a new project during triage, write it under Parked with today's date as when it was added, a revisit date 30 days out, and move on.

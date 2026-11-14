@@ -16,7 +16,7 @@ The email-template endpoint is reported, not confirmed from the sandbox that wro
 ## Steps
 
 1. **Only after the emails are approved** (one at a time, Phase 4) and the trigger map is confirmed (Phase 6). Never push drafts.
-2. **Ask once:** "Build this in your GoHighLevel now? I need the private integration key and the location id in `.env` as `GHL_API_KEY` and `GHL_LOCATION_ID`. Paste nothing here." Decision Machine rule applies: create the key before the build; tags batch through the API and go one at a time through the browser.
+2. **Ask once:** "Build this in your GoHighLevel now? I need the private integration key and the location id in `.env` as `GHL_API_KEY` and `GHL_LOCATION_ID`. Paste nothing here." Run the script from the member's project folder: it reads `.env` there itself (that folder or up to three above it), so never open or print `.env` to check it; `--probe` says whether the key is found. Decision Machine rule applies: create the key before the build; tags batch through the API and go one at a time through the browser.
 3. **Write `funnel-build.json`** from the session: the tags from the trigger map, custom fields the emails or application need, the pipeline and stages §6 names, every approved email (name, subject, HTML body, day), each workflow as trigger → ordered steps → exit, and the launch test in the order the spec gives it. Use the member's naming convention (lowercase kebab-case tags, one family prefix).
 4. **`--dry-run`** and show the member every request and the build sheet. This is the approval step.
 5. **`--probe`** once per location: confirms the key, the location, the tags scope, and whether the email builder endpoint answers.

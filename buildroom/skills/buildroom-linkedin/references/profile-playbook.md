@@ -26,7 +26,7 @@ One promise, one proof, one call to action, nothing else [practitioner: Welsh; A
 - **Proof element:** "140+ owners advised", a book cover, a rating, years, a client-type list. Only what is true and in the file.
 - **CTA:** matches the Featured item or the custom button ("Free diagnostic in Featured ↓").
 - **Layout:** the round profile photo covers the bottom-left on desktop and moves on mobile. Keep text on the right half and centred vertically. `render_linkedin.mjs` marks the photo zone and checks nothing important sits in it.
-- Brand colours and fonts from §18/§19 if they exist.
+- Brand colours and fonts from §22 (Design System) when it is complete, otherwise from §18's brand kit, if they exist.
 
 ## 3. About section (up to 2,600 characters; about two lines show before "see more")
 

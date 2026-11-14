@@ -227,7 +227,9 @@ Each block format:
 BEFORE: [Specific situation when they started — 1-2 sentences]
 THE RESULT: [Bold, specific — numbers, timeframe, clear before/after]
 WHAT THEY SAID: [Paraphrase their experience in their own voice — 2-3 sentences.
-                 If this is a composite: write as "One client recently shared..."]
+                 If this is a composite: there is no client to quote. Leave this line out
+                 and keep the label [composite result based on typical client outcomes]
+                 on the block. Never write a composite as something a client said.]
 
 If I haven't provided real testimonials: write 2 template blocks with
 [BRACKETS] showing exactly what to fill in, then give me:

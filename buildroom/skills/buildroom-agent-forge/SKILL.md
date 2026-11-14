@@ -60,7 +60,7 @@ Read the file the member gives you. Report in plain words what it does, what it 
 1. Deliver the **agent definition** in the template's shape as one block, with a one-line install note: as a skill (`.claude/skills/<name>/SKILL.md`, or `.codex/skills/<name>/`) when it runs on request; as a build brief for Claude Code or Codex when it must run on its own, with the reminder that the definition is the goal statement and the build starts only after the member says the goal is right. Tell the member to save it as `Agent_<name>.md`.
 2. Update the Business File per the protocol:
    - **§13 Build Plan** — one row: "<Agent name>" · source `Agent Forge [date]` · status `scheduled` (or `building` if the member is going straight to Claude Code or Codex) · owner · next step (install and run in shadow mode, or hand the brief to the build session). If it came from a §9 candidate, say so in the row.
-   - **§9** — if the agent came from an automation candidate, advance that candidate's stage to `shadow` once it runs; propose only, the SOP Creator owns §9.
+   - **§9** — do not edit it. If the agent came from an automation candidate, tell the member to have the SOP Creator move that candidate's stage to `shadow` once the agent has run; the SOP Creator owns §9.
    - **§8 Session Log** — append the row; ask for the 1–5 rating.
 3. Emit the entire updated file in one code block with the "what changed" summary.
 4. Close with the trust ladder: "Shadow mode first, nothing sent. Then approve each action. Autonomous only for the steps that have proven themselves. Every correction you make goes into its test set."

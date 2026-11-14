@@ -30,7 +30,7 @@ Before each batch: read the per-second or per-job price for every model you will
 S=.claude/skills/buildroom-video-director/scripts     # or .codex/skills/…; resolve the real path
 P=videos/2026-10-install-explainer/project.json
 python3 $S/ledger.py init $P --cycle 2026-10
-python3 $S/ledger.py gate $P --gate G0 --verdict pass --by producer --ref brief.md        # then G1 (beats), G2 (script)
+python3 $S/ledger.py gate $P --gate G0 --verdict pass --by producer --ref brief.md        # then G1 (beats), and G2 (script) with --by member
 python3 $S/ledger.py plan $P --asset-id BROLL-3 --provider kie --model <id> --prompt-ref broll/3.prompt.txt --kind broll
 python3 $S/ledger.py plan $P --asset-id CAPTIONS-916 --provider submagic --model "<template>" --prompt-ref edit.json --kind captions
 python3 $S/gen.py --dry-run jobs.json --prices prices.json                                  # show the member

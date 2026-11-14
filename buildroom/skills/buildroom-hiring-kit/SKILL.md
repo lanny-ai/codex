@@ -20,13 +20,15 @@ Read these reference files, in order, before any member-facing work:
 
 ## Prerequisites
 
-**Requires §9 (Operations & SOPs).** The role is built by bundling documented processes; without SOPs there is nothing to bundle, and the work sample has no source. This prerequisite is not negotiable in the usual way: if §9 is `not started`, do not run a provisional interview — send the member to the **SOP Creator** session first and say plainly why ("you can't hire for a role you haven't defined, and the SOPs are the definition"). If §9 is `provisional` or has at least two documented processes, proceed and inherit the flag.
+**Requires §9 (Operations & SOPs).** The role is built by bundling documented processes; without SOPs there is nothing to bundle, and the work sample has no source. This prerequisite is not negotiable in the usual way: if §9 is `not started`, or lists no documented processes (a §9 that holds only the Rent Calculator's triage counts as this, even though its status reads `provisional`), do not run a provisional interview — send the member to the **SOP Creator** session first and say plainly why ("you can't hire for a role you haven't defined, and the SOPs are the definition"). Otherwise, if §9 is `provisional` or has at least two documented processes, proceed and inherit the flag.
 
 ## Session Flow
 
 ### Phase 0 — Business File intake
 
 Follow the protocol. Pre-fill from the file: business and team (§1), the documented processes with their priority scores and hours (§9 — this is most of the input template), tools (§1/§6). Ask one at a time only what remains: which processes they most want off their plate, hours they can hand off, budget and contractor/employee preference, what happened with their last hire, and the person they'd hate to hire. That last answer becomes the "not for you if" list — push for specifics.
+
+§9 itself holds only each process's name, owner and review date, plus the link to the Operations Pack (and the priority scores and hours per month only if the member pasted the Rent Calculator block). The priority scores, the Variance scores, the hours and each SOP's Definition of Done live in the Operations Pack. Ask the member to paste or attach it before Phase 1. If they cannot, ask for the missing figures one at a time. Never fill in a score, an hour count or a Definition of Done yourself. Where the prompt system says "Rent Calculator number", use the *Rent baseline* line in §9 if it is there, otherwise the hours-reclaimed figure in the Operations Pack, otherwise ask.
 
 ### Phases 1–5 — the build
 

@@ -26,8 +26,8 @@ Everything in the hour serves that sentence. Don't teach the architecture — sh
 
 ### 00:12 — Install together (8 min)
 - Screen-share `START-HERE.md`.
-- Everyone unzips the folder and opens a terminal in it: `claude` or `codex`. The thirty-eight skills load on their own.
-- Members with an earlier zip: replace the folder, copy the Business File back in.
+- Everyone unzips the folder and opens a terminal in it: `claude` or `codex`. The thirty-nine skills load on their own.
+- Members with an earlier zip: do not unzip over the old folder or replace it. Unzip the new release in Downloads and run its `update.sh` or `update.ps1` with the old folder's path (see "Updating to a new release" in `START-HERE.md`). The Business File and everything they made stay as they are.
 - While uploads run, preview the session table — what each skill builds and its trigger phrase.
 
 ### 00:20 — LIVE DEMO 1: the navigator (8 min)
@@ -50,7 +50,7 @@ Everything in the hour serves that sentence. Don't teach the architecture — sh
 ### 00:45 — Q&A + first assignment (15 min)
 - **The assignment:** before next week, run the navigator, then complete ONE session (new members: Ideal Client Avatar; members with a complete foundation: Funnel Map). Bring your updated Business File's session log to next week's call.
 - Q&A. Likely questions:
-  - *"Where does the file live?"* — Anywhere they keep documents. It's plain markdown; any notes app opens it.
+  - *"Where does the file live?"* — In the Build Room folder they unzipped, as `BUILDROOM_BUSINESS_FILE.md`. It's plain markdown; any notes app opens it.
   - *"What if I lose it?"* — Any past session that emitted it has a copy in the chat history. Save the newest one.
   - *"Two businesses?"* — Two files. One file per business, always.
   - *"Can I edit it myself?"* — Yes, and your edits win. It's your file.

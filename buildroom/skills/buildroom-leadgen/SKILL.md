@@ -43,12 +43,12 @@ Follow the protocol. From the file, pre-fill every module's shared inputs before
 | Module input | Read from |
 |---|---|
 | What I do · who I serve · core result | §1, §2 one-line profile, §3 transformation promise |
-| ICA situation, pain, language | §2 pain stack, buying trigger, verbatim language bank |
-| Proof / biggest wins | §3 (60-second pitch, guarantee), §1 |
+| ICA situation, pain, language | §2 pain stack, buying trigger, sourced language first (hypothesis language only as a guess, never as a client's words) |
+| Proof / biggest wins | §3 (60-second pitch, guarantee), §1, §18 proof vault, and `proof/proof-bank.md` if it exists (only stories whose permission is `named` or `anonymous` and whose scope covers the channel) |
 | Positioning / what makes me different | §4 differentiator, positioning statement |
 | Lead sources today · tools (CRM, email platform) | §1 |
 | Delivery, phases, "first win" (Module 3) | §3 phases + outcomes |
-| Lead magnet and funnel (Module 4) | §7 lead magnet, §6 funnel map and metrics |
+| Lead magnet and funnel (Module 4) | §7 lead magnet, §6 funnel map and metrics; the content ideas in the §2 Audience Playbook, if the member has one |
 | Prior modules' results | §14 itself |
 
 Show the member one "here's what I'm working from" summary and get a confirm-or-correct. Then ask only the module-specific questions the file can't answer, one at a time: network size and obvious fits, discomfort level with asking (Module 1); primary channel and biggest hesitation (Module 2); client history, past referrals, partner potential (Module 3); platform, content comfort, what stops consistent posting, this month's results (Module 4).
@@ -59,7 +59,7 @@ Show the member one "here's what I'm working from" summary and get a confirm-or-
 
 Each module has five prompts. Run them in order, producing complete, ready-to-use outputs for each: messages the member can send today, trackers they can build in thirty minutes, a plan they can start this week. Check in after each major output; the member may pause and return.
 
-Every output must be specific to their business (their ICA, their service, their words from §2), written in their voice (a conversation between people, never a pitch), and end with a clear what-to-do-next.
+Every output must be specific to their business (their ICA, their service, their words from §2), written in their voice (a conversation between people, never a pitch), and end with a clear what-to-do-next. A result, client story or number in a message, a proof post or a case study comes from the file, the proof bank or the member in this session; where there is none, leave a visible slot such as `[YOUR RESULT HERE]` and say so, never a made-up one. Don't quote a statistic or a named success story to the member or in their messages unless it is in their own file; their own numbers are the benchmark. **Consent comes first in every module:** no bought or scraped lists, no text message to anyone who has not agreed to be texted, every cold email says who it is from and how to say "no more", and LinkedIn outreach stays inside the LinkedIn Engine's daily limits.
 
 Apply the six principles from the module knowledge bases everywhere: specificity enables referrals; connection over transaction; their world first; track everything; follow up (five-plus touches); fastest result first.
 
@@ -72,7 +72,7 @@ Apply the six principles from the module knowledge bases everywhere: specificity
    - **§12** — if the member has a Weekly Ops dashboard, propose the module's weekly scorecard metrics as candidates (conversations started, discovery calls booked). Propose; don't add without a yes.
    - **§8 Session Log** — append the row; ask for the 1–5 rating.
 3. Emit the entire updated file in one code block with the "what changed" summary.
-4. Close with the module's ship nudge: the first three actions from its activation plan, with days attached, and the next module's trigger phrase.
+4. Close with the module's ship nudge: the first three actions from its activation plan, with days attached, and the phrase that starts the next module: "Help me get more leads" (the skill picks the next module from §14).
 
 ## Routing a specific ask
 
@@ -97,7 +97,7 @@ Run the module's Phase 0 intake first regardless; the prompt's inputs still come
 ## What This Skill Does NOT Do
 
 - Build the landing page or lead magnet — that's **Lead Capture** (§7). Module 4 reads §7; it doesn't rewrite it.
-- Write the automated email follow-up sequence — that's the funnel's Decision Machine (§6). Module 2's 5-touch sequence is manual outreach, and the skill says so.
+- Write the automated email follow-up sequence — that's the funnel's Decision Machine (§16). Module 2's 5-touch sequence is manual outreach, and the skill says so.
 - Run LinkedIn as a channel in depth (profile, posts, carousels, the daily comment and DM routine, the LinkedIn scorecard) — that's the **LinkedIn Engine** (§14 LinkedIn lines). This skill's Module 2 LinkedIn messages stay valid; the engine adds the warm-signal routine and the pacing guard.
 - Write sales scripts for the discovery call itself — that's **Sales Conversations** (§15).
 - Invent proof, results, or client names the member didn't give you.

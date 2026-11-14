@@ -15,8 +15,8 @@ Updated: 2026-10-24 · Consented (named or anonymous): 4 (D 3 · B 1) · Pending
 
 | ID | Origin | Kind | Permission | Scope | Result (one line) | Proves | Placed |
 |---|---|---|---|---|---|---|---|
-| P-01 | D | result | named | site, emails, social; no ads; photo no | 13-week cash view in 20 minutes a week, 6 weeks | Cash Flow Program | offer page proof section; launch 2026-12 Day 2 |
-| P-02 | B | money | anonymous | site, emails | First paid client 9 days after the free workshop | Workshop → program | LinkedIn post 2026-10-20 |
+| P-01 | D | result | named | site, emails, social, events; no ads; photo no | 13-week cash view in 20 minutes a week, 6 weeks | Cash Flow Program | offer page proof section; launch 2026-12 Day 2 |
+| P-02 | B | money | anonymous | site, emails, social | First paid client 9 days after the free workshop | Workshop → program | LinkedIn post 2026-10-20 |
 | P-03 | U | transformation | pending | — | Bootcamp quote, words not yet matched to the recording | — | — |
 ```
 
@@ -32,8 +32,8 @@ date_captured: 2026-10-24
 source: interview by email, 2026-10-22 (proof/consents/P-01-2026-10-23.eml)
 origin: D                  # A B D E H X R U
 kind: result               # money | result | transformation | freedom
-permission: named          # named | anonymous | pending | declined | withdrawn
-scope: site, emails, social   # site emails social ads video events
+permission: named          # named | anonymous | pending | no answer | declined | withdrawn
+scope: site, emails, social, events   # site emails social ads video events
 name: yes
 company: yes
 photo_or_logo: no
@@ -64,7 +64,7 @@ Ads (scope), a photo (scope), any free-event claim (origin D).
 
 ## Rules of the file
 
-- A story with `permission: pending`, `declined` or `withdrawn` is never copied out of this folder.
+- A story with `permission: pending`, `no answer`, `declined` or `withdrawn` is never copied out of this folder.
 - `id`, `origin`, `permission`, `scope` and `material_connection` travel with the words whenever another tool uses them.
 - Consents (the client's reply, or the dated note of a spoken yes plus its same-day email) are kept in `proof/consents/`, named by ID and date. The Video Director's signed consent forms are referenced here by path.
 - A composite (origin X) is its own entry with the label in the verbatim block, so it is never mistaken for a person.

@@ -195,6 +195,85 @@ def answer_tests(tmp, qm_cwd):
     n = variant(fh, [("## What doubles it?", "We counted 38 clients in 2025 [own].\n\n## What doubles it?")], cwd, "count-not-claim.md")
     ok, out, _ = run([PY, AC, "check", n, "--site", "https://example.com"], cwd)
     check("ac a plain count of clients is not a results claim", ok and pj(out)["gates"]["typical_result"], out[:300])
+    # results claims with no number and no marker: what clients GOT fails; what the service does, or a hypothetical, passes
+    invented = [
+        ("Our clients doubled their revenue after a clean-up and every customer saved thousands.", "the owner's example"),
+        ("Members who finished the program tripled their bookings.", "a relative clause before the outcome"),
+        ("The people we work with got amazing results.", "'people we work with' got results"),
+        ("Patients lost twenty pounds in the first month.", "a number in words"),
+        ("We saved our clients a fortune last year.", "the client as the object"),
+        ("Our students have all earned more since the course.", "an auxiliary before the outcome"),
+        ("Homeowners in our program grew their savings three times over.", "'X times'"),
+    ]
+    for i, (sentence, label) in enumerate(invented):
+        n = variant(fh, [("## What doubles it?", sentence + "\n\n## What doubles it?")], cwd, f"invented-{i}.md")
+        ok, out, code = run([PY, AC, "check", n, "--site", "https://example.com"], cwd, ok_codes=(1,))
+        msg = pj(out).get("fails", {}).get("typical_result", "")
+        check(f"ac an unmarked results claim with no digits fails typical_result ({label})",
+              code == 1 and sentence in msg and "typical result" in msg and "take the claim out" in msg, out[:400])
+    honest = [
+        ("We help owners save time on their books.", "what the service does"),
+        ("An owner who lost receipts can rebuild the records from bank statements.", "a hypothetical owner"),
+        ("If a client saved every receipt, the clean-up goes faster.", "an if-sentence"),
+        ("Our clients cut their late fees after the clean-up. The typical client sees a small drop, by our own count of last year's jobs.",
+         "a claim with the typical-result statement"),
+        ("A clean-up sorts the year's transactions and reconciles each account.", "no client results at all"),
+        ("Clients who want to save money should ask for a fixed fee.", "what clients want, not what they got"),
+        ("Thousands of owners lose receipts every year.", "a vague count of people is not a result"),
+    ]
+    for i, (sentence, label) in enumerate(honest):
+        n = variant(fh, [("## What doubles it?", sentence + "\n\n## What doubles it?")], cwd, f"honest-{i}.md")
+        ok, out, _ = run([PY, AC, "check", n, "--site", "https://example.com"], cwd)
+        d = pj(out)
+        check(f"ac an honest sentence passes typical_result and claims_supported ({label})",
+              ok and d["gates"]["typical_result"] and d["gates"]["claims_supported"], out[:400])
+    # a quantifier word is not a basis: "most", "average", "typically" in front of an outcome is a results claim, and the
+    # typical-result statement beside a claim needs how it was counted (a count, "N of M clients", [own] or a source)
+    self_certified = [
+        ("Most clients doubled their revenue.", "Most clients doubled their revenue.", "the owner's example"),
+        ("The average client saves thousands.", "The average client saves thousands.", "'the average client' in the present tense"),
+        ("Typically our members triple their bookings.", "Typically our members triple their bookings.", "a leading 'typically'"),
+        ("Clients usually save money in the first quarter.", "Clients usually save money in the first quarter.", "'usually' before the outcome"),
+        ("Most clients doubled their revenue last year.", "Most clients doubled their revenue last year.", "a period alone is not a basis"),
+        ("Our clients doubled their revenue. Results vary.", "Our clients doubled their revenue.", "'results vary' with no basis"),
+        ("Our clients cut their late fees after the clean-up. The typical client sees a small drop.",
+         "Our clients cut their late fees after the clean-up.", "a typical-result statement with no basis"),
+        ("Most clients saved a lot on late fees [method].", "Most clients saved a lot on late fees", "[method] is an opinion, not a basis"),
+    ]
+    for i, (sentence, quoted, label) in enumerate(self_certified):
+        n = variant(fh, [("## What doubles it?", sentence + "\n\n## What doubles it?")], cwd, f"self-certified-{i}.md")
+        ok, out, code = run([PY, AC, "check", n, "--site", "https://example.com"], cwd, ok_codes=(1,))
+        msg = pj(out).get("fails", {}).get("typical_result", "")
+        check(f"ac a quantifier with no basis does not certify a results claim ({label})",
+              code == 1 and quoted in msg and "no basis" in msg and "how many clients" in msg and "over what period" in msg
+              and "take the claim out" in msg, out[:400])
+    with_basis = [
+        ("Our clients cut their late fees after the clean-up. The typical client sees a small drop, across 38 jobs in 2025 [own].",
+         "a typical statement with a count and a period"),
+        ("Nine of our twelve clients cut their late fees last year; the typical drop was small.", "the 'N of M clients' form"),
+        ("Our clients cut their late fees after the clean-up. Most saw no change in the first month, and we tracked every job last year.",
+         "a modest typical result with its basis"),
+        ("Most clients doubled their revenue, according to our 2025 client survey.", "a named source"),
+        ("Most clean-ups take two weeks.", "a service description using 'most'"),
+        ("We usually reply within one business day.", "'usually', not about client results"),
+        ("We help most owners save time on their books.", "what the service does, with 'most'"),
+        ("Most owners save their receipts in a shoebox.", "'save' with an object that is not a result"),
+        ("Most owners who lost receipts need extra time [method].", "an opinion about owners with no figure"),
+    ]
+    for i, (sentence, label) in enumerate(with_basis):
+        n = variant(fh, [("## What doubles it?", sentence + "\n\n## What doubles it?")], cwd, f"with-basis-{i}.md")
+        ok, out, _ = run([PY, AC, "check", n, "--site", "https://example.com"], cwd)
+        d = pj(out)
+        check(f"ac a typical statement with a basis, or no results claim, passes ({label})",
+              ok and d["gates"]["typical_result"] and d["gates"]["claims_supported"], out[:400])
+    n = variant(fh, [("## What doubles it?", "A fixed fee saved thousands over hourly billing.\n\n## What doubles it?")], cwd, "vague-unmarked.md")
+    ok, out, code = run([PY, AC, "check", n, "--site", "https://example.com"], cwd, ok_codes=(1,))
+    check("ac a vague quantity used as a result needs a marker (claims_supported)",
+          code == 1 and "saved thousands" in pj(out).get("fails", {}).get("claims_supported", ""), out[:400])
+    n = variant(fh, [("## What doubles it?", "A fixed fee saved thousands over hourly billing [own].\n\n## What doubles it?")], cwd, "vague-marked.md")
+    ok, out, code = run([PY, AC, "check", n, "--site", "https://example.com"], cwd, ok_codes=(1,))
+    f = pj(out).get("fails", {})
+    check("ac a marked vague result still needs the typical result", code == 1 and "typical_result" in f and "claims_supported" not in f, out[:400])
     t = re.sub(r"## How we know.*?(?=## What we'd)", "", fh, flags=re.S)
     (cwd / "no-hwk.md").write_text(t)
     ok, out, code = run([PY, AC, "check", "no-hwk.md", "--site", "https://example.com"], cwd, ok_codes=(1,))
@@ -740,7 +819,7 @@ def consistency_tests():
     check("the Proof Engine's placement table has a row for answer pages", "Answer pages" in pp_ and "Search & Answer Engine" in pp_)
     cl = (ROOT / "rollout/universal/CLAUDE.md").read_text()
     sh = (ROOT / "rollout/universal/START-HERE.md").read_text()
-    check("CLAUDE.md and START-HERE count the sections as §1–§21 / twenty-one", "§1–§21" in cl and "twenty-one sections" in sh)
+    check("CLAUDE.md and START-HERE count the sections as §1–§23 / twenty-three", "§1–§23" in cl and "twenty-three sections" in sh)
     hits = []
     for p in list(SK.rglob("*")) + list(HERE.rglob("*")):
         if p.is_file() and p.suffix in (".md", ".py", ".txt", ".json"):

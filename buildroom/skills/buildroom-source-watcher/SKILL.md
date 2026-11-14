@@ -39,9 +39,9 @@ Before any other work, read these reference files in order:
 3. **`references/filter-templates.md`** — 8 pre-built filter templates the member can pick from
 4. **`references/vault-protection.md`** — The proprietary content protection architecture
 5. **`references/code-templates.md`** — The Python code patterns used to generate each watcher
-6. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. This skill reads §1–§4, §12 and §13 to pre-fill the interests profile, and writes only a §1 tools line, one §13 row, and §8. If there is no Business File, skip the protocol entirely; this skill is complete without it.
+6. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. This skill reads §1–§4, §12 and §13 (and §17 when it is filled) to pre-fill the interests profile, and writes only a §1 tools line, one §13 row, and §8. If there is no Business File, skip the protocol entirely; this skill is complete without it.
 
-Also on hand, unchanged from the founder's repositories: `references/video-to-vault/` (the Week 2 YouTube skills `/watch-to-vault` and `/channel-to-vault` with their README and installer) and `references/podcast-watcher-README.md` (the Week 3 podcast watcher). If the member is in Claude Code and the source is a YouTube video or channel, offer the Video-to-Vault skills first: no code to generate, no key needed.
+Also on hand, unchanged from the founder's repositories: `references/video-to-vault/` (the Week 2 YouTube skills `/watch-to-vault` and `/channel-to-vault` with their README and installer) and `references/podcast-watcher-README.md` (the Week 3 podcast watcher). If the member is in Claude Code and the source is a YouTube video or channel, offer the Video-to-Vault skills first: no code to generate, no key needed. To install them from this folder, copy `references/video-to-vault/watch-to-vault.md` to `~/.claude/skills/watch-to-vault/SKILL.md` and `references/video-to-vault/channel-to-vault.md` to `~/.claude/skills/channel-to-vault/SKILL.md`, then set the vault path as step 3 of their README says (the README's `cp -r` lines and `install.sh` assume the founder's repository, not this folder). Tell the member first that these two skills file their notes in `sources/videos` unless SOURCE_FOLDER is changed, and that they look up the names of existing notes to link to; the /External rules below describe the watchers this skill generates.
 
 Load all of them before Phase 1.
 
@@ -50,6 +50,19 @@ Load all of them before Phase 1.
 Follow the protocol only if the member has a Business File. Note silently: what they do and their tools (§1), who they serve (§2), the offer (§3), the positioning (§4), the current constraint (§12), and the Build Plan (§13). These become the interests profile in Phase 4 and the topics-to-avoid. Never quote the file back as a question the member has already answered.
 
 ## Phase 1 — Source Selection
+
+Say this once, before the member chooses: every watcher scores and summarises what it finds with an AI model, so it needs an OpenAI API key and a few dollars of credit, whichever source they pick. The key goes in the project's `.env` file, never in chat.
+
+**Podcasts need a transcript, and the member chooses how to get it.** The templates carry the full podcast watcher: feed checker, transcript fetcher, scorer, extractor and note writer. A podcast feed only gives the audio, so before generating, tell the member the two ways the watcher can get the words and ask which they want:
+
+- **Listen Notes.** A Listen Notes API key on a paid plan that includes transcripts, set as `LISTEN_NOTES_API_KEY` in `.env`. No audio is downloaded. Not every episode has a transcript there.
+- **Speech-to-text through their OpenAI key.** Set `WHISPER_ENABLED=true` in `.env`. No extra key, but it is billed per minute of audio (the founder's figure was $0.006 a minute, about 36 cents for an hour-long episode; have the member check OpenAI's current price), each episode takes a few minutes to download and transcribe, and `ffmpeg` must be installed for any audio file over 25 MB, which is most full episodes. Episodes longer than `MAX_AUDIO_MINUTES` (default 90) are skipped.
+
+The default is both off: no Listen Notes key and speech-to-text off, because speech-to-text spends money. With both off the watcher captures nothing and says so on every run, so do not deliver a podcast watcher until the member has picked one. With both on, Listen Notes is tried first and speech-to-text is the fallback. An episode with no transcript yet is not marked as seen; it is tried again on each run until it is older than 14 days. Before the first real run, do one test run with the member and confirm that at least one episode came back with text.
+
+**Twitter and newsletters are a custom path.** They have no template here. Tell the member so if they choose one, build and test the checker and fetcher with them, and never ship a watcher whose fetch step has not returned real content in a test run. For a first watcher, recommend YouTube or a blog feed.
+
+**YouTube channels are stored by their channel ID** (it starts with `UC`). A handle (`@name`) or a channel URL will not work in `sources.json`: open the channel page, find the ID (About, then Share channel, then Copy channel ID), and store that.
 
 Open with this:
 
@@ -237,7 +250,7 @@ Show them their 7-day setup plan:
 ```
 ━━ YOUR WATCHER IS READY ━━
 
-DOWNLOAD: [source-name]-watcher.zip
+WHERE IT IS: [the folder you wrote it to, or the ZIP file if you delivered one]
 CONFIGURED FOR:
 - Source: [source type with count]
 - Filter: [their filter template]
@@ -245,7 +258,7 @@ CONFIGURED FOR:
 - Importance threshold: [score]/10
 
 YOUR 7-DAY SETUP:
-Day 1: Download and unzip
+Day 1: Open the watcher folder (unzip it first if you were given a ZIP)
 Day 2: Install Python dependencies (`pip install -r requirements.txt`)
 Day 3: Set up .env file with API keys and vault path
 Day 4: Test run (`python watcher.py`)

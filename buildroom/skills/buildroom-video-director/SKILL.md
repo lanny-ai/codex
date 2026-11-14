@@ -37,7 +37,7 @@ Read before member-facing work, in this order:
 
 **Requires §1 and §2. Substantially better with §3, §4 and §17.** A video speaks to a person (§2) about a promise (§3) in the member's voice (§17).
 
-**Design System (§22):** if §22 is `complete`, read `Design/System/tokens.json` and `design-system.md` in the member's vault before designing anything: captions and end cards use the system's accent and fonts. Don't invent a palette or fonts. If §22 is empty, carry on as before and offer **Website Design Studio** once ("make my website look like me").
+**Design System (§22):** if §22 is `complete` or `provisional` (say so when it is provisional), read `Design/System/tokens.json` and `design-system.md` before designing anything (§22's Files line says where they are; if you can't open them, ask the member to attach `design-system.md` or `tokens.css`): captions and end cards use the system's accent and fonts. Don't invent a palette or fonts. If §22 is empty, carry on as before and offer **Website Design Studio** once ("make my website look like me").
 
 - Missing §2: the protocol's two-path fallback. Recommend the ICA session; or run the provisional interview and mark §19 `provisional`.
 - **Ad playbook:** run from the Ad Studio. If the member asks for a video ad directly, start the Ad Studio ("Make me ads"); it hands you the brief, the concept and the approved copy, and its gates G0–G2 carry over.
@@ -82,7 +82,7 @@ Write `edit.json` (`editing.md`): the clips in order, cutaways over the voice, t
 
 ### Phase 8 — Captions
 
-Transcribe the voice stem (`scripts/transcribe.py renders/<id>.voice.wav --snap-to-script script.txt`). Then either SubMagic (`scripts/submagic.py`, the member's template from §19; the default when the member has a key) or the director's own burned captions (`captions.mode: "burn"`, assemble again). Captions match the approved words exactly: names, numbers, brand words.
+Transcribe the voice stem (`scripts/transcribe.py renders/<id>.voice.wav --out transcript.json --snap-to-script script.txt`). Then either SubMagic (`scripts/submagic.py`, the member's template from §19; the default when the member has a key) or the director's own burned captions (`captions.mode: "burn"`, assemble again). Captions match the approved words exactly: names, numbers, brand words.
 
 ### Phase 9 — Review (Gates G3 and G4)
 
@@ -90,7 +90,7 @@ Run `scripts/review_video.py check` on every final. Then a **separate reviewer**
 
 ### Phase 10 — The kit and the Business File
 
-`scripts/review_video.py kit` builds the kit (`delivery.md`): named videos per ratio, SRT captions, thumbnails, the publish sheet with UTM links, the disclosure sheet. It refuses until G3, G4 and the member's approval are recorded. The kit is ready to publish; this skill never posts, uploads or changes an account.
+`scripts/review_video.py kit` builds the kit (`delivery.md`): named videos per ratio, SRT captions, thumbnails, the publish sheet with UTM links, the disclosure sheet. For the ad playbook the kit goes in its own folder, `ads/YYYY-MM/kit-video/`, beside the Ad Studio's `kit/` (never inside it). It refuses until G3, G4 and the member's approval are recorded, and it refuses any video whose file changed after it was recorded for review: record it again with `ledger.py ad`, then it is reviewed and approved again. The kit is ready to publish; this skill never posts, uploads or changes an account.
 
 Update the Business File per the protocol: **§19 Video** (the playbook run, footage and video library locations, video brand kit, caption template, consent status, content series, last delivered); the playbook's other line (proof → §18 proof vault entry; content → §14 content line; sales → the §5 or §15 reference; ad → the Ad Studio updates §18); §13 rows for what the video needs next (a landing variant, a reshoot, a testimonial to collect); §8 with the 1–5 rating. Emit the whole file with the "what changed" summary. Close with the next step the playbook names.
 

@@ -16,6 +16,7 @@ never printed, never written anywhere else. `keys` says which are set, by name o
   python3 publish.py indexnow https://…/answers/<slug> [--site https://…] [--dry-run]
   python3 publish.py verify https://…/answers/<slug> [--expect "<a phrase from the page>"]   # live? indexable? in the sitemap? crawlers allowed?
   python3 publish.py record search/answers/<slug>.md --url https://…/answers/<slug> [--questions search/questions.json]
+                                                                 # --questions defaults to the questions.json beside the answers folder
 
 Keys by builder (`.env`): WordPress `WP_USER`, `WP_APP_PASSWORD` (an application password, not the login password);
 Webflow `WEBFLOW_API_TOKEN`, `WEBFLOW_COLLECTION_ID`; Shopify `SHOPIFY_STORE` (the myshopify.com host), `SHOPIFY_ACCESS_TOKEN`;
@@ -66,7 +67,7 @@ def load_env(folder="."):
     env = {}
     p = Path(folder) / ".env"
     if p.exists():
-        for line in p.read_text(encoding="utf-8", errors="ignore").splitlines():
+        for line in p.read_text(encoding="utf-8-sig", errors="ignore").splitlines():   # utf-8-sig: Notepad may add a BOM
             line = line.strip()
             if not line or line.startswith("#") or "=" not in line:
                 continue
@@ -87,6 +88,12 @@ def mask(text, env):
         if v and len(v) >= 6:
             text = text.replace(v, "•••")
     return text
+
+
+def with_scheme(site):
+    """`example.com` → `https://example.com`: a bare domain would make a relative canonical link and a refused request."""
+    site = (site or "").strip()
+    return site if not site or re.match(r"https?://", site, re.I) else "https://" + site.lstrip("/")
 
 
 def cmd_keys(a):
@@ -263,6 +270,7 @@ def paste_checklist(page, site, path):
 
 
 def cmd_render(a):
+    a.site = with_scheme(a.site)
     fm, page = render_page(a.file, a.site, a.schema)
     folder = Path(a.file).parent
     path = a.path or f"answers/{page['slug']}"
@@ -457,6 +465,7 @@ def cmd_publish(a):
     env = load_env(a.env_dir)
     if a.builder not in BUILDERS:
         die(f"--builder must be one of {', '.join(BUILDERS)}")
+    a.site = with_scheme(a.site)
     fm, page = render_page(a.file, a.site, a.schema)
     path = a.path or f"answers/{page['slug']}"
     folder = Path(a.file).parent
@@ -499,7 +508,7 @@ def cmd_indexnow_key(a):
     if not env.get("INDEXNOW_KEY"):
         with open(folder / ".env", "a", encoding="utf-8") as f:
             f.write(f"\nINDEXNOW_KEY={key}\n")
-    site = a.site.rstrip("/") if a.site else "https://YOUR-DOMAIN"
+    site = with_scheme(a.site).rstrip("/") if a.site else "https://YOUR-DOMAIN"
     print(json.dumps({"ok": True, "key_file": str(keyfile), "upload_to": f"{site}/{key}.txt",
                       "note": "Upload the key file to the site root (Wix and WordPress with Rank Math can host it for you; Squarespace cannot, so skip IndexNow there). "
                               "The key is in .env; it is not a secret in the usual sense but keep it there."}, indent=2))
@@ -650,9 +659,15 @@ def cmd_record(a):
         text = re.sub(r"^published:.*$", f"published: {today}", text, count=1, flags=re.M)
     p.write_text(text, encoding="utf-8")
     out = {"ok": True, "file": str(p), "url": a.url, "status": "published"}
-    qp = Path(a.questions) if a.questions else None
-    if qp and qp.exists() and fm.get("id"):
-        data = json.loads(qp.read_text(encoding="utf-8"))
+    # without --questions, the map beside the answers folder (search/questions.json for search/answers/<slug>.md)
+    qp = Path(a.questions) if a.questions else p.resolve().parent.parent / "questions.json"
+    if a.questions and not qp.exists():
+        out["note"] = f"{qp} not found: the question map was not updated"
+    if qp.exists() and fm.get("id"):
+        try:
+            data = json.loads(qp.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as e:
+            die(f"the page is recorded, but {qp} is not valid JSON ({e}); the question map was not updated")
         q = next((x for x in data.get("questions", []) if x.get("id") == fm["id"]), None)
         if q:
             q["status"] = "published"
@@ -667,7 +682,19 @@ def cmd_record(a):
     print(json.dumps(out, indent=2))
 
 
+
+def utf8_output():
+    """Print as UTF-8 whatever the console's code page, so a name or a question with a character outside cp1252
+    (or the → in a next-step line) does not crash the script on Windows after the file has been written."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
+
+
 def main(argv=None):
+    utf8_output()
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--env-dir", default=".", help="the folder holding .env (default: the current folder, where the Business File lives)")
     sub = ap.add_subparsers(dest="cmd", required=True)

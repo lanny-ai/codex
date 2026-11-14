@@ -24,7 +24,7 @@ A win is not an asset until it is written down with the client's permission reco
 - **Ask** ("ask for a testimonial," "how do I ask [client] for a case study"): the interview and permission ask, drafted for the member to send by hand.
 - **Harvest** ("build my proof bank," "what proof do I have"): go through the file, inbox, call notes and chat the member pastes; list every candidate win; capture the strongest three.
 - **Place** ("what proof can I use for my offer page / ad / post"): pick the right story for the asset by origin and scope, copy it by ID into the owning tool's view (`launches/<slug>/proof-bank.md`, `linkedin/story-bank.md`, the Ad Studio's manifest), and record the placement.
-- **Weekly** ("proof check"): ten minutes: new wins since last week; pending asks nudged once at 7 days and closed as `declined` at 30 with a thank-you; answers filed and the waiting story deployed; every placement checked live and still consented; anything due for its yearly re-confirmation.
+- **Weekly** ("proof check"): ten minutes: new wins since last week; pending asks nudged once at 7 days and, with still no reply at 30, set to `no answer` with a thank-you (silence is not a no: the story stays unused, and the client may be asked once more after 90 days or when a new win gives a natural reason); answers filed and the waiting story deployed; every placement checked live and still consented; anything due for its yearly re-confirmation.
 
 ## Session Flow
 

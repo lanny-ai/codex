@@ -3,7 +3,7 @@
 ## Knowledge Base
 
 ### The Core Truth
-Most happy clients WANT to refer you. They just don't know how. 92% of consumers trust friend/family recommendations over any advertising (Nielsen). Word-of-mouth = 20-50% of purchasing decisions (McKinsey). Referred customers: 16% more profit, 37% higher retention (HBS). Up to 20-30% of conversions from referrals with a formal program (Buyapowa).
+Most happy clients WANT to refer you. They just don't know how. People trust a recommendation from someone they know more than any advertising, and a referred client tends to stay longer and be easier to work with. A simple, repeatable way of asking is what turns goodwill into introductions.
 
 Key insight: clients think about you most while working together — by the time they talk to someone who needs you, you're out of mind. The system creates deliberate, timed moments.
 
@@ -25,7 +25,7 @@ Non-competing businesses serving same ICA. Approach peer-to-peer: "I noticed we 
 
 No commissions initially. Trust first.
 
-### Framework 4: Referral Friction Audit (Yale SOM / UChicago)
+### Framework 4: Referral Friction Audit
 1. Don't know WHO → specific description of who to look for
 2. Don't know WHAT to say → exact 2-sentence text
 3. Don't know what NEXT → clear next step

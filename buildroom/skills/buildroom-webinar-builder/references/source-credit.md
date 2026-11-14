@@ -1,6 +1,6 @@
 # Source credit
 
-Whose methods this skill adapts, and how. Methods are credited structures; nobody's scripts or slides are reproduced, and partner course material is never used.
+Whose methods this skill adapts, and how. Methods are credited structures; nobody's scripts or slides are reproduced.
 
 | Source | What the skill uses | How |
 |---|---|---|

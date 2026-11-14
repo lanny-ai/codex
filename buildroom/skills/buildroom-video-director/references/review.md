@@ -33,7 +33,7 @@ Say it plainly in every review:
 
 ## Repairs
 
-Smallest layer first: captions, then the edit (a different take, a trim, a cutaway), then a generated shot, then a reshoot. Never regenerate a shot to fix a word. At most two repair passes per video by default; the ledger counts them. A repaired file is reviewed again (the ledger resets G3 and G4 when the files change).
+Smallest layer first: captions, then the edit (a different take, a trim, a cutaway), then a generated shot, then a reshoot. Never regenerate a shot to fix a word. At most two repair passes per video by default; the ledger counts them. A repaired file is reviewed again: record the new renders with `ledger.py ad` after every repair, even under the same file names. The ledger keeps a checksum of each file, resets G3, G4 and the member's approval when any file changed, and the kit refuses a file that changed after it was recorded.
 
 ## Release states
 

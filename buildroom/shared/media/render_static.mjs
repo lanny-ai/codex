@@ -271,7 +271,7 @@ async function fitAndCheck(page, spec, ratio) {
 
 async function main() {
   const args = process.argv.slice(2);
-  const specs = [], opts = { out: 'renders', overlay: false, ratios: Object.keys(RATIOS) };
+  const specs = [], opts = { out: 'renders', overlay: false, ratios: ['1x1', '4x5', '9x16'] };   // the three static ad sizes; 16x9 only when asked for
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--out') opts.out = args[++i];
     else if (args[i] === '--overlay') opts.overlay = true;

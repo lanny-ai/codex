@@ -11,7 +11,8 @@ adds Gemini and Copilot (worth a quarterly look). Stdlib only. Run from the fold
 Business File; `--folder` may go before or after the command.
 
   python3 citation_check.py plan --business "Ruiz Advisory" --category "bookkeeper" [--city "Boise"] [--audience "small construction firms"] [--n 10] [--all-engines] [--month 2026-11]
-  python3 citation_check.py prompts [--month 2026-11]                       # the checklist to run and fill in, as markdown
+  python3 citation_check.py prompts [--month 2026-11] [--force]             # the checklist to run and fill in, as markdown
+                                                                            # (refuses to overwrite a filled-in checklist without --force)
   python3 citation_check.py reword P-03 --b "What's a fair price for a clean-up?"   # replace a wording the member would not type
   python3 citation_check.py log P-03 --engine chatgpt --result own [--url …] [--variant b] [--run 2] [--competitor "Acme Books"]
   python3 citation_check.py log --from search/checks/2026-11-prompts.md    # read the filled-in checklist instead of one log per cell
@@ -206,6 +207,11 @@ def cmd_prompts(a):
     lines += ["", "google-ai = the AI Overview or AI Mode on Google (note too whether your profile shows in the local pack) · chatgpt · perplexity"
               + (" · gemini · copilot" if len(engines) > 3 else " (gemini and copilot: quarterly, `plan --all-engines`)") + ".", ""]
     out = Path(a.folder) / "checks" / f"{month}-prompts.md"
+    if out.exists() and not a.force:   # never wipe what the member typed into the checklist
+        filled = [l for l in out.read_text(encoding="utf-8").splitlines()
+                  if re.match(r"\|\s*P-\d+\s*\|", l) and any(c.strip() for c in l.strip().strip("|").split("|")[4:])]
+        if filled:
+            die(f"{out} already holds {len(filled)} filled-in row(s); `log --from {out}` first, then `prompts --force` for a fresh checklist")
     out.write_text("\n".join(lines), encoding="utf-8")
     print(json.dumps({"ok": True, "wrote": str(out)}, indent=2))
 
@@ -373,7 +379,19 @@ def cmd_report(a):
     print(json.dumps(rep, indent=2, ensure_ascii=False))
 
 
+
+def utf8_output():
+    """Print as UTF-8 whatever the console's code page, so a name or a question with a character outside cp1252
+    (or the → in a next-step line) does not crash the script on Windows after the file has been written."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
+
+
 def main(argv=None):
+    utf8_output()
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--folder", default="search")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -387,7 +405,7 @@ def main(argv=None):
     s = sp("plan", cmd_plan); s.add_argument("--business", required=True); s.add_argument("--category", required=True)
     s.add_argument("--city", default=""); s.add_argument("--audience", default=""); s.add_argument("--n", type=int, default=DEFAULT_N)
     s.add_argument("--all-engines", action="store_true"); s.add_argument("--force", action="store_true")
-    sp("prompts", cmd_prompts)
+    s = sp("prompts", cmd_prompts); s.add_argument("--force", action="store_true")
     s = sp("reword", cmd_reword); s.add_argument("prompt"); s.add_argument("--a", default=""); s.add_argument("--b", default="")
     s = sp("log", cmd_log); s.add_argument("prompt", nargs="?", default=""); s.add_argument("--engine", default=""); s.add_argument("--result", default="")
     s.add_argument("--variant", default="a"); s.add_argument("--run", type=int, default=1); s.add_argument("--url", default="")

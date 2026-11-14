@@ -22,7 +22,7 @@ Read these reference files, in order, before any member-facing work:
 
 **Requires §9 (Operations & SOPs) and §11 (Training & Onboarding).** The operations and people blocks of the dashboard are read from SOP runs, exceptions, and checkouts. §6 (Funnel) and §10 (Team & Hiring) enrich it but are not required.
 
-- §9 missing → send the member to the **SOP Creator** first. A dashboard with no operations block is a sales report.
+- §9 missing, or listing no documented processes → send the member to the **SOP Creator** first. A dashboard with no operations block is a sales report.
 - §11 missing but §9 present → proceed. Leave the checkouts/escalations lines out of the People block, note in §12 that they'll be added after the Training Doc Builder, and mark §12 `provisional`.
 - Solo member with no hire → proceed in full. The meeting becomes the weekly review held alone; the owner-hours metric is optional and you say so honestly.
 
@@ -33,6 +33,8 @@ Read these reference files, in order, before any member-facing work:
 Follow the protocol. Pre-fill from the file: business and team (§1), funnel rates (§6), SOP list with exceptions and variance (§9), scorecard outcomes and the hire (§10), checkout status and the sign-off log (§11), offer and pricing (§3). Ask one at a time what remains: where the numbers live today by perspective, what they already track and how often, the last time they found out too late, this quarter's 1–3 priorities, the meeting slot and attendees, which sources can export or connect, and where the dashboard will live.
 
 "The last time I found out too late" is the most important answer in the intake. Push for the specific moment and the number that would have caught it.
+
+What the file really holds: the three funnel rates (§6), the SOP names and owners (§9), the scorecard outcomes (§10) and the checkout status of each module (§11). It does not hold SOP run counts, exception tallies, escalations, proposals, revenue or active clients, even though `knowledge-base.md` Section 7 and Prompt 1 list them under those sections. Those numbers are read from the member's own sources (the Operations Pack, the sign-off log, the CRM, the bank), each named in the source column, or they are left blank and flagged.
 
 ### Phases 1–5 — the build
 

@@ -218,6 +218,9 @@ def main():
         return
     if not (a.video and a.cost and a.quote):
         raise SystemExit("needs --video, --cost (in the plan's units) and --quote (where the price came from)")
+    key()  # stop here, before anything is reserved, when there is no key
+    if not a.video_url and not Path(a.video).is_file():
+        raise SystemExit(f"video not found: {a.video}")
     try:
         ledger.apply(a.project, ledger.cmd_reserve, key=k, asset_id=a.asset_id, cost=a.cost, quote=a.quote,
                      request_ref=f"submagic:{Path(a.video).name}:{a.template}")

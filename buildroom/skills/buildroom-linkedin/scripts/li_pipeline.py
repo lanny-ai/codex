@@ -197,7 +197,7 @@ def load(path, create=False, on=None):
             return new_pipeline(on)
         raise FileNotFoundError(str(path))
     try:
-        data = json.loads(p.read_text(encoding="utf-8"))
+        data = json.loads(p.read_text(encoding="utf-8-sig"))   # utf-8-sig: a file saved by Notepad may start with a BOM
     except (ValueError, UnicodeDecodeError) as e:
         refuse(f"{path} is not readable JSON ({e}); restore it from a backup or fix the file by hand")
     if not isinstance(data, dict) or data.get("schema") != SCHEMA:
@@ -775,7 +775,18 @@ def cmd_settings(data, a):
     return s
 
 
+def utf8_output():
+    """Print as UTF-8 whatever the console's code page: a name such as Alić or the → in a stage map must not crash
+    the script on Windows (cp1252), and a redirected ghl-build.json must be UTF-8 for ghl_push.py."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
+
+
 def main(argv=None):
+    utf8_output()
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     def mk(name):
