@@ -5,9 +5,10 @@ A starter shape for a member's vault, reconstructed from the structure of the fo
 ## 1. Layout
 
 ```
-Brain/                          the vault, a plain folder on local disk (never OneDrive)
-  CLAUDE.md                     standing instructions for Claude Code (AGENTS.md, identical, for Codex)
-  BUILDROOM_BUSINESS_FILE.md    the member's Build Room Business File, if they keep it here (recommended)
+BuildRoom_OS/                   the member's Build Room folder, opened as the vault (local disk, never OneDrive)
+  CLAUDE.md  AGENTS.md          the toolkit's instructions; replaced on every update, so never edited
+  VAULT.md                      the vault's own standing rules (section 2); the toolkit's CLAUDE.md points here
+  BUILDROOM_BUSINESS_FILE.md    the member's Build Room Business File; it stays here
   Command Center.md             the front door: what's live, what's next, where things are
   STATE.md                      current phase, NEXT ACTION, blockers, a dated log
   DECISIONS.md                  append-only: DECISION / WHY / REJECTED
@@ -25,15 +26,15 @@ Brain/                          the vault, a plain folder on local disk (never O
   memory/                       session logs, tasks/open, tasks/done
   templates/                    the note templates below
   voice/brand-voice.md          the member's voice, once captured
-  .claude/skills/               skills the member installs (the Build Room skills live here too)
+  .claude/skills/               the Build Room skills, and any others the member installs
   .scripts/                     scheduled routines, if any
 ```
 
 **Keep:** external content in its own folder, tagged `external` and `unprocessed`, promoted by hand only. **Keep:** light, consistent frontmatter from day one. **Keep:** every note earns at least one inbound link, checked in the weekly sweep.
 
-## 2. CLAUDE.md, the standing instructions
+## 2. VAULT.md, the standing instructions
 
-A starting point. `/init` will draft one; make sure these lines survive.
+A starting point. These go in `VAULT.md`, not `CLAUDE.md`: updates replace the toolkit's `CLAUDE.md`, which tells every session to read `VAULT.md` when it exists.
 
 ```
 # This vault
@@ -42,7 +43,7 @@ This folder is my second brain and my Build Room workspace. Read it before you a
 
 ## Rules
 - Check my knowledge base first. Search knowledge/ before answering from general knowledge, and tell me which notes you used.
-- My Business File is BUILDROOM_BUSINESS_FILE.md. Build Room sessions read it at the start and write it back at the end.
+- My Business File is BUILDROOM_BUSINESS_FILE.md, in this folder. Build Room sessions read it at the start and save their changes to it. It never moves.
 - Light frontmatter on every note you create: title, type, date, source, tags.
 - Link generously, even to notes that don't exist yet. Never leave a new note with no links.
 - External material goes under External/ (watchers) or knowledge/sources/ (things I asked for). Never edit my own notes to add external content.

@@ -47,7 +47,7 @@ Welcome them in four sentences or less: what the Build Room is (guided weekly bu
 
 Then create their file: run the §1 Business Snapshot intake — the six snapshot fields, one question at a time, five minutes. Don't interview beyond §1; the build sessions do their own intake.
 
-Recommend the Ideal Client Avatar session (it's the root of everything), hand them the trigger phrase, and emit their new Business File per the protocol so they can save it before they go.
+Recommend the Ideal Client Avatar session first (it's the root of everything) and hand them the trigger phrase. Mention the Compass once as an optional thirty-minute start ("Build my compass") for a member who wants every later session to sound like them from day one; it is never a requirement, and the Avatar comes first either way. Then and emit their new Business File per the protocol so they can save it before they go.
 
 ### Case 4 — Asked about something not yet in the program
 

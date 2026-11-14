@@ -4,7 +4,8 @@ This folder is a Build Room member's workspace. The Build Room (AI Momentum Labs
 
 ## The Business File
 
-- Path: `./BUILDROOM_BUSINESS_FILE.md` in this folder. It is the member's single source of truth: avatar, offer, positioning, funnel, SOPs, role, training, weekly ops, build plan, lead gen engine, sales conversations, follow-up engine, founder compass, advertising, video, launches and events, proof, search and answer presence, design system, book (§1–§23, with §8 Session Log last).
+- Path: `./BUILDROOM_BUSINESS_FILE.md` in this folder. It never moves, including when this folder is also the member's Obsidian vault.
+- If `./VAULT.md` exists, read it too and follow it: it holds the member's own second-brain rules (this file is replaced on every update; `VAULT.md` is theirs and is never replaced). It is the member's single source of truth: avatar, offer, positioning, funnel, SOPs, role, training, weekly ops, build plan, lead gen engine, sales conversations, follow-up engine, founder compass, advertising, video, launches and events, proof, search and answer presence, design system, book (§1–§23, with §8 Session Log last).
 - **Read it at the start of every Build Room session** before asking the member anything. Pre-fill from it; ask only what is missing.
 - **Write it back at the end of every session** per the skill's protocol (`references/business-file-protocol.md` inside each skill). When the protocol says "emit the full updated file in a code block," in this environment that means: also write the updated file to `./BUILDROOM_BUSINESS_FILE.md` directly, preserving every section you did not change byte-for-byte, and tell the member what changed.
 - Member edits win. Never overwrite a hand edit silently. Never write a fact the member has not confirmed. Never invent a number.

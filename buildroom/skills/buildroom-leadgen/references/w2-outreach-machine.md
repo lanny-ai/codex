@@ -3,14 +3,14 @@
 ## Knowledge Base
 
 ### The Core Truth
-Cold outreach isn't dead — it's just done wrong by most people. (Hormozi, $100M Leads). Outreach is about relevance + timing + specificity, not volume alone. Personalized targeted outreach achieves 15-30% response rates vs. generic's 1-5%. Responding within 5 minutes of intent increases conversion 9x. 27% of leads are never contacted. Companies that don't follow up within 24 hours lose 60%+ of conversion potential.
+Cold outreach isn't dead — it's just done wrong by most people. (Hormozi, $100M Leads). Outreach is about relevance + timing + specificity, not volume alone. A message written for one person gets answered far more often than a generic one. Answering fast when someone shows interest matters more than almost anything else, and many leads are lost simply because nobody followed up.
 
 ### Framework 1: Hormozi's Cold Outreach Canvas
-**Step 1 — Build the List:** Software scraping, list brokers, manual searching (LinkedIn, directories, communities). Quality over quantity — 500 perfect-fit ICAs > 5,000 random contacts.
+**Step 1 — Build the List:** Manual searching (LinkedIn, directories, communities, event attendee lists you were part of). Quality over quantity: 50 perfect-fit people beat 5,000 random contacts. **Do not buy a list and do not scrape one.** Bought and scraped contacts never agreed to hear from you: emailing them gets the member's domain marked as spam, breaks most email tools' terms, and in many places breaks the law.
 
 **Step 2 — Craft the Message:** Opening: personalized comment specific to THEM. Offer: something free they'd normally pay for. CTA: one low-friction next step. Avoid: starting with "I", listing credentials first, multiple CTAs, long paragraphs.
 
-**Step 3 — Volume with Variation:** 100 contacts/day, follow up 2-3 times. Math: 100/day x 3% = 3 responses/day x 20 days = 60 conversations/month. At 10% close = 6 new clients/month.
+**Step 3 — Steady, with Variation:** a number of new people each working day that the member can keep up and still personalise (10 to 20 is a sound start; on LinkedIn, stay inside the LinkedIn Engine's daily limits), follow up twice. Work the math with the member's own reply and close rates once they have a few weeks of them; until then, don't promise a number of clients.
 
 ### Framework 2: The Personalization Paradox
 **Tier 1 — Category (scalable):** Reference role, industry, situation. "Most [their role] I talk to struggle with [specific problem]..."
@@ -18,7 +18,7 @@ Cold outreach isn't dead — it's just done wrong by most people. (Hormozi, $100
 **Tier 3 — Creepy (avoid):** Referencing things they didn't share publicly.
 
 ### Framework 3: The 5-Touch Follow-Up Sequence
-80% of sales require 5+ touches. 44% give up after 1.
+Most sales take several touches, and most people give up after one.
 
 **Touch 1 (Day 1):** Value-forward, specific, low-friction CTA.
 **Touch 2 (Day 3-4):** Short check-in + additional value. Never "just following up." Always add something new.
@@ -27,9 +27,10 @@ Cold outreach isn't dead — it's just done wrong by most people. (Hormozi, $100
 **Touch 5 (Day 21):** Breakup message. Scarcity of "last message" creates urgency.
 
 ### Framework 4: Channel Selection
-**LinkedIn (B2B):** Tuesdays/Wednesdays 10am-12pm. Connection acceptance: 30-40%. Response: 15-25%.
-**Email:** Highest scale. Subject line = 80% of opens. Under 150 words.
-**DM/SMS:** High open rates, low tolerance for coldness. Best for community/content engagers.
+**LinkedIn (B2B):** mid-week mornings tend to work. Follow the LinkedIn Engine's pacing rules; the member's own acceptance and reply rates are the only benchmark that counts.
+**Email:** Highest scale. The subject line decides whether it is opened. Under 150 words. A cold email to a business address must say who the member is, be relevant to that person's work, and carry a plain way to say "no more"; honour it at once.
+**DM:** Low tolerance for coldness. Best for people who already engage with the member's content or community.
+**Text messages (SMS): only to people who gave the member their number and agreed to be texted.** A cold marketing text is illegal in the US without prior written consent (and restricted almost everywhere else), and the fines are per message. Never text a bought, scraped or guessed number.
 **Multi-channel:** Day 1 LinkedIn → Day 3 Email → Day 7 LinkedIn → Day 12 Email → Day 21 Final.
 
 ### Psychology of Cold Outreach
@@ -60,7 +61,7 @@ Cold outreach isn't dead — it's just done wrong by most people. (Hormozi, $100
 ## Prompt System
 
 ### System Prompt
-You are a cold outreach strategist and messaging specialist. You understand Hormozi's Cold Outreach Canvas, Rule of 100, Personalization Paradox, 5-touch follow-up architecture, channel selection, and the 6 common failures. Output: complete outreach machine with list-building, personalized templates, 5-touch follow-up, and tracking. Every message under 150 words, opens in their world, every follow-up adds something new.
+You are a cold outreach strategist and messaging specialist. You understand Hormozi's Cold Outreach Canvas, steady daily outreach, the Personalization Paradox, 5-touch follow-up architecture, channel selection, and the 6 common failures. Output: complete outreach machine with list-building, personalized templates, 5-touch follow-up, and tracking. Every message under 150 words, opens in their world, every follow-up adds something new.
 
 ### Input Template
 ```

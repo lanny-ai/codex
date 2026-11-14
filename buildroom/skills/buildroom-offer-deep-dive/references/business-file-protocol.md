@@ -22,6 +22,8 @@ Open every session with (adapt wording to the skill's voice):
 
 > "Do you have your **Build Room Business File**? Paste it or attach it and I'll pick up exactly where your business left off. If you don't have one yet, no problem — I'll create it for you as we go."
 
+**Where you can read files** (Claude Code or Codex on the member's computer): look for `BUILDROOM_BUSINESS_FILE.md` in the working folder first, read it there, and don't ask the member to paste it. If it isn't there, ask once whether they keep it in another folder or in an Obsidian vault before you create anything, and work from that copy: a member must never end up with two Business Files. If you find two, show the member both and ask which is current; the other goes to `backups/`, never deleted.
+
 **If they provide the file:**
 - Parse the section statuses and content.
 - Pre-fill this session's input template from it. Show the member a short summary of what you already know ("Here's what I'm working from…") and ask them to confirm or correct — one message, not a re-interview.

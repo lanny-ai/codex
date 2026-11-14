@@ -4,9 +4,9 @@
 
 ### Two Core Truths
 
-**Truth 1 (Content):** Content doesn't replace outreach — it amplifies it. Used alongside warm outreach, cold outreach, and referrals, content functions as a trust accelerator. Justin Welsh built $8.3M in solo revenue from content with zero paid ads.
+**Truth 1 (Content):** Content doesn't replace outreach — it amplifies it. Used alongside warm outreach, cold outreach, and referrals, content functions as a trust accelerator.
 
-**Truth 2 (Pipeline):** The most expensive lead gen problem isn't generating too few leads — it's losing leads you already have. 27% of leads are never contacted. 80% of sales require 5+ touches but 44% give up after 1. Without a pipeline system, leads fall into a black hole.
+**Truth 2 (Pipeline):** The most expensive lead gen problem isn't generating too few leads — it's losing leads you already have. Many leads are never contacted at all, and most sales need several touches while most people stop after one. Without a pipeline system, leads fall into a black hole.
 
 ### Framework 1: Justin Welsh Content Flywheel
 
@@ -43,14 +43,10 @@ Three functions: HOOK (gets attention), RETAIN (creates curiosity), REWARD (fulf
 5. **Proposal Sent** — investment and terms shared. Follow-up plan in place.
 6. **Client** — signed and paid. Onboarding begins. Referral triggers scheduled.
 
-**Pipeline Health Benchmarks:**
-- Leads → Conversations: 20-40%
-- Conversations → Calls: 40-60%
-- Calls → Proposals: 60-80%
-- Proposals → Clients: 30-50%
+**Pipeline health:** track the member's own rate at each step (leads to conversations, conversations to calls, calls to proposals, proposals to clients) for a month, then work on the weakest step. Their own numbers are the benchmark; there is no reliable outside figure for a business their size.
 
 ### Framework 4: Lead Nurture Sequence
-Most B2B buyers not ready on first contact. 65% of organizations lack a nurture framework. "Not now" leads become "yes" clients 3-6 months later — if you stay present.
+Most buyers are not ready on first contact. "Not now" leads become "yes" clients 3-6 months later — if you stay present.
 
 **Monthly Touchpoint (5-10 min/lead):** Relevant content, quick check-in, industry observation. Never ask for anything. Just provide value and stay visible.
 

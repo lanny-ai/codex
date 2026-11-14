@@ -32,7 +32,7 @@ date_captured: 2026-10-24
 source: interview by email, 2026-10-22 (proof/consents/P-01-2026-10-23.eml)
 origin: D                  # A B D E H X R U
 kind: result               # money | result | transformation | freedom
-permission: named          # named | anonymous | pending | declined | withdrawn
+permission: named          # named | anonymous | pending | no answer | declined | withdrawn
 scope: site, emails, social, events   # site emails social ads video events
 name: yes
 company: yes
@@ -64,7 +64,7 @@ Ads (scope), a photo (scope), any free-event claim (origin D).
 
 ## Rules of the file
 
-- A story with `permission: pending`, `declined` or `withdrawn` is never copied out of this folder.
+- A story with `permission: pending`, `no answer`, `declined` or `withdrawn` is never copied out of this folder.
 - `id`, `origin`, `permission`, `scope` and `material_connection` travel with the words whenever another tool uses them.
 - Consents (the client's reply, or the dated note of a spoken yes plus its same-day email) are kept in `proof/consents/`, named by ID and date. The Video Director's signed consent forms are referenced here by path.
 - A composite (origin X) is its own entry with the label in the verbatim block, so it is never mistaken for a person.

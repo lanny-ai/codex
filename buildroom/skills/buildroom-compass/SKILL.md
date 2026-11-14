@@ -19,7 +19,7 @@ Read these reference files before any member-facing work:
 
 ## Prerequisites
 
-None. This is often the first session a member runs, and it can be run again when circumstances change. A member who already has a Compass from the founder's app or an older custom GPT can paste it: extract §17 from it, confirm, and skip to Phase 3.
+None. The navigator sends a new member to the Ideal Client Avatar first and offers this session as an optional thirty-minute start; it can be run at any point, and again when circumstances change. A member who already has a Compass from the founder's app or an older custom GPT can paste it: extract §17 from it, confirm, and skip to Phase 3.
 
 ## Session Flow
 

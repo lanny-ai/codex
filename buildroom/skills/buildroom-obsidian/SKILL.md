@@ -20,7 +20,9 @@ Read these reference files before any member-facing work:
 
 ## Prerequisites
 
-**Best with §1.** Nothing else is required; this is usually a member's first or second session. If there is no Business File, create one from the template at the end and put it in the vault: from now on the vault is where it lives.
+**Best with §1.** Nothing else is required; this is usually a member's first or second session. If there is no Business File, create one from the template at the end, in the Build Room folder.
+
+**One folder, not two.** The member's Build Room folder (the one with `BUILDROOM_BUSINESS_FILE.md`, `START-HERE.md` and the toolkit) becomes the vault. Nothing is moved. Every other session looks for the Business File, `backups/`, `proof/`, `launches/`, `search/`, `Design/` and `book/` in that folder, so a second folder would leave the member with two Business Files. The vault's own rules go in `VAULT.md`, never in `CLAUDE.md`: an update replaces `CLAUDE.md` and `AGENTS.md`, and the toolkit's `CLAUDE.md` already tells every session to read `VAULT.md` when it is there.
 
 **Environment:** a computer the member controls (Mac or Windows), a Claude subscription with Claude Code (or Codex), local disk for the vault. No API keys. You are running inside Claude Code or Codex on the member's machine, so do the file work yourself and narrate each step.
 
@@ -32,11 +34,13 @@ Follow the protocol. From §1 note their tools and where their material lives to
 
 ### Phase 1 — Install
 
-Walk `references/obsidian-guide.md` §2 in order: the desktop app (the program, not the installer, not the website), a vault named something like Brain on local disk (never OneDrive), Claude Code installed from the system terminal, first run on a subscription ("not API tokens"), trust the folder. The Terminal plugin is optional: "ergonomics, not capabilities." The requirement is that Claude Code or Codex is opened on the vault folder. On any error: "copy and paste that whole block and feed it in and say, huh?"
+Walk `references/obsidian-guide.md` §2 in order: the desktop app (the program, not the installer, not the website), the vault (in Obsidian choose **Open folder as vault** and pick the Build Room folder; do not create a new empty vault; the folder is on local disk, never OneDrive), Claude Code installed from the system terminal if it isn't already (skip any step that is already done: a member who is talking to you in Claude Code or Codex has it), first run on a subscription ("not API tokens"), trust the folder. The Terminal plugin is optional: "ergonomics, not capabilities." The requirement is that Claude Code or Codex is opened on that same folder. In Obsidian's settings, under Files and links, add `backups` to Excluded files so old copies of the Business File stay out of search.
+
+**Already has a vault somewhere else?** Ask which they want. Either bring its notes into the Build Room folder (copy, check, then they delete the old one themselves), or keep the old vault as it is: then the Business File and the toolkit stay in the Build Room folder, §1 records the old vault's path, and the rules below go in that vault's own `CLAUDE.md`. **A Business File that an earlier session moved into a separate vault** goes back to the Build Room folder. If there is now one in each place, show the member both, keep the fuller one in the Build Room folder, and put the other in `backups/` with today's date. Never delete either. On any error: "copy and paste that whole block and feed it in and say, huh?"
 
 ### Phase 2 — The standing instructions and the templates
 
-Write (or have the member ask for) the vault's `CLAUDE.md` from `references/vault-starter.md` §2, keeping the rules marked keep: check the knowledge base first, light frontmatter, link generously, external material in its own folder, the quality gate, expert hats, save on request, one output per ask. Add `AGENTS.md` as an identical copy for Codex. If the folder already has a `CLAUDE.md` or `AGENTS.md`, add the missing rules to it and never replace it. Create the layout in §1 and the templates in §3. Move the Business File into the vault root and tell the member that is now its home. Ask for the cheat sheet: "the cheat sheet is for the human, CLAUDE.md is for the AI."
+Write (or have the member ask for) `VAULT.md` in the Build Room folder from `references/vault-starter.md` §2, with these rules: check the knowledge base first, light frontmatter, link generously, external material in its own folder, the quality gate, expert hats, save on request, one output per ask. Do not edit the toolkit's `CLAUDE.md` or `AGENTS.md`: they are replaced on every update, and they already point to `VAULT.md`. If `VAULT.md` exists, add the missing rules and never replace it. Create the layout in §1 and the templates in §3 around what is already in the folder. The Business File stays exactly where it is. Ask for the cheat sheet: "the cheat sheet is for the human, CLAUDE.md is for the AI."
 
 ### Phase 3 — The first fill, with the gate
 
@@ -44,16 +48,16 @@ Set the gate first, from the file: "This is my focus, these are my goals" comes 
 
 ### Phase 4 — Routines and hats
 
-From `references/vault-starter.md` §5: the morning briefing (scheduled; confirm what mechanism the tool created), ask-your-brain, frictionless capture, the weekly synthesis, the weekly connection sweep, the gap finder, and "save that as a command." Expert hats: add the role rule to CLAUDE.md; for a named expert, run deep research first and ask "do you have any questions that'll help us make this a more elite agent?" before writing the persona. For sources that should keep flowing in without the member, hand off to **Source Watcher**. Set the rhythm in one line: "Daily, capture one thing and ask your brain one question. Weekly, twenty minutes, run the synthesis and turn it into one piece of content."
+From `references/vault-starter.md` §5: the morning briefing (scheduled; confirm what mechanism the tool created), ask-your-brain, frictionless capture, the weekly synthesis, the weekly connection sweep, the gap finder, and "save that as a command." Expert hats: add the role rule to `VAULT.md`; for a named expert, run deep research first and ask "do you have any questions that'll help us make this a more elite agent?" before writing the persona. For sources that should keep flowing in without the member, hand off to **Source Watcher**. Set the rhythm in one line: "Daily, capture one thing and ask your brain one question. Weekly, twenty minutes, run the synthesis and turn it into one piece of content."
 
 ### Phase 5 — Business File update
 
-1. Deliver the **Vault Setup note**: where the vault is, what was installed, the CLAUDE.md rules, the sources filed, the routines and their schedules, the one thing it crushed. Tell the member to save it in the vault as `Vault_Setup.md`.
+1. Deliver the **Vault Setup note**: where the vault is, what was installed, the `VAULT.md` rules, the sources filed, the routines and their schedules, the one thing it crushed. Tell the member to save it in the vault as `Vault_Setup.md`.
 2. Update the Business File per the protocol, narrowly:
    - **§1** — tools line: add "knowledge base: Obsidian vault at [path] (Claude Code)".
    - **§13 Build Plan** — one row: "Second brain" · source `Obsidian session [date]` · status `shipped` when the first fill and one routine are live, else `building` · owner · next step. Any watcher or persona the member wants next gets its own `captured` row.
    - **§8 Session Log** — append the row; ask for the 1–5 rating.
-3. Emit the entire updated file in one code block with the "what changed" summary, and remind them the file's home is now the vault root.
+3. Save the file per the protocol and give the "what changed" summary. Remind them the Build Room folder is now also their vault, and that the Business File has not moved.
 4. Close with the bridge the founder used: "Tell me some things that I do on a regular basis that I could systematize and create SOPs for and have you do." That is the **SOP Creator** session, and the Operations Pack it produces gets filed under `knowledge/sops/`.
 
 ## Voice & Style Rules
@@ -72,4 +76,4 @@ From `references/vault-starter.md` §5: the morning briefing (scheduled; confirm
 
 ## When the Session Is Complete
 
-The member has: Obsidian on local disk with Claude Code opened on it, a CLAUDE.md with the rules that matter, templates and a layout, at least one source filed through a quality gate, one use that crushed it, the morning briefing and weekly synthesis set, the Business File living in the vault root with its §1 tools line, a Build Plan row, and a Session Log entry.
+The member has: Obsidian on local disk with Claude Code opened on it, a `VAULT.md` with the rules that matter, in the Build Room folder that is now also their vault, templates and a layout, at least one source filed through a quality gate, one use that crushed it, the morning briefing and weekly synthesis set, the Business File living in the vault root with its §1 tools line, a Build Plan row, and a Session Log entry.
