@@ -50,6 +50,34 @@ def seg(w, sid):
     return next(s for s in w["segments"] if s["id"] == sid)
 
 
+# close.md: the documented line shape, the two other shapes a session writes, and files that must be refused
+_DOOR = "For owners ready to raise one price this quarter. $1,997 in full, or 4 payments of $549 ($2,196 total)."
+_GUAR = "Come to the first two sessions; if it isn't useful, ask for a refund."
+_DL = "January 9, 2027 at midnight Pacific, because the cohort starts January 12."
+CLOSE_SHAPES = {
+    "line": (FX / "close.md").read_text(),
+    "heading": (f"# The close: Pricing Webinar\n\n## Close mode\ncheckout\n\n## Door 1: The Pricing Program\n{_DOOR}\n"
+                "Checkout: https://example.com/checkout\n\n## Backup payment link\nhttps://example.com/pay\n\n"
+                f"## Guarantee\n{_GUAR}\n\nSigned off 2026-11-20 by Dana.\n\n## Deadline\n\n{_DL}\n\n"
+                "## Cohort start\nJanuary 12, 2027\n\n## Replay\nAvailable until December 10, 2026\n"),
+    "table": ("# The close\n\n| Element | Value |\n|---|---|\n| Close mode | Checkout |\n"
+              f"| Door 1: The Pricing Program | {_DOOR} Checkout: https://example.com/checkout |\n"
+              "| Backup payment link | https://example.com/pay |\n"
+              f"| Guarantee | {_GUAR} |\n| Signed off | 2026-11-20 by Dana |\n| Deadline | Enrolment closes {_DL} |\n"
+              "| Cohort start | January 12, 2027 |\n| Replay | Available until December 10, 2026 |\n"),
+    "multicolumn": ("# The close\n\n| Door | Price | Checkout | Backup payment link |\n|---|---|---|---|\n"
+                    "| The Pricing Program | $1,997 | https://example.com/checkout | https://example.com/pay |\n\n"
+                    "Close mode / Checkout\nSigned off 2026-11-20\n"),
+    "empty": "# The close\n\nWe sell the Pricing Program at the end, for $1,997.\n",
+    "blank": "\n",
+    "no-close-mode": "- **Door 1:** $1,997\n- **Deadline:** January 9, 2027\n",
+    "no-deadline": "- **Close mode:** checkout\n- **Door 1:** $1,997\n",
+    "two-deadlines": "- **Close mode:** checkout\n- **Door 1:** $1,997\n- **Deadline:** January 9, 2027\n- Cart closes: none\n",
+    "checkout-no-price": "- **Close mode:** checkout\n- **Door 1:** The Pricing Program\n- **Deadline:** none\n",
+    "heading-no-value": "## Close mode\ncheckout\n\n## Door 1\n$1,997\n\n## Deadline\n\n## Replay\nUntil December 10, 2026\n",
+}
+
+
 # ---------------------------------------------------------------- plan
 
 def plan_tests(tmp):
@@ -186,13 +214,13 @@ def plan_tests(tmp):
     check("offer-summary: internal wording left out (close mode, sign-off note)", "Close mode" not in osu and "signed off" not in osu, osu)
     multi = cwd / "close-multi.md"
     multi.write_text("- **Close mode:** checkout\n- Done-with-you: $3,997, or 3 payments of $1,399 ($4,197 total) · checkout and backup on the sheet\n"
-                     "- Internal audit package: $4,500\n- Backup payment link (moderator only): https://x\n")
+                     "- Internal audit package: $4,500\n- Backup payment link (moderator only): https://x\n- Deadline: none\n")
     rc, out = run([PY, PLAN, "offer-summary", "--close", multi, "--out", cwd / "o3.md"], cwd)
     o3 = (cwd / "o3.md").read_text() if (cwd / "o3.md").exists() else ""
     check("offer-summary keeps a door whose line merely mentions a backup, and the internal-sounding package",
           rc == 0 and "$3,997" in o3 and "$4,500" in o3 and "https://x" not in o3, (out, o3))
     att = cwd / "close-att.md"
-    att.write_text("Close mode: checkout\n\n## For attendees\n\n- The Program: $997\n\n## Notes\n\n- Backup: https://x\n")
+    att.write_text("Close mode: checkout\nDeadline: none\n\n## For attendees\n\n- The Program: $997\n\n## Notes\n\n- Backup: https://x\n")
     run([PY, PLAN, "offer-summary", "--close", att, "--out", cwd / "o4.md"], cwd)
     o4 = (cwd / "o4.md").read_text()
     check("offer-summary uses a \"## For attendees\" section when close.md has one", "$997" in o4 and "Close mode" not in o4 and "Notes" not in o4, o4)
@@ -200,6 +228,75 @@ def plan_tests(tmp):
     pend.write_text((FX / "close.md").read_text().replace("signed off 2026-11-20", "PENDING"))
     rc, out = run([PY, PLAN, "offer-summary", "--close", pend, "--out", cwd / "o2.md"], cwd)
     check("offer-summary refuses while close.md has a PENDING element", rc == 1 and not (cwd / "o2.md").exists(), out)
+
+    # close.md in its three accepted shapes: one reader for offer-summary, render, the check and lint
+    shapes = cwd / "shapes"
+    shapes.mkdir()
+    for name, text in CLOSE_SHAPES.items():
+        (shapes / f"{name}.md").write_text(text)
+    for name in ("line", "heading", "table"):
+        cm = shapes / f"{name}.md"
+        rc, out = run([PY, CHECK, "lint", "--close", cm, "--json"], cwd)
+        lj = pj(out)
+        els = {e["name"].lower(): e["value"] for e in lj.get("elements", [])}
+        check(f"close.md {name} shape: lint passes (exit 0) and reads the close mode, the deadline and the door",
+              rc == 0 and lj.get("ok") and lj.get("close_mode") == "checkout" and "January 9, 2027" in (lj.get("deadline") or "")
+              and any("$1,997" in v or k.startswith("door 1") for k, v in els.items()) and "cohort start" in els, out[:600])
+        o = shapes / f"{name}-summary.md"
+        rc, out = run([PY, PLAN, "offer-summary", "--close", cm, "--out", o], cwd)
+        t = o.read_text() if o.exists() else ""
+        check(f"close.md {name} shape: offer-summary carries the price, plan total, guarantee and deadline",
+              rc == 0 and "$1,997 in full, or 4 payments of $549 ($2,196 total)" in t and "ask for a refund" in t
+              and "January 9, 2027 at midnight Pacific" in t, (out, t))
+        check(f"close.md {name} shape: offer-summary never shows the backup link, the close mode or the sign-off",
+              bool(t) and not re.search(r"example\.com/pay|backup|close mode|signed off|sign-off|moderator|2026-11-20", t, re.I), t)
+        sp2 = shapes / f"{name}-webinar.json"
+        shutil.copy(FX / "webinar.json", sp2)
+        rc, out = run([PY, PLAN, "render", "--spec", sp2, "--out-dir", shapes / f"{name}-out", "--runsheet", shapes / f"{name}-rs.json",
+                       "--close", cm], cwd)
+        check(f"close.md {name} shape: render puts the same deadline on the run sheet",
+              rc == 0 and "January 9, 2027 at midnight Pacific" in (pj(out).get("deadline") or ""), out)
+    rc, out = run([PY, CHECK, "lint", "--close", shapes / "line.md"], cwd)
+    check("lint prints the elements it read in plain words", rc == 0 and "Close mode: checkout" in out and "Deadline: " in out
+          and "kept off the one-pager" in out and "reads correctly" in out and not out.lstrip().startswith("{"), out)
+    for name, named in (("multicolumn", "4 columns"), ("empty", "nothing in it reads as an element"), ("blank", "nothing in it reads"),
+                        ("no-close-mode", "no Close mode"), ("no-deadline", "no Deadline"), ("two-deadlines", "disagree"),
+                        ("checkout-no-price", "no price"), ("heading-no-value", "no value")):
+        cm = shapes / f"{name}.md"
+        rc, out = run([PY, CHECK, "lint", "--close", cm], cwd)
+        check(f"lint refuses close.md ({name}): exit 1, names what it could not read and shows the expected shape",
+              rc == 1 and named in out and "- **Close mode:** checkout" in out and "- **Deadline:**" in out, (rc, out[:400]))
+        o = shapes / f"{name}-summary.md"
+        rc, out = run([PY, PLAN, "offer-summary", "--close", cm, "--out", o], cwd)
+        check(f"offer-summary refuses close.md ({name}) with the same reason and writes nothing",
+              rc == 1 and not o.exists() and named in out and "one element per line" in out, (rc, out[:400]))
+    rc, out = run([PY, PLAN, "render", "--spec", sp, "--out-dir", shapes / "mc-out", "--runsheet", shapes / "mc-rs.json",
+                   "--close", shapes / "multicolumn.md"], cwd)
+    check("render refuses a multi-column close.md before writing anything",
+          rc == 1 and "4 columns" in out and not (shapes / "mc-out").exists() and not (shapes / "mc-rs.json").exists(), out[:400])
+    rc, out = run([PY, CHECK, "lint", "--close", shapes / "nope.md"], cwd)
+    check("lint: a close.md that is not there exits 2", rc == 2 and "cannot read" in out, (rc, out))
+    rc, out = run([PY, CHECK, "lint", "--close", pend], cwd)
+    check("lint passes a readable close.md with PENDING elements and says they hold the check", rc == 0 and "PENDING" in out, (rc, out[-300:]))
+    for name, text in (("door line with a backup link", "- **Close mode:** checkout\n- **Door 1:** $497. Checkout: https://a.example/c. "
+                        "Backup: https://b.example/p\n- **Deadline:** none\n"),
+                       ("sign-off inside the attendee part", "- Close mode: checkout\n- Deadline: none\n\n## For attendees\n\n"
+                        "- The Program: $997. Dana signed off on this price\n"),
+                       ("empty attendee part", "- Close mode: checkout\n- Deadline: none\n- The Program: $997\n\n## For attendees\n\n## Notes\n- x\n")):
+        cm = shapes / "unsafe.md"
+        cm.write_text(text)
+        o = shapes / "unsafe-summary.md"
+        rc, out = run([PY, PLAN, "offer-summary", "--close", cm, "--out", o], cwd)
+        rc2, out2 = run([PY, CHECK, "lint", "--close", cm], cwd)
+        check(f"offer-summary refuses instead of publishing ({name}); lint fails too", rc == 1 and not o.exists() and rc2 == 1, (out, out2[-300:]))
+    att3 = shapes / "att-table.md"
+    att3.write_text("| Element | Value |\n|---|---|\n| Close mode | call |\n| Deadline | none |\n| Sign-off | Dana, 2026-11-20 |\n\n"
+                    "## For attendees\n\n| What | Details |\n|---|---|\n| The call | 30 minutes, to see if it fits |\n"
+                    "| Backup booking link | https://x.example/b |\n")
+    rc, out = run([PY, PLAN, "offer-summary", "--close", att3, "--out", shapes / "att3.md"], cwd)
+    t = (shapes / "att3.md").read_text() if (shapes / "att3.md").exists() else ""
+    check("offer-summary: a \"## For attendees\" part in a table is what attendees get, without internal rows",
+          rc == 0 and "30 minutes" in t and not re.search(r"x\.example|close mode|sign-off|Dana", t, re.I), (out, t))
 
 
 # ---------------------------------------------------------------- slides
@@ -409,6 +506,59 @@ def check_tests(tmp):
             expect_id="offer_matches_close")
     variant("PENDING inside an HTML comment does not hold", lambda w: None, close=cl + "\n<!-- PENDING note to self -->\n",
             expect_id="offer_matches_close", expect_ok=True)
+    # the close mode is compared with close.md's
+    variant("\"close\": \"call\" against a checkout close.md", lambda w: w.update(close="call"), expect_id="offer_matches_close")
+    variant("\"close\": \"both\" against a checkout close.md", lambda w: w.update(close="both"), expect_id="offer_matches_close")
+    variant("\"close\": \"both\" matches a close.md that says both", lambda w: w.update(close="both"),
+            close=cl.replace("**Close mode:** checkout", "**Close mode:** both"), expect_id="offer_matches_close", expect_ok=True)
+    rc, out = run([PY, CHECK, "check", "--spec", cwd / "\"close\": \"call\" against a checkout close.md.json"] + base, cwd)
+    it = next((i for i in pj(out).get("items", []) if i["id"] == "offer_matches_close"), {})
+    check("check: the close-mode mismatch is named in plain words", "\"close\": \"call\"" in it.get("detail", "")
+          and "Close mode: checkout" in it.get("detail", ""), it)
+    # dates: the member's own history is not an offer fact; a wrong date where the offer is stated still holds
+    story_date = say("story", "On March 3rd, 2019 my biggest client left.")
+    variant("an honest date in the story is not compared with close.md", story_date, expect_id="offer_matches_close", expect_ok=True)
+    w = copy.deepcopy(FIXTURE)
+    story_date(w)
+    seg(w, "story").setdefault("slides", []).append({"title": "March 3rd, 2019", "kind": "statement"})
+    (cwd / "story-date.json").write_text(json.dumps(w))
+    run([PY, SLIDES, "build", "--spec", "story-date.json", "--out", "story-date.pptx"], cwd)
+    rc, out = run([PY, CHECK, "check", "--spec", "story-date.json", "--deck", "story-date.pptx", "--page", "registration-page.md"] + base, cwd)
+    check("check: the story's date, said and on its own slide, no longer causes HOLD (GO, exit 0)",
+          rc == 0 and pj(out).get("result") == "GO", [i for i in pj(out).get("items", []) if not i["ok"]])
+    variant("a date in a teaching block is not compared with close.md", say("teach1", "In June 12, 2021 I tested this"),
+            expect_id="offer_matches_close", expect_ok=True)
+    variant("the story's date does not excuse a wrong date in the offer block",
+            lambda w: (story_date(w), say("offer", "Enrolment closes January 31")(w)), expect_id="offer_matches_close")
+    for sid in ("qa", "close", "promise", "transition"):
+        variant(f"a wrong date in the {sid} block still holds", say(sid, "Enrolment closes January 31"), expect_id="offer_matches_close")
+    variant("a wrong date in the Q&A bank still holds", lambda w: w["qa_bank"][0].update(answer="You have until February 2 to decide."),
+            expect_id="offer_matches_close")
+    (cwd / "page-date.md").write_text((FX / "registration-page.md").read_text() + "\nEnrolment closes January 31.\n")
+    variant("a wrong date on the registration page still holds", lambda w: None, extra=("--page", "page-date.md"),
+            expect_id="offer_matches_close")
+    w = copy.deepcopy(FIXTURE)
+    seg(w, "offer")["slides"].append({"title": "Enrolment closes January 31", "kind": "statement"})
+    (cwd / "deck-date.json").write_text(json.dumps(w))
+    run([PY, SLIDES, "build", "--spec", "deck-date.json", "--out", "deck-date.pptx"], cwd)
+    variant("a wrong date only on the deck still holds", lambda w: None, extra=("--deck", "deck-date.pptx"), expect_id="offer_matches_close")
+    # close.md in the other shapes, and one that cannot be read
+    for name in ("heading", "table"):
+        variant(f"close.md in the {name} shape reads the same: the offer matches", lambda w: None, close=CLOSE_SHAPES[name],
+                expect_id="offer_matches_close", expect_ok=True)
+        variant(f"close.md in the {name} shape: the deadline is found", lambda w: None, close=CLOSE_SHAPES[name],
+                expect_id="deadline_real", expect_ok=True)
+        variant(f"close.md in the {name} shape: a wrong price still holds", say("offer", "Or the VIP door at $2,497"),
+                close=CLOSE_SHAPES[name], expect_id="offer_matches_close")
+    for name in ("multicolumn", "empty"):
+        variant(f"a close.md that cannot be read ({name}) holds on offer_matches_close", lambda w: None, close=CLOSE_SHAPES[name],
+                expect_id="offer_matches_close")
+    (cwd / "mc-close.md").write_text(CLOSE_SHAPES["multicolumn"])
+    rc, out = run([PY, CHECK, "check", "--spec", FX / "webinar.json", "--close", "mc-close.md"] + base[2:], cwd)
+    items = {i["id"]: i["detail"] for i in pj(out).get("items", [])}
+    check("check: a multi-column close.md is named as the reason, not \"no deadline\" or \"dates not in close.md\"",
+          rc == 1 and "4 columns" in items.get("offer_matches_close", "") and "one element per line" in items.get("offer_matches_close", "")
+          and "no deadline" not in out and "dates not in" not in out and "was not read" in items.get("deadline_real", ""), items)
     variant("\"300 people\" about past clients is not a head count", say("story", "I've worked with 300 people on exactly this"),
             expect_id="refused_tactics", expect_ok=True)
     variant("a real bonus for staying is not a replay threat", say("qa", "If you leave early, you'll miss the bonus checklist"),

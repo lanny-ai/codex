@@ -10,6 +10,11 @@ Usage
                          [--deck slides.pptx] [--out check.md]
       Prints JSON {result: GO|HOLD, items: [{id, level, ok, detail}]}; --out also writes check.md.
       Exit 0 GO, 1 HOLD, 2 when the spec cannot be read.
+  webinar_check.py lint --close close.md [--json]
+      Run it right after close.md is written or changed. Prints the elements the scripts read from it, in plain
+      words, and what the one-pager would show attendees. Exit 0 when it reads correctly (PENDING elements are
+      listed, not refused), 1 with the reason and the expected shape when it would not, 2 when the file cannot
+      be opened.
 
 Critical: placeholders_filled length_fits offer_disclosed objections_named three_beliefs loops_closed
           offer_matches_close deadline_real proof_classified earnings_typical retired_lines refused_tactics
@@ -18,10 +23,18 @@ Critical: placeholders_filled length_fits offer_disclosed objections_named three
 Advisory: chat_prompts offer_asks story_length offer_by_minute not_your_fault buyer_names, and with --deck
           deck_font_target deck_contrast_target deck_words
 
-close.md is read for: every money figure ($, US$, £, €, "dollars", "USD"), dates written as a month and a day,
-"N payments", the number of places ("Places: 12" or "12 places"), the deadline (a line starting "Deadline",
-"Enrolment closes", "Enrollment closes", "Cart closes" or "Doors close"; "none" or "no deadline" there means
-none), and PENDING anywhere outside an HTML comment.
+close.md is read by one reader (read_close, used by check, lint and webinar_plan.py render and offer-summary).
+It takes one element per line ("- **Deadline:** ..."), a heading with its value on the next line, or a
+two-column table of element and value. It needs a Close mode (checkout, call or both), a Deadline (a line or
+element named "Deadline", "Enrolment closes", "Enrollment closes", "Cart closes" or "Doors close"; "none" or
+"no deadline" there means none) and, for a checkout close, a price. A file it cannot read that way (a table
+with more than two columns, no elements, a missing or contradictory Close mode or Deadline) fails
+offer_matches_close with the reason instead of being compared. From a file it can read: every money figure
+($, US$, £, €, "dollars", "USD"), dates written as a month and a day, "N payments", the number of places
+("Places: 12" or "12 places"), the close mode (compared with webinar.json "close"), and PENDING anywhere
+outside an HTML comment. Dates are compared in the title and promise, the promise, transition, offer, Q&A and
+close blocks, the Q&A bank, the registration page and the deck; a date said in the story or a teaching block
+is the member's own history and is not compared.
 
 The proof bank is read as a table with a header row naming ID, Origin (or Class), Permission and Scope, or as
 one heading per story ("## P-02 …") with "Class:" (or "Origin:"), "Permission:" (or "Consent:") and "Scope:"
@@ -261,7 +274,7 @@ BACKUP_WORD = re.compile(r"\b(?:backup|back-up|fallback)\b", re.I)
 
 def _bare(s):
     """A line or a cell without its bullet and its bold or code marks."""
-    s = re.sub(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)?", "", s)
+    s = re.sub(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)?", "", s).replace("**", "")
     return re.sub(r"^[*_`\s]+|[*_`\s]+$", "", s)
 
 
@@ -327,14 +340,16 @@ def read_close(raw):
     attendee_part = False
     waiting = None  # a heading still waiting for its value on the next non-blank line
 
-    def add(kind, n, raw_line, **kw):
-        it = {"type": kind, "line": n + 1, "raw": raw_line, "internal": internal_level is not None,
+    def add(typ, n, raw_line, **kw):
+        it = {"type": typ, "line": n + 1, "raw": raw_line, "internal": internal_level is not None,
               "attendee": attendee_level is not None}
         it.update(kw)
-        if kind == "element":
+        if typ == "element":
             it["kind"] = _close_kind(it["name"])
             it["internal"] = it["internal"] or it["kind"] in ("close_mode", "backup", "signoff", "note") or bool(CLOSE_MARKED.search(raw_line))
-        elif kind == "free":
+        elif typ == "heading":
+            it["internal"] = it["internal"] or it["kind"] in ("close_mode", "backup", "signoff", "note")
+        elif typ == "free":
             b = _bare(raw_line)
             it["internal"] = (it["internal"] or bool(CLOSE_MARKED.search(raw_line))
                               or any(rx.match(b) for k, rx in CLOSE_INTERNAL if k != "note"))
@@ -364,13 +379,13 @@ def read_close(raw):
                 attendee_level, attendee_part = level, True
             else:
                 lab = _close_labelled(title)
-                if lab:  # "## Deadline: January 9"
+                if lab and lab[1]:  # "## Deadline: January 9"
                     add("element", i, ln, name=lab[0], value=lab[1], shape="line")
                 else:
                     kind = _close_kind(title)
                     if kind in ("close_mode", "backup", "signoff", "note"):
                         internal_level = level  # everything under an internal heading stays internal
-                    waiting = add("heading", i, ln, name=title, kind=kind)
+                    waiting = add("heading", i, ln, name=title.rstrip(":").strip(), kind=kind)
             i += 1
             continue
         if s.startswith("|"):
@@ -403,8 +418,12 @@ def read_close(raw):
             i = j
             continue
         lab = _close_labelled(ln)
-        if lab:
+        if lab and lab[1]:
             add("element", i, ln, name=lab[0], value=lab[1], shape="line")
+        elif lab:  # "Deadline:" with its value on the next line
+            waiting = add("heading", i, ln, name=lab[0], kind=_close_kind(lab[0]))
+            i += 1
+            continue
         elif waiting is not None:  # the heading's value
             waiting.update(type="element", value=_bare(ln), shape="heading")
             waiting["internal"] = waiting["internal"] or bool(CLOSE_MARKED.search(ln))
@@ -427,7 +446,7 @@ def read_close(raw):
         modes = [e for e in elements if e["kind"] == "close_mode"]
         if not modes:
             hd = next((h_ for h_ in empty_heads if h_["kind"] == "close_mode"), None)
-            problems.append(f"the heading \"{hd['name']}\" (line {hd['line']}) has no value on the line under it" if hd else
+            problems.append(f"\"{hd['name']}\" (line {hd['line']}) has no value on the line under it" if hd else
                             "no Close mode element (checkout, call or both)")
         else:
             vals = {close_mode_of(e["value"]) for e in modes if not re.search(r"\bpending\b", e["value"], re.I)}
@@ -443,7 +462,7 @@ def read_close(raw):
         dls = [e for e in elements if e["kind"] == "deadline"]
         if not dls:
             hd = next((h_ for h_ in empty_heads if h_["kind"] == "deadline"), None)
-            problems.append(f"the heading \"{hd['name']}\" (line {hd['line']}) has no value on the line under it" if hd else
+            problems.append(f"\"{hd['name']}\" (line {hd['line']}) has no value on the line under it" if hd else
                             "no Deadline element (write the deadline, or \"Deadline: none\" when there is none)")
         else:
             states = [(_deadline_state(e["value"]), e) for e in dls]
@@ -564,13 +583,12 @@ def run_lint(a):
         print("NOT READ CORRECTLY. " + close_refusal(rc))
         sys.exit(1)
     print("Close mode: " + (rc["mode"] or "still PENDING"))
-    print("Deadline: " + {"set": rc["deadline"] or "", "none": "none (" + (rc["deadline"] or "none") + ")",
-                          "pending": "still PENDING"}[rc["deadline_state"]])
+    print("Deadline: " + {"set": rc["deadline"] or "", "none": "none", "pending": "still PENDING"}[rc["deadline_state"]])
     if unsafe:
         print("\nNOT SAFE TO SHOW ATTENDEES. " + "; ".join(unsafe) + ".\nPut each internal note on a line of its own that "
               "starts with Backup, Close mode, Signed off or Notes, or put the attendee wording under a \"## For attendees\" heading.")
         sys.exit(1)
-    print(f"\nThe one-pager would show attendees these {sum(1 for x in keep if x.strip())} lines"
+    print("\nThe one-pager would show attendees this"
           + (" (the \"## For attendees\" part):" if rc["attendee_part"] else ":"))
     print("\n".join("  " + x for x in keep if x.strip()))
     if rc["pending"]:
@@ -659,16 +677,21 @@ def run(a):
     item("loops_closed", not bad, "every teaching block closes its own loop" if not bad else "; ".join(bad))
 
     # the offer against close.md: money, dates, payment counts, places; PENDING
-    close_txt = ""
+    close_txt, rc = "", None
     if a.close:
-        try:
-            close_txt = re.sub(r"<!--.*?-->", "", Path(a.close).read_text(), flags=re.S)
-        except Exception as e:
-            item("offer_matches_close", False, f"cannot read {a.close}: {e}")
-    offer_txt = "\n".join([top, qa_txt, dk_txt, page_txt] + [seg_text(s) for s in segs if s.get("kind") in OFFER_KINDS])
+        rc = load_close(a.close)
+        if rc["ok"]:
+            close_txt = rc["text"]
+        else:  # never compare the talk with a close.md that was not read correctly
+            item("offer_matches_close", False, close_refusal(rc, short=True))
+    offer_txt_spec = "\n".join([top, qa_txt] + [seg_text(s) for s in segs if s.get("kind") in OFFER_KINDS])
+    offer_txt = "\n".join([offer_txt_spec, dk_txt, page_txt])
     other = [(s.get("id"), seg_text(s)) for s in segs if s.get("kind") not in OFFER_KINDS]
-    if a.close and close_txt:
+    if rc and rc["ok"]:
         prob = []
+        if rc["mode"] and close_kind != rc["mode"]:
+            prob.append(f"webinar.json says \"close\": \"{close_kind}\" but close.md says Close mode: {rc['mode']}; "
+                        "settle which it is with the member, then make the two agree")
         if not any(s.get("kind") == "offer" for s in segs) and not early_day:
             prob.append("no offer block")
         pend = [ln.strip() for ln in close_txt.splitlines() if re.search(r"\bpending\b", ln, re.I)]
@@ -688,7 +711,11 @@ def run(a):
             own = {(int(spec["date"][5:7]) - 1, int(spec["date"][8:10]))}
         except (KeyError, ValueError, TypeError):
             own = set()
-        sd = dates(everything) - dates(close_txt) - own
+        # dates are offer facts only where the offer is stated: the title and promise, the promise, transition,
+        # offer, Q&A and close blocks, the Q&A bank, the registration page, and the deck. A date the story or a
+        # teaching block says ("On March 3rd, 2019 ...") is the member's own history, on its slide too.
+        told = dates("\n".join(tx for _, tx in other))
+        sd = (dates(offer_txt_spec) | dates(page_txt) | (dates(dk_txt) - told)) - dates(close_txt) - own
         if sd:
             prob.append("dates not in close.md: " + ", ".join(f"{MONTHS[m_].capitalize()} {d_}" for m_, d_ in sorted(sd)))
         sp_ = payments(everything) - payments(close_txt)
@@ -703,13 +730,16 @@ def run(a):
         item("offer_matches_close", False, "give --close launches/<slug>/close.md: the offer is checked against it word for word")
 
     # deadline
-    has_dl, dl_val = close_deadline(close_txt)
+    has_dl = bool(rc and rc["ok"] and rc["deadline_state"] in ("set", "pending"))
+    dl_val = (rc["deadline"] if rc and rc["ok"] else "") or ""
     dl_hits = [m.group(0) for m in DEADLINE.finditer(everything)
                if not HONEST_WINDOW.search(everything[max(0, m.start() - 60): m.end() + 40])]
     rel = [m.group(0) for m in RELATIVE_DAY.finditer(everything)
            if DEADLINE.search(everything[max(0, m.start() - 50): m.end() + 50])]
     prob = []
-    if dl_hits and not has_dl:
+    if a.close and not (rc and rc["ok"]):
+        prob.append("not checked: close.md was not read (see offer_matches_close)")
+    elif dl_hits and not has_dl:
         prob.append(f"the talk says {dl_hits[0]!r} but close.md has no deadline" + (f" (it says {dl_val!r})" if dl_val else ""))
     if rel and has_dl:
         prob.append(f"say the deadline as a date, as close.md has it ({dl_val[:60]!r}), not {rel[0]!r}")
@@ -883,7 +913,7 @@ def run(a):
               "| Item | Level | Result | Detail |", "|---|---|---|---|"]
         for i in items:
             md.append(f"| `{i['id']}` | {i['level']} | {'PASS' if i['ok'] else ('HOLD' if i['level'] == 'critical' else 'WATCH')} | "
-                      f"{i['detail'].replace('|', '/')} |")
+                      f"{' '.join(i['detail'].replace('|', '/').split())} |")
         md += ["", "The script catches words, not intent: read every block for the same things said another way."]
         Path(a.out).parent.mkdir(parents=True, exist_ok=True)
         Path(a.out).write_text("\n".join(md) + "\n")
@@ -902,7 +932,11 @@ def main(argv=None):
     c.add_argument("--page")
     c.add_argument("--deck")
     c.add_argument("--out")
-    run(ap.parse_args(argv))
+    ln = sub.add_parser("lint")
+    ln.add_argument("--close", required=True)
+    ln.add_argument("--json", action="store_true")
+    a = ap.parse_args(argv)
+    (run_lint if a.cmd == "lint" else run)(a)
 
 
 if __name__ == "__main__":

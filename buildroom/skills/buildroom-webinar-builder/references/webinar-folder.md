@@ -20,7 +20,7 @@ The offer itself (`close.md`), the one belief (`belief.md`), the proof bank (`pr
 
 ## `close.md`, as the scripts read it
 
-A plain list, one element per line, each line starting with its name:
+One reader (`read_close` in `webinar_check.py`) serves every command that opens `close.md`: `render --close`, `offer-summary`, `check` and `lint`. The shape it expects is a plain list, one element per line, each line starting with its name:
 
 ```
 - **Close mode:** checkout
@@ -32,9 +32,13 @@ A plain list, one element per line, each line starting with its name:
 - **Replay:** available until December 10, 2026
 ```
 
-- The deadline is read only from a line that starts with Deadline, Enrolment closes, Cart closes or Doors close. With no deadline, write `- **Deadline:** none; follow-up ends <date>`. A deadline under a heading or in a table is not found: `render` then leaves the run sheet's deadline as it was and says so (`deadline_note`), and the check treats the talk's deadline as one `close.md` does not have.
-- The one-pager copies every line word for word except a line that starts with Backup or Close mode, or is marked "moderator only" or "(internal)". When `close.md` has a `## For attendees` section, only that section is copied.
-- PENDING anywhere in it holds the check and the one-pager until the member settles it.
+- **Two other shapes are read the same way.** A heading with its value on the next line that is not blank (`## Deadline`, then `January 9, 2027 at midnight Pacific`), and a table with two columns, the element and its value (`| Deadline | January 9, 2027 |`; a header row such as `| Element | Value |` is skipped). A table with any other number of columns is refused, because nothing says which column holds the value.
+- **What it must hold.** A Close mode (`checkout`, `call` or `both`); a Deadline; and the offer itself: for `checkout` or `both` at least one price, for `call` at least one door that says what the call is. The deadline is the element named Deadline, Enrolment closes, Cart closes or Doors close. With no deadline, write `- **Deadline:** none; follow-up ends <date>` (a line starting "No deadline" is read as none too). Written twice with different answers, the close mode or the deadline is refused.
+- **A file that does not read is refused, by every command, with the same message**: what could not be read, and the expected shape. `render --close` and `offer-summary` write nothing (exit 1); `check` fails `offer_matches_close` with that reason instead of comparing, and `deadline_real` says it was not checked.
+- **Run `webinar_check.py lint --close launches/<slug>/close.md` right after `close.md` is written or changed**, and before `render`, `offer-summary` or `check`. It prints each element it read in plain words, marks the ones kept off the one-pager, and shows what attendees would get. Exit 0 when the file reads correctly (PENDING elements are listed, not refused), 1 with the reason when it would not.
+- **The one-pager never carries internal lines.** It leaves out the Close mode, anything named Backup, Signed off or Sign-off, Notes (also Internal notes, Moderator notes), everything under a heading with one of those names, and any line marked "moderator only" or "(internal)"; a sign-off note in brackets after a name ("Guarantee (signed off 2026-11-20)") is removed and the rest of the line kept. Everything else is copied word for word; a table row is written as a line. When `close.md` has a `## For attendees` part, only that part is copied, with the same lines left out. If a line that would be published still mixes the two (a backup link inside a door's line, a sign-off in the middle of a sentence), or the `## For attendees` part is empty, `offer-summary` refuses and names the line: put the internal note on a line of its own, or the attendee wording under `## For attendees`.
+- **The check compares** `webinar.json`'s `close` with the Close mode (a mismatch fails `offer_matches_close`), and every price, payment count and place count. Dates are compared where the offer is stated: the title and promise, the `promise`, `transition`, `offer`, `qa` and `close` blocks, the Q&A bank, the registration page and the deck. A date said in the story or a teaching block (the member's own history, on its slide too) is not compared.
+- PENDING anywhere in it holds the check and the one-pager until the member settles it; `render --close` leaves the run sheet's deadline as it was and says so (`deadline_note`) while the deadline is PENDING.
 
 ## The proof bank, as the check reads it
 
