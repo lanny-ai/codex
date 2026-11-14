@@ -10,7 +10,7 @@ book/<slug>/
   plan.json  plan.md             the outline the member approved
   record.json                    the book record: terms, frameworks, names, stories told, promises, chapter summaries
   manuscript/
-    00-title.md  01-introduction.md  ch-01.md … ch-13.md  90-conclusion.md  91-about.md
+    00-title.md  01-introduction.md  ch-01.md … ch-12.md  90-conclusion.md  91-about.md
   manuscript.md                  the working copy assembled (manuscript.py assemble)
   editions/
     v1/  manuscript.md  manuscript.ids.md  map.json      frozen; never edited
@@ -31,7 +31,7 @@ book/<slug>/
 ## book.json
 ```json
 {"schema": "buildroom-book/1", "slug": "second-chapter", "author": "…", "working_title": "…",
- "settings": {"chapters": 13, "words": 62000, "chapter_words": {"4": 6000}, "grade_max": 9},
+ "settings": {"chapters": 12, "words": 62000, "chapter_words": {"4": 6000}, "grade_max": 9},
  "stages": {"intake": {"status": "ready", "date": "…"}, "outline": {"status": "approved"}, "…": {}},
  "approvals": [{"what": "outline", "by": "member", "date": "…"}],
  "editions": [{"label": "v1", "sha256": "…", "date": "…", "words": 61240}]}

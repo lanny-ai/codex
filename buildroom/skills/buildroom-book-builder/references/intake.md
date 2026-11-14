@@ -35,4 +35,4 @@ Eight answered questions is the engine's technical minimum. It isn't enough to k
 If an answer is unknown, it stays unknown. Never answer a follow-up question for the author.
 
 ## The book's settings
-Thirteen chapters and about 62,000 words unless the member says otherwise. Ask once, plainly: "Thirteen chapters of about 4,800 words is the default. Do you want it shorter, longer, or a different number of chapters?" Then `book_plan.py settings --chapters N --words N`. A modest intake suits a shorter book: say so.
+Twelve chapters and about 62,000 words unless the member says otherwise. Ask once, plainly: "Twelve chapters of about 5,200 words is the default. Do you want it shorter, longer, or a different number of chapters?" Then `book_plan.py settings --chapters N --words N`. A modest intake suits a shorter book: say so.

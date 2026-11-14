@@ -104,11 +104,11 @@ def t_setup(tmp):
     check("a command on a book that does not exist is refused", code == 1)
     code, out = run([PY, PLAN, "init", "--book", B, "--author", "Ruth Adeyemi"], tmp)
     d = pj(out)
-    check("init defaults to thirteen chapters and about 62,000 words", code == 0 and d["settings"]["chapters"] == 13
+    check("init defaults to twelve chapters and about 62,000 words", code == 0 and d["settings"]["chapters"] == 12
           and d["settings"]["words"] == 62000, out)
-    check("a default chapter targets words // chapters", d["targets"]["Chapter 1"] == 62000 // 13)
+    check("a default chapter targets words // chapters", d["targets"]["Chapter 1"] == 62000 // 12)
     check("the introduction and conclusion are half a chapter; About the Author is 250",
-          d["targets"]["Introduction"] == (62000 // 13) // 2 and d["targets"]["About the Author"] == 250)
+          d["targets"]["Introduction"] == (62000 // 12) // 2 and d["targets"]["About the Author"] == 250)
     check("init is safe to run twice", pj(run([PY, PLAN, "init", "--book", B], tmp)[1]).get("created") is False)
     code, out = run([PY, PLAN, "settings", "--book", B, "--chapters", "3", "--words", "3000", "--chapter-words", "2=1500"], tmp)
     d = pj(out)
@@ -518,8 +518,8 @@ def t_consistency():
     for f in ("book_plan.py", "manuscript.py", "issues.py", "reader_panel.py", "book_check.py"):
         check(f"SKILL.md uses scripts/{f}", f in skill)
     allt = skill + "".join(f.read_text() for f in R.glob("*.md"))
-    check("thirteen chapters is the default, and adjustable", "hirteen chapters" in skill and "settings" in skill
-          and bl.DEFAULT_CHAPTERS == 13)
+    check("twelve chapters is the default, and adjustable", "welve chapters" in skill and "settings" in skill
+          and bl.DEFAULT_CHAPTERS == 12)
     check("the skill is manuscript only", "Manuscript only" in skill or "manuscript only" in skill)
     check("the ten review prompts are in the skill", all(re.search(rf"\bP{n}\b", allt + (S / "reader_panel.py").read_text()) for n in range(1, 11)))
     for phrase in ("You are a nonfiction commissioning editor", "You are an independent developmental editor",

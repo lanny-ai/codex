@@ -1,7 +1,7 @@
 # The outline
 
 ## The prompt
-The outline is planned from the author's intake and source packet with this prompt. `{words}` and `{chapters}` come from the book's settings (thirteen chapters and about 62,000 words unless the member changed them).
+The outline is planned from the author's intake and source packet with this prompt. `{words}` and `{chapters}` come from the book's settings (twelve chapters and about 62,000 words unless the member changed them).
 
 ```text
 You are a world-class nonfiction book collaborator working from an author questionnaire. The author has answered an intake questionnaire. You are

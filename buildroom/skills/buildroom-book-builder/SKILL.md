@@ -1,7 +1,7 @@
 ---
 name: buildroom-book-builder
 description: |
-  The AI Momentum Labs Book Builder: writes a member's own non-fiction book in their voice, to a tested manuscript. Fifteen intake questions (most answered from the Business File), an outline the member approves, chapters drafted one at a time from their material, a developmental memo, a sample-chapter edit they approve, a line edit, an independent review, a fact and permission audit, simulated and real test readers, an issue register, and a gate that says GO or FIX (§23). Thirteen chapters by default; fully adjustable. Manuscript only. Use for "write my book," "help me write a book," "plan my book," "write the next chapter," "edit my book," "review my book," "have readers test my book," "is my book ready," or "how is my book coming along."
+  The AI Momentum Labs Book Builder: writes a member's own non-fiction book in their voice, to a tested manuscript. Fifteen intake questions (most answered from the Business File), an outline the member approves, chapters drafted one at a time from their material, a developmental memo, a sample-chapter edit they approve, a line edit, an independent review, a fact and permission audit, simulated and real test readers, an issue register, and a gate that says GO or FIX (§23). Twelve chapters by default; fully adjustable. Manuscript only. Use for "write my book," "help me write a book," "plan my book," "write the next chapter," "edit my book," "review my book," "have readers test my book," "is my book ready," or "how is my book coming along."
 ---
 
 # Build Room — AI Momentum Labs Book Builder
@@ -68,7 +68,7 @@ Read these before member-facing work, in this order:
 Follow the protocol. Read §1–§4, §8, §13, §17, §18 and §23. Then:
 1. If a book exists, run `book_plan.py status --book book/<slug>` and `manuscript.py status`. Say in three lines where it stands and what's next.
 2. Note what binds every word: §1 *Retired lines*, §18 *Never-say claims*.
-3. For a new book: `book_plan.py init --book book/<slug> --author "…"`. Then settle the shape in one question: **thirteen chapters and about 62,000 words by default; the member can have any number of chapters and any length** (`book_plan.py settings`). A modest intake suits a shorter book, and say so.
+3. For a new book: `book_plan.py init --book book/<slug> --author "…"`. Then settle the shape in one question: **twelve chapters and about 62,000 words by default; the member can have any number of chapters and any length** (`book_plan.py settings`). A modest intake suits a shorter book, and say so.
 
 Then **the plan on one screen**: the stages ahead, what the member does at each, and that it takes several sessions.
 

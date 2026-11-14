@@ -2,11 +2,11 @@
 """AI Momentum Labs Book Builder: the book's folder, settings, intake, sources, plan, book record and stages.
 
 A book lives in book/<slug>/ beside the member's Business File (inside their Obsidian vault when
-they keep one). Thirteen chapters and about 62,000 words are the defaults; the member can change
+they keep one). Twelve chapters and about 62,000 words are the defaults; the member can change
 the chapter count, the total, or any one chapter's length at any time.
 
 Usage
-  book_plan.py init     --book book/<slug> [--author "Name"] [--working-title "…"] [--chapters 13] [--words 62000]
+  book_plan.py init     --book book/<slug> [--author "Name"] [--working-title "…"] [--chapters 12] [--words 62000]
   book_plan.py settings --book B [--chapters N] [--words N] [--chapter-words 4=6000 9=3000] [--grade-max 9]
   book_plan.py intake   --book B                         which of the 15 questions are answered, and where the rest may be
   book_plan.py answer   --book B --key reader --text "…" [--from "§2"]     (keys: book_plan.py intake lists them)

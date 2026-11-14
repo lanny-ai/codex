@@ -7,7 +7,7 @@ import json, os, re, sys, tempfile
 from datetime import date
 from pathlib import Path
 
-DEFAULT_CHAPTERS = 13
+DEFAULT_CHAPTERS = 12
 DEFAULT_WORDS = 62000
 ABOUT_WORDS = 250
 MARKER_RE = re.compile(r"^=== SECTION: (.+?) ===\s*$")
