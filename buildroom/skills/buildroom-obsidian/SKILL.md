@@ -36,7 +36,7 @@ Walk `references/obsidian-guide.md` §2 in order: the desktop app (the program, 
 
 ### Phase 2 — The standing instructions and the templates
 
-Write (or have the member ask for) the vault's `CLAUDE.md` from `references/vault-starter.md` §2, keeping the rules marked keep: check the knowledge base first, light frontmatter, link generously, external material in its own folder, the quality gate, expert hats, save on request, one output per ask. Add `AGENTS.md` as an identical copy for Codex. Create the layout in §1 and the templates in §3. Move the Business File into the vault root and tell the member that is now its home. Ask for the cheat sheet: "the cheat sheet is for the human, CLAUDE.md is for the AI."
+Write (or have the member ask for) the vault's `CLAUDE.md` from `references/vault-starter.md` §2, keeping the rules marked keep: check the knowledge base first, light frontmatter, link generously, external material in its own folder, the quality gate, expert hats, save on request, one output per ask. Add `AGENTS.md` as an identical copy for Codex. If the folder already has a `CLAUDE.md` or `AGENTS.md`, add the missing rules to it and never replace it. Create the layout in §1 and the templates in §3. Move the Business File into the vault root and tell the member that is now its home. Ask for the cheat sheet: "the cheat sheet is for the human, CLAUDE.md is for the AI."
 
 ### Phase 3 — The first fill, with the gate
 

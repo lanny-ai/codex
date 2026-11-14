@@ -20,7 +20,7 @@ Read `references/business-file-protocol.md` before anything else. This skill rea
 
 1. Ask once: "Is there a conversation about this project somewhere else, a chat thread or notes, that is not in this folder? If so, paste it into a file called NOTES.md here and tell me when it is in." Subagents cannot read chats. Wait, then proceed.
 2. If PROGRESS.md has a Finish It section, resume from where it stopped.
-3. Snapshot first. Launch the builder with one job: if this is not a git repository, initialize one; commit everything as "Snapshot before Finish It." Nothing else. This is the undo button.
+3. Snapshot first. Launch the builder with one job: if the folder is inside a larger git repository (a vault or a parent project), stop and ask the owner before committing anything; if it is not a git repository, initialize one; make sure a `.gitignore` keeps secrets (`.env`, key files) and installed dependencies out; then commit everything else as "Snapshot before Finish It." Nothing else. This is the undo button.
 
 ## Phase A: Archaeology
 

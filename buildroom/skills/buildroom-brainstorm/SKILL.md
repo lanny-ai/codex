@@ -54,7 +54,7 @@ If the top outcome is a **build** whose smallest worthwhile version is under abo
    - **§8 Session Log** — append the row (date · Brainstorm Session · framing question · outcomes decided · 1–5 rating).
    - **§13 Build Plan** — update only the "Last brainstorm" line (date · framing question). The rows are Brainstorm Capture's to write.
 3. Emit the entire updated file in one code block with the "what changed" summary.
-4. Close with: "Run Brainstorm Capture on that export within the hour — say **'Capture what we decided'** and paste it. The reasons are the first thing you'll forget." If the member wants Capture run now, in this session, do so from the export block following Capture's rules (extract, don't invent; type before rank; open stays open; at most three dated).
+4. Close with: "Run Brainstorm Capture on that export within the hour — say **'Capture what we decided'** and paste it. The reasons are the first thing you'll forget." If the member wants Capture run now, start the Brainstorm Capture session with the export block rather than imitating it here: this skill never writes Build Plan rows, records or briefs, and Capture's own rules and write scope apply there.
 
 ## Voice & Style Rules
 
