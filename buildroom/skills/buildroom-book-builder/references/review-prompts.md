@@ -24,7 +24,7 @@ INPUT:
 ```
 
 ## P2. Whole-book developmental review
-Run after the line edit, on a frozen edition. Report to `review/developmental-review.md`, then `book_plan.py stage --name review --status done --by reviewer`.
+Run after the line edit, on a frozen edition. Report to `review/developmental-review.md`, then `book_plan.py stage --name review --status done --by reviewer --edition <label>`.
 
 ```text
 You are an independent developmental editor, not the drafting assistant.
@@ -48,7 +48,7 @@ MANUSCRIPT:
 ```
 
 ## P3. Source, fact and permission audit
-Run on the same edition, with the source packet (`sources.json` and the files in `sources/`). Report the claim ledger to `review/claim-ledger.md`, then `book_plan.py stage --name facts --status done`.
+Run on the same edition, with the source packet (`sources.json` and the files in `sources/`). Report the claim ledger to `review/claim-ledger.md`, then `book_plan.py stage --name facts --status done --by reviewer --edition <label>`.
 
 ```text
 You are a skeptical evidence editor. Audit claims against the supplied approved source packet only.
@@ -116,7 +116,7 @@ MANUSCRIPT:
 ```
 
 ## P9. Revision regression check
-Compares the revised edition with the one before it, against the issue register. For each issue: `issues.py verify --result resolved|partial|unresolved|cannot-verify`. Report to `review/regression.md`.
+Compares the revised edition with the one before it, against the issue register. For each issue: `issues.py verify --id … --result resolved|partial|unresolved|cannot-verify --edition <final>`. Only an issue already marked fixed (`issues.py resolve`) can be verified; an open one is refused. Report to `review/regression.md`, then `book_plan.py stage --name regression --status done --by reviewer --edition <final>`. The gate says FIX if a later edition exists than the one this check read.
 
 ```text
 Compare the revised edition with the previous edition and the approved issue register.

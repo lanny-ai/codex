@@ -99,20 +99,21 @@ When every planned section is written: `manuscript.py status`, then `manuscript.
 
 1. Write the developmental memo and the style guide (`editing.md`). Add each of the memo's changes to the issue register. `book_plan.py stage --name memo --status done`.
 2. Edit Chapter 1 as the sample. Save original and edit in `edit/sample.md`.
-3. The member reads both and decides. `book_plan.py approve --what sample --by member --feedback "…"`.
+3. The member reads both and decides. `book_plan.py approve --what sample --by member --feedback "…"`. The memo comes first: the sample can't be approved until the memo stage is done.
 
 ### Phase 5 — Edit every section, and fix what the memo found
 
 1. Line edit each remaining section with the style guide and the member's feedback. Check each with `book_check.py chapter`. Keep `edit/changelog.md`.
-2. Make the memo's structural changes on purpose, one issue at a time (P7). `issues.py resolve` each.
+2. Make the memo's structural changes on purpose, one issue at a time (P7).
 3. `book_plan.py stage --name edit --status done`, then `manuscript.py edition --label v2`.
+4. `issues.py resolve --id … --edition v2 --note "…"` for each issue that edition fixes. A fix always names the frozen edition it is in, and it stays "fixed, not verified" until the regression check confirms it.
 
 ### Phase 6 — Independent review and fact audit
 
 Each is run by a fresh session or subagent that sees only its prompt and the frozen edition (`review-prompts.md`):
 1. **P2** developmental review → `review/developmental-review.md`. Every criticism becomes an issue.
 2. **P3** source, fact and permission audit → `review/claim-ledger.md`. Anything unverified or contradicted becomes an issue; a false claim or a permission breach is P0.
-3. `book_plan.py stage --name review --status done --by reviewer`, and the same for `facts`.
+3. `book_plan.py stage --name review --status done --by reviewer --edition v2`, and the same for `facts`. These four stages (review, facts, copyedit, regression) are refused unless an independent reader did them (`--by reviewer`).
 4. Take author questions to the member, a few at a time. Revise in the order in `editing.md`.
 
 ### Phase 7 — Test readers
@@ -123,12 +124,12 @@ Follow `test-readers.md`:
 3. **Real readers:** the member recruits six to eight. `invite`, `questionnaire`, then `record-human` for each reply and their findings into the register.
 4. `reader_panel.py consolidate`. Read the summary to the member, humans and simulations apart.
 5. Revise. Run a second round on the weak sections.
-6. If the member goes ahead without enough real readers, `reader_panel.py waive --by member --reason "…"`, and say plainly that only simulations have read it.
+6. If the member goes ahead without enough real readers, `reader_panel.py waive --by member --reason "…"`, then `consolidate` again, and say plainly how few real people have read it. A waiver covers too few readers. It doesn't cover real readers who answered and weren't satisfied: that is fixed and tested again.
 
 ### Phase 8 — Copyedit, regression, the gate
 
-1. Freeze the revised edition. An independent reader runs **P8** (consistency and copyedit) → `review/copyedit.md`. Apply the definite corrections; take the queries to the member.
-2. Freeze the final edition. An independent reader runs **P9** against the issue register → `review/regression.md`, and `issues.py verify` for each issue.
+1. Freeze the revised edition. An independent reader runs **P8** (consistency and copyedit) → `review/copyedit.md`, then `book_plan.py stage --name copyedit --status done --by reviewer --edition <label>`. Apply the definite corrections; take the queries to the member.
+2. Freeze the final edition (`manuscript.py edition --label final`), and `issues.py resolve --edition final` anything fixed since. An independent reader runs **P9** against the issue register → `review/regression.md`, then `issues.py verify --id … --result … --edition final` for each issue and `book_plan.py stage --name regression --status done --by reviewer --edition final`. The regression check must name the latest edition: if the text changes afterwards, freeze again and run it again.
 3. **The gate:** `book_check.py check --book book/<slug> --business-file BUILDROOM_BUSINESS_FILE.md`. **GO** only when no FIX remains. Read each WATCH out with its fix; the member decides.
 4. `manuscript.py export --edition <final> --docx book/<slug>/manuscript.docx`.
 

@@ -23,6 +23,7 @@ PLAN, MS, ISS, RP, CHK = (S / n for n in ("book_plan.py", "manuscript.py", "issu
 sys.path.insert(0, str(S))
 import booklib as bl  # noqa: E402
 import book_check as bc  # noqa: E402
+import manuscript as ms  # noqa: E402
 RESULTS = []
 EM = "—"
 
@@ -471,10 +472,25 @@ def t_checks(tmp, B):
     check("the review cannot be done by the session that drafted the book", code == 1 and "independent" in out)
     code, out = run([PY, PLAN, "approve", "--book", B, "--what", "sample", "--by", "member"], tmp)
     check("the sample cannot be approved before it exists", code == 1)
-    (B / "edit" / "sample.md").write_text("Original and edited sample chapter, side by side.")
+    (B / "edit" / "sample.md").write_text("")
+    code, out = run([PY, PLAN, "approve", "--book", B, "--what", "sample", "--by", "member"], tmp)
+    check("an empty sample cannot be approved", code == 1)
+    (B / "edit" / "sample.md").write_text("Original and edited sample chapter, side by side. " * 8)
+    code, out = run([PY, PLAN, "approve", "--book", B, "--what", "sample", "--by", "member"], tmp)
+    check("the sample waits for the memo", code == 1 and "memo" in out, out)
+    run([PY, PLAN, "stage", "--book", B, "--name", "memo", "--status", "done"], tmp)
     run([PY, PLAN, "approve", "--book", B, "--what", "sample", "--by", "member", "--feedback", "Keep my short sentences."], tmp)
-    for name in ("memo", "edit", "facts", "copyedit"):
-        run([PY, PLAN, "stage", "--book", B, "--name", name, "--status", "done"], tmp)
+    run([PY, PLAN, "stage", "--book", B, "--name", "edit", "--status", "done"], tmp)
+    for name in ("facts", "copyedit"):
+        code, out = run([PY, PLAN, "stage", "--book", B, "--name", name, "--status", "done"], tmp)
+        check(f"the {name} stage needs an independent reader", code == 1 and "independent" in out, out)
+        run([PY, PLAN, "stage", "--book", B, "--name", name, "--status", "done", "--by", "reviewer"], tmp)
+    code, out = run([PY, PLAN, "stage", "--book", B, "--name", "edit", "--status", "done", "--evidence", "manuscript/ch-01.md"], tmp)
+    check("a chapter cannot stand in for a stage report", code == 1 and "not a report" in out, out)
+    code, out = run([PY, PLAN, "stage", "--book", B, "--name", "edit", "--status", "done", "--evidence", "/etc/hostname"], tmp)
+    check("a report outside the book folder is refused cleanly", code == 1 and "Traceback" not in out and pj(out).get("ok") is False, out)
+    code, out = run([PY, PLAN, "stage", "--book", B, "--name", "regression", "--status", "done", "--by", "reviewer"], tmp)
+    check("the regression check must name its edition", code == 1 and "--edition" in out, out)
     run([PY, PLAN, "stage", "--book", B, "--name", "review", "--status", "done", "--by", "reviewer"], tmp)
     run([PY, MS, "edition", "--book", B, "--label", "final"], tmp)
     run([PY, PLAN, "stage", "--book", B, "--name", "regression", "--status", "done", "--by", "reviewer", "--edition", "final"], tmp)
@@ -504,7 +520,235 @@ def t_checks(tmp, B):
     check("section codes", bl.section_code("Chapter 12: X") == "C12" and bl.section_code("Introduction") == "IN")
 
 
-# ---------------------------------------------------------------- 7. consistency and wiring
+# ---------------------------------------------------------------- 7. regressions from the independent review
+def make_book(tmp, name, readers=True):
+    """A two-chapter book taken all the way to GO, for tests that then break one thing."""
+    B = tmp / "book" / name
+    run([PY, PLAN, "init", "--book", B, "--author", "Ruth Adeyemi", "--chapters", "2", "--words", "2000"], tmp)
+    for k in ("about", "reader", "transformation", "story", "work", "method", "mistake", "result", "voice"):
+        run([PY, PLAN, "answer", "--book", B, "--key", k, "--text", f"My answer about {k}: I coached 40 clients for 12 years."], tmp)
+    run([PY, PLAN, "intake-gate", "--book", B, "--verdict", "ready"], tmp)
+    (B / "plan.json").write_text(json.dumps({"title": "Second Chapter", "promise": "One client.", "voice": "Plain.", "thread": "Start.",
+        "conclusion": "Call.", "chapters": [{"title": "Know", "idea": "a", "brief": BRIEF, "stories": ["table"]},
+                                            {"title": "Price", "idea": "b", "brief": BRIEF, "stories": ["call"]}]}))
+    run([PY, PLAN, "plan-check", "--book", B], tmp)
+    run([PY, PLAN, "approve", "--book", B, "--what", "outline", "--by", "member"], tmp)
+    write_section(B, "01-introduction.md", "Introduction", prose(11, 500))
+    write_section(B, "ch-01.md", "Chapter 1: Know", prose(12, 1000))
+    write_section(B, "ch-02.md", "Chapter 2: Price", prose(13, 1000))
+    write_section(B, "90-conclusion.md", "Conclusion", prose(14, 500))
+    write_section(B, "91-about.md", "About the Author", prose(15, 240))
+    run([PY, MS, "status", "--book", B], tmp)
+    for f in ("edit/memo.md", "edit/changelog.md", "edit/sample.md", "review/developmental-review.md", "review/claim-ledger.md",
+              "review/copyedit.md", "review/regression.md"):
+        (B / f).parent.mkdir(parents=True, exist_ok=True)
+        (B / f).write_text("A report with its findings, each tied to a paragraph ID and a severity. " * 6)
+    run([PY, PLAN, "stage", "--book", B, "--name", "memo", "--status", "done"], tmp)
+    run([PY, PLAN, "approve", "--book", B, "--what", "sample", "--by", "member"], tmp)
+    run([PY, PLAN, "stage", "--book", B, "--name", "edit", "--status", "done"], tmp)
+    for n in ("review", "facts", "copyedit"):
+        run([PY, PLAN, "stage", "--book", B, "--name", n, "--status", "done", "--by", "reviewer"], tmp)
+    run([PY, MS, "edition", "--book", B, "--label", "final"], tmp)
+    run([PY, PLAN, "stage", "--book", B, "--name", "regression", "--status", "done", "--by", "reviewer", "--edition", "final"], tmp)
+    if readers:
+        run([PY, RP, "invite", "--book", B, "--roles", "target,target,skeptic"], tmp)
+        for c in ("R-01", "R-02", "R-03"):
+            run([PY, RP, "record-human", "--book", B, "--code", c, "--finished", "yes", "--promise-explained", "yes",
+                 "--next-step", "yes", "--clarity", "5", "--usefulness", "4", "--recommend", "yes"], tmp)
+        run([PY, RP, "consolidate", "--book", B], tmp)
+    return B
+
+
+def gate(tmp, B):
+    return pj(run([PY, CHK, "check", "--book", B], tmp)[1])
+
+
+def t_review(tmp):
+    B = make_book(tmp, "h")
+    d = gate(tmp, B)
+    check("R: the helper book reaches GO", d.get("verdict") == "GO", d.get("items"))
+    # H1: a blocking issue cannot be closed without a fix
+    run([PY, ISS, "add", "--book", B, "--severity", "P0", "--source", "facts", "--location", "C01-P001", "--issue", "false",
+         "--evidence", "none"], tmp)
+    code, out = run([PY, ISS, "verify", "--book", B, "--id", "I-001", "--result", "resolved", "--edition", "final"], tmp)
+    check("R-H1: an open issue cannot be verified as resolved", code == 1 and "nothing has been fixed" in out, out)
+    check("R-H1: so the gate still says FIX", gate(tmp, B)["verdict"] == "FIX")
+    run([PY, ISS, "resolve", "--book", B, "--id", "I-001", "--edition", "final", "--note", "cut"], tmp)
+    code, out = run([PY, ISS, "verify", "--book", B, "--id", "I-001", "--result", "resolved", "--edition", "nope"], tmp)
+    check("R-H1: verification names a real edition", code == 1 and "no edition" in out, out)
+    run([PY, ISS, "verify", "--book", B, "--id", "I-001", "--result", "resolved", "--edition", "final"], tmp)
+    check("R-H1: fixed then verified reaches GO", gate(tmp, B)["verdict"] == "GO")
+    # H2: new text after the regression check
+    write_section(B, "ch-01.md", "Chapter 1: Know", prose(12, 1000) + "\n\n" + prose(40, 200))
+    run([PY, MS, "edition", "--book", B, "--label", "final2"], tmp)
+    d = gate(tmp, B)
+    check("R-H2: a newer edition than the regression check read is FIX", d["verdict"] == "FIX" and "regression_edition" in ids(d), ids(d))
+    run([PY, PLAN, "stage", "--book", B, "--name", "regression", "--status", "done", "--by", "reviewer", "--edition", "final2"], tmp)
+    check("R-H2: the regression check on the latest edition clears it", gate(tmp, B)["verdict"] == "GO")
+    # L2: an edition edited in place
+    ed = B / "editions" / "final2" / "manuscript.md"
+    keep = ed.read_text()
+    ed.write_text(keep + "\nSneaked in.\n")
+    check("R-L2: an edition edited after freezing is FIX", "edition_altered" in ids(gate(tmp, B)))
+    code, out = run([PY, MS, "export", "--book", B, "--edition", "final2", "--docx", B / "x.docx"], tmp)
+    check("R-L2: and it is not exported", code == 1 and "never edited" in out, out)
+    ed.write_text(keep)
+    # H3: approvals do not survive a change
+    plan = json.loads((B / "plan.json").read_text())
+    plan["promise"] = "Get rich quick."
+    (B / "plan.json").write_text(json.dumps(plan))
+    check("R-H3: a plan changed after approval is FIX", "changed_since_approval" in ids(gate(tmp, B)))
+    d = pj(run([PY, PLAN, "plan-check", "--book", B], tmp)[1])
+    check("R-H3: plan-check asks for approval again", json.loads((B / "book.json").read_text())["stages"]["outline"]["status"]
+          == "needs re-approval" and d["warnings"], d)
+    run([PY, PLAN, "approve", "--book", B, "--what", "outline", "--by", "member"], tmp)
+    (B / "edit" / "sample.md").write_text("Replaced.")
+    check("R-H3: a sample changed after approval is FIX", "changed_since_approval" in ids(gate(tmp, B)))
+    # H4: the wrong text in the manuscript folder
+    B = make_book(tmp, "h4")
+    shutil.copy(B / "manuscript" / "ch-01.md", B / "manuscript" / "ch-01-old.md")
+    d = gate(tmp, B)
+    check("R-H4: a section in the manuscript twice is FIX", "duplicate_section" in ids(d), ids(d))
+    code, out = run([PY, MS, "edition", "--book", B, "--label", "dup"], tmp)
+    check("R-H4: and no edition is frozen from it", code == 1 and "twice" in out, out)
+    (B / "manuscript" / "ch-01-old.md").unlink()
+    (B / "manuscript" / "notes.md").write_text("Some loose notes with no section marker at all, left here by mistake.\n")
+    check("R-H4: text in no section is FIX", "stray_text" in ids(gate(tmp, B)))
+    (B / "manuscript" / "notes.md").unlink()
+    write_section(B, "ch-03.md", "Chapter 3: Extra", prose(20, 300))
+    d = gate(tmp, B)
+    check("R-H4: a chapter past the chapter count is FIX", "extra_chapter" in ids(d), ids(d))
+    (B / "manuscript" / "ch-03.md").unlink()
+    write_section(B, "95-appendix.md", "Appendix A", prose(21, 200))
+    d = gate(tmp, B)
+    check("R-H4: an appendix is a WATCH, not a block", "unplanned_section" in ids(d) and "extra_chapter" not in ids(d))
+    (B / "manuscript" / "95-appendix.md").unlink()
+    (B / "manuscript" / "ch-02.md").write_text("  === section: chapter 2: Price ===\r\n\r\n" + prose(13, 1000).replace("\n", "\r\n"))
+    st = pj(run([PY, MS, "status", "--book", B], tmp)[1])
+    check("R-H4/L8: a lower-case, indented marker with Windows line endings still counts", st["complete"] and not st["problems"], st)
+    (B / "manuscript" / "90-conclusion.md").unlink()
+    run([PY, MS, "status", "--book", B], tmp)
+    check("R-L14: the draft stage goes back when a section disappears",
+          json.loads((B / "book.json").read_text())["stages"]["draft"]["status"] == "in progress")
+    # M1, M2, L1, L12: readers
+    B = make_book(tmp, "m1", readers=False)
+    run([PY, RP, "invite", "--book", B, "--roles", "target,target,target,skeptic"], tmp)
+    for c in ("R-01", "R-02", "R-03", "R-04"):
+        run([PY, RP, "record-human", "--book", B, "--code", c, "--finished", "no", "--promise-explained", "no",
+             "--next-step", "no", "--clarity", "1", "--usefulness", "2", "--recommend", "no"], tmp)
+    run([PY, RP, "waive", "--book", B, "--by", "member", "--reason", "in a hurry"], tmp)
+    d = pj(run([PY, RP, "consolidate", "--book", B], tmp)[1])
+    check("R-M1: a waiver does not cover real readers who were not satisfied", d["stage"] == "not passed" and d.get("waiver_note"), d.get("stage"))
+    check("R-M1: so the gate says FIX", "stage_readers" in ids(gate(tmp, B)))
+    d = pj(run([PY, RP, "invite", "--book", B, "--round", "2", "--roles", "target"], tmp)[1])
+    check("R-L12: reader codes run on across rounds", d["codes"] == ["R-05"], d.get("codes"))
+    run([PY, RP, "waive", "--book", B, "--round", "2", "--by", "member", "--reason", "nobody else is free"], tmp)
+    d = pj(run([PY, RP, "consolidate", "--book", B, "--round", "2"], tmp)[1])
+    check("R-M1: a waiver still covers too few real readers", d["stage"] == "waived")
+    check("R-L1: status moves past a waived reader round", pj(run([PY, PLAN, "status", "--book", B], tmp)[1])["next"] == "gate")
+    code, out = run([PY, RP, "consolidate", "--book", B, "--round", "1"], tmp)
+    check("R-M2: an older round cannot overwrite the latest", code == 1 and "latest" in out, out)
+    # M13: a client source outside the plan
+    run([PY, PLAN, "source", "--book", B, "add", "--title", "A client's story", "--kind", "client", "--permission", "not needed"], tmp)
+    d = gate(tmp, B)
+    check("R-M13: a client source needs documented permission even outside the plan", "permission" in ids(d), ids(d))
+    # L3: hand-edited files refuse cleanly
+    (B / "intake.json").write_text("{}")
+    (B / "edit").mkdir(exist_ok=True)
+    (B / "edit" / "issues.json").write_text("{}")
+    code, out = run([PY, CHK, "check", "--book", B], tmp)
+    check("R-L3: emptied JSON files do not crash the gate", "Traceback" not in out and pj(out).get("verdict") == "FIX", out[-400:])
+    (B / "plan.json").write_text("[]")
+    code, out = run([PY, PLAN, "plan-check", "--book", B], tmp)
+    check("R-L3: a malformed plan is a plain refusal", code == 1 and "Traceback" not in out and pj(out).get("ok") is False, out[-300:])
+    check("R-L4: files are written readable (0644), not private to one user", ((B / "book.json").stat().st_mode & 0o777) == 0o644)
+    check("R-L4: no temporary files are left behind", not list(B.rglob(".tmp-*")))
+    code, out = run([PY, PLAN, "settings", "--book", B, "--grade-max", "0"], tmp)
+    check("R-L13: a reading grade of 0 is refused", code == 1)
+    # ---- text checks, as units
+    nums = bc.number_sets("I coached 40 clients for 12 years. About 70% start with a call. We made $2 million. 40 minutes a day. "
+                          "One in three owners told me so.")
+    un = lambda t: bc.unsourced_numbers(t, nums)  # noqa: E731
+    for t in ("$5 million in sales", "9 percent quit", "$40 million", "8 million people", "Forty percent quit",
+              "Half of all clients leave", "one out of ten owners", "45% of them"):
+        check(f"R-M4: unsourced figure caught: {t}", un(t), un(t))
+    for t in ("40 clients", "70% of them", "$2 million", "Give it 30 days", "In 2019 many people left", "100 percent sure",
+              "open 24 hours", "3 clients", "One in three owners"):
+        check(f"R-M5: honest figure passes: {t}", not un(t), un(t))
+    q = lambda t: bc.attributed_names(bl.plain_quotes(t))  # noqa: E731
+    for t, who in (('"Go big or go home tonight," Tony Robbins said.', "Tony Robbins"),
+                   ('As Tony Robbins says, "Go big or go home tonight."', "Tony Robbins"),
+                   ('But Steve Jobs said, "Stay hungry and stay foolish."', "Steve Jobs"),
+                   ('The Dalai Lama once said, "Be kind whenever possible."', "Dalai Lama"),
+                   ('“Call me when you land, okay,” said Brené Brown.', "Brené Brown")):
+        check(f"R-M6: attributed quotation caught: {who} ({t[:18]})", q(t) == [who], q(t))
+    for t in ('Later Maria said, "Go home and rest now."', 'Finally Dad said, "Call me when you can."'):
+        check(f"R-M6: the author's own dialogue passes: {t[:20]}", not q(t), q(t))
+    c = lambda t: [m.group(1) for m in bc.CLIENT_NAME.finditer(bl.plain_quotes(t))]  # noqa: E731
+    for t in ("One client, Maria, doubled her rate", "Clients like Sarah", "A client I’ll call Dana"):
+        check(f"R-M7: named client caught: {t}", c(t), c(t))
+    check("R-M7: 'a member of the Chamber' is not a client name", not c("a member of the Chamber. Sarah left"))
+    check("R-M8: curly apostrophes do not hide stock phrases",
+          bc.tells("It’s important to note that here’s the thing. Let’s dive in. It’s no secret."))
+    for t in ("my todo list", "[laughs]", "[emphasis added]", "a placeholder for now"):
+        check(f"R-M10: not a placeholder: {t}", not bc.PLACEHOLDER.search(t))
+    for t in ("TODO", "[INSERT STORY]", "lorem ipsum", "insert example here", "TBD"):
+        check(f"R-M10: a placeholder: {t}", bc.PLACEHOLDER.search(t))
+    for t in ("a -- b", "word--word", "a ― b", "5 − 3", "a ‒ b"):
+        check(f"R-M3: a dash: {t!r}", bl.dash_count(t) == 1)
+    check("R-M3: hyphens in compound words pass", bl.dash_count("a well-known, twenty-one-year-old step-by-step plan") == 0)
+    sec = {"title": "Chapter 1: The Gap — Why", "paras": ["@@ TODO subhead", prose(3, 200), "@@ Part One – Start"], "file": "x"}
+    it, _ = bc.check_section(sec, "", bc.number_sets(""), [], 9, None)
+    got = {i["id"]: i["message"] for i in it}
+    check("R-M3: dashes in the title and subheads are FIX", got.get("dashes", "").startswith("2 dash"), got)
+    check("R-M3: a placeholder in a subhead is FIX", "placeholders" in got, got)
+    sec = {"title": "Chapter 1", "paras": [prose(3, 200) + " My own data shows the same thing.", "Soft\x0bbreak here."], "file": "x"}
+    it, _ = bc.check_section(sec, "", bc.number_sets(""), [], 9, None)
+    got = {i["id"] for i in it}
+    check("R-L10: the author's own data is not unnamed evidence", "unattributed_authority" not in got, got)
+    check("R-M11: a control character is FIX", "control_characters" in got, got)
+    for t in ("Studies have found that it works.", "A recent study found the same.", "According to research, yes.", "Science says so."):
+        check(f"R-L10: unnamed evidence caught: {t}", bc.AUTHORITY.search(t))
+    bf = tmp / "bf2.md"
+    bf.write_text("- **Retired lines** (never used again in any output — e.g. a claim): ex-Google engineer; built a seven figure agency\n"
+                  "- **Never-say claims:** guaranteed results, world-class service\n\n- **Retired lines:**\n  - “doubles your income”\n"
+                  "  - don’t settle for less\n- **Wrong fit:** people in a hurry\n- **Never-say claims:**\n")
+    got = [x for _, x in bc.banned_lines(bf)]
+    check("R-M9: banned lines read past a hint, commas and sub-bullets", got == ["ex-Google engineer", "built a seven figure agency",
+          "guaranteed results", "world-class service", "doubles your income", "don't settle for less"], got)
+    sec = {"title": "Chapter 1", "paras": [prose(3, 200) + " Don’t  settle for less, I said."], "file": "x"}
+    it, _ = bc.check_section(sec, "", bc.number_sets(""), bc.banned_lines(bf), 9, None)
+    check("R-M9: a curly apostrophe does not hide a banned line", any(i["id"] == "banned_line" for i in it))
+    check("R-M12: accented words count as one word each", bl.words("años de café naïve") == 4)
+    check("R-M12: non-Latin text is counted", bl.words("книга для читателя") == 3)
+    check("R-L7: two appendices get different codes", bl.section_code("Appendix A") != bl.section_code("Appendix B"))
+    check("R-L7: a foreword sorts before the introduction", bl.order_key("Foreword") < bl.order_key("Introduction")
+          and bl.order_key("Conclusion") < bl.order_key("Appendix A") < bl.order_key("About the Author"))
+    check("R-L8: 'chapter 3' in lower case is Chapter 3", bl.section_key("chapter 3: x") == "Chapter 3" and bl.section_code("chapter 3: x") == "C03")
+    check("R-L11: old Mac line endings still parse", bl.parse_sections("=== SECTION: Intro ===\rtext here\r")[0] == ("Intro", ["text here"]))
+    out_docx = tmp / "ctl.docx"
+    ms.docx([{"title": "A & B <c>", "paras": ["Soft\x0bbreak \x01 & <tag>"]}], out_docx, "T & T")
+    import xml.dom.minidom
+    with zipfile.ZipFile(out_docx) as z:
+        try:
+            xml.dom.minidom.parseString(z.read("word/document.xml"))
+            okx = True
+        except Exception:
+            okx = False
+    check("R-M11: the .docx is well-formed XML even with control characters", okx)
+    # L9: one framework name, several spellings; no match inside another word
+    B = make_book(tmp, "l9")
+    run([PY, PLAN, "record", "--book", B, "add", "--kind", "framework", "--text", "Five-Step Method"], tmp)
+    run([PY, PLAN, "record", "--book", B, "add", "--kind", "term", "--text", "Lean"], tmp)
+    write_section(B, "ch-01.md", "Chapter 1: Know", prose(12, 1000) + "\n\nThe Five-Step Method is simple. The Five Step method works. "
+                  "Keep a clean desk. Lean is the word.")
+    d = gate(tmp, B)
+    msgs = [i["message"] for i in d["items"] if i["id"] == "inconsistent_name"]
+    check("R-L9: hyphen and capital variants of a framework name are seen", any("Five-Step Method" in m for m in msgs), msgs)
+    check("R-L9: 'Lean' is not found inside 'clean'", not any('"Lean"' in m for m in msgs), msgs)
+
+
+# ---------------------------------------------------------------- 8. consistency and wiring
 def t_consistency():
     skill = (SK / "SKILL.md").read_text()
     m = re.match(r"---\nname: (.+)\ndescription: \|\n  (.+?)\n---", skill, re.S)
@@ -557,6 +801,7 @@ def main():
         t_issues(tmp, B)
         t_readers(tmp, B)
         t_checks(tmp, B)
+        t_review(tmp)
         t_consistency()
     finally:
         if keep:

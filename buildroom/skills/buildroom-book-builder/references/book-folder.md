@@ -50,6 +50,9 @@ Plain prose paragraphs, a blank line between them.
 More prose.
 ```
 
+## What belongs in `manuscript/`
+Only the book: one file per section, each starting with its marker line. The scripts refuse to freeze an edition, and the gate says FIX, when a section is there twice (an old copy such as `ch-01-old.md`), when a chapter is numbered past the book's chapter count, or when a file has text before its first marker or no marker at all. Keep old drafts and notes somewhere else. A foreword, dedication, preface, acknowledgments or appendix is allowed and shows as a WATCH because it isn't in the plan.
+
 ## An edition
 `manuscript.py edition --label v2` writes the text, a copy with a paragraph ID on every paragraph (`[C04-P012] …`) for reviewers, a map and a checksum. An edition is never overwritten. The gate certifies the latest edition only if the working manuscript still matches it.
 

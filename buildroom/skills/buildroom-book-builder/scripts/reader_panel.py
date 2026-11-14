@@ -91,6 +91,9 @@ Please give chapter/paragraph locations wherever possible. You are not being ask
 """
 
 
+ENOUGH = "at least 3 real respondents, 2 of them target readers"
+
+
 def rdir(book, rnd):
     return Path(book) / "readers" / f"round-{rnd}"
 
@@ -176,7 +179,10 @@ def cmd_invite(a):
         bl.refuse(f"--roles is a comma list of {', '.join(ROLES)}")
     d = load_round(a.book, a.round)
     start = len(d["humans"])
-    for i, r in enumerate(roles, start + 1):
+    # codes run on across rounds, so R-04 is one person for the whole book
+    used = [int(h["code"].split("-")[1]) for f in (Path(a.book) / "readers").glob("round-*/round.json")
+            for h in bl.read_json(f, {"humans": []})["humans"] if str(h.get("code", "")).startswith("R-") and h["code"][2:].isdigit()]
+    for i, r in enumerate(roles, max(used, default=0) + 1):
         d["humans"].append({"code": f"R-{i:02d}", "role": r, "status": "invited", "invited": bl.today()})
     save_round(a.book, a.round, d)
     allr = [h["role"] for h in d["humans"]]
@@ -237,7 +243,7 @@ def consolidate(book, rnd):
     enough = len(resp) >= MIN_HUMANS and len(target) >= MIN_TARGET
     checks = {
         "no open P0 or P1 issue": not reg["blocking"],
-        "at least 3 real respondents, 2 of them target readers": enough,
+        ENOUGH: enough,
         "80 percent of target readers explain the promise and the next step": bool(target) and len(both) / len(target) >= PASS_SHARE,
         "median clarity at least 4": med("clarity") is not None and med("clarity") >= PASS_MEDIAN,
         "median practical usefulness at least 4": med("usefulness") is not None and med("usefulness") >= PASS_MEDIAN,
@@ -278,7 +284,15 @@ def cmd_consolidate(a):
     md += ["These thresholds help an editorial decision. They are not proof the book will sell."]
     bl.write_atomic(rdir(a.book, a.round) / "summary.md", "\n".join(md) + "\n")
     bl.write_json(rdir(a.book, a.round) / "summary.json", s)
-    status = "passed" if s["passed"] else ("waived" if d.get("waiver") and not s["blocking_issues"] else "not passed")
+    prev = bl.stage(data, "readers").get("round")
+    if isinstance(prev, int) and a.round < prev:
+        bl.refuse(f"round {prev} is the latest reader round; consolidating round {a.round} again would overwrite its result")
+    # A waiver covers too few real readers. It never covers real readers who answered and were not satisfied.
+    waivable = bool(d.get("waiver")) and not s["blocking_issues"] and not s["checks"][ENOUGH]
+    status = "passed" if s["passed"] else ("waived" if waivable else "not passed")
+    if d.get("waiver") and not s["passed"] and not waivable and not s["blocking_issues"]:
+        s["waiver_note"] = ("enough real readers answered and the thresholds were not met: a waiver does not cover that. "
+                            "Fix what they found and run a second round on the weak sections.")
     bl.set_stage(data, "readers", status, round=a.round, humans=h["responded"], simulated=sim["runs"])
     bl.save_book(a.book, data)
     return {"ok": True, **s, "stage": status, "summary": str(rdir(a.book, a.round) / "summary.md")}

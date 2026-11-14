@@ -87,4 +87,6 @@ ANONYMIZED FEEDBACK:
 Revise in the order in `editing.md`. Then run a second round (`--round 2`): at least two fresh target readers on the revised opening and the weakest sections, and one original reader checking that their main problem is fixed. After a major restructure, test the whole manuscript again.
 
 ## G. If there aren't enough real readers
-The member can go ahead anyway: `reader_panel.py waive --by member --reason "…"`. The gate then shows a WATCH, the Business File records it, and you say plainly that the book has been read only by simulations. Open P0 and P1 issues still block.
+The member can go ahead anyway: `reader_panel.py waive --by member --reason "…"`, then `consolidate` again. The gate then shows a WATCH, the Business File records it, and you say plainly how few real people have read the book. Open P0 and P1 issues still block.
+
+A waiver covers one thing: too few real readers. When at least three real readers answered (two of them target readers) and the thresholds weren't met, the waiver doesn't apply and the round stays not passed. Fix what they found and run a second round on the weak sections. Reader codes run on across rounds (round 2 starts after the last code of round 1), so `R-04` is one person for the whole book.

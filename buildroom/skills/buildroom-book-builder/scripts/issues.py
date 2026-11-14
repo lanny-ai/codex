@@ -24,7 +24,7 @@ Usage
   issues.py summary --book B
 Every command prints JSON. Exit 1 on a refusal.
 """
-import argparse, sys
+import argparse, re, sys
 from pathlib import Path
 
 sys.dont_write_bytecode = True
@@ -48,7 +48,7 @@ def load(book):
 
 def find(d, iid):
     for i in d["issues"]:
-        if i["id"].lower() == iid.lower():
+        if str(i.get("id", "")).lower() == iid.lower():
             return i
     bl.refuse(f"no issue {iid}")
 
@@ -64,7 +64,8 @@ def cmd_add(a):
     readers = [x.strip().upper() for x in (a.readers or "").split(",") if x.strip()]
     if a.source == "human" and not readers:
         bl.refuse("an issue from a real reader names the reader code(s) (--readers R-01)")
-    iid = f"I-{len(d['issues']) + 1:03d}"
+    nums = [int(m.group(1)) for m in (re.fullmatch(r"I-(\d+)", str(i.get("id", ""))) for i in d["issues"]) if m]
+    iid = f"I-{max(nums, default=0) + 1:03d}"
     d["issues"].append({"id": iid, "severity": a.severity, "source": a.source, "location": a.location.strip(),
                         "issue": a.issue.strip(), "evidence": a.evidence.strip(), "fix": (a.fix or "").strip(),
                         "readers": readers, "depends": [x.strip().upper() for x in (a.depends or "").split(",") if x.strip()],
@@ -97,11 +98,20 @@ def change(a, status, **extra):
     return {"ok": True, "id": i["id"], "status": status, "severity": i["severity"]}
 
 
+def edition_index(book, label):
+    """Where an edition sits in the book's history; refuses one that was never frozen."""
+    labels = [e["label"] for e in bl.load_book(book).get("editions", [])]
+    if bl.slugify(label or "") not in labels:
+        bl.refuse(f"no edition {label}; freeze it first (manuscript.py edition)")
+    return labels.index(bl.slugify(label))
+
+
 def cmd_resolve(a):
-    data = bl.load_book(a.book)
-    if a.edition and bl.slugify(a.edition) not in [e["label"] for e in data.get("editions", [])]:
-        bl.refuse(f"no edition {a.edition}; freeze it first (manuscript.py edition)")
-    return change(a, "fixed, not verified", edition=a.edition, note=a.note)
+    edition_index(a.book, a.edition)
+    i = find(load(a.book), a.id)
+    if i["status"] == "accepted":
+        bl.refuse(f"{i['id']} was accepted; reopen it first if it is being fixed after all")
+    return change(a, "fixed, not verified", edition=bl.slugify(a.edition), note=a.note)
 
 
 def cmd_accept(a):
@@ -118,10 +128,18 @@ def cmd_accept(a):
 def cmd_verify(a):
     d = load(a.book)
     i = find(d, a.id)
-    if i["status"] not in ("fixed, not verified", "resolved", "open"):
+    if i["status"] == "open":
+        bl.refuse(f"{i['id']} is open: nothing has been fixed yet. Fix it in the manuscript, freeze an edition, then "
+                  "issues.py resolve, and only then verify")
+    if i["status"] not in ("fixed, not verified", "resolved"):
         bl.refuse(f"{i['id']} is {i['status']}")
+    at = edition_index(a.book, a.edition)
+    fixed_in = i.get("edition") or ""
+    labels = [e["label"] for e in bl.load_book(a.book).get("editions", [])]
+    if fixed_in in labels and at < labels.index(fixed_in):
+        bl.refuse(f"{i['id']} was fixed in edition {fixed_in}; verify it against that edition or a later one, not {a.edition}")
     status = {"resolved": "resolved", "partial": "open", "unresolved": "open", "cannot-verify": "fixed, not verified"}[a.result]
-    return change(a, status, verified=a.result, edition=a.edition, note=a.note)
+    return change(a, status, verified=a.result, verified_edition=bl.slugify(a.edition), note=a.note)
 
 
 def cmd_reopen(a):

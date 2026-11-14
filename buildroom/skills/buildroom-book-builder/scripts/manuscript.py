@@ -38,7 +38,9 @@ def planned(data, book):
 
 
 def status(data, book):
-    secs = {bl.section_key(s["title"]): s for s in bl.read_manuscript(book)}
+    secs = {}
+    for s in bl.read_manuscript(book):
+        secs.setdefault(bl.section_key(s["title"]), s)
     t = bl.targets(data)
     rows, total = [], 0
     for title in planned(data, book):
@@ -53,6 +55,7 @@ def status(data, book):
     return {"sections": rows, "total_words": total, "target_words": int(data["settings"]["words"]),
             "missing": [r["section"] for r in rows if r["state"] in ("missing", "empty")],
             "thin": [r["section"] for r in rows if r["state"] == "thin"], "unplanned": extra,
+            "problems": [m for _, m in bl.manuscript_problems(book, int(data["settings"]["chapters"]))],
             "complete": not any(r["state"] in ("missing", "empty") for r in rows if r["section"] != "Title Page")}
 
 
@@ -61,6 +64,9 @@ def cmd_status(a):
     st = status(data, a.book)
     if st["complete"] and bl.stage(data, "draft").get("status") != "done":
         bl.set_stage(data, "draft", "done", words=st["total_words"])
+        bl.save_book(a.book, data)
+    elif not st["complete"] and bl.stage(data, "draft").get("status") == "done":
+        bl.set_stage(data, "draft", "in progress", note="a planned section is missing or empty again")
         bl.save_book(a.book, data)
     return {"ok": True, **st}
 
@@ -111,11 +117,16 @@ def cmd_edition(a):
     data = bl.load_book(a.book)
     label = bl.slugify(a.label)
     d = Path(a.book) / "editions" / label
-    if d.exists():
+    recorded = label in [e["label"] for e in data.get("editions", [])]
+    if recorded or (d / "map.json").exists():
         bl.refuse(f"edition {label} already exists; an edition is never overwritten. Use the next label.")
     secs = bl.read_manuscript(a.book)
     if not secs:
         bl.refuse("no sections in manuscript/ yet")
+    probs = bl.manuscript_problems(a.book, int(data["settings"]["chapters"]))
+    if probs:
+        bl.refuse("the manuscript folder would put the wrong text in this edition; fix it first",
+                  problems=[m for _, m in probs])
     text = assemble(secs)
     ids, mp = [], []
     for s in secs:
@@ -143,7 +154,11 @@ def load_edition(book, label):
     d = Path(book) / "editions" / bl.slugify(label)
     if not (d / "manuscript.md").exists():
         bl.refuse(f"no edition {label}")
-    return bl.parse_sections(bl.read_text(d / "manuscript.md"))
+    text = bl.read_text(d / "manuscript.md")
+    want = bl.read_json(d / "map.json", {"sha256": ""})["sha256"]
+    if want and hashlib.sha256(text.encode()).hexdigest() != want:
+        bl.refuse(f"edition {label} was edited after it was frozen; an edition is never edited. Freeze a new one from manuscript/.")
+    return bl.parse_sections(text)
 
 
 def cmd_diff(a):
@@ -170,6 +185,7 @@ def cmd_diff(a):
 def docx(secs, out, title):
     def para(text, style=None):
         st = f'<w:pPr><w:pStyle w:val="{style}"/></w:pPr>' if style else ""
+        text = bl.CONTROL.sub(" ", text)          # control characters are not allowed in XML
         return f'<w:p>{st}<w:r><w:t xml:space="preserve">{html.escape(text, quote=False)}</w:t></w:r></w:p>'
     body = []
     for s in secs:

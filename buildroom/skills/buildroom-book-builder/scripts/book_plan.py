@@ -37,6 +37,7 @@ RECORD_KINDS = ("term", "framework", "name", "story", "promise", "summary")
 EVIDENCE_STAGES = {"memo": "edit/memo.md", "edit": "edit/changelog.md", "review": "review/developmental-review.md",
                    "facts": "review/claim-ledger.md", "copyedit": "review/copyedit.md",
                    "regression": "review/regression.md"}
+INDEPENDENT = ("review", "facts", "copyedit", "regression")   # never done by the session that drafted or edited
 
 
 def cmd_init(a):
@@ -80,6 +81,8 @@ def cmd_settings(a):
         s["chapter_words"][m.group(1)] = int(m.group(2))
         changed.append(f"chapter {m.group(1)}")
     if a.grade_max is not None:
+        if not 3 <= a.grade_max <= 18:
+            bl.refuse("--grade-max is a school grade from 3 to 18 (9 is the default)")
         s["grade_max"] = a.grade_max
         changed.append("grade_max")
     warn = []
@@ -169,6 +172,8 @@ def cmd_source(a):
 def check_plan(book, data):
     plan = bl.read_json(Path(book) / "plan.json")
     problems, warnings = [], []
+    if not isinstance(plan.get("chapters") or [], list) or any(not isinstance(c, dict) for c in plan.get("chapters") or []):
+        bl.refuse("plan.json: 'chapters' is a list of chapter objects (see references/outline.md)")
     for k in ("title", "promise", "voice", "thread", "conclusion"):
         if not str(plan.get(k, "")).strip():
             problems.append(f"plan.json has no {k}")
@@ -200,9 +205,10 @@ def check_plan(book, data):
         for s in c.get("sources") or []:
             if s not in sids:
                 problems.append(f"chapter {i} names {s}, which is not in sources.json")
-    dash = [k for k in ("title", "subtitle", "promise") if any(d in str(plan.get(k, "")) for d in bl.DASHES)]
+    dash = [k for k in ("title", "subtitle", "promise") if bl.dash_count(str(plan.get(k, "")))]
+    dash += [f"chapter {i} title" for i, t in enumerate(titles, 1) if bl.dash_count(t)]
     if dash:
-        problems.append("em or en dashes in: " + ", ".join(dash))
+        problems.append("em or en dashes (or a double hyphen) in: " + ", ".join(dash))
     if chs and not any(c.get("stories") for c in chs):
         warnings.append("no chapter names a story from the author's own material")
     return plan, problems, warnings
@@ -221,7 +227,13 @@ def cmd_plan_check(a):
             md += ["Stories: " + "; ".join(c["stories"]), ""]
     md += ["## Conclusion", "", plan.get("conclusion", ""), ""]
     bl.write_atomic(Path(a.book) / "plan.md", "\n".join(md))
-    if not problems and bl.stage(data, "outline").get("status") in ("not started", "needs re-approval"):
+    ost = bl.stage(data, "outline")
+    changed = ost.get("status") == "approved" and ost.get("sha256") and ost["sha256"] != bl.file_sha(Path(a.book) / "plan.json")
+    if changed:
+        bl.set_stage(data, "outline", "needs re-approval", note="plan.json changed after the member approved it")
+        warnings.append("the plan changed after the member approved it: show them the change and approve again")
+        bl.save_book(a.book, data)
+    elif not problems and ost.get("status") in ("not started", "needs re-approval"):
         bl.set_stage(data, "outline", "ready for approval")
         bl.save_book(a.book, data)
     return {"ok": not problems, "problems": problems, "warnings": warnings, "chapters": len(plan.get("chapters") or []),
@@ -238,11 +250,19 @@ def cmd_approve(a):
             bl.refuse("the plan has problems; fix them before approval", problems=problems)
         if bl.stage(data, "intake").get("status") != "ready":
             bl.refuse("the intake gate has not said READY (book_plan.py intake-gate)")
-        bl.set_stage(data, "outline", "approved", by="member", note=a.note or "")
+        bl.set_stage(data, "outline", "approved", by="member", note=a.note or "",
+                     sha256=bl.file_sha(Path(a.book) / "plan.json"))
     else:
-        if not (Path(a.book) / "edit" / "sample.md").exists():
-            bl.refuse("no edited sample chapter at edit/sample.md")
-        bl.set_stage(data, "sample", "approved", by="member", note=a.note or "", feedback=a.feedback or "")
+        sample = Path(a.book) / "edit" / "sample.md"
+        if not sample.is_file() or bl.words(bl.read_text(sample)) < 30:
+            bl.refuse("no edited sample chapter at edit/sample.md (the original and the edit, side by side)")
+        if bl.stage(data, "outline").get("status") != "approved":
+            bl.refuse("the outline is not approved, so there is no agreed book to edit a sample of")
+        if bl.stage(data, "memo").get("status") != "done":
+            bl.refuse("the developmental memo comes first: the sample chapter is edited to the memo and the style guide "
+                      "(book_plan.py stage --name memo --status done)")
+        bl.set_stage(data, "sample", "approved", by="member", note=a.note or "", feedback=a.feedback or "",
+                     sha256=bl.file_sha(sample))
     data["approvals"].append({"what": a.what, "by": "member", "date": bl.today(), "note": a.note or "",
                               "feedback": a.feedback or ""})
     bl.save_book(a.book, data)
@@ -280,20 +300,34 @@ def cmd_stage(a):
     if a.name not in EVIDENCE_STAGES:
         bl.refuse(f"--name is one of {', '.join(EVIDENCE_STAGES)}; the intake, outline, sample, readers and gate "
                   "stages have their own commands")
-    ev = Path(a.book) / (a.evidence or EVIDENCE_STAGES[a.name])
-    if a.status == "done" and (not ev.is_file() or bl.words(bl.read_text(ev)) < 30):
-        bl.refuse(f"{a.name} cannot be marked done without its report at {ev} (at least a few lines)")
-    if a.name in ("review", "copyedit", "regression") and a.status == "done" and a.by == "drafter":
-        bl.refuse(f"the {a.name} is done by an independent reader, not the session that drafted the book")
-    bl.set_stage(data, a.name, a.status, by=a.by, evidence=str(ev.relative_to(a.book)) if ev.exists() else "",
-                 note=a.note or "", edition=a.edition or "")
+    root = Path(a.book).resolve()
+    ev = (root / (a.evidence or EVIDENCE_STAGES[a.name])).resolve()
+    if root != ev and root not in ev.parents:
+        bl.refuse(f"the {a.name} report lives inside the book folder (the default is {EVIDENCE_STAGES[a.name]})")
+    rel = ev.relative_to(root)
+    if rel.parts and rel.parts[0] in ("manuscript", "editions", "sources"):
+        bl.refuse(f"{rel} is the book itself, not a report on it; the {a.name} report goes in {EVIDENCE_STAGES[a.name]}")
+    labels = [e["label"] for e in data.get("editions", [])]
+    if a.status == "done":
+        if not ev.is_file() or bl.words(bl.read_text(ev)) < 30:
+            bl.refuse(f"{a.name} cannot be marked done without its report at {rel} (at least a few lines)")
+        if a.name in INDEPENDENT and a.by in ("editor", "drafter"):
+            bl.refuse(f"the {a.name} is done by an independent reader that did not draft or edit the book: run it in a "
+                      "separate session or subagent and record it with --by reviewer")
+        if a.edition and bl.slugify(a.edition) not in labels:
+            bl.refuse(f"no edition {a.edition}; freeze it first (manuscript.py edition)")
+        if a.name == "regression" and not a.edition:
+            bl.refuse("the regression check names the edition it read (--edition <label>): it is run on the final "
+                      "frozen edition, and the gate checks that nothing changed after it")
+    bl.set_stage(data, a.name, a.status, by=a.by, evidence=str(rel) if ev.exists() else "",
+                 note=a.note or "", edition=bl.slugify(a.edition) if a.edition else "")
     bl.save_book(a.book, data)
     return {"ok": True, "stage": a.name, **data["stages"][a.name]}
 
 
 def status(data, book):
     st = {n: bl.stage(data, n).get("status", "not started") for n in bl.STAGES}
-    nxt = next((n for n in bl.STAGES if st[n] not in ("ready", "approved", "done", "passed", "go")), None)
+    nxt = next((n for n in bl.STAGES if st[n] not in ("ready", "approved", "done", "passed", "waived", "go")), None)
     return {"book": str(book), "title": data.get("working_title", ""), "settings": data["settings"], "stages": st,
             "next": nxt, "editions": [e["label"] for e in data.get("editions", [])]}
 

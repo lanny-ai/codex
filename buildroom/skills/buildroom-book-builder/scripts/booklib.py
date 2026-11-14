@@ -10,8 +10,21 @@ from pathlib import Path
 DEFAULT_CHAPTERS = 12
 DEFAULT_WORDS = 62000
 ABOUT_WORDS = 250
-MARKER_RE = re.compile(r"^=== SECTION: (.+?) ===\s*$")
-DASHES = ("—", "–")           # em dash, en dash: never in the manuscript
+MARKER_RE = re.compile(r"^\s*===\s*SECTION\s*:\s*(.+?)\s*===\s*$", re.I)
+# em dash, en dash, figure dash, horizontal bar, minus sign: never in the manuscript (a hyphen is fine)
+DASHES = ("\u2014", "\u2013", "\u2012", "\u2015", "\u2212")
+DOUBLE_HYPHEN = re.compile(r"(?<!-)--+(?!-)")
+CONTROL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+
+
+def dash_count(text):
+    """Dashes that are not allowed: the Unicode dashes and a double hyphen used as one."""
+    return sum(text.count(c) for c in DASHES) + len(DOUBLE_HYPHEN.findall(text))
+
+
+def plain_quotes(text):
+    """Curly quotes and apostrophes as straight ones, for matching only."""
+    return text.translate({0x2018: "'", 0x2019: "'", 0x201C: '"', 0x201D: '"'})
 STAGES = ("intake", "outline", "draft", "memo", "sample", "edit", "review", "facts", "readers", "copyedit",
           "regression", "gate")
 
@@ -69,28 +82,51 @@ def read_text(path):
 
 
 def read_json(path, default=None):
+    """A JSON file. With a dict default, the file must hold an object, and any key the default has
+    that the file lacks is filled in, so a hand-edited or half-written file refuses cleanly."""
     p = Path(path)
     if not p.exists():
         if default is not None:
             return default
         refuse(f"file not found: {p}")
     try:
-        return json.loads(p.read_text(encoding="utf-8-sig"))
+        d = json.loads(p.read_text(encoding="utf-8-sig"))
     except ValueError as e:
         refuse(f"{p.name} is not valid JSON: {e}")
+    if isinstance(default, dict) or default is None:
+        if not isinstance(d, dict):
+            refuse(f"{p.name} should hold a JSON object ({{…}}); it holds something else")
+        for k, v in (default or {}).items():
+            if k not in d or (isinstance(v, (list, dict)) and not isinstance(d[k], type(v))):
+                d[k] = v
+    return d
 
 
 def write_atomic(path, text):
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
+    mode = (p.stat().st_mode & 0o777) if p.exists() else 0o644
     fd, tmp = tempfile.mkstemp(dir=p.parent, prefix=".tmp-", suffix=p.suffix)
-    with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
-        f.write(text)
-    os.replace(tmp, p)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
+            f.write(text)
+        os.chmod(tmp, mode)
+        os.replace(tmp, p)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+        raise
 
 
 def write_json(path, data):
     write_atomic(path, json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+
+
+def file_sha(path):
+    """A checksum of a text file that ignores line endings and trailing spaces, for approvals."""
+    import hashlib
+    body = "\n".join(line.rstrip() for line in norm_newlines(read_text(path)).split("\n")).strip()
+    return hashlib.sha256(body.encode()).hexdigest()
 
 
 def slugify(s):
@@ -106,7 +142,16 @@ def load_book(book):
     p = Path(book) / "book.json"
     if not p.exists():
         refuse(f"no book at {book}; run book_plan.py init first")
-    return read_json(p)
+    d = read_json(p, {"settings": {}, "stages": {}, "approvals": [], "editions": []})
+    st = d["settings"]
+    try:
+        st["chapters"] = max(1, int(st.get("chapters", DEFAULT_CHAPTERS)))
+        st["words"] = max(1000, int(st.get("words", DEFAULT_WORDS)))
+    except (TypeError, ValueError):
+        refuse("book.json: settings.chapters and settings.words must be whole numbers")
+    if not isinstance(st.get("chapter_words"), dict):
+        st["chapter_words"] = {}
+    return d
 
 
 def save_book(book, data):
@@ -136,28 +181,55 @@ def targets(data):
     return out
 
 
+FRONT_BACK = {"title page": ("TP", (0, 0)), "dedication": ("DE", (0, 1)), "foreword": ("FW", (0, 2)),
+              "preface": ("PR", (0, 3)), "introduction": ("IN", (1, 0)), "conclusion": ("CO", (3, 0)),
+              "acknowledgments": ("AK", (3, 8)), "acknowledgements": ("AK", (3, 8)), "about the author": ("AB", (4, 0))}
+CHAPTER_RE = re.compile(r"chapter\s+(\d+)\b", re.I)
+
+
 def section_code(title):
+    """The short code used in paragraph IDs: C03, IN, CO … Any other section gets X plus its own
+    letters and digits, so 'Appendix A' and 'Appendix B' never share IDs."""
     t = title.strip()
-    m = re.match(r"Chapter (\d+)\b", t)
+    m = CHAPTER_RE.match(t)
     if m:
         return f"C{int(m.group(1)):02d}"
-    return {"title page": "TP", "dedication": "DE", "introduction": "IN", "conclusion": "CO",
-            "about the author": "AB"}.get(t.lower(), "X" + re.sub(r"[^A-Z]", "", t.upper())[:3])
+    if t.lower() in FRONT_BACK:
+        return FRONT_BACK[t.lower()][0]
+    return "X" + (re.sub(r"[^A-Z0-9]", "", t.upper())[:12] or "X")
 
 
 def section_key(title):
     """'Chapter 3: The Gap' -> 'Chapter 3'; front and back matter keep their title."""
-    m = re.match(r"(Chapter \d+)\b", title.strip())
-    return m.group(1) if m else title.strip()
+    t = title.strip()
+    m = CHAPTER_RE.match(t)
+    if m:
+        return f"Chapter {int(m.group(1))}"
+    return next((k.title().replace(" The ", " the ") for k in FRONT_BACK if k == t.lower()), t)
 
 
 def order_key(title):
+    """Book order. A section this skill has no place for (an appendix, say) goes after the conclusion."""
     t = title.strip().lower()
-    m = re.match(r"chapter (\d+)", t)
+    m = CHAPTER_RE.match(t)
     if m:
         return (2, int(m.group(1)))
-    return {"title page": (0, 0), "dedication": (0, 1), "introduction": (1, 0), "conclusion": (3, 0),
-            "about the author": (4, 0)}.get(t, (5, 0))
+    return FRONT_BACK[t][1] if t in FRONT_BACK else (3, 5)
+
+
+def norm_newlines(text):
+    return text.replace("\r\n", "\n").replace("\r", "\n")
+
+
+def stray_text(text):
+    """Words in a section file that sit before the first marker (or in a file with no marker at all).
+    Such text is in no section, so it would be left out of every check, edition and export."""
+    lines = []
+    for line in norm_newlines(text).split("\n"):
+        if MARKER_RE.match(line):
+            break
+        lines.append(line)
+    return words("\n".join(lines))
 
 
 def parse_sections(text):
@@ -168,7 +240,7 @@ def parse_sections(text):
         if cur is not None:
             paras = [re.sub(r"[ \t]+\n", "\n", p).strip() for p in re.split(r"\n\s*\n", "\n".join(buf))]
             out.append((cur, [p for p in paras if p]))
-    for line in text.replace("\r\n", "\n").split("\n"):
+    for line in norm_newlines(text).split("\n"):
         m = MARKER_RE.match(line)
         if m:
             flush()
@@ -183,20 +255,46 @@ def manuscript_dir(book):
     return Path(book) / "manuscript"
 
 
+def manuscript_files(book):
+    d = manuscript_dir(book)
+    return (sorted(d.glob("*.md")) + sorted(d.glob("*.txt"))) if d.is_dir() else []
+
+
 def read_manuscript(book):
     """Every section file in manuscript/, in book order. A file may hold one section or several."""
     secs = []
-    d = manuscript_dir(book)
-    if d.is_dir():
-        for f in sorted(d.glob("*.md")) + sorted(d.glob("*.txt")):
-            for title, paras in parse_sections(read_text(f)):
-                secs.append({"title": title, "paras": paras, "file": f.name})
+    for f in manuscript_files(book):
+        for title, paras in parse_sections(read_text(f)):
+            secs.append({"title": title, "paras": paras, "file": f.name})
     secs.sort(key=lambda s: order_key(s["title"]))
     return secs
 
 
+def manuscript_problems(book, chapters):
+    """Things that would put the wrong text in an edition: a section twice, a chapter past the
+    book's chapter count, and text that is in no section. [(id, message)]"""
+    out, seen = [], {}
+    for f in manuscript_files(book):
+        n = stray_text(read_text(f))
+        if n:
+            out.append(("stray_text", f"manuscript/{f.name} has {n} words before its first '=== SECTION: … ===' line "
+                        "(or has no such line), so that text is in no section"))
+    for s in read_manuscript(book):
+        k = section_key(s["title"])
+        if k in seen:
+            out.append(("duplicate_section", f"{k} is in the manuscript twice (manuscript/{seen[k]} and manuscript/{s['file']})"))
+        seen.setdefault(k, s["file"])
+        m = CHAPTER_RE.match(k)
+        if m and int(m.group(1)) > chapters:
+            out.append(("extra_chapter", f"{k} (manuscript/{s['file']}) is past the book's {chapters} chapters"))
+    return out
+
+
+WORD_RE = re.compile(r"[^\W_][\w'’-]*")
+
+
 def words(text):
-    return len(re.findall(r"[A-Za-z0-9][A-Za-z0-9'’-]*", text))
+    return len(WORD_RE.findall(text))
 
 
 def section_words(sec):
@@ -223,7 +321,7 @@ def syllables(word):
 
 def reading_grade(text):
     """Flesch-Kincaid grade level, or None for very short text."""
-    ws = re.findall(r"[A-Za-z][A-Za-z'’-]*", text)
+    ws = re.findall(r"[^\W\d_][\w'’-]*", text)
     ss = sentences(text)
     if len(ws) < 100 or not ss:
         return None
@@ -232,7 +330,7 @@ def reading_grade(text):
 
 
 def shingles(text, k=8):
-    ws = re.findall(r"[a-z0-9']+", text.lower())
+    ws = re.findall(r"[^\W_][\w']*", plain_quotes(text).lower())
     return {" ".join(ws[i:i + k]) for i in range(max(0, len(ws) - k + 1))}
 
 
