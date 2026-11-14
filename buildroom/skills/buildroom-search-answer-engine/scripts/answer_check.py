@@ -81,6 +81,80 @@ EXEMPT = [  # removed from a paragraph before looking for a number that needs a 
 TYPICAL = re.compile(r"\b(typical|typically|most (?:clients|customers|patients|people|members|businesses|homeowners|owners|jobs)|on average|average|usual|usually|"
                      r"not everyone|results vary|range)\b", re.I)
 MARKER = re.compile(r"\[(S\d+|own|method)\]")
+
+# --- results claims that carry no digit and no marker ---------------------------------------------------------------
+# A client noun as the subject of an outcome ("our clients doubled their revenue", "every customer saved thousands") is a
+# results claim even with no number in it. A sentence about what the service does ("we help owners save time") or a
+# hypothetical ("an owner who lost receipts", "if a client saved ...") is not.
+_CLIENT = (r"(?:clients?|customers?|patients?|members?|students?|homeowners?|owners?|founders?|users?|subscribers?|buyers?|"
+           r"participants?|graduates?|families|(?:people|folks|businesses|companies|firms|practices|teams|everyone|those)"
+           r"(?=\s+(?:we|i)\s+(?:work(?:ed)?|have worked|'ve worked)\s+with|\s+who\s+work(?:ed)?\s+with\s+(?:us|me)|\s+in\s+(?:our|my|the)\s+\w+))")
+_QTY = (r"(?:\$?\d[\d,.]*\+?|thousands|hundreds|millions|tens of thousands|dozens|"
+        r"(?:a|one|two|three|four|five|six|seven|eight|nine|ten|twenty|thirty|forty|fifty|several|many|a few|some)\b)")
+_MONEY = r"(?:\$|money|more|extra|back|a profit|profits?|(?:\w+[\s-])?figures|their (?:money|investment|fee)|" + _QTY + r")"
+_GOT_PAST = (r"(?:doubled|tripled|quadrupled|grew(?!\s+(?:up|tired|frustrated|worried|impatient|bored|old|weary|concerned|anxious|out)\b)|"
+             r"increased|boosted|improved|saved|reduced|cut(?=\s+(?:their|his|her|its|the|costs?|bills?|fees?|time|expenses|spending|debt|churn))|"
+             r"gained|recovered|earned|paid off(?=\s+(?:their|his|her|the|all)\s+(?:\w+\s+){0,2}(?:debts?|loans?|mortgages?|cards?|balances?))|"
+             r"(?:made|netted|pocketed|banked)(?=\s+(?:(?:over|about|around|nearly|almost|up to|an|at least)\s+)*" + _MONEY + r")|"
+             r"lost(?=\s+(?:(?:over|about|around|nearly|almost|up to|at least|an average of)\s+)*(?:" + _QTY + r"|weight|pounds|lbs|kilos|kg|inches|stone)\b)|"
+             r"(?:got|saw|had|achieved|experienced|enjoyed|reported)\s+(?:\w+\s+){0,2}(?:results?|growth|gains?|returns?|savings|"
+             r"increases?|improvements?|success|a return|an increase|a jump|a boost)|"
+             r"(?:booked|closed|won|landed|sold|got|added)\s+(?:more|twice|double|triple|\w+ times)\b|"
+             r"went from\b|hit\s+(?:\w+\s+){0,2}(?:figures|goals?|targets?))")
+_GOT_PRESENT = (r"(?:doubles?|triples?|grows?|increases?|boosts?|saves?|earns?|gains?|recovers?|"
+                r"(?:makes?|nets?)(?=\s+(?:(?:over|about|around|nearly|almost|up to|at least)\s+)*" + _MONEY + r")|"
+                r"(?:gets?|sees?|achieves?)\s+(?:\w+\s+){0,2}(?:results?|growth|gains?|returns?|savings))")
+_AUX = (r"(?:(?:have|has|had|'ve|all|each|both|also|even|often|then|soon|quickly|easily|together|typically|usually|generally|"
+        r"consistently|regularly|routinely|on average|just|already|really|actually|simply|nearly|almost|more than|now|today)\s+)")
+_REL = r"(?:(?:who|that|we|i|of ours|of mine|in (?:our|my|the)|on (?:our|my|the)|like|from|with|at|across)\b[^,;:.!?]{0,70}?\s+)"
+_NOTGOT = r"\b(?:could|can|may|might|would|should|will|won't|cannot|can't|not|never|n't|want(?:s|ed)? to|hop(?:e|es|ed|ing) to|need(?:s|ed)? to|tr(?:y|ies|ied|ying) to|wish(?:es|ed)? to|ask(?:s|ed)?|wonder(?:s|ed)?|whether|if)\b"
+_SERVICE = r"\b(?:help(?:s|ed|ing)?|let(?:s|ting)?|teach(?:es|ing)?|taught|show(?:s|ed|ing)?|so|to|ensur(?:e|es|ing)|make sure|want(?:s|ed)?|for)\b(?:\s+\w+){0,3}\s*$"
+CLIENT_GOT = re.compile(r"\b(?P<det>(?:our|my|every|each|all(?: of)?(?: (?:our|my))?|most(?: of)?(?: (?:our|my))?|many(?: of)?(?: (?:our|my))?|"
+                        r"some(?: of)?(?: (?:our|my))?|several|these|those|the|past|former|a|an|any|one|one of (?:our|my)|\w+)\s+)?"
+                        r"(?P<noun>" + _CLIENT + r")\s+(?P<gap>" + _REL + r"?" + _AUX + r"{0,3})(?P<verb>" + _GOT_PAST + r")", re.I)
+CLIENT_GETS = re.compile(r"\b(?P<det>(?:our|my|every|each|all(?: of)?(?: (?:our|my))?|most of (?:our|my))\s+)(?:\w+\s+)?"
+                         r"(?P<noun>" + _CLIENT + r")\s+(?P<gap>" + _AUX + r"{0,3})(?P<verb>" + _GOT_PRESENT + r")\b", re.I)
+WE_GOT_CLIENTS = re.compile(r"\b(?:we|i|our team|our firm)\s+(?:(?:have|'ve|has)\s+)?(?:saved|doubled|tripled|grew|increased|boosted|recovered)\s+"
+                            r"(?:(?:our|my|every|each|all|most|many|several|\w+ of (?:our|my)|\d+)\s+)*" + _CLIENT + r"\b(?!\s+(?:records?|files?|receipts?|data|lists?))", re.I)
+HYPOTHETICAL = re.compile(r"^\W*(?:if|imagine|suppose|say|picture|what if|let's say|for example,? if|for instance,? if|think of|take|consider)\b", re.I)
+VAGUE_QTY = re.compile(r"\b(?:thousands|hundreds|millions|tens of thousands|(?:two|three|four|five|six|seven|eight|nine|ten|\d+)[\s-]times|twice as (?:much|many)|"
+                       r"(?:two|three|four|five|ten)[\s-]?fold|(?:five|six|seven|eight)[\s-]figures?)\b", re.I)
+VAGUE_COUNT = re.compile(r"\b(?:thousands|hundreds|millions|tens of thousands)\s+of\s+(?:\w+\s+)?(?:clients?|customers?|patients?|members?|students?|homeowners?|owners?|people|"
+                         r"businesses|companies|firms|jobs|projects|users?|subscribers?|readers?|families)\b", re.I)
+RESULT_WORD = re.compile(OUTCOME.pattern + r"|\b(?:ma[dk]e|makes|quadrupled|boosted|back)\b", re.I)
+
+
+def claim_sentences(para):
+    return [s for s in sentences(plain_text(para)) if not s.rstrip().endswith("?") and not HYPOTHETICAL.search(s)]
+
+
+def vague_results(para):
+    """Sentences that use a vague quantity as a result ("saved thousands", "hundreds of hours back", "grew three times").
+    A vague count of people ("hundreds of owners") is a count, not a result."""
+    return [s for s in claim_sentences(para) if VAGUE_QTY.search(VAGUE_COUNT.sub(" ", s)) and RESULT_WORD.search(s)
+            and not re.search(r"\b(?:a|an|any)\s+\w+\s+(?:who|that)\b", s, re.I)]
+
+
+def client_results(para):
+    """Sentences that say what clients GOT, with or without a number or a marker."""
+    out = []
+    for s in claim_sentences(para):
+        hit = False
+        for m in CLIENT_GOT.finditer(s):
+            det = (m.group("det") or "").strip().lower()
+            if det in ("a", "an", "any") and re.match(r"\s*(?:who|that)\b", m.group("gap"), re.I):
+                continue                      # "an owner who lost receipts": a hypothetical person
+            if re.search(_NOTGOT, m.group("gap"), re.I):
+                continue                      # "clients who want to save", "customers ask whether we saved"
+            hit = True
+        for m in CLIENT_GETS.finditer(s):
+            if not re.search(_SERVICE, s[:m.start()], re.I):
+                hit = True                    # "our clients save ...", but not "we help our clients save ..."
+        if WE_GOT_CLIENTS.search(s):
+            hit = True
+        if hit:
+            out.append(s)
+    return out
 FENCE = re.compile(r"```(\w*)\n(.*?)```", re.S)
 INLINE_LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
 NEXT_LINK = re.compile(r"^(https?://|/|mailto:|tel:|sms:)")
@@ -350,7 +424,7 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
 
     # claims ledger: every paragraph or list item with a number (after dates, durations, phones, steps and links are set
     # aside) carries at least one marker; every [S#] used exists in the front matter
-    unsupported, unknown = [], []
+    unsupported, unknown, vague = [], [], []
     ids = {s["id"] for s in sources}
     for heading, sec in sections:
         if heading.lower().startswith(("sources", "about the author")):
@@ -361,11 +435,16 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
             marks = MARKER.findall(para)
             if NUMBER.search(unexempt(para)) and not marks:
                 unsupported.append(plain_text(para)[:90])
+            elif not marks and vague_results(para):
+                vague.append(vague_results(para)[0][:200])
             for m in marks:
                 if m.startswith("S") and m not in ids:
                     unknown.append(m)
     if unsupported:
         fail("claims_supported", f"{len(unsupported)} paragraph(s) with a number and no [S#]/[own]/[method] marker, e.g. '{unsupported[0]}'")
+    if vague and not unsupported:
+        fail("claims_supported", f"{len(vague)} sentence(s) give a result as a vague quantity with no [S#]/[own]/[method] marker: '{vague[0]}'. "
+                                 "Give the real figure with its marker, or take the claim out")
     if unknown:
         fail("claims_supported", f"unknown source marker(s): {', '.join(sorted(set(unknown)))}")
     info["marked_paragraphs"] = len(MARKER.findall(body_nocode))
@@ -449,7 +528,8 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
     if business_file is None:
         warns.append("no --business-file given, so §18 never-say claims and §1 retired lines were not checked")
 
-    # typical result beside any results claim (an outcome verb with a number or a client noun), whatever the marker
+    # typical result beside any results claim, whatever the marker: an outcome with a number or a client noun and a marker,
+    # or a sentence saying what clients got (no number or marker needed), or a marked vague quantity used as a result
     bare = []
     for heading, sec in sections:
         if heading.lower().startswith("sources"):
@@ -457,10 +537,19 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
         for para in paragraphs(sec):
             if is_furniture(para, fm):
                 continue
-            if OUTCOME.search(para) and (NUMBER.search(unexempt(para)) or CLIENT_NOUNS.search(para)) and MARKER.search(para) and not TYPICAL.search(para):
-                bare.append(plain_text(para)[:80])
+            if TYPICAL.search(para):
+                continue
+            got = client_results(para)
+            if got:                             # what clients got, with or without a number or a marker
+                bare.append(got[0][:200])
+            elif OUTCOME.search(para) and MARKER.search(para) and (NUMBER.search(unexempt(para)) or CLIENT_NOUNS.search(para)):
+                bare.append(plain_text(para)[:200])
+            elif MARKER.search(para) and vague_results(para):
+                bare.append(vague_results(para)[0][:200])
     if bare:
-        fail("typical_result", f"{len(bare)} paragraph(s) make a results claim without saying what is typical, e.g. '{bare[0]}'")
+        fail("typical_result", f"{len(bare)} paragraph(s) make a results claim without saying what is typical: '{bare[0]}'. "
+                               "State the typical result with its basis in the same paragraph (what most clients get, and how it was counted), "
+                               "or take the claim out")
 
     # placeholders
     ph = set(PLACEHOLDER_WORDS.findall(body_nocode)) | set(PLACEHOLDER_BRACKETS.findall(body_nocode))
