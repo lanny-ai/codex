@@ -9,17 +9,22 @@ Usage
   book_plan.py init     --book book/<slug> [--author "Name"] [--working-title "…"] [--chapters 12] [--words 62000]
   book_plan.py settings --book B [--chapters N] [--words N] [--chapter-words 4=6000 9=3000] [--grade-max 9]
   book_plan.py intake   --book B                         which of the 15 questions are answered, and where the rest may be
-  book_plan.py answer   --book B --key reader --text "…" [--from "§2"]     (keys: book_plan.py intake lists them)
+  book_plan.py answer   --book B --key reader --text '…' | --text-file path [--from "§2"] [--append]
+                        (keys: book_plan.py intake lists them. Use single quotes or a file: inside double quotes
+                        the shell eats dollar amounts. --append adds a follow-up answer instead of replacing.)
   book_plan.py intake-gate --book B --verdict ready|hold [--gap "…"]... [--question "…"]... --by editor
   book_plan.py source   --book B add --title "…" --kind own|client|public|transcript [--ref path-or-url]
                                      [--permission "documented: signed release 2026-10-02" | "not needed"]
-  book_plan.py source   --book B list
+  book_plan.py source   --book B list | remove --id S-003 | set --id S-003 --permission "documented: …"
   book_plan.py plan-check --book B                       validates plan.json and writes plan.md
   book_plan.py approve  --book B --what outline|sample --by member [--note "…"] [--feedback "…"]
   book_plan.py record   --book B add --kind term|framework|name|story|promise|summary --text "…" [--chapter N]
   book_plan.py record   --book B show [--upto N]         the book record: what earlier chapters established
+  book_plan.py record   --book B remove --kind story --text "…"      (a story that was cut)
   book_plan.py stage    --book B --name memo|edit|review|facts|copyedit|regression --status done|in progress
-                                 --evidence path [--by editor|reviewer|member] [--note "…"]
+                                 [--evidence path-in-the-book] [--by editor|reviewer] [--edition label] [--note "…"]
+                        (review, facts, copyedit and regression need --by reviewer; regression needs --edition.
+                        --book may be left out when there is one book under book/.)
   book_plan.py status   --book B
 Every command prints JSON. Exit 1 on a refusal.
 """
@@ -116,18 +121,29 @@ def cmd_answer(a):
     bl.load_book(a.book)
     if a.key not in bl.QUESTION_KEYS:
         bl.refuse(f"unknown key {a.key}; keys: {', '.join(bl.QUESTION_KEYS)}")
-    if not a.text.strip():
-        bl.refuse("the answer is empty")
+    text = bl.arg_text(a.text, a.text_file)
+    if not text:
+        bl.refuse("the answer is empty (--text '…' or --text-file path)")
     p = Path(a.book) / "intake.json"
     d = bl.read_json(p, {"answers": {}})
-    d["answers"][a.key] = {"text": a.text.strip(), "from": getattr(a, "from") or "member", "date": bl.today()}
+    old = (d["answers"].get(a.key) or {}).get("text", "")
+    if a.append and old:
+        text = old + "\n\n" + text
+    d["answers"][a.key] = {"text": text, "from": getattr(a, "from") or "member", "date": bl.today()}
     bl.write_json(p, d)
     md = ["# Author intake", ""]
     for key, q, _ in bl.QUESTIONS:
         t = (d["answers"].get(key) or {}).get("text", "")
         md += [f"## {q}", "", t or "_not answered yet_", ""]
     bl.write_atomic(Path(a.book) / "intake.md", "\n".join(md))
-    return {"ok": True, "key": a.key, "answered": sum(1 for k in bl.QUESTION_KEYS if (d["answers"].get(k) or {}).get("text"))}
+    warn = []
+    if old and not a.append:
+        warn.append("this replaced the earlier answer; use --append to add a follow-up answer to it instead")
+    if bl.eaten_dollars(text):
+        warn.append("this answer has a figure that starts with a comma (" + ", ".join(bl.eaten_dollars(text)[:3]) + "): the "
+                    "shell probably swallowed a dollar amount. Put the answer in a file and use --text-file")
+    return {"ok": True, "key": a.key, "answered": sum(1 for k in bl.QUESTION_KEYS if (d["answers"].get(k) or {}).get("text")),
+            "warnings": warn}
 
 
 def cmd_intake_gate(a):
@@ -141,7 +157,7 @@ def cmd_intake_gate(a):
                       + (f"; still needed: {', '.join(missing_core)}" if missing_core else f"; at least {MIN_ANSWERS} are needed"))
         if a.gap:
             bl.refuse("READY with open gaps is a HOLD: ask the follow-up questions first, or drop the gaps you can live with")
-        bl.set_stage(data, "intake", "ready", by=a.by)
+        bl.set_stage(data, "intake", "ready", by=a.by, gaps=[], questions=[])
     else:
         if not a.question:
             bl.refuse("a HOLD names the exact questions to ask the author (--question)")
@@ -156,14 +172,32 @@ def cmd_source(a):
     d = bl.read_json(p, {"sources": []})
     if a.action == "list":
         return {"ok": True, "sources": d["sources"]}
+    if a.action in ("remove", "set"):
+        src = next((x for x in d["sources"] if str(x.get("id", "")).lower() == (a.id or "").lower()), None)
+        if not src:
+            bl.refuse(f"no source {a.id}; book_plan.py source list")
+        if a.action == "remove":
+            plan = bl.read_json(Path(a.book) / "plan.json", {"chapters": []})
+            used = [i for i, c in enumerate(plan.get("chapters") or [], 1) if isinstance(c, dict) and src["id"] in (c.get("sources") or [])]
+            if used:
+                bl.refuse(f"{src['id']} is planned for chapter(s) {', '.join(map(str, used))}; take it out of plan.json first")
+            d["sources"].remove(src)
+        else:
+            if not (a.permission or a.title or a.ref):
+                bl.refuse("source set changes --permission, --title or --ref")
+            src.update({k: v.strip() for k, v in (("permission", a.permission), ("title", a.title), ("ref", a.ref)) if v})
+        bl.write_json(p, d)
+        return {"ok": True, "id": src["id"], "action": a.action, "source": src}
     if not a.title or a.kind not in SOURCE_KINDS:
         bl.refuse(f"source add needs --title and --kind ({', '.join(SOURCE_KINDS)})")
     perm = (a.permission or "").strip()
     if a.kind == "client" and not perm:
         perm = "not documented"
-    sid = f"S-{len(d['sources']) + 1:03d}"
+    nums = [int(m.group(1)) for m in (re.fullmatch(r"S-(\d+)", str(x.get("id", ""))) for x in d["sources"]) if m]
+    sid = f"S-{max(nums + [int(d.get('last_id', 0))], default=0) + 1:03d}"
+    d["last_id"] = int(sid[2:])
     d["sources"].append({"id": sid, "title": a.title.strip(), "kind": a.kind, "ref": a.ref or "",
-                         "permission": perm or ("not needed" if a.kind == "own" else "not documented"),
+                         "permission": perm or ("not needed" if a.kind in ("own", "transcript") else "not documented"),
                          "added": bl.today()})
     bl.write_json(p, d)
     return {"ok": True, "id": sid, "source": d["sources"][-1]}
@@ -187,7 +221,8 @@ def check_plan(book, data):
         problems.append("a chapter has no title")
     if len(set(t.lower() for t in titles)) != len(titles):
         problems.append("two chapters share a title")
-    sids = {s["id"] for s in bl.read_json(Path(book) / "sources.json", {"sources": []})["sources"]}
+    srcs = {s["id"]: s for s in bl.read_json(Path(book) / "sources.json", {"sources": []})["sources"]}
+    sids = set(srcs)
     seen = {}
     for i, c in enumerate(chs, 1):
         if c.get("n") not in (None, i):
@@ -205,6 +240,10 @@ def check_plan(book, data):
         for s in c.get("sources") or []:
             if s not in sids:
                 problems.append(f"chapter {i} names {s}, which is not in sources.json")
+            elif srcs[s].get("kind") == "client" and not str(srcs[s].get("permission", "")).lower().startswith(
+                    ("documented", "anonymised", "anonymized")):
+                warnings.append(f"chapter {i} draws on {s}, a client story with no documented permission yet: get it "
+                                "(or anonymise the story) before the chapter is drafted; the gate will block it")
     dash = [k for k in ("title", "subtitle", "promise") if bl.dash_count(str(plan.get(k, "")))]
     dash += [f"chapter {i} title" for i, t in enumerate(titles, 1) if bl.dash_count(t)]
     if dash:
@@ -279,8 +318,16 @@ def cmd_record(a):
         for e in ents:
             by.setdefault(e["kind"], []).append(e)
         return {"ok": True, "entries": len(ents), "record": by}
-    if a.kind not in RECORD_KINDS or not (a.text or "").strip():
-        bl.refuse(f"record add needs --kind ({', '.join(RECORD_KINDS)}) and --text")
+    if a.action == "remove":
+        keep = [e for e in d["entries"] if not (e["kind"] == a.kind and e["text"].strip().lower() == (a.text or "").strip().lower())]
+        if len(keep) == len(d["entries"]):
+            bl.refuse(f"no {a.kind} entry with exactly that text; book_plan.py record show")
+        d["entries"] = keep
+        bl.write_json(p, d)
+        return {"ok": True, "entries": len(keep), "removed": a.text}
+    a.text = bl.arg_text(a.text, a.text_file)
+    if a.kind not in RECORD_KINDS or not a.text:
+        bl.refuse(f"record add needs --kind ({', '.join(RECORD_KINDS)}) and --text (or --text-file)")
     if a.kind == "summary" and a.chapter is None:
         bl.refuse("a summary belongs to a chapter (--chapter N)")
     if a.kind == "summary":
@@ -290,6 +337,10 @@ def cmd_record(a):
         for e in d["entries"]:
             if e["kind"] == "story" and e["text"].strip().lower() == a.text.strip().lower() and e.get("chapter") != a.chapter:
                 warn.append(f"this story is already recorded for chapter {e.get('chapter')}")
+        plan = bl.read_json(Path(a.book) / "plan.json", {"chapters": []})
+        for n, c in enumerate(plan.get("chapters") or [], 1):
+            if isinstance(c, dict) and n != a.chapter and a.text.strip().lower() in [str(x).strip().lower() for x in c.get("stories") or []]:
+                warn.append(f"the plan gives this story to chapter {n}; a story is told once, so change the plan or the chapter")
     d["entries"].append({"kind": a.kind, "text": a.text.strip(), "chapter": a.chapter, "date": bl.today()})
     bl.write_json(p, d)
     return {"ok": True, "entries": len(d["entries"]), "warnings": warn}
@@ -311,6 +362,13 @@ def cmd_stage(a):
     if a.status == "done":
         if not ev.is_file() or bl.words(bl.read_text(ev)) < 30:
             bl.refuse(f"{a.name} cannot be marked done without its report at {rel} (at least a few lines)")
+        if a.name == "memo" and not (root / "edit" / "styleguide.md").is_file():
+            bl.refuse("the memo comes with a style guide: write edit/styleguide.md (see references/editing.md)")
+        prev = bl.stage(data, a.name)
+        if a.name == "regression" and prev.get("report_sha") == bl.file_sha(ev) and prev.get("edition") \
+                and prev["edition"] != bl.slugify(a.edition or ""):
+            bl.refuse(f"review/regression.md is the report on edition {prev['edition']}, unchanged. The regression check "
+                      f"is run again on edition {a.edition} and the report rewritten before it is marked done")
         if a.name in INDEPENDENT and a.by in ("editor", "drafter"):
             bl.refuse(f"the {a.name} is done by an independent reader that did not draft or edit the book: run it in a "
                       "separate session or subagent and record it with --by reviewer")
@@ -320,7 +378,8 @@ def cmd_stage(a):
             bl.refuse("the regression check names the edition it read (--edition <label>): it is run on the final "
                       "frozen edition, and the gate checks that nothing changed after it")
     bl.set_stage(data, a.name, a.status, by=a.by, evidence=str(rel) if ev.exists() else "",
-                 note=a.note or "", edition=bl.slugify(a.edition) if a.edition else "")
+                 note=a.note or "", edition=bl.slugify(a.edition) if a.edition else "",
+                 report_sha=bl.file_sha(ev) if ev.is_file() else "")
     bl.save_book(a.book, data)
     return {"ok": True, "stage": a.name, **data["stages"][a.name]}
 
@@ -343,28 +402,32 @@ def main():
 
     def p(name):
         x = sub.add_parser(name)
-        x.add_argument("--book", required=True)
+        x.add_argument("--book")
         return x
     x = p("init"); x.add_argument("--author"); x.add_argument("--working-title")
     x.add_argument("--chapters", type=int, default=bl.DEFAULT_CHAPTERS); x.add_argument("--words", type=int, default=bl.DEFAULT_WORDS)
     x = p("settings"); x.add_argument("--chapters", type=int); x.add_argument("--words", type=int)
     x.add_argument("--chapter-words", nargs="*"); x.add_argument("--grade-max", type=float)
     p("intake")
-    x = p("answer"); x.add_argument("--key", required=True); x.add_argument("--text", required=True); x.add_argument("--from")
+    x = p("answer"); x.add_argument("--key", required=True); x.add_argument("--text"); x.add_argument("--text-file")
+    x.add_argument("--from"); x.add_argument("--append", action="store_true")
     x = p("intake-gate"); x.add_argument("--verdict", choices=["ready", "hold"], required=True)
     x.add_argument("--gap", action="append", default=[]); x.add_argument("--question", action="append", default=[])
     x.add_argument("--by", default="editor")
-    x = p("source"); x.add_argument("action", choices=["add", "list"]); x.add_argument("--title"); x.add_argument("--kind")
-    x.add_argument("--ref"); x.add_argument("--permission")
+    x = p("source"); x.add_argument("action", choices=["add", "list", "remove", "set"]); x.add_argument("--title")
+    x.add_argument("--kind"); x.add_argument("--ref"); x.add_argument("--permission"); x.add_argument("--id")
     p("plan-check")
     x = p("approve"); x.add_argument("--what", choices=["outline", "sample"], required=True); x.add_argument("--by", required=True)
     x.add_argument("--note"); x.add_argument("--feedback")
-    x = p("record"); x.add_argument("action", choices=["add", "show"]); x.add_argument("--kind"); x.add_argument("--text")
+    x = p("record"); x.add_argument("action", choices=["add", "show", "remove"]); x.add_argument("--kind"); x.add_argument("--text")
+    x.add_argument("--text-file")
     x.add_argument("--chapter", type=int); x.add_argument("--upto", type=int)
     x = p("stage"); x.add_argument("--name", required=True); x.add_argument("--status", choices=["done", "in progress"], required=True)
     x.add_argument("--evidence"); x.add_argument("--by", default="editor"); x.add_argument("--note"); x.add_argument("--edition")
     p("status")
     a = ap.parse_args()
+    if a.cmd != "init" or not a.book:
+        a.book = bl.find_book(a.book)
     out = globals()["cmd_" + a.cmd.replace("-", "_")](a)
     bl.emit(out, 0 if out.get("ok") else 1)
 

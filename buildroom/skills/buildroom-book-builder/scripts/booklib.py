@@ -104,6 +104,8 @@ def read_json(path, default=None):
 
 def write_atomic(path, text):
     p = Path(path)
+    if p.is_symlink() or (p.exists() and not p.is_file()):
+        refuse(f"{p} is not an ordinary file, so it will not be replaced; choose another path")
     p.parent.mkdir(parents=True, exist_ok=True)
     mode = (p.stat().st_mode & 0o777) if p.exists() else 0o644
     fd, tmp = tempfile.mkstemp(dir=p.parent, prefix=".tmp-", suffix=p.suffix)
@@ -127,6 +129,33 @@ def file_sha(path):
     import hashlib
     body = "\n".join(line.rstrip() for line in norm_newlines(read_text(path)).split("\n")).strip()
     return hashlib.sha256(body.encode()).hexdigest()
+
+
+def find_book(book):
+    """--book may be left out when the working folder has exactly one book under book/."""
+    if book:
+        return book
+    found = sorted(p.parent for p in Path("book").glob("*/book.json") if p.parent.name != "demo")
+    if len(found) == 1:
+        return str(found[0])
+    refuse("say which book: --book book/<slug>" + (f" (found: {', '.join(str(f) for f in found)})" if found else
+                                                    " (no book here yet; book_plan.py init --book book/<slug>)"))
+
+
+def arg_text(text, text_file, what="--text"):
+    """Words from the command line, or from a file. A file is the safe way to pass anything the member
+    said: inside double quotes the shell eats dollar amounts ($212,000 becomes 12,000)."""
+    if text_file:
+        f = Path(text_file)
+        if not f.is_file():
+            refuse(f"file not found: {text_file}")
+        return read_text(f).strip()
+    return (text or "").strip()
+
+
+def eaten_dollars(text):
+    """A sign that the shell swallowed a dollar amount: a stray ',100' or a number that starts with a comma."""
+    return re.findall(r"(?<![\d$£€])[,]\d{3}\b", text)
 
 
 def slugify(s):

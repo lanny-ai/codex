@@ -269,7 +269,7 @@ def t_manuscript(tmp, B):
         doc = z.read("word/document.xml").decode()
         names = set(z.namelist())
     check("export writes a real .docx", code == 0 and {"[Content_Types].xml", "word/document.xml", "word/styles.xml"} <= names)
-    check("the .docx has every section as a heading", doc.count('w:val="Heading1"') == 7)
+    check("the .docx has every section as a heading", doc.count('w:val="Heading1"') == 6 and doc.count('w:val="Title"') == 1)
     code, out = run([PY, MS, "diff", "--book", B, "--from", "v1", "--to", "v9"], tmp)
     check("a diff against a missing edition is refused", code == 1)
 
@@ -296,7 +296,8 @@ def t_issues(tmp, B):
     check("a fix must name a real edition", code == 1)
     run([PY, ISS, "resolve", "--book", B, "--id", "I-001", "--edition", "v2", "--note", "reordered the steps"], tmp)
     d = pj(run([PY, ISS, "summary", "--book", B], tmp)[1])
-    check("a fix is not resolved until it is verified", "I-001" in d["unverified"] and any("I-001" in b for b in d["blocking"]))
+    check("a fix is not resolved until it is verified", "I-001" in d["unverified"] and d["open"].get("P1") == 1
+          and not any("I-001" in b for b in d["blocking"]), d)
     run([PY, ISS, "verify", "--book", B, "--id", "I-001", "--result", "partial", "--edition", "v2"], tmp)
     d = pj(run([PY, ISS, "list", "--book", B, "--open", "--severity", "P1"], tmp)[1])
     check("a partial fix goes back to open", d["count"] == 1 and d["issues"][0]["status"] == "open")
@@ -464,7 +465,8 @@ def t_checks(tmp, B):
     (B / "sources.json").write_text(json.dumps(src))
     code, out = run([PY, PLAN, "stage", "--book", B, "--name", "memo", "--status", "done"], tmp)
     check("a stage cannot be marked done without its report", code == 1)
-    for name, f in (("memo", "edit/memo.md"), ("edit", "edit/changelog.md"), ("review", "review/developmental-review.md"),
+    code, out = run([PY, PLAN, "stage", "--book", B, "--name", "memo", "--status", "done"], tmp)
+    for name, f in (("styleguide", "edit/styleguide.md"), ("memo", "edit/memo.md"), ("edit", "edit/changelog.md"), ("review", "review/developmental-review.md"),
                     ("facts", "review/claim-ledger.md"), ("copyedit", "review/copyedit.md"), ("regression", "review/regression.md")):
         (B / f).parent.mkdir(parents=True, exist_ok=True)
         (B / f).write_text(("A report with its findings, each tied to a paragraph ID and a severity. " * 6))
@@ -539,7 +541,7 @@ def make_book(tmp, name, readers=True):
     write_section(B, "90-conclusion.md", "Conclusion", prose(14, 500))
     write_section(B, "91-about.md", "About the Author", prose(15, 240))
     run([PY, MS, "status", "--book", B], tmp)
-    for f in ("edit/memo.md", "edit/changelog.md", "edit/sample.md", "review/developmental-review.md", "review/claim-ledger.md",
+    for f in ("edit/memo.md", "edit/styleguide.md", "edit/changelog.md", "edit/sample.md", "review/developmental-review.md", "review/claim-ledger.md",
               "review/copyedit.md", "review/regression.md"):
         (B / f).parent.mkdir(parents=True, exist_ok=True)
         (B / f).write_text("A report with its findings, each tied to a paragraph ID and a severity. " * 6)
@@ -583,6 +585,9 @@ def t_review(tmp):
     run([PY, MS, "edition", "--book", B, "--label", "final2"], tmp)
     d = gate(tmp, B)
     check("R-H2: a newer edition than the regression check read is FIX", d["verdict"] == "FIX" and "regression_edition" in ids(d), ids(d))
+    code, out = run([PY, PLAN, "stage", "--book", B, "--name", "regression", "--status", "done", "--by", "reviewer", "--edition", "final2"], tmp)
+    check("D10: an unchanged regression report cannot be re-stamped for a new edition", code == 1 and "run again" in out, out)
+    (B / "review" / "regression.md").write_text("Regression check of edition final2 against final. " * 10)
     run([PY, PLAN, "stage", "--book", B, "--name", "regression", "--status", "done", "--by", "reviewer", "--edition", "final2"], tmp)
     check("R-H2: the regression check on the latest edition clears it", gate(tmp, B)["verdict"] == "GO")
     # L2: an edition edited in place
@@ -685,8 +690,10 @@ def t_review(tmp):
     for t in ('Later Maria said, "Go home and rest now."', 'Finally Dad said, "Call me when you can."'):
         check(f"R-M6: the author's own dialogue passes: {t[:20]}", not q(t), q(t))
     c = lambda t: [m.group(1) for m in bc.CLIENT_NAME.finditer(bl.plain_quotes(t))]  # noqa: E731
-    for t in ("One client, Maria, doubled her rate", "Clients like Sarah", "A client I’ll call Dana"):
-        check(f"R-M7: named client caught: {t}", c(t), c(t))
+    c = lambda t: sorted(bc.named_people(bl.plain_quotes(t)))  # noqa: E731
+    for t in ("One client, Maria, doubled her rate", "Clients like Sarah", "a roofer named Tom", "Tessa, a painter I coached"):
+        check(f"R-M7: named person caught: {t}", c(t), c(t))
+    check("D1: a stated pseudonym is the documented way to anonymise", not c("A client I’ll call Dana, not her real name"))
     check("R-M7: 'a member of the Chamber' is not a client name", not c("a member of the Chamber. Sarah left"))
     check("R-M8: curly apostrophes do not hide stock phrases",
           bc.tells("It’s important to note that here’s the thing. Let’s dive in. It’s no secret."))
@@ -746,6 +753,123 @@ def t_review(tmp):
     msgs = [i["message"] for i in d["items"] if i["id"] == "inconsistent_name"]
     check("R-L9: hyphen and capital variants of a framework name are seen", any("Five-Step Method" in m for m in msgs), msgs)
     check("R-L9: 'Lean' is not found inside 'clean'", not any('"Lean"' in m for m in msgs), msgs)
+
+    # ---- dry-run findings
+    B = make_book(tmp, "d")
+    k = bc.number_sets("I coached 40 clients for 12 years. He had $212,000 owed and $3,100 in the bank. Requires §30 and §15. "
+                       "Sessions run 30 minutes. Jim Rohn told me: discipline weighs ounces and regret weighs tons. Dated 2026-10-02.")
+    un = lambda t: bc.unsourced_numbers(t, k)  # noqa: E731
+    for t in ("It took me 20 years", "30 clients in 15 cities", "hundreds of roofers", "Thousands of owners", "He grew 3x",
+              "a quarter of a million dollars", "several national awards"):
+        check(f"D1: invented figure caught: {t}", un(t), un(t))
+    for t in ("$212k owed", "Most of the owners I meet", "40 clients", "$3,100", "30 minutes of work", "12 long years"):
+        check(f"D1: honest figure passes: {t}", not un(t), un(t))
+    check("D1: section numbers in the Business File are not the author's figures", ("30", "clients") not in k["things"] and "15" not in k["pct"])
+    q = lambda t: bc.attributed_names(bl.plain_quotes(t), k["text"])  # noqa: E731
+    check("D1: a real name with words the author cannot source is flagged",
+          q('In the words of Jim Rohn, "Success is nothing more than a few simple disciplines."') == ["Jim Rohn"])
+    check("D1: the same name with the sourced wording passes", not q('As Jim Rohn said, “Discipline weighs ounces and regret weighs tons.”'))
+    check("D1: 'research from Harvard found' is unnamed evidence", bc.AUTHORITY.search("Research from Harvard found the same."))
+    bf = tmp / "bf3.md"
+    bf.write_text('- **Never-say claims:** guaranteed profit; "double your profit in 90 days"; never worry about money again\n')
+    check("D2: quoted and unquoted banned items on one line are all read", [x for _, x in bc.banned_lines(bf)] ==
+          ["guaranteed profit", "double your profit in 90 days", "never worry about money again"], bc.banned_lines(bf))
+    for n in range(3):
+        run([PY, PLAN, "source", "--book", B, "add", "--title", f"Talk {n}", "--kind", "own"], tmp)
+    code, out = run([PY, PLAN, "source", "--book", B, "remove", "--id", "S-002"], tmp)
+    check("D3: a source can be removed", code == 0)
+    run([PY, PLAN, "source", "--book", B, "remove", "--id", "S-003"], tmp)
+    d = pj(run([PY, PLAN, "source", "--book", B, "add", "--title", "Client story", "--kind", "client"], tmp)[1])
+    check("D3: a source ID is never reused", d["id"] == "S-004", d.get("id"))
+    check("D3: the gate blocks it until permission is recorded", "permission" in ids(gate(tmp, B)))
+    run([PY, PLAN, "source", "--book", B, "set", "--id", "S-004", "--permission", "anonymised: trade and town changed"], tmp)
+    check("D3: recording the permission clears it", "permission" not in ids(gate(tmp, B)))
+    d = pj(run([PY, PLAN, "source", "--book", B, "add", "--title", "Podcast", "--kind", "transcript"], tmp)[1])
+    check("D15: the author's own transcript needs no permission", d["source"]["permission"] == "not needed")
+    # D4: an issue that is fixed and waiting for the regression check does not fail the reader round
+    run([PY, ISS, "add", "--book", B, "--severity", "P1", "--source", "review", "--location", "C01-P002", "--issue", "steps",
+         "--evidence", "out of order"], tmp)
+    run([PY, ISS, "resolve", "--book", B, "--id", "I-001", "--edition", "final", "--note", "reordered"], tmp)
+    d = pj(run([PY, RP, "consolidate", "--book", B], tmp)[1])
+    check("D4: a fixed, unverified issue does not fail the reader round", d["passed"] and not d["blocking_issues"], d.get("checks"))
+    d = gate(tmp, B)
+    check("D4: the gate still waits for it to be verified, and says so plainly", "unverified_fixes" in ids(d) and "open_issue" not in ids(d))
+    run([PY, ISS, "verify", "--book", B, "--id", "I-001", "--result", "resolved", "--edition", "final"], tmp)
+    run([PY, ISS, "add", "--book", B, "--severity", "P2", "--source", "review", "--location", "C01-P003", "--issue", "x", "--evidence", "y"], tmp)
+    code, out = run([PY, ISS, "accept", "--book", B, "--id", "I-002", "--by", "editor", "--reason", "fine"], tmp)
+    check("D15: only the member accepts an issue", code == 1)
+    run([PY, ISS, "accept", "--book", B, "--id", "I-002", "--by", "member", "--reason", "deliberate"], tmp)
+    # D5: a reader from round 1 reads again in round 2 under the same code
+    d = pj(run([PY, RP, "invite", "--book", B, "--round", "2", "--roles", "target,target"], tmp)[1])
+    check("D5: a second round is not warned about a full panel", d["codes"] == ["R-04", "R-05"] and not d["warnings"], d)
+    for c2 in ("R-04", "R-05", "R-02"):
+        code, out = run([PY, RP, "record-human", "--book", B, "--round", "2", "--code", c2, "--finished", "yes", "--promise-explained",
+                         "yes", "--next-step", "yes", "--clarity", "4", "--usefulness", "5", "--recommend", "yes"], tmp)
+    check("D5: a returning reader keeps their code", code == 0, out)
+    check("D5: and the second round can pass", pj(run([PY, RP, "consolidate", "--book", B, "--round", "2"], tmp)[1])["passed"])
+    code, out = run([PY, RP, "record-human", "--book", B, "--round", "2", "--code", "R-04", "--finished", "maybe", "--promise-explained",
+                     "yes", "--next-step", "yes", "--clarity", "4", "--usefulness", "5", "--recommend", "yes"], tmp)
+    check("D15: yes or no, not maybe", code == 1 and "yes or no" in out)
+    (B / "readers" / "round-2" / "sim").mkdir(parents=True, exist_ok=True)
+    rep2 = B / "readers" / "round-2" / "sim" / "nobody.md"
+    rep2.write_text("SIMULATED READER, not a real person.\n\n" + "Chapter 2 lost me at C02-P003 because it went too fast. " * 12)
+    code, out = run([PY, RP, "record-sim", "--book", B, "--round", "2", "--persona", "nobody", "--report", rep2, "--clarity", "3",
+                     "--relevance", "3", "--usefulness", "3"], tmp)
+    check("D14: a simulated run for a persona that does not exist is refused", code == 1)
+    # D6: no phantom edition named "book"
+    data = json.loads((B / "book.json").read_text())
+    data["stages"]["review"]["edition"] = ""
+    (B / "book.json").write_text(json.dumps(data))
+    d = gate(tmp, B)
+    check("D6: a stage with no edition recorded is not reported as edition 'book'", not any("edition book" in i["message"] for i in d["items"]),
+          [i["message"] for i in d["items"]])
+    # D7: dollar amounts
+    ans = tmp / "story.txt"
+    ans.write_text("He had $212,000 owed to him and $3,100 in the bank.")
+    d = pj(run([PY, PLAN, "answer", "--book", B, "--key", "story", "--text-file", ans], tmp)[1])
+    check("D7: an answer from a file keeps its dollar amounts", "$212,000" in (B / "intake.md").read_text() and d["warnings"], d)
+    d = pj(run([PY, PLAN, "answer", "--book", B, "--key", "story", "--append", "--text", "He had 12,000 owed and ,100 in the bank."], tmp)[1])
+    check("D7: a swallowed dollar amount is warned about", any("dollar" in w for w in d["warnings"]), d)
+    check("D14: --append adds a follow-up answer", "$212,000" in (B / "intake.md").read_text() and ",100 in the bank" in (B / "intake.md").read_text())
+    # D8: --book may be left out when there is one book
+    solo = tmp / "solo"
+    (solo / "book").mkdir(parents=True)
+    shutil.copytree(B, solo / "book" / "only")
+    code, out = run([PY, PLAN, "status"], solo)
+    check("D8: --book can be left out when there is one book", code == 0 and pj(out).get("ok"), out[:200])
+    code, out = run([PY, PLAN, "status"], tmp)
+    check("D8: with several books it asks which", code == 1 and "say which book" in out)
+    check("D11: with no Business File the gate says what was not checked", "no_business_file" in ids(pj(run([PY, CHK, "check"], solo)[1])))
+    (solo / "BUILDROOM_BUSINESS_FILE.md").write_text('- **Never-say claims:** guaranteed profit\n')
+    d = pj(run([PY, CHK, "check"], solo)[1])
+    check("D11: the Business File beside the book is found without the flag", d["banned_lines_checked"] == ["guaranteed profit"], d.get("business_file"))
+    # D9: special files are never replaced
+    link = tmp / "link.md"
+    link.symlink_to(tmp / "story.txt")
+    code, out = run([PY, CHK, "check", "--book", B, "--out", link], tmp)
+    check("D9: --out will not replace a symlink", code == 1 and link.is_symlink() and "$212,000" in (tmp / "story.txt").read_text(), out[-200:])
+    # D12: framework names used as ordinary words
+    run([PY, PLAN, "record", "--book", B, "add", "--kind", "framework", "--text", "Count It"], tmp)
+    run([PY, PLAN, "record", "--book", B, "add", "--kind", "term", "--text", "Window"], tmp)
+    run([PY, PLAN, "record", "--book", B, "add", "--kind", "framework", "--text", "Six-Week Window"], tmp)
+    write_section(B, "ch-02.md", "Chapter 2: Price", prose(13, 1000) + "\n\nThe first step is Count It. You count it, you call it. "
+                  "The Six-Week Window is the plan. Open a window.")
+    d = gate(tmp, B)
+    check("D12: ordinary lower-case use of a framework name is not a spelling variant",
+          not [i for i in d["items"] if i["id"] == "inconsistent_name"], [i["message"] for i in d["items"] if i["id"] == "inconsistent_name"])
+    d = pj(run([PY, PLAN, "record", "--book", B, "add", "--kind", "story", "--text", "call", "--chapter", "1"], tmp)[1])
+    check("D15: recording a story the plan gives to another chapter warns", any("chapter 2" in w for w in d["warnings"]), d)
+    code, out = run([PY, PLAN, "record", "--book", B, "remove", "--kind", "story", "--text", "call"], tmp)
+    check("D14: a cut story can be taken out of the book record", code == 0)
+    (B / "edit" / "styleguide.md").unlink()
+    code, out = run([PY, PLAN, "stage", "--book", B, "--name", "memo", "--status", "done"], tmp)
+    check("D15: the memo needs its style guide", code == 1 and "style guide" in out)
+    out_docx = tmp / "tp.docx"
+    ms.docx([{"title": "Title Page", "paras": ["Second Chapter", "by Ruth Adeyemi"]}, {"title": "Introduction", "paras": ["Hello."]}],
+            out_docx, "T")
+    with zipfile.ZipFile(out_docx) as z:
+        doc = z.read("word/document.xml").decode()
+    check("D16: the Word file does not print 'Title Page' as a heading", "Title Page" not in doc and "Second Chapter" in doc)
 
 
 # ---------------------------------------------------------------- 8. consistency and wiring

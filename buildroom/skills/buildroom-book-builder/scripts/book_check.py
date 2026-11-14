@@ -66,7 +66,8 @@ TRIPLE = re.compile(r"\b[\w'-]+, [\w'-]+(?: [\w'-]+)?,? and [\w'-]+")
 AUTHORITY = re.compile(r"\b(?:(?:studies|research|surveys?|experts?|scientists|science|data|statistics) (?:show|shows|suggest|"
                        r"suggests|agree|indicate|indicates|prove|proves|have shown|has shown|have found|has found|found|"
                        r"confirm|confirms|say|says)|a (?:recent|new|famous|landmark) (?:study|survey) (?:found|shows|showed|"
-                       r"suggests)|according to (?:research|studies|experts|scientists|the data|statistics))\b", re.I)
+                       r"suggests)|according to (?:research|studies|experts|scientists|the data|statistics)|"
+                       r"research (?:from|by|at) \w+(?: \w+)? (?:found|finds|shows|showed|suggests|proves))\b", re.I)
 OWN_EVIDENCE = re.compile(r"\b(?:my|our|my own|our own|the author's)\s+$", re.I)
 PLACEHOLDER = re.compile(r"(?i:lorem ipsum)|(?i:\[write:)|\bTODO\b|\bTBD\b|\[[A-Z][A-Z _/'-]{3,}\]|\bXXX+\b|"
                          r"(?i:insert (?:story|example|name|quote|statistic) here)")
@@ -79,20 +80,27 @@ NUMBER_RE = re.compile(rf"(?:[$£€]\s?\d[\d,]*(?:\.\d+)?(?:\s?{MAG})?\b|\b\d[\
 NUM_WORD = (r"(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|"
             r"seventy|eighty|ninety|hundred)(?:[- ](?:one|two|three|four|five|six|seven|eight|nine))?")
 SPELLED_STAT = re.compile(rf"\b(?:{NUM_WORD} percent|{NUM_WORD} (?:in|out of)(?: every)? {NUM_WORD}|"
-                          r"(?:half|a third|two thirds|two-thirds|a quarter|three quarters|three-quarters|most|the majority) "
+                          r"(?:half|a third|two thirds|two-thirds|a quarter|three quarters|three-quarters) "
                           r"of (?:all |the )?(?:[a-z]+ )?" + NOUNS + r")\b", re.I)
 # Everyday figures of speech that are not claims about the world.
 IDIOM_NUM = re.compile(r"^(?:100\s?(?:%|percent)|24 hours|7 days|30 days|60 days|90 days|365 days|12 months|52 weeks)$", re.I)
 NAME = r"((?:[A-Z][A-Za-zÀ-ÿ'-]+ ){1,3}[A-Z][A-Za-zÀ-ÿ'-]+)"
 SAID = (r"(?:said|says|wrote|writes|observed|observes|noted|notes|argued|argues|warned|warns|quipped|put it|puts it|"
         r"reminds us|reminded us|taught|teaches)")
-QUOTE_ATTR = re.compile(
-    rf'(?:"[^"]{{12,400}}",?\s+(?:once |famously )?{SAID}\s+(?:the\s+)?(?:[a-z]+\s){{0,3}}?{NAME}|'
-    rf'"[^"]{{12,400}}",?\s+{NAME}\s+(?:once |famously )?{SAID}\b|'
-    rf'(?:[Aa]s|[Aa]ccording to)\s+{NAME}(?:\s+(?:once\s+|famously\s+)?{SAID})?,?\s+"|'
-    rf'{NAME}\s+(?:once\s+|famously\s+)?{SAID},?\s+")')
-CLIENT_NAME = re.compile(r"\b(?i:clients?|customers?|students?|patients?|members?)(?: of mine| I worked with| I coached)?,?\s+"
-                         r"(?:like |such as |named |called |I'll call |we'll call )?([A-Z][a-z]{2,})\b")
+QUOTED = r'"(?P<q>[^"]{12,400})"'
+NAMED = NAME.replace("(", "(?P<n>", 1)
+QUOTE_ATTR = [re.compile(x) for x in (
+    rf'{QUOTED},?\s+(?:once |famously )?{SAID}\s+(?:the\s+)?(?:[a-z]+\s){{0,3}}?{NAMED}',
+    rf'{QUOTED},?\s+{NAMED}\s+(?:once |famously )?{SAID}\b',
+    rf'(?:[Aa]s|[Aa]ccording to|[Ii]n the words of)\s+{NAMED}(?:\s+(?:once\s+|famously\s+)?{SAID})?,?\s+{QUOTED}',
+    rf'{NAMED}\s+(?:once\s+|famously\s+)?{SAID},?\s+{QUOTED}')]
+PEOPLE = r"(?i:clients?|customers?|students?|patients?|members?)"
+CLIENT_NAME = re.compile(rf"\b{PEOPLE}(?: of mine| I worked with| I coached)?,?\s+(?:like |such as |named |called )?([A-Z][a-z]{{2,}})\b")
+# "a roofer named Tom" · "Tessa, a painter I coached"
+PERSON_NAMED = re.compile(r"\b(?i:a|an|the|one|my|another) (?:[a-z]+ ){1,2}named ([A-Z][a-z]{2,})\b")
+PERSON_COACHED = re.compile(r"\b([A-Z][a-z]{2,}), an? (?:[a-z-]+ ){1,3}I (?:coached|worked with|helped|trained|mentored|advised)\b")
+VAGUE_NUM = re.compile(r"\b(?:(?:hundreds|thousands|dozens|millions|scores) of(?: [a-z]+){0,2}|\d+(?:\.\d+)?x\b|"
+                       r"(?:a )?(?:quarter of a|half a) (?:million|billion)(?: dollars)?|several (?:national |international )?awards)", re.I)
 MARKDOWN = re.compile(r"^(?:#{1,6} |\* |- |\d+\. |> )|\*\*[^*]+\*\*|__[^_]+__", re.M)
 STOPNAMES = {"The", "This", "That", "When", "Then", "What", "Chapter", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
              "Saturday", "Sunday", "January", "February", "March", "April", "May", "June", "July", "August", "September",
@@ -101,53 +109,107 @@ STOPNAMES = {"The", "This", "That", "When", "Then", "What", "Chapter", "Monday",
              "Suddenly", "My", "Our", "Your", "If", "In", "On", "At", "After", "Before", "One", "Years", "Dr", "Mr", "Mrs", "Ms"}
 
 
-def attributed_names(text):
-    """People a quotation is credited to. A single first name is the author's own dialogue; a full name is a claim."""
+def norm_quote(t):
+    return re.sub(r"\s+", " ", bl.plain_quotes(t).lower()).strip(" .,!?;:")
+
+
+def attributed_names(text, known_norm=None):
+    """People a quotation is credited to by full name. A single first name is the author's own dialogue. With
+    known_norm (everything the author supplied, normalised), a quotation passes only when its exact wording is
+    there: a known name with invented words is still an invented quotation."""
     out = []
-    for m in QUOTE_ATTR.finditer(text):
-        toks = next((g for g in m.groups() if g), "").split()
-        while toks and toks[0].strip(".") in STOPNAMES:
-            toks = toks[1:]
-        if len(toks) >= 2:
-            out.append(" ".join(toks))
+    for rx in QUOTE_ATTR:
+        for m in rx.finditer(text):
+            toks = m.group("n").split()
+            while toks and toks[0].strip(".") in STOPNAMES:
+                toks = toks[1:]
+            if len(toks) < 2:
+                continue
+            if known_norm is not None and norm_quote(m.group("q")) in known_norm:
+                continue
+            if " ".join(toks) not in out:
+                out.append(" ".join(toks))
     return out
 
 
+def named_people(text):
+    """First names attached to a client, a trade or 'someone I coached'. A stated pseudonym ('a client I'll call
+    Ray') is the documented way to anonymise, so it is left to the fact audit."""
+    out = set()
+    for rx in (CLIENT_NAME, PERSON_NAMED, PERSON_COACHED):
+        for m in rx.finditer(text):
+            if m.group(1) not in STOPNAMES:
+                out.add(m.group(1))
+    return out
+
+
+MULT = {"k": 1e3, "thousand": 1e3, "m": 1e6, "million": 1e6, "bn": 1e9, "billion": 1e9}
+
+
+def supplied_text(known):
+    """The author's material with the things that only look like figures taken out: section references,
+    dates and the file version."""
+    t = re.sub(r"§\s?\d+(?:\s?[-–]\s?\d+)?", " ", known)
+    t = re.sub(r"\b\d{4}-\d{2}-\d{2}\b", " ", t)
+    return "\n".join(line for line in t.splitlines() if "File version" not in line and not line.lstrip().startswith("**Requires"))
+
+
 def number_sets(known):
-    """What the author supplied, as three sets: bare numbers, (number, magnitude) pairs and percentages."""
-    mag = {"k": "thousand", "m": "million", "bn": "billion"}
+    """What the author supplied: bare numbers (for money), (number, magnitude) pairs, percentages, and
+    (number, thing) pairs, so '30 minutes' in the intake does not clear '30 clients' in the book."""
+    known = supplied_text(known)
     bare = {bl.norm_num(x) for x in re.findall(r"\d[\d,]*(?:\.\d+)?", known)}
-    mags = {(bl.norm_num(n), mag.get(u.lower(), u.lower())) for n, u in re.findall(rf"(\d[\d,]*(?:\.\d+)?)\s?({MAG})\b", known, re.I)}
+    mags = set()
+    for n, u in re.findall(rf"(\d[\d,]*(?:\.\d+)?)\s?({MAG})\b", known, re.I):
+        n = bl.norm_num(n)
+        mags.add((n, MULT[u.lower()]))
+        bare.add(f"{float(n) * MULT[u.lower()]:.0f}")
     pct = {bl.norm_num(n) for n in re.findall(r"(\d[\d,]*(?:\.\d+)?)\s?(?:%|percent\b)", known, re.I)}
-    return {"bare": bare, "mag": mags, "pct": pct, "text": bl.plain_quotes(known).lower()}
+    things = {(bl.norm_num(n), w.lower()) for n, w in re.findall(rf"\b(\d[\d,]*)\+?\s(?:[a-z-]+\s)?({NOUNS})\b", known, re.I)}
+    return {"bare": bare, "mag": mags, "pct": pct, "things": things, "text": norm_quote(known)}
 
 
 def unsourced_numbers(text, nums):
-    mag = {"k": "thousand", "m": "million", "bn": "billion"}
     out = []
     for hit in sorted({m.group(0).strip() for m in NUMBER_RE.finditer(text)}):
         if IDIOM_NUM.match(hit):
             continue
         n = bl.norm_num(re.match(r"[^\d]*(\d[\d,]*(?:\.\d+)?)", hit).group(1))
         mm = re.search(rf"\d\s?({MAG})\b", hit, re.I)
-        money = hit[0] in "$£€"
         if re.search(r"%|percent", hit, re.I):
             ok = n in nums["pct"]
         elif mm:
-            ok = (n, mag.get(mm.group(1).lower(), mm.group(1).lower())) in nums["mag"]
-        elif money:
+            mult = MULT[mm.group(1).lower()]
+            ok = (n, mult) in nums["mag"] or f"{float(n) * mult:.0f}" in nums["bare"]
+        elif hit[0] in "$£€":
             ok = n in nums["bare"]
         elif re.fullmatch(r"(?:19|20)\d\d", n) and "," not in hit.split()[0]:
             ok = True                                  # a year, not a count
+        elif re.fullmatch(r"[1-9]|10", n):
+            ok = True                                  # small everyday counts
         else:
-            ok = n in nums["bare"] or re.fullmatch(r"[1-9]|10", n) is not None
+            ok = (n, hit.split()[-1].lower()) in nums["things"]
         if not ok:
             out.append(hit)
-    for m in SPELLED_STAT.finditer(text):
-        if m.group(0).lower() not in nums["text"]:
-            out.append(m.group(0))
+    for rx in (SPELLED_STAT, VAGUE_NUM):
+        for m in rx.finditer(text):
+            if norm_quote(m.group(0)) not in nums["text"]:
+                out.append(m.group(0))
     return sorted(set(out))
 
+
+
+STAGE_CMD = {
+    "intake": "book_plan.py intake, answer what is missing, then book_plan.py intake-gate --verdict ready",
+    "outline": "read plan.md to the member, then book_plan.py approve --what outline --by member",
+    "memo": "write edit/memo.md and edit/styleguide.md, then book_plan.py stage --name memo --status done",
+    "sample": "show the member edit/sample.md, then book_plan.py approve --what sample --by member",
+    "edit": "finish the line edit and edit/changelog.md, then book_plan.py stage --name edit --status done",
+    "review": "an independent reader runs P2, then book_plan.py stage --name review --status done --by reviewer --edition <label>",
+    "facts": "an independent reader runs P3, then book_plan.py stage --name facts --status done --by reviewer --edition <label>",
+    "copyedit": "an independent reader runs P8, then book_plan.py stage --name copyedit --status done --by reviewer --edition <label>",
+    "regression": "an independent reader runs P9 on the final edition, then book_plan.py stage --name regression --status done "
+                  "--by reviewer --edition <final>"}
 
 
 def known_text(book, business_file):
@@ -187,10 +249,11 @@ def banned_lines(business_file):
             return
         items = []
         for line in bodies:
-            quoted = re.findall(r'"([^"]{4,})"', line)
-            items += quoted or re.split(r"[;·|]", line)
-        if len(bodies) == 1 and len(items) == 1 and "," in items[0] and '"' not in bodies[0]:
-            items = items[0].split(",")
+            parts = re.split(r"[;·|]", line)
+            if len(parts) == 1 and len(bodies) == 1:
+                quoted = re.findall(r'"([^"]{4,})"', line)
+                parts = quoted if len(quoted) > 1 else (line.split(",") if "," in line and '"' not in line else parts)
+            items += [x.strip().strip('"') for x in parts]
         for x in items:
             x = re.sub(r"\s+", " ", x).strip(" .-*")
             if len(x) >= 6 and not x.startswith(("[", "(")) and x not in ("—", "none", "None yet"):
@@ -273,21 +336,23 @@ def check_section(sec, known, known_nums, banned, grade_max, target):
         add("FIX", "placeholders", "placeholder text: " + ", ".join(ph[:5]), "write it from the author's material, or ask the author")
     unknown = unsourced_numbers(text, known_nums)
     if unknown:
-        add("FIX", "unsourced_numbers", "numbers the author did not give: " + ", ".join(unknown[:8]),
+        add("FIX", "unsourced_numbers", "figures the author did not give: " + ", ".join(unknown[:8])
+            + (f" (+{len(unknown) - 8} more)" if len(unknown) > 8 else ""),
             "take them out, or add the source to the intake or the source packet first")
-    names = [x for x in attributed_names(text) if x.lower() not in known_nums["text"]]
+    names = attributed_names(text, known_nums["text"])
     if names:
         add("FIX", "unsourced_quotes", "quotations attributed to people who are not in the author's sources: "
-            + ", ".join(sorted(set(names))[:6]), "add the source (with the exact wording) or cut the quotation")
+            + ", ".join(sorted(set(names))[:6]), "put the exact wording and where it comes from in the source packet, or cut "
+            "the quotation; a real name with words the author cannot source is still an invented quotation")
     auth = sorted({m.group(0).lower() for m in AUTHORITY.finditer(text) if not OWN_EVIDENCE.search(text[max(0, m.start() - 14):m.start()])})
     if auth:
         add("FIX", "unattributed_authority", "claims leaning on unnamed evidence: " + ", ".join(auth[:5]),
             "name the study or source from the source packet, or say it as the author's own view")
-    cl = sorted({m.group(1) for m in CLIENT_NAME.finditer(text) if m.group(1) not in STOPNAMES
-                 and not re.search(r"\b" + re.escape(m.group(1)) + r"\b", known)})
+    cl = sorted(x for x in named_people(text) if not re.search(r"\b" + re.escape(x) + r"\b", known))
     if cl:
         add("FIX", "invented_client", "named clients the author did not supply: " + ", ".join(cl[:6]),
-            "use only the author's own stories; never invent a person")
+            "use only people from the author's own material; add the story to the intake or the sources first, or "
+            "say plainly that the name is changed (\"a client I'll call Ray\")")
     low = text.lower()
     for kind, line in banned:
         if re.sub(r"\s+", " ", line.lower()) in re.sub(r"\s+", " ", low):
@@ -353,6 +418,11 @@ def run(a, only=None):
     data = bl.load_book(a.book)
     if a.business_file and not Path(a.business_file).is_file():
         return {"ok": False, "error": f"file not found: {a.business_file}"}, 2
+    if not a.business_file:
+        for cand in (Path("BUILDROOM_BUSINESS_FILE.md"), Path(a.book).resolve().parents[1] / "BUILDROOM_BUSINESS_FILE.md"):
+            if cand.is_file():
+                a.business_file = str(cand)
+                break
     known = known_text(a.book, a.business_file)
     known_nums = number_sets(known)
     banned = banned_lines(a.business_file)
@@ -387,11 +457,19 @@ def run(a, only=None):
         for e in rec:
             if e["kind"] in ("framework", "term") and len(e["text"]) >= 4:
                 toks = [re.escape(x) for x in re.split(r"[\s-]+", e["text"].strip()) if x]
-                forms = set(re.findall(r"(?<![\w-])" + r"[\s-]+".join(toks) + r"(?![\w-])", full, re.I))
+                body = full
+                for o in rec:
+                    if o is not e and o["kind"] in ("framework", "term") and len(o["text"]) > len(e["text"]) \
+                            and e["text"].lower() in o["text"].lower():
+                        body = re.sub(re.escape(o["text"]), " ", body, flags=re.I)
+                found = set(re.findall(r"(?<![\w-])" + r"[\s-]+".join(toks) + r"(?![\w-])", body, re.I))
+                forms = {f for f in found if f != f.lower()} if e["text"] != e["text"].lower() else found
+                if not found:
+                    forms = set()
                 if len(forms) > 1:
                     add("WATCH", "inconsistent_name", f"\"{e['text']}\" is written {len(forms)} ways: {', '.join(sorted(forms)[:4])}",
                         "one spelling and capitalisation, as the author gave it")
-                elif not forms:
+                elif not found:
                     add("WATCH", "unused_name", f"\"{e['text']}\" is in the book record but never appears", "")
         plan = bl.read_json(Path(a.book) / "plan.json", {"chapters": []})
         srcs = {s["id"]: s for s in bl.read_json(Path(a.book) / "sources.json", {"sources": []})["sources"]}
@@ -427,7 +505,7 @@ def run(a, only=None):
                 ("regression", ("done",), "no regression check of the revisions")]
         for name, okv, msg in need:
             if bl.stage(data, name).get("status") not in okv:
-                add("FIX", "stage_" + name, msg, "see the Session Flow for this stage")
+                add("FIX", "stage_" + name, msg, STAGE_CMD[name])
         rs = bl.stage(data, "readers").get("status")
         if rs == "waived":
             add("WATCH", "readers_waived", f"the member went ahead with {bl.stage(data, 'readers').get('humans', 0)} real "
@@ -437,11 +515,14 @@ def run(a, only=None):
             add("FIX", "stage_readers", "the reader round has not passed (or been waived by the member)",
                 "reader_panel.py consolidate; fix what readers found; run a second round on the weak sections")
         reg = iss.summary(bl.read_json(iss.path(a.book), {"issues": []}))
+        if not a.business_file:
+            add("WATCH", "no_business_file", "no Business File was found, so retired lines and never-say claims were not checked",
+                "run again with --business-file BUILDROOM_BUSINESS_FILE.md")
         for b in reg["blocking"]:
-            add("FIX", "open_issue", b, "fix it in the manuscript, freeze an edition, verify")
+            add("FIX", "open_issue", b, "fix it in the manuscript, freeze an edition, issues.py resolve, then verify")
         if reg["unverified"]:
-            add("FIX", "unverified_fixes", "fixed but not verified: " + ", ".join(reg["unverified"][:12]),
-                "the regression check confirms each one (issues.py verify)")
+            add("FIX", "unverified_fixes", "fixed, waiting for the regression check to confirm: " + ", ".join(reg["unverified"][:12]),
+                "the independent regression check (P9) confirms each one: issues.py verify --id … --result … --edition <final>")
         open_low = sum(v for k, v in reg["open"].items() if k in ("P2", "P3"))
         if open_low:
             add("WATCH", "open_minor", f"{open_low} open P2 or P3 issue(s)", "fix them, or the member accepts each with a reason")
@@ -460,21 +541,23 @@ def run(a, only=None):
             if not ed_file.is_file() or hashlib.sha256(bl.read_text(ed_file).encode()).hexdigest() != eds[-1]["sha256"]:
                 add("FIX", "edition_altered", f"the frozen edition {eds[-1]['label']} is missing or was edited after it was frozen",
                     "an edition is never edited; freeze a new one from manuscript/")
-            reg_ed = bl.slugify(bl.stage(data, "regression").get("edition") or "")
+            reg_ed = bl.stage(data, "regression").get("edition") or ""
+            reg_ed = bl.slugify(reg_ed) if reg_ed else ""
             if bl.stage(data, "regression").get("status") == "done" and reg_ed != eds[-1]["label"]:
                 add("FIX", "regression_edition", f"the regression check read edition {reg_ed or '(none named)'}, not the latest "
                     f"one ({eds[-1]['label']}); text changed since has not been checked",
                     "run the regression check on the latest edition (book_plan.py stage --name regression --status done "
                     f"--by reviewer --edition {eds[-1]['label']})")
             for name in ("review", "facts", "copyedit"):
-                e2 = bl.slugify(bl.stage(data, name).get("edition") or "")
-                if e2 and e2 not in [e["label"] for e in eds]:
+                e2 = bl.stage(data, name).get("edition") or ""
+                if e2 and bl.slugify(e2) not in [e["label"] for e in eds]:
                     add("WATCH", "stage_edition", f"the {name} names edition {e2}, which does not exist", "")
     fixes = [i for i in items if i["level"] == "FIX"]
     verdict = "GO" if not fixes else "FIX"
     out = {"ok": verdict == "GO", "verdict": verdict if not only else ("CLEAN" if not fixes else "FIX"),
            "scope": only or "whole manuscript", "fix": len(fixes), "watch": len(items) - len(fixes),
            "words": counts if only else sum(counts.values()), "items": items, "checked": bl.today(),
+           "business_file": a.business_file or "", "banned_lines_checked": [x for _, x in banned],
            "limits": "a script reads text and records; it cannot judge truth, the author's voice or whether the book is good"}
     if not only:
         bl.set_stage(data, "gate", "go" if verdict == "GO" else "fix", fix=len(fixes),
@@ -499,10 +582,11 @@ def run(a, only=None):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    c = sub.add_parser("chapter"); c.add_argument("--book", required=True); c.add_argument("--section", required=True)
+    c = sub.add_parser("chapter"); c.add_argument("--book"); c.add_argument("--section", required=True)
     c.add_argument("--business-file")
-    c = sub.add_parser("check"); c.add_argument("--book", required=True); c.add_argument("--business-file"); c.add_argument("--out")
+    c = sub.add_parser("check"); c.add_argument("--book"); c.add_argument("--business-file"); c.add_argument("--out")
     a = ap.parse_args()
+    a.book = bl.find_book(a.book)
     out, code = run(a, only=a.section if a.cmd == "chapter" else None)
     bl.emit(out, code)
 

@@ -53,6 +53,8 @@ def status(data, book):
         rows.append({"section": title, "state": state, "words": n, "target": tgt, "file": s["file"] if s else ""})
     extra = [s["title"] for k, s in secs.items() if k not in {bl.section_key(x) for x in planned(data, book)}]
     return {"sections": rows, "total_words": total, "target_words": int(data["settings"]["words"]),
+            "target_note": "the book's length setting is shared across the chapters; the introduction, conclusion and "
+                           f"About the Author come on top, so the section targets add up to about {sum(v for v in t.values()):,}",
             "missing": [r["section"] for r in rows if r["state"] in ("missing", "empty")],
             "thin": [r["section"] for r in rows if r["state"] == "thin"], "unplanned": extra,
             "problems": [m for _, m in bl.manuscript_problems(book, int(data["settings"]["chapters"]))],
@@ -189,6 +191,9 @@ def docx(secs, out, title):
         return f'<w:p>{st}<w:r><w:t xml:space="preserve">{html.escape(text, quote=False)}</w:t></w:r></w:p>'
     body = []
     for s in secs:
+        if s["title"].strip().lower() == "title page":      # the title page is its own words, not a chapter heading
+            body += [para(p.replace("\n", " "), "Title" if i == 0 else None) for i, p in enumerate(s["paras"])]
+            continue
         body.append(para(s["title"], "Heading1"))
         for p in s["paras"]:
             body.append(para(p[3:].strip(), "Heading2") if bl.is_subhead(p) else para(p.replace("\n", " ")))
@@ -199,7 +204,9 @@ def docx(secs, out, title):
               'wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Georgia" w:hAnsi="Georgia"/>'
               '<w:sz w:val="24"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="200" w:line="360" '
               'w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" '
-              'w:styleId="Normal"><w:name w:val="Normal"/></w:style><w:style w:type="paragraph" w:styleId="Heading1">'
+              'w:styleId="Normal"><w:name w:val="Normal"/></w:style><w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/>'
+              '<w:basedOn w:val="Normal"/><w:pPr><w:jc w:val="center"/><w:spacing w:before="2400" w:after="480"/></w:pPr>'
+              '<w:rPr><w:b/><w:sz w:val="56"/></w:rPr></w:style><w:style w:type="paragraph" w:styleId="Heading1">'
               '<w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:pPr><w:pageBreakBefore/><w:spacing w:after="360"/>'
               '</w:pPr><w:rPr><w:b/><w:sz w:val="40"/></w:rPr></w:style><w:style w:type="paragraph" w:styleId="Heading2">'
               '<w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="360"/></w:pPr>'
@@ -248,7 +255,7 @@ def main():
 
     def p(name):
         x = sub.add_parser(name)
-        x.add_argument("--book", required=True)
+        x.add_argument("--book")
         return x
     p("status")
     x = p("context"); x.add_argument("--chapter", type=int, required=True)
@@ -257,6 +264,8 @@ def main():
     x = p("diff"); x.add_argument("--from", required=True); x.add_argument("--to", required=True)
     x = p("export"); x.add_argument("--edition"); x.add_argument("--docx", required=True)
     a = ap.parse_args()
+    if a.cmd != "init" or not a.book:
+        a.book = bl.find_book(a.book)
     out = globals()["cmd_" + a.cmd](a)
     bl.emit(out, 0 if out.get("ok") else 1)
 

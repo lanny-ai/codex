@@ -9,7 +9,7 @@ Run this after the substantive editing and before the copyedit. Test the content
 The two are never pooled. `reader_panel.py consolidate` reports them in separate sections.
 
 ## A. Prepare a stable review edition
-1. Freeze an edition: `manuscript.py edition --label v2`. Reviewers get `manuscript.ids.md`, with a paragraph ID on every paragraph.
+1. Freeze an edition: `manuscript.py edition --label v2`. Simulated readers always get `manuscript.ids.md`, with a paragraph ID on every paragraph. Real readers get the same file by default, so they can say exactly where; a reader who would find the IDs off-putting gets `manuscript.py export --edition v2 --docx …` and names chapters instead.
 2. Fix the obvious first: missing chapters, invented claims, duplicated material, unfinished sections.
 3. Write a one-paragraph reader description and promise. Keep your own guesses about the book's weak spots private, so readers aren't led.
 4. Remove third parties' private information, or have permission, before sharing.
@@ -42,6 +42,8 @@ The two are never pooled. `reader_panel.py consolidate` reports them in separate
 For each reader who replies:
 
 `reader_panel.py record-human --code R-01 --finished no --stopped-at "Chapter 4" --promise-explained yes --next-step no --clarity 3 --usefulness 4 --recommend yes --notes readers/round-1/human/R-01.md`
+
+Each of `--finished`, `--promise-explained`, `--next-step` and `--recommend` is yes or no; a "partly" is a no, and the detail goes in the notes. The notes path can be given from the book folder.
 
 Then add each problem they raised to the register (`issues.py add --source human --readers R-01`), using the consolidation prompt below to group similar findings without erasing disagreement.
 
@@ -84,7 +86,13 @@ ANONYMIZED FEEDBACK:
 ```
 
 ## F. Revise, then a second round
-Revise in the order in `editing.md`. Then run a second round (`--round 2`): at least two fresh target readers on the revised opening and the weakest sections, and one original reader checking that their main problem is fixed. After a major restructure, test the whole manuscript again.
+Revise in the order in `editing.md`. Then run a second round on the revised opening and the weakest sections:
+- at least two fresh target readers: `reader_panel.py invite --round 2 --roles target,target` (their codes carry on from round 1);
+- one reader from the first round, checking that the fix worked. Don't invite them again: record their reply under their old code, `reader_panel.py record-human --round 2 --code R-02 …`, and they are added to round 2 as a returning reader.
+
+`reader_panel.py consolidate --round 2`. An issue that is fixed and waiting for the regression check doesn't fail the round; only one that is still open does. Run `consolidate` once more after the regression check in Phase 8, so the summary the member keeps shows the fixes confirmed.
+
+After a major restructure, test the whole manuscript again.
 
 ## G. If there aren't enough real readers
 The member can go ahead anyway: `reader_panel.py waive --by member --reason "…"`, then `consolidate` again. The gate then shows a WATCH, the Business File records it, and you say plainly how few real people have read the book. Open P0 and P1 issues still block.

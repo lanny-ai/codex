@@ -22,12 +22,12 @@ One at a time, with the helper line. `book_plan.py intake` lists which are still
 | `must_include` | Anything else the book must include? | A story, a quote, a client type, a warning. Anything you'd regret leaving out. | |
 
 ## How to run it
-1. Read the Business File first. For each question a section already answers, write the answer in the member's words and **confirm it in one line** ("From your file: your reader is …. Still right for the book?"). Record it with `book_plan.py answer --key reader --text "…" --from "§2"`.
-2. Ask the rest one at a time, with the helper. Let them talk; long, messy answers are the raw material. Record each as given.
+1. Read the Business File first. For each question a section already answers, write the answer in the member's words and **confirm it in one line** ("From your file: your reader is …. Still right for the book?"). Record it with `book_plan.py answer --key reader --text-file answer.txt --from "§2"`. Use a file (or single quotes) for anything the member said: double quotes let the shell eat dollar amounts.
+2. Ask the rest one at a time, with the helper. Let them talk; long, messy answers are the raw material. Record each as given. A later follow-up answer is added with `--append`, so the first answer is kept.
 3. Ask for sources as you go: transcripts of them teaching, talks, articles, client stories from the proof bank. Add each to the source packet (`sources-and-permissions.md`).
 
 ## The sufficiency gate
-Eight answered questions is the engine's technical minimum. It isn't enough to know the material can carry a book. So before outlining, run **P1** (`review-prompts.md`) on the intake and the source packet. It labels the reader, the transformation, the method, the voice, the evidence and the exclusions as supported, unclear or missing, and returns up to seven follow-up questions.
+Eight answered questions is the engine's technical minimum. It isn't enough to know the material can carry a book. So before outlining, run **P1** (`review-prompts.md`) on the intake and the source packet, and save its report as `review/intake-review.md`. It labels the reader, the transformation, the method, the voice, the evidence and the exclusions as supported, unclear or missing, and returns up to seven follow-up questions.
 
 - **HOLD:** ask the follow-up questions, one at a time. Record: `book_plan.py intake-gate --verdict hold --gap "…" --question "…"`.
 - **READY TO OUTLINE:** `book_plan.py intake-gate --verdict ready`. The script refuses READY with fewer than eight answers, with a core question unanswered (about, reader, transformation, method, voice), or with gaps still listed.

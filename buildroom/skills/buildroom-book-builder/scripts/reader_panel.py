@@ -107,7 +107,9 @@ def save_round(book, rnd, d):
 
 
 def yes(v):
-    return str(v).lower() in ("yes", "y", "true", "1")
+    if str(v).lower() not in ("yes", "y", "no", "n"):
+        bl.refuse(f"yes or no, not '{v}': a 'partly' or 'not yet' is a no, and the detail goes in the reader's notes")
+    return str(v).lower() in ("yes", "y")
 
 
 def cmd_personas(a):
@@ -163,6 +165,9 @@ def cmd_record_sim(a):
         bl.refuse(f"no simulated-reader report at {rep} (or it is only a few lines)")
     if "simulat" not in bl.read_text(rep)[:400].lower():
         bl.refuse('the report must say at the top that it is a simulated reader, not a real person')
+    per = bl.read_json(Path(a.book) / "readers" / "personas.json", {"personas": DEFAULT_PERSONAS})["personas"]
+    if a.persona not in [x["id"] for x in per]:
+        bl.refuse(f"no persona {a.persona}; have: {', '.join(x['id'] for x in per)}")
     d = load_round(a.book, a.round)
     d["simulated"] = [x for x in d["simulated"] if x["persona"] != a.persona]
     d["simulated"].append({"persona": a.persona, "report": str(rep), "clarity": score(a.clarity, "clarity"),
@@ -187,6 +192,12 @@ def cmd_invite(a):
     save_round(a.book, a.round, d)
     allr = [h["role"] for h in d["humans"]]
     warn = []
+    if a.round > 1:
+        if allr.count("target") < 2:
+            warn.append("a second round wants two fresh target readers, plus one reader from the first round "
+                        "(record their reply under their old code)")
+        return {"ok": True, "codes": [h["code"] for h in d["humans"][start:]], "panel": allr, "warnings": warn,
+                "privacy": "keep names and contact details outside the book folder; only the codes go in here"}
     if allr.count("target") < 4:
         warn.append("fewer than four close matches to the intended reader")
     if "skeptic" not in allr:
@@ -210,7 +221,9 @@ def cmd_questionnaire(a):
             f"{plan.get('promise', '')}\n\n**Please reply within {a.days} days.** You can stop early: telling us where "
             "and why you stopped is as useful as finishing.\n\n")
     bl.write_atomic(out, head + P5)
-    return {"ok": True, "brief": str(out), "send_with": str(ed),
+    return {"ok": True, "brief": str(out), "send_with": str(ed.with_name("manuscript.ids.md")),
+            "why_ids": "the copy with a paragraph ID on every paragraph, so readers can say exactly where; "
+                       "manuscript.docx or manuscript.md is fine for a reader who would rather not see the IDs",
             "do_not": ["tell readers what you expect them to find", "share other readers' reactions",
                        "explain a confusing passage before their first feedback", "ask whether they loved it"]}
 
@@ -220,9 +233,20 @@ def cmd_record_human(a):
     d = load_round(a.book, a.round)
     h = next((x for x in d["humans"] if x["code"].lower() == a.code.lower()), None)
     if not h:
-        bl.refuse(f"no reader {a.code} in round {a.round}; invite them first")
+        # a reader from an earlier round reading again keeps their code
+        for f in sorted((Path(a.book) / "readers").glob("round-*/round.json")):
+            old = next((x for x in bl.read_json(f, {"humans": []})["humans"] if str(x.get("code", "")).lower() == a.code.lower()), None)
+            if old and f.parent.name != f"round-{a.round}":
+                h = {"code": old["code"], "role": old["role"], "status": "invited", "invited": bl.today(), "returning": True}
+                d["humans"].append(h)
+                break
+    if not h:
+        bl.refuse(f"no reader {a.code} in round {a.round} or an earlier round; invite them first")
     if a.notes and not Path(a.notes).is_file():
-        bl.refuse(f"notes file not found: {a.notes}")
+        if (Path(a.book) / a.notes).is_file():
+            a.notes = str(Path(a.book) / a.notes)
+        else:
+            bl.refuse(f"notes file not found: {a.notes}")
     h.update({"status": "responded", "responded": bl.today(), "finished": yes(a.finished),
               "stopped_at": a.stopped_at or "", "promise_explained": yes(a.promise_explained),
               "next_step": yes(a.next_step), "clarity": score(a.clarity, "clarity"),
@@ -314,7 +338,7 @@ def main():
 
     def p(name):
         x = sub.add_parser(name)
-        x.add_argument("--book", required=True)
+        x.add_argument("--book")
         x.add_argument("--round", type=int, default=1)
         return x
     x = p("personas"); x.add_argument("--add", action="append")
@@ -331,6 +355,8 @@ def main():
     p("consolidate")
     x = p("waive"); x.add_argument("--by", required=True); x.add_argument("--reason", required=True)
     a = ap.parse_args()
+    if a.cmd != "init" or not a.book:
+        a.book = bl.find_book(a.book)
     out = globals()["cmd_" + a.cmd.replace("-", "_")](a)
     bl.emit(out, 0 if out.get("ok") else 1)
 

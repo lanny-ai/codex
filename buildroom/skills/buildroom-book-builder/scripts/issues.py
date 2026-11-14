@@ -120,8 +120,8 @@ def cmd_accept(a):
     if i["severity"] in BLOCKING:
         bl.refuse(f"{i['id']} is {i['severity']}: it is fixed, not accepted. If it was graded too high, say why and "
                   "add it again at the right severity.")
-    if a.by not in ("member", "editor") or not a.reason.strip():
-        bl.refuse("an accepted issue records who accepted it (member or editor) and why")
+    if a.by != "member" or not a.reason.strip():
+        bl.refuse("only the member accepts an issue as it stands (--by member), and the reason is recorded")
     return change(a, "accepted", by=a.by, reason=a.reason.strip())
 
 
@@ -152,7 +152,7 @@ def summary(d):
         out["by_source"][i["source"]] = out["by_source"].get(i["source"], 0) + 1
         if is_open(i):
             out["open"][i["severity"]] = out["open"].get(i["severity"], 0) + 1
-            if i["severity"] in BLOCKING:
+            if i["severity"] in BLOCKING and i["status"] == "open":
                 out["blocking"].append(f"{i['id']} {i['severity']} {i['location']}: {i['issue'][:80]}")
         if i["status"] == "fixed, not verified":
             out["unverified"].append(i["id"])
@@ -172,7 +172,7 @@ def main():
 
     def p(name):
         x = sub.add_parser(name)
-        x.add_argument("--book", required=True)
+        x.add_argument("--book")
         return x
     x = p("add"); x.add_argument("--severity", choices=SEVERITIES, required=True)
     x.add_argument("--source", choices=SOURCES, required=True); x.add_argument("--location", required=True)
@@ -186,6 +186,8 @@ def main():
     x = p("reopen"); x.add_argument("--id", required=True); x.add_argument("--note", required=True)
     p("summary")
     a = ap.parse_args()
+    if a.cmd != "init" or not a.book:
+        a.book = bl.find_book(a.book)
     out = globals()["cmd_" + a.cmd](a)
     bl.emit(out, 0 if out.get("ok") else 1)
 

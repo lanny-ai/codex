@@ -11,14 +11,14 @@ book/<slug>/
   record.json                    the book record: terms, frameworks, names, stories told, promises, chapter summaries
   manuscript/
     00-title.md  01-introduction.md  ch-01.md … ch-12.md  90-conclusion.md  91-about.md
-  manuscript.md                  the working copy assembled (manuscript.py assemble)
+  manuscript.md                  optional: the working copy in one file (manuscript.py assemble), for reading through
   editions/
     v1/  manuscript.md  manuscript.ids.md  map.json      frozen; never edited
     v2/  …
   edit/
     memo.md  styleguide.md  sample.md  changelog.md  issues.json
   review/
-    developmental-review.md  claim-ledger.md  copyedit.md  regression.md
+    intake-review.md  developmental-review.md  claim-ledger.md  copyedit.md  regression.md
   readers/
     personas.json
     round-1/  round.json  reader-brief.md  summary.md  summary.json

@@ -75,12 +75,12 @@ Rules the engine enforces, kept here:
 - An edit shorter than 60 percent of the original is rejected and the original kept, with a note.
 - The section marker stays exactly as it was.
 - No facts are added. Stories, names and numbers are preserved.
-- The edit stays within about 10 percent of the original length. `manuscript.py status` measures it.
+- The edit stays within about 10 percent of the original length. In this skill nothing enforces the 60 percent or the 10 percent rule by itself: `manuscript.py status` gives the words now, and `manuscript.py diff --from v1 --to v2` gives each section's words before and after. Check them.
 
-After each section: `book_check.py chapter --section "Chapter N"`, and one line in `edit/changelog.md`. When all are done: `book_plan.py stage --name edit --status done`, then freeze an edition (`manuscript.py edition --label v2`).
+After each section: `book_check.py chapter --section "Chapter N"`, and one line in `edit/changelog.md`. When all are done, and the memo's structural changes below are made: `book_plan.py stage --name edit --status done`, then freeze an edition (`manuscript.py edition --label v2`).
 
-## 4. Fix what the memo found
-The line edit is not a structural rewrite. The memo's structural changes (a chapter in the wrong place, a missing example, a repeated story) are made on purpose, one issue at a time, with the controlled-revision prompt in `review-prompts.md` (P7). Each fix is recorded with `issues.py resolve`, and the regression check confirms it later.
+## 4. Fix what the memo found (before the line edit)
+Do this first: structure before sentences, as the order below says. The line edit is not a structural rewrite. The memo's structural changes (a chapter in the wrong place, a missing example, a repeated story) are made on purpose, one issue at a time, with the controlled-revision prompt in `review-prompts.md` (P7). Once the edition holding the fix is frozen, each is recorded with `issues.py resolve --id … --edition v2 --note "…"`, and the regression check confirms it later.
 
 ## The order of all revisions
 1. Factual and permission problems.

@@ -49,6 +49,10 @@ Read these before member-facing work, in this order:
 
 **Environment:** Claude Code or Codex on the member's computer, Python 3. Run scripts from the folder that holds the Business File (the vault root when there is one): `python3 <skill>/scripts/…`. The book lives in `book/<slug>/`.
 
+**Two things about every command:**
+- Each takes `--book book/<slug>`. The examples here leave it out; when there is exactly one book under `book/` the scripts find it, and otherwise they ask.
+- **Never put the member's words in double quotes on the command line.** The shell eats dollar amounts (`"$212,000"` becomes `12,000`), and the wrong figure then counts as theirs. Write what they said to a file and pass `--text-file`, or use single quotes. `book_plan.py answer` warns when it sees a swallowed amount.
+
 ## Modes
 
 - **Write** (default; "write my book", "help me write a book"): Phases 0–9, across as many sessions as it takes.
@@ -91,7 +95,9 @@ For each section, in order (`drafting.md`):
 2. Draft the chapter from the brief, the intake and the sources, in the member's voice. Save it in `manuscript/`.
 3. `book_check.py chapter --section "Chapter N" --business-file BUILDROOM_BUSINESS_FILE.md`. Fix every FIX. An unsourced number, quotation or client is removed or taken to the member as a question, never kept.
 4. Show the member. Their changes win.
-5. Update the book record: the chapter's summary, its stories, any new framework names or promises.
+5. Update the book record: the chapter's summary, its stories, any new framework names or promises. A story that gets cut later comes out with `book_plan.py record remove --kind story --text "…"`.
+
+The introduction, the conclusion and About the Author have no chapter brief. Draft the introduction from the plan's promise and thread after the outline is approved, and the conclusion and About the Author last, from the plan's `conclusion`, the `next_step` answer and the `work` and `story` answers. `book_plan.py record show` gives what the chapters established.
 
 When every planned section is written: `manuscript.py status`, then `manuscript.py edition --label v1`.
 
@@ -103,10 +109,11 @@ When every planned section is written: `manuscript.py status`, then `manuscript.
 
 ### Phase 5 — Edit every section, and fix what the memo found
 
-1. Line edit each remaining section with the style guide and the member's feedback. Check each with `book_check.py chapter`. Keep `edit/changelog.md`.
-2. Make the memo's structural changes on purpose, one issue at a time (P7).
-3. `book_plan.py stage --name edit --status done`, then `manuscript.py edition --label v2`.
-4. `issues.py resolve --id … --edition v2 --note "…"` for each issue that edition fixes. A fix always names the frozen edition it is in, and it stays "fixed, not verified" until the regression check confirms it.
+1. Write the approved sample edit back to its chapter file in `manuscript/`.
+2. Make the memo's structural changes first, on purpose, one issue at a time (P7). Structure comes before sentences (`editing.md`, the order of all revisions).
+3. Then line edit each remaining section with the style guide and the member's feedback. Check each with `book_check.py chapter`. Keep `edit/changelog.md`.
+4. `book_plan.py stage --name edit --status done`, then `manuscript.py edition --label v2`.
+5. `issues.py resolve --id … --edition v2 --note "…"` for each issue that edition fixes. A fix always names the frozen edition it is in, and it stays "fixed, not verified" until the regression check confirms it.
 
 ### Phase 6 — Independent review and fact audit
 
@@ -129,7 +136,7 @@ Follow `test-readers.md`:
 ### Phase 8 — Copyedit, regression, the gate
 
 1. Freeze the revised edition. An independent reader runs **P8** (consistency and copyedit) → `review/copyedit.md`, then `book_plan.py stage --name copyedit --status done --by reviewer --edition <label>`. Apply the definite corrections; take the queries to the member.
-2. Freeze the final edition (`manuscript.py edition --label final`), and `issues.py resolve --edition final` anything fixed since. An independent reader runs **P9** against the issue register → `review/regression.md`, then `issues.py verify --id … --result … --edition final` for each issue and `book_plan.py stage --name regression --status done --by reviewer --edition final`. The regression check must name the latest edition: if the text changes afterwards, freeze again and run it again.
+2. Freeze the final edition (`manuscript.py edition --label final`), and `issues.py resolve --edition final` anything fixed since. An independent reader runs **P9** against the issue register → `review/regression.md`, then `issues.py verify --id … --result … --edition final` for each issue and `book_plan.py stage --name regression --status done --by reviewer --edition final`. Then `reader_panel.py consolidate` once more, so the reader summary shows the fixes confirmed. The regression check must name the latest edition: if the text changes afterwards, freeze again and run it again.
 3. **The gate:** `book_check.py check --book book/<slug> --business-file BUILDROOM_BUSINESS_FILE.md`. **GO** only when no FIX remains. Read each WATCH out with its fix; the member decides.
 4. `manuscript.py export --edition <final> --docx book/<slug>/manuscript.docx`.
 
