@@ -136,7 +136,7 @@ Then `webinar_plan.py render --spec launches/<slug>/webinar/webinar.json --runsh
 - Present a recording as live, invent or round up attendance, seed the chat, type in poll results, use a timer that resets, threaten to edit the replay, hide text in low contrast, or show an earnings figure without the typical result (`honesty-rules.md`).
 - Use a story without an ID and an allowed class from the proof bank, or a client's words without consent.
 - Research individual registrants or make personal videos for them (a later version, with its own privacy rules).
-- Reproduce another teacher's scripts or slides; named teachers' methods are credited structures only (`source-credit.md`). Partner course material is never used.
+- Reproduce another teacher's scripts or slides; named teachers' methods are credited structures only (`source-credit.md`).
 - Build the registration page (**Lead Capture**, **Offer Page Copy**), the CRM workflows (**Decision Machine**), ads (**Ad Studio**) or videos (**Video Director**); it briefs them.
 
 ## When the Session Is Complete

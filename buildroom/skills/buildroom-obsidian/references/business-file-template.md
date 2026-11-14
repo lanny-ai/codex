@@ -4,7 +4,7 @@ _One file. Every Build Room session reads it before asking you anything, and upd
 
 **Owner:** [your name]
 **Business:** [business name]
-**File version:** 1.8
+**File version:** 1.9
 **Last updated:** [YYYY-MM-DD] by [session name]
 
 > **How to use this file:** Attach or paste it at the start of any Build Room session. The session will read it, skip every question it already answers, and hand you back an updated copy at the end. Replace your saved copy with the updated one. You can edit anything by hand at any time — your edits win.
@@ -387,6 +387,21 @@ _Built by: Website Design Studio · Requires: §1, §2; best with §3, §4, §5 
 - **Do / don't:**
 - **Files** (design-system.md · tokens.json · tokens.css · slides.json · first page):
 - **Used by** (skills that have read it · last date):
+
+---
+
+## 23. Book
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: AI Momentum Labs Book Builder · Requires: §1, §2; best with §3, §4, §17, §18_
+
+- **Book** (title · promise · reader):
+- **Shape** (chapters · target words · words measured):
+- **Stage** (intake · outline · draft · memo · sample · edit · review · facts · readers · copyedit · regression · gate):
+- **Last gate** (GO or FIX · date · edition):
+- **Readers** (real: invited · responded · thresholds met; simulated runs, kept apart · waiver):
+- **Open issues** (P0 · P1 · P2 · P3):
+- **Book folder:** [book/]
 
 ---
 
