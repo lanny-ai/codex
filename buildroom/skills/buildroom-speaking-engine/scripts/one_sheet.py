@@ -74,6 +74,7 @@ def validate(d, a, data, bf):
         else:
             talks.append(t)
     rows, bank = proof_rows(sl.folder(a))
+    proof = re.sub(r"\s+", " ", sl.plain(sl.proof_text(sl.folder(a))).lower())
     tests = [t for t in (d.get("testimonials") or []) if isinstance(t, dict) and (t.get("quote") or t.get("proof_id"))]
     for t in tests:
         pid = str(t.get("proof_id", "")).strip().upper()
@@ -88,12 +89,17 @@ def validate(d, a, data, bf):
         scope = row[4] if len(row) > 4 else ""
         if any(b in perm for b in BAD_PERMISSION) or not any(g in perm for g in ("named", "anonymous")):
             fix.append(f"{pid}: permission is '{perm or 'not recorded'}'; it cannot be used")
-        elif not any(s in scope for s in ("events", "site")):
+        elif not any(re.search(r"\b(?:events?|site|website)\b", part) and not re.match(r"\s*(?:no|not|never|except)\b", part)
+                     for part in re.split(r"[,;/]", scope)):
             fix.append(f"{pid}: its permission covers '{scope}', not a speaker sheet (needs events or site)")
         if "anonymous" in perm and str(t.get("attribution", "")).strip() and not re.match(r"(?i)an? ", str(t["attribution"]).strip()):
             fix.append(f"{pid} is anonymous: attribute it as \"a [kind of client]\", never by name")
-        if not str(t.get("quote", "")).strip():
+        quote = re.sub(r"\s+", " ", sl.plain(str(t.get("quote", ""))).lower()).strip(" .,!?\"'")
+        if not quote:
             fix.append(f"{pid}: the quote is empty; copy the words from the proof bank, exactly")
+        elif quote not in proof:
+            fix.append(f"{pid}: the quote is not in the proof bank word for word (proof/proof-bank.md or proof/stories/). "
+                       "Copy it exactly, or leave it out")
     c = d.get("contact") or {}
     if not (str(c.get("email", "")).strip() or str(c.get("booking_link", "")).strip()):
         fix.append("no way to book: give an email address or a booking link")
@@ -111,15 +117,20 @@ def validate(d, a, data, bf):
     # the member's own facts or nothing
     known = sl.known_text(a, bf)
     nums = sl.number_sets(known)
-    body = "\n".join([str(d.get("tagline", "")), bio, " ".join(map(str, d.get("credentials") or [])),
-                      " ".join(map(str, d.get("audiences") or []))])
+    body = "\n".join([str(d.get("tagline", "")), bio, " . ".join(map(str, d.get("credentials") or [])),
+                      " . ".join(map(str, d.get("audiences") or [])), " . ".join(map(str, d.get("formats") or [])),
+                      str(d.get("based_in", "")), str(d.get("travels", "")),
+                      " . ".join(str(t.get("attribution", "")) for t in tests)])
+    body = re.sub(r"\b(\d+)[- ]minutes?\b", " ", body)
     un = sl.unsourced_numbers(body, nums)
     if un:
         fix.append("figures the member did not give: " + ", ".join(un[:6]))
     cl = sl.unsupported_claims(body, known)
     if cl:
         fix.append("claims the member's own material does not contain: " + ", ".join(cl[:6]))
-    everything = body + " " + " ".join(str(t.get("quote", "")) for t in tests)
+    everything = body + " " + " ".join(str(t.get("quote", "")) for t in tests) + " " + \
+        " ".join(" ".join([str(t.get("title", "")), str(t.get("promise", "")), str(t.get("for", ""))] + list(map(str, t.get("takeaways", []))))
+                 for t in talks)
     if any(x in everything for x in sl.DASHES):
         fix.append("an em or en dash")
     if sl.PLACEHOLDER.search(everything):
@@ -170,10 +181,10 @@ p {{ margin: 0 0 0.1in; }}
 ul {{ margin: 0 0 0.1in; padding-left: 1.1em; }}
 .talk {{ break-inside: avoid; margin-bottom: 0.18in; }}
 .promise {{ font-style: italic; }}
-.meta, .where {{ font-size: 0.9rem; }}
+.meta, .where {{ font-size: 1rem; }}
 .chips {{ list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; }}
 blockquote {{ margin: 0 0 0.14in; padding-left: 0.16in; border-left: 3px solid var(--c-accent, #1d4ed8); break-inside: avoid; }}
-blockquote footer {{ font-size: 0.9rem; }}
+blockquote footer {{ font-size: 1rem; }}
 .book {{ margin-top: 0.25in; padding: 0.16in; border: 2px solid var(--c-accent, #1d4ed8); border-radius: 8px; font-size: 1.05rem; break-inside: avoid; }}
 @media print {{ body {{ padding: 0; }} }}
 </style></head><body>
@@ -224,10 +235,15 @@ def cmd_build(a):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    t = sub.add_parser("template"); t.add_argument("--folder")
+    t = sub.add_parser("template"); t.add_argument("--folder"); t.add_argument("--today")
     b = sub.add_parser("build"); b.add_argument("--data"); b.add_argument("--out"); b.add_argument("--business-file"); b.add_argument("--folder")
+    b.add_argument("--today")
     a = ap.parse_args()
-    out, code = (cmd_template if a.cmd == "template" else cmd_build)(a)
+    try:
+        out, code = (cmd_template if a.cmd == "template" else cmd_build)(a)
+    except (KeyError, AttributeError, TypeError, IndexError) as e:
+        out, code = {"ok": False, "error": f"a file here is missing something the engine wrote ({type(e).__name__}: {e}); "
+                                            "it was probably edited by hand. Restore it from a backup"}, 2
     sl.emit(out, code)
 
 

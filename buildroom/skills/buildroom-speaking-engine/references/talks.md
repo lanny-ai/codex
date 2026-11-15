@@ -10,6 +10,7 @@ The member needs one talk, not a catalogue. Build it so it stretches like an acc
 
 ## What a talk on file holds
 `speak_pipeline.py talk add --title "…" --promise "…" --takeaway "…" --takeaway "…" --takeaway "…" --for "…" --length 20,45`
+To take a talk off file: `speak_pipeline.py talk remove --n 2` (not once it has been pitched; the record of what was offered stays). To change one, remove it and add it again.
 
 - **Title:** twelve words at most, plain, about the room's problem, not the speaker. No dashes. "Cash Before Profit: Three Numbers Every Trades Owner Should Read" beats "Unlocking Financial Mastery".
 - **Promise:** one sentence on what the room leaves able to do. "You'll leave able to read three numbers that tell you where the cash went."

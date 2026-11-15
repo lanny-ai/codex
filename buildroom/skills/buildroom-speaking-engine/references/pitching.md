@@ -25,6 +25,8 @@ Every draft passes `pitch_check.py check --file … --kind pitch --stage ST-003`
 - Two at most, a week apart. `speak_pipeline.py follow` refuses a third and refuses one sent too soon.
 - Each is shorter than the last (about 70 words), adds one useful thing (a date that opened, a sentence on the talk), and keeps the easy no. Check with `--kind followup`.
 - After two with no answer: `reply --outcome later --ask-again <date>` for a stage worth trying next season, or `drop`.
+- When the date comes, `today` brings it back: one short note, recorded with `follow --id … --text-file …`, and then it is theirs to answer. A stage parked for later is not counted as an answer on the scorecard.
+- Any pitch or follow-up sent in writing (email, a form, LinkedIn) is recorded with `--text-file`, and is refused if it does not pass `pitch_check.py`. Only a phone call or a conversation in person is recorded without text.
 
 How many follow-ups, and how far apart, is practitioner opinion and practitioners disagree. There's no data on reply rates for speaker pitches. Never tell the member what rate to expect; their scorecard will show their own.
 

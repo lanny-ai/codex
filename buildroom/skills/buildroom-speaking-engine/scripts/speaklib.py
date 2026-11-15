@@ -191,19 +191,48 @@ def find_stage(data, sid):
 
 
 # ---------------------------------------------------------------- what the member supplied
+def proof_text(f):
+    """The proof bank's index and the stories the Proof Engine recorded, word for word."""
+    proof = Path(f).resolve().parent / "proof"
+    parts = []
+    if (proof / "proof-bank.md").is_file():
+        parts.append(read_text(proof / "proof-bank.md"))
+    if (proof / "stories").is_dir():
+        parts += [read_text(p) for p in sorted((proof / "stories").glob("*.md")) if p.is_file() and not p.is_symlink()]
+    return "\n".join(parts)
+
+
 def known_text(a, business_file=None):
-    """Everything the member has supplied: the intake, the talks, the proof bank and the Business File."""
+    """What the member supplied: intake answers they gave or confirmed, the proof bank and the Business
+    File. Drafts the session wrote (an unconfirmed answer, a talk, bio.md, talks.md) are not sources:
+    a draft cannot vouch for itself."""
     f = folder(a)
     parts = []
     d = read_json(f / "pipeline.json", {"profile": {}, "talks": [], "stages": []})
-    parts += [str((v or {}).get("text", "")) for v in d["profile"].values() if isinstance(v, dict)]
-    parts += [json.dumps(t, ensure_ascii=False) for t in d["talks"]]
-    for extra in (f / "talks.md", f / "bio.md", f.parent / "proof" / "proof-bank.md"):
-        if extra.is_file():
-            parts.append(read_text(extra))
+    parts += [str(v.get("text", "")) for v in d["profile"].values() if isinstance(v, dict) and not v.get("draft")]
+    parts.append(proof_text(f))
     if business_file and Path(business_file).is_file():
         parts.append(read_text(business_file))
     return "\n".join(parts)
+
+
+CONTACT_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+|(?<!\d)(?:\+?\d[\s().-]?){9,14}\d(?!\d)")
+
+
+def no_contacts(**fields):
+    """A person's email address or phone number does not go in the speaking folder."""
+    for label, value in fields.items():
+        if value and CONTACT_RE.search(str(value)):
+            refuse(f"--{label.replace('_', '-')} holds an email address or a phone number. Those stay in the member's own "
+                   "address book or CRM; here, give the role only (\"programme chair\")")
+
+
+def finite(s):
+    """A number for argparse: nan and inf are not amounts."""
+    v = float(s)
+    if v != v or v in (float("inf"), float("-inf")):
+        raise ValueError("not a finite number")
+    return v
 
 
 def find_business_file(a):
@@ -308,10 +337,23 @@ MULT = {"k": 1e3, "thousand": 1e3, "m": 1e6, "million": 1e6, "bn": 1e9, "billion
 NOUNS = (r"(?:clients|students|members|people|customers|businesses|companies|owners|audiences|attendees|events|"
          r"talks|stages|countries|cities|states|years|months|weeks|books|copies|subscribers|followers|listeners|"
          r"downloads|views|employees|teams|families|patients|women|men)")
-NUMBER_RE = re.compile(rf"(?:[$£€]\s?\d[\d,]*(?:\.\d+)?(?:\s?{MAG})?\b|\b\d[\d,]*(?:\.\d+)?\s?(?:%|percent\b)|"
-                       rf"\b\d[\d,]*(?:\.\d+)?\s?{MAG}\b(?:\s{NOUNS})?|\b\d[\d,]*\+?\s(?:[a-z-]+\s)?{NOUNS}\b|"
-                       rf"\b\d{{2,}}[\d,]*\+?\s(?!minutes?\b|mins?\b|hours?\b|days?\b|seconds?\b)[a-z-]{{3,}}s\b)", re.I)
-VAGUE_NUM = re.compile(r"\b(?:hundreds|thousands|dozens|millions|scores|countless) of(?: [a-z]+){0,2}|\b\d+(?:\.\d+)?x\b", re.I)
+NB = r"(?<![\d,.$£€/:-])"                     # a number starts here, not in the middle of one
+UNITS = r"(?:minutes?|mins?|hours?|hrs?|days?|seconds?|am|pm|a\.m|p\.m|st|nd|rd|th|o'clock)\b"
+NUMBER_RE = re.compile(rf"(?:[$£€][ ]?\d[\d,]*(?:\.\d+)?(?:[ ]?{MAG})?\b|{NB}\d[\d,]*(?:\.\d+)?[ ]?(?:%|percent\b)|"
+                       rf"{NB}\d[\d,]*(?:\.\d+)?[ ]?{MAG}\b(?:[ ]{NOUNS})?|{NB}\d[\d,]*\+?[ ](?:[a-z-]+[ ]){{0,3}}?{NOUNS}\b|"
+                       rf"{NB}\d[\d,]*\d\+?(?=[ ](?!{UNITS})[a-z]))", re.I)
+SMALL = "one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty"
+TENS = {"thirty": 30, "forty": 40, "fifty": 50, "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90}
+WORDNUM = {w: i + 1 for i, w in enumerate(SMALL.split())} | TENS
+VAGUE_NUM = re.compile(r"\b(?:hundreds|thousands|dozens|millions|scores|countless) of(?: [a-z]+){0,2}|\b\d+(?:\.\d+)?x\b|"
+                       rf"\b(?:{'|'.join(WORDNUM)}|a|several|a few|many)[ -](?:hundred|thousand|million|billion|dozen)\b(?: [a-z]+)?|"
+                       r"\b(?:doubl|tripl|quadrupl)(?:ed?|ing|es)\b(?: [a-z]+){0,2}|"
+                       r"\b(?:\d|six|seven|eight|nine)[- ]figures?\b", re.I)
+
+
+def digits_for_words(text):
+    """'Fourteen years' in the member's file vouches for '14 years' in a pitch."""
+    return re.sub(rf"\b({'|'.join(WORDNUM)})\b", lambda m: f"{m.group(0)} {WORDNUM[m.group(1).lower()]}", text, flags=re.I)
 
 
 def norm_num(s):
@@ -322,14 +364,17 @@ def number_sets(known):
     """What the member supplied, so '30 minutes' in their file does not clear '30 clients' in a pitch.
     Section numbers, dates and the file version are not the member's figures."""
     t = re.sub(r"(?m)^#{1,6}\s*\d+\.|§\s?\d+(?:\s?[-–]\s?\d+)?|\b\d{4}-\d{2}-\d{2}\b|^.*File version.*$", " ", known)
+    t = digits_for_words(t)
+    money = {norm_num(x) for x in re.findall(r"[$£€][ ]?(\d[\d,]*(?:\.\d+)?)", t)}
     bare = {norm_num(x) for x in re.findall(r"\d[\d,]*(?:\.\d+)?", t)}
     mags = set()
     for n, u in re.findall(rf"(\d[\d,]*(?:\.\d+)?)\s?({MAG})\b", t, re.I):
         mags.add((norm_num(n), MULT[u.lower()]))
         bare.add(f"{float(norm_num(n)) * MULT[u.lower()]:.0f}")
     pct = {norm_num(n) for n in re.findall(r"(\d[\d,]*(?:\.\d+)?)\s?(?:%|percent\b)", t, re.I)}
-    things = {(norm_num(n), w.lower()) for n, w in re.findall(rf"\b(\d[\d,]*)\+?\s(?:[a-z-]+\s)?({NOUNS})\b", t, re.I)}
-    return {"bare": bare, "mag": mags, "pct": pct, "things": things, "text": re.sub(r"\s+", " ", plain(t).lower())}
+    things = {(norm_num(n), w.lower()) for n, w in re.findall(rf"{NB}(\d[\d,]*)\+?[ ](?:[a-z-]+[ ]){{0,3}}?({NOUNS})\b", t, re.I)}
+    return {"bare": bare, "mag": mags, "pct": pct, "things": things, "money": money,
+            "text": re.sub(r"\s+", " ", plain(t).lower())}
 
 
 def unsourced_numbers(text, nums, allow=()):
@@ -337,31 +382,34 @@ def unsourced_numbers(text, nums, allow=()):
     (the stage's own facts: its date, its audience size, the fee the host named)."""
     extra = number_sets(" ".join(allow)) if allow else None
     out = []
+    text = re.sub(r"https?://\S+|[\w.+-]+@[\w-]+\.[\w.-]+", " ", text)          # a link or an address is not a claim
+    text = re.sub(r"(?m)\b[A-Z]{2}[ ]\d{5}(?:-\d{4})?\b|\b\d{5}(?:-\d{4})?[ ]*$", " ", text)   # a ZIP code
+    text = CONTACT_RE.sub(" ", text)
     for hit in sorted({m.group(0).strip() for m in NUMBER_RE.finditer(text)}):
         n = norm_num(re.match(r"[^\d]*(\d[\d,]*(?:\.\d+)?)", hit).group(1))
         mm = re.search(rf"\d\s?({MAG})\b", hit, re.I)
 
-        def ok_in(s):
+        def ok_in(s, strict_money=False):
             if re.search(r"%|percent", hit, re.I):
                 return n in s["pct"]
             if mm:
                 mult = MULT[mm.group(1).lower()]
                 return (n, mult) in s["mag"] or f"{float(n) * mult:.0f}" in s["bare"]
             if hit[0] in "$£€":
-                return n in s["bare"]
+                return n in (s["money"] if strict_money else s["bare"])     # the stage's head count is not a price
             last = hit.split()[-1].lower()
             if not re.fullmatch(NOUNS, last, re.I):
-                return n in s["bare"]                  # a big count of something unlisted: the number itself must be the member's
+                return n in s["bare"]                  # a count of something unlisted: the number itself must be the member's
             return (n, last) in s["things"]
         if re.fullmatch(r"(?:19|20)\d\d", n) and "," not in hit.split()[0] and hit[0] not in "$£€":
             continue                                   # a year
         if re.fullmatch(r"[1-9]|10", n) and hit[0] not in "$£€" and not mm and not re.search(r"%|percent", hit, re.I):
             continue                                   # small everyday counts
-        if ok_in(nums) or (extra and ok_in(extra)):
+        if ok_in(nums) or (extra and ok_in(extra, strict_money=True)):
             continue
         out.append(hit)
     for m in VAGUE_NUM.finditer(text):
-        if re.sub(r"\s+", " ", m.group(0).lower()) not in nums["text"]:
+        if not re.search(r"\b" + re.escape(re.sub(r"\s+", " ", m.group(0).lower())) + r"\b", nums["text"]):
             out.append(m.group(0))
     return sorted(set(out))
 
@@ -375,19 +423,24 @@ CLAIMS = [
     (r"\bkeynote speaker\b", "keynote speaker"), (r"\bcertified\b", "certified"),
     (r"\b(?:Fortune|Inc\.?)\s?\d+\b", "Fortune or Inc. list"), (r"\bstanding ovations?\b", "standing ovation"),
     (r"\bguarantee[ds]?\b", "guarantee"), (r"\bproven\b", "proven"),
+    (r"\bbest[- ]?sellers?\b", "bestseller"), (r"\b(?:[A-Z][\w&-]+[ ]){1,4}of the Year\b", "an 'of the Year' title"),
+    (r"\b(?:New York Times|Wall Street Journal|USA Today|Forbes|Inc\. Magazine|Entrepreneur Magazine|Oprah|CNN|BBC|NBC|CBS|ABC News|"
+     r"Fox News|Harvard|Stanford|Yale|Oxford|Cambridge|MIT|Wharton)\b", "a famous name"),
+    (r"\b(?:MBA|Ph\.?D\.?|CPA|CFP|CFA|M\.?D\.|J\.?D\.|Esq\.?|PMP|RN)(?![\w])", "letters after a name"),
+    (r"\b(?:award|prize)[- ]?(?:winner|winning|nominated)\b|\bwinner of\b|\bhall of fame\b", "an award"),
 ]
 
 
 def unsupported_claims(text, known):
     """Credential and status claims in the text that the member's own material does not contain."""
-    low = plain(known).lower()
+    low = re.sub(r"[\s-]+", " ", plain(known).lower())
     out = []
     for pat, label in CLAIMS:
-        for m in re.finditer(pat, plain(text), re.I):
+        flags = 0 if label in ("TED", "an 'of the Year' title", "a famous name", "letters after a name") else re.I
+        for m in re.finditer(pat, plain(text), flags):
             phrase = m.group(0)
-            core = re.sub(r"\s+", " ", phrase.lower())
-            head = core.split()[0] if label not in ("TED", "Fortune or Inc. list") else core
-            if head not in low:
+            core = re.sub(r"[\s-]+", " ", phrase.lower()).strip()
+            if not re.search(r"(?<![a-z0-9])" + re.escape(core) + r"(?![a-z0-9])", low):   # the phrase itself, as words
                 out.append(f"{label} (\"{phrase}\")")
     return sorted(set(out))
 

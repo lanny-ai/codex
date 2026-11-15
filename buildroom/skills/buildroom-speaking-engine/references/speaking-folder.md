@@ -45,3 +45,4 @@ Names and email addresses of hosts stay in the member's own address book or CRM.
 - A "later" needs the date to ask again.
 
 Never edit `pipeline.json` by hand; use the commands, so the history stays true.
+`profile.md` is written from `pipeline.json` each time an answer changes; change an answer with `answer`, not in the file. `plan.md` is the member's: once it exists `plan` will not overwrite it without `--replace`, so ticks are kept. `bio.md` and `talks.md` are drafts the session writes. They are checked against the member's confirmed answers, the proof bank (`proof/proof-bank.md` and `proof/stories/`) and the Business File, and never count as a source themselves. No email address or phone number is accepted in any field: a contact's details stay in the member's address book or CRM.

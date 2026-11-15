@@ -35,6 +35,7 @@ Score from what the host's page says, and say which scores are guesses. An audie
 A flagged stage can't be pitched. Tell the member in plain words what the flag means. Then one of two things:
 - **Drop it** (`speak_pipeline.py drop --id … --reason "…"`), which is right most of the time.
 - **The member accepts it**, knowing what it is: `--accept-risk --by member --reason "…"`. Only the member can. A paid, sponsored slot is an honest thing when it is called that; the question is whether the room is worth the money, and nobody can promise it will be.
+- **A flag stands until it is cleared.** Vetting again without naming it does not remove it. If a closer look shows it does not apply: `vet … --unflag pay_to_speak --reason "what was checked"`. A flag raised on a stage that was already vetted takes it back to `found`, so it cannot be pitched.
 
 ## The checks to teach the member
 Seven questions for any offer that arrives unasked:

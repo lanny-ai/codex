@@ -34,6 +34,7 @@ Speakers bureaus are out of scope. They take speakers who already have demand.
 - who is in the room, in the host's words (`--audience`), and how many if they say (`--size`).
 
 Anything the page doesn't say stays `unknown`. Don't fill a gap with a guess; it becomes a question for the host.
+A source is the full address of the page (`https://…`) or `member knows it: ` followed by how they know it. A stage that was pitched and then dropped cannot be added again: a host who has had the member's messages is not started on a second time.
 
 ## Lead times
 - Local clubs fill their calendars weeks to a few months out.

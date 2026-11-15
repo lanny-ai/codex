@@ -32,7 +32,7 @@ import speaklib as sl  # noqa: E402
 LIMITS = {"pitch": (150, 220), "followup": (70, 110), "bio": (100, 150), "talk": (120, 180), "one-sheet": (450, 650)}
 PRESSURE = re.compile(r"\b(?:act now|last chance|limited time|only \d+ (?:spots?|seats?|places?) left|don't miss out|"
                       r"before it'?s too late|offer (?:ends|expires))\b", re.I)
-QUOTE = re.compile(r'"([^"]{25,400})"')
+QUOTE = re.compile(r'"([^"\n]{12,400})"|(?<![A-Za-z])\'([^\'\n]{12,400})\'(?![A-Za-z])')
 NO_OUT = re.compile(r"\b(?:no (?:problem|worries|pressure) (?:if|either way)|if (?:it'?s|this is|that'?s) not (?:a|the right) fit|"
                     r"either way|feel free to say no|just say so|happy to hear a no|if not, no)\b", re.I)
 SELF_OPEN = re.compile(r"^\s*(?:hi|hello|dear)?[^.!?\n]{0,40}[,.!]?\s*(?:my name is|i am|i'm|i have been|i've been|i would like|i'd like)\b", re.I)
@@ -56,6 +56,7 @@ def check(a):
     data = sl.read_json(sl.folder(a) / "pipeline.json", {"profile": {}, "talks": [], "stages": []})
     known = sl.known_text(a, bf)
     nums = sl.number_sets(known)
+    proof = re.sub(r"\s+", " ", sl.plain(sl.proof_text(sl.folder(a))).lower())
     stage = None
     if a.stage:
         stage = next((s for s in data["stages"] if str(s.get("id", "")).lower() == a.stage.lower()), None)
@@ -84,8 +85,7 @@ def check(a):
         allow += [f"{stage.get('size')} people", f"{stage.get('size')} members", f"{stage.get('size')} attendees"] if stage.get("size") else []
         bk = stage.get("booking") or {}
         allow += [str(bk.get("terms") or ""), f"${bk.get('fee')}" if bk.get("fee") else ""]
-    lengths = " ".join(f"{m} minutes {m} minute" for t in data["talks"] for m in t.get("lengths", []))
-    unknown = sl.unsourced_numbers(re.sub(r"\b(\d+)[- ]minutes?\b", " ", text), nums, allow + [lengths])
+    unknown = sl.unsourced_numbers(re.sub(r"\b(\d+)[- ]minutes?\b", " ", text), nums, allow)
     if unknown:
         add("FIX", "unsourced_numbers", "figures the member did not give: " + ", ".join(unknown[:8])
             + (f" (+{len(unknown) - 8} more)" if len(unknown) > 8 else ""),
@@ -94,9 +94,11 @@ def check(a):
     if claims:
         add("FIX", "unsupported_claims", "claims the member's own material does not contain: " + ", ".join(claims[:6]),
             "ask the member whether it is true and where it is recorded; if it is, add it to the credentials answer first")
-    kn = nums["text"]
-    bad_quotes = [q for q in QUOTE.findall(text) if re.sub(r"\s+", " ", q.lower()).strip(" .,!?") not in kn
-                  and not any(re.sub(r"\s+", " ", sl.plain(t["title"]).lower()) in q.lower() for t in data["talks"])]
+    titles = [re.sub(r"\s+", " ", sl.plain(str(t.get("title", ""))).lower()).strip() for t in data["talks"]]
+    titles = [t for t in titles if t]
+    quotes = [x or y for x, y in QUOTE.findall(text)]
+    bad_quotes = [q for q in quotes if re.sub(r"\s+", " ", q.lower()).strip(" .,!?") not in proof
+                  and not any(t in q.lower() or q.lower().strip(" .,!?") in t for t in titles)]
     if bad_quotes:
         add("FIX", "unsourced_quote", "a quotation that is not in the proof bank or the member's file: \""
             + bad_quotes[0][:70] + "…\"", "a testimonial comes from the Proof Engine's bank with its permission, word for word, or it is left out")
@@ -116,7 +118,6 @@ def check(a):
                 add("FIX", "not_about_them", f"it names neither {stage['name']} nor {stage['host']}",
                     "say which meeting or event this is for; a pitch that could go to anyone goes nowhere")
         if a.kind == "pitch":
-            titles = [sl.plain(t["title"]).lower() for t in data["talks"]]
             if not titles:
                 add("FIX", "no_talk", "no talk is on file to offer", "speak_pipeline.py talk add …")
             elif not any(t in low for t in titles):
@@ -148,9 +149,13 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     c = sub.add_parser("check")
     c.add_argument("--file", required=True); c.add_argument("--kind", required=True, choices=sorted(LIMITS))
-    c.add_argument("--stage"); c.add_argument("--business-file"); c.add_argument("--folder")
+    c.add_argument("--stage"); c.add_argument("--business-file"); c.add_argument("--folder"); c.add_argument("--today")
     a = ap.parse_args()
-    out, code = check(a)
+    try:
+        out, code = check(a)
+    except (KeyError, AttributeError, TypeError, IndexError) as e:
+        out, code = {"ok": False, "error": f"pipeline.json is missing something the engine wrote ({type(e).__name__}: {e}); "
+                                            "it was probably edited by hand. Restore it from a backup"}, 2
     sl.emit(out, code)
 
 

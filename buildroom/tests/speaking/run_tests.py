@@ -200,7 +200,7 @@ def check_tests(work):
     for want in ("placeholders", "dashes", "unsourced_numbers", "unsupported_claims", "unsourced_quote", "pressure", "no_ask", "not_about_them", "no_talk"):
         check(f"check: a bad pitch is caught for {want}", want in ids, ids)
     msg = next((i["message"] for i in d.get("items", []) if i["id"] == "unsourced_numbers"), "")
-    check("check: '500 firms' and '300%' are both named", "500 firms" in msg and "300%" in msg, msg)
+    check("check: the invented 500 and 300% are both named", "500" in msg and "300%" in msg, msg)
     check("check: FIX exits 1", code == 1)
     (w / "own.txt").write_text("Dana, I have spent 14 years as a bookkeeper and taken 31 firm owners through this. Would Stop Billing By The Hour "
                                "suit the Ohio Bookkeepers Association? If it is not a fit, just say so.\n", encoding="utf-8")
@@ -245,18 +245,22 @@ def pipeline_tests(work):
     w = setup(work, "pipe")
     add_stage(w)
     vet(w, "ST-001")
-    run(P, ["pitch", "--id", "ST-001", "--channel", "email", "--today", "2026-11-03"], w)
+    (w / "p.txt").write_text(PITCH, encoding="utf-8")
+    (w / "f.txt").write_text("Dana, a short note on Stop Billing By The Hour for the Ohio Bookkeepers Association. Is spring still open?\n", encoding="utf-8")
     code, d = run(P, ["pitch", "--id", "ST-001", "--channel", "email", "--today", "2026-11-03"], w)
+    check("pitch: a written pitch with no text to check is refused", code == 1 and "--text-file" in d.get("error", ""), d)
+    run(P, ["pitch", "--id", "ST-001", "--channel", "email", "--text-file", "p.txt", "--today", "2026-11-03"], w)
+    code, d = run(P, ["pitch", "--id", "ST-001", "--channel", "email", "--text-file", "p.txt", "--today", "2026-11-03"], w)
     check("pitch: a second first pitch is refused", code == 1 and "follow" in d.get("error", ""), d)
-    code, d = run(P, ["follow", "--id", "ST-001", "--today", "2026-11-05"], w)
+    code, d = run(P, ["follow", "--id", "ST-001", "--text-file", "f.txt", "--today", "2026-11-05"], w)
     check("follow: refused inside seven days", code == 1 and "wait 7" in d.get("error", ""), d)
     code, d = run(P, ["today", "--today", "2026-11-10"], w)
     check("today: the follow-up comes due on its day", any(x.get("id") == "ST-001" for x in d.get("due", [])), d)
-    code, d = run(P, ["follow", "--id", "ST-001", "--today", "2026-11-10"], w)
+    code, d = run(P, ["follow", "--id", "ST-001", "--text-file", "f.txt", "--today", "2026-11-10"], w)
     check("follow: the first follow-up is recorded", d.get("touch") == 2 and d.get("follow_ups_left") == 1, d)
-    code, d = run(P, ["follow", "--id", "ST-001", "--today", "2026-11-17"], w)
+    code, d = run(P, ["follow", "--id", "ST-001", "--text-file", "f.txt", "--today", "2026-11-17"], w)
     check("follow: the second is the last", d.get("follow_ups_left") == 0, d)
-    code, d = run(P, ["follow", "--id", "ST-001", "--today", "2026-11-24"], w)
+    code, d = run(P, ["follow", "--id", "ST-001", "--text-file", "f.txt", "--today", "2026-11-24"], w)
     check("follow: a third follow-up is refused", code == 1 and "pestering" in d.get("error", ""), d)
     code, d = run(P, ["reply", "--id", "ST-001", "--outcome", "later"], w)
     check("reply: 'later' needs a date", code == 1 and "--ask-again" in d.get("error", ""), d)
@@ -326,6 +330,191 @@ def sheet_tests(work):
     check("one-sheet: a bio over 120 words is refused", code == 1 and "120 at most" in " ".join(d.get("fix", [])), d)
 
 
+def review_tests(work):
+    """Regressions from the independent review: every way it found to get something invented through."""
+    w = setup(work, "review")
+    sp = w / "speaking"
+    add_stage(w)
+    vet(w, "ST-001")
+    tail = " Would Stop Billing By The Hour suit the Ohio Bookkeepers Association? If it is not a fit, just say so.\n"
+
+    def verdict(name, text, kind="pitch", stage=True):
+        (w / name).write_text(text, encoding="utf-8")
+        code, d = run(C, ["check", "--file", name, "--kind", kind] + (["--stage", "ST-001"] if stage else []), w)
+        return code, {i["id"]: i["message"] for i in d.get("items", [])}, d
+
+    # 1. a draft cannot vouch for itself
+    (sp / "bio.md").write_text("Pat is an award-winning, certified keynote speaker with 850 clients and $2.4 million in sales.\n", encoding="utf-8")
+    (sp / "talks.md").write_text("850 clients, award-winning\n", encoding="utf-8")
+    code, ids, d = verdict("selfbio.txt", "Pat is an award-winning speaker with 850 clients.\n", kind="bio", stage=False)
+    check("review: bio.md and talks.md in the speaking folder do not clear their own inventions",
+          code == 1 and "unsupported_claims" in ids and "unsourced_numbers" in ids, d)
+    run(P, ["answer", "--key", "credentials", "--text", "award-winning speaker with 850 clients", "--draft", "--from", "§18"], w)
+    code, ids, d = verdict("selfbio.txt", "Pat is an award-winning speaker with 850 clients.\n", kind="bio", stage=False)
+    check("review: an unconfirmed draft answer is not a source", code == 1, d)
+    code, d = add_stage(w, name="Dayton Owners Club", host="Dayton Owners")
+    check("review: a new draft un-readies the profile", code == 1 and "not ready" in d.get("error", ""), d)
+    run(P, ["answer", "--key", "credentials", "--text", "14 years as a bookkeeper"], w)
+    code, d = run(P, ["answer", "--key", "hosts", "--text", "associations", "--from", "§2"], w)
+    check("review: an answer drawn from a section is a draft even without --draft", d.get("draft") is True, d)
+    run(P, ["confirm", "--all", "--by", "member"], w)
+    run(P, ["ready"], w)
+
+    # 3. claims are matched as whole phrases
+    for i, line in enumerate(["As seen on Oprah and featured in Forbes.", "I am the top speaker in Ohio.", "A number one coach.",
+                              "A best selling author.", "A proven method.", "Results are guaranteed.",
+                              "CPA, MBA from Harvard, Bookkeeper of the Year, New York Times bestseller."]):
+        code, ids, d = verdict(f"claim{i}.txt", "Dana, " + line + tail)
+        check(f"review: an unsupported claim is caught: {line[:40]}", "unsupported_claims" in ids, d)
+
+    # 4. figures in the shapes that slipped through
+    for i, line in enumerate(["I have helped 500 happy business owners and 250 local entrepreneurs.", "Over two hundred dentists use it.",
+                              "Clients doubled their profit.", "My clients save 9 figures.", "That is 1,200 in total.",
+                              "They make $45 more per visit and $20 per chair."]):
+        code, ids, d = verdict(f"num{i}.txt", "Dana, " + line + tail)
+        check(f"review: an invented figure is caught: {line[:40]}", "unsourced_numbers" in ids, d)
+
+    # 15. honest text is not flagged
+    code, ids, d = verdict("zip.txt", "Dana," + tail + "Pat Rivers\n12 Main Street, Tulsa, OK 74103\nhttps://example.com/pat\n")
+    check("review: a postal address and a link are not figures", "unsourced_numbers" not in ids, d)
+    code, ids, d = verdict("years.txt", "Dana, I have spent 14 years as a bookkeeper." + tail)
+    check("review: the member's own figure passes", "unsourced_numbers" not in ids, d)
+    bf = w / "BUILDROOM_BUSINESS_FILE.md"
+    bf.write_text(bf.read_text().replace("14 years as a bookkeeper", "Fourteen years as a bookkeeper; 5,000 dentists in 1,200 practices"), encoding="utf-8")
+    code, ids, d = verdict("years.txt", "Dana, I have spent 14 years as a bookkeeper, serving 5,000 dentists in 1,200 practices." + tail)
+    check("review: 'Fourteen years' in the file vouches for '14 years', and comma numbers are read whole", "unsourced_numbers" not in ids, d)
+
+    # 5. quotations
+    code, ids, d = verdict("q1.txt", "Dana, a host said \"Pat was superb\" last month." + tail)
+    check("review: a short invented quotation is caught", "unsourced_quote" in ids, d)
+    code, ids, d = verdict("q2.txt", "Dana, a host said 'Pat was the best speaker we had' last month." + tail)
+    check("review: a single-quoted invented quotation is caught", "unsourced_quote" in ids, d)
+    (w / "proof/stories").mkdir(parents=True)
+    (w / "proof/proof-bank.md").write_text("| ID | Who | Story | Permission | Scope |\n|---|---|---|---|---|\n"
+                                           "| P-01 | Dana | pricing | named | events, site |\n| P-02 | Lee | pricing | named | emails, social; no site; no events |\n", encoding="utf-8")
+    (w / "proof/stories/P-01.md").write_text("Dana said: Pat gave our owners a price they could say out loud.\n", encoding="utf-8")
+    code, ids, d = verdict("q3.txt", "Dana, one host said \"Pat gave our owners a price they could say out loud\" afterwards." + tail)
+    check("review: a quotation recorded in proof/stories passes", "unsourced_quote" not in ids, d)
+
+    # 6. talks
+    code, d = run(P, ["talk", "add", "--title", " ", "--promise", "x", "--for", " ", "--takeaway", "a", "--takeaway", "b", "--takeaway", "c"], w)
+    check("review: a blank talk title is refused", code == 1, d)
+    code, d = run(P, ["talk", "add", "--title", "Second Talk", "--promise", "x", "--for", "owners", "--takeaway", "a — b", "--takeaway", "b", "--takeaway", "c"], w)
+    check("review: a dash in a takeaway is refused", code == 1 and "dash" in d.get("error", ""), d)
+    run(P, ["talk", "add", "--title", "Second Talk", "--promise", "x", "--for", "owners", "--takeaway", "a", "--takeaway", "b", "--takeaway", "c"], w)
+    code, d = run(P, ["talk", "remove", "--n", "2"], w)
+    check("review: a talk can be removed", d.get("removed") == 2 and d.get("talks") == 1, d)
+
+    # one-sheet
+    run(O, ["template"], w)
+    tp = sp / "one-sheet/one-sheet.json"
+    good = {"name": "Pat Rivers", "tagline": "Pricing help", "bio": "Pat Rivers helps bookkeeping firm owners set prices.",
+            "audiences": ["owners"], "formats": ["talk"], "credentials": [], "talks": [1], "testimonials": [],
+            "contact": {"booking_link": "https://example.com/book"}, "based_in": "Columbus, Ohio", "travels": ""}
+
+    def build(**over):
+        tp.write_text(json.dumps(dict(good, **over)), encoding="utf-8")
+        code, d = run(O, ["build", "--today", "2026-11-05"], w)
+        return code, " | ".join(d.get("fix", [])), d
+    code, fx, d = build(testimonials=[{"proof_id": "P-01", "quote": "Pat tripled my income in a week", "attribution": "Dana"}])
+    check("review: a one-sheet quote that is not the recorded words is refused", code == 1 and "word for word" in fx, d)
+    code, fx, d = build(testimonials=[{"proof_id": "P-01", "quote": "Pat gave our owners a price they could say out loud.", "attribution": "Dana"}])
+    check("review: the recorded words under their proof ID are accepted", code == 0, d)
+    code, fx, d = build(testimonials=[{"proof_id": "P-02", "quote": "pricing", "attribution": "Lee"}])
+    check("review: 'no site; no events' does not cover a speaker sheet", code == 1 and "not a speaker sheet" in fx, d)
+    code, fx, d = build(formats=["Fortune 500 keynote — for 10,000 people"], travels="award-winning dentist, as seen on Oprah")
+    check("review: formats and travels are checked too", code == 1 and "dash" in fx and "claims" in fx and "figures" in fx, d)
+
+    # 2. flags
+    code, d = vet(w, "ST-001", "--flag", "pay_to_speak")
+    check("review: a red flag on a vetted stage un-vets it", d.get("pitchable") is False and d.get("status") == "found", d)
+    (w / "p.txt").write_text(PITCH, encoding="utf-8")
+    code, d = run(P, ["pitch", "--id", "ST-001", "--channel", "phone"], w)
+    check("review: the flagged stage cannot be pitched, by any channel", code == 1, d)
+    code, d = vet(w, "ST-001")
+    check("review: re-vetting without the flag does not erase it", d.get("pitchable") is False and "pay_to_speak" in d.get("flags", {}), d)
+    code, d = vet(w, "ST-001", "--unflag", "pay_to_speak")
+    check("review: clearing a flag needs a reason", code == 1 and "--reason" in d.get("error", ""), d)
+    code, d = vet(w, "ST-001", "--unflag", "pay_to_speak", "--reason", "the fee was for a booth, which is optional")
+    check("review: a flag cleared with a reason makes the stage pitchable again", d.get("pitchable") is True, d)
+
+    # 8. contacts
+    for flag, val in (("--host", "Rotary jane.doe@rotarytulsa.org"), ("--contact-role", "Jane Doe 918-555-0101"), ("--note", "email jane@x.org")):
+        args = ["add", "--name", "Tulsa Rotary", "--host", "Tulsa Rotary Club", "--kind", "local", "--source", "https://example.org/r",
+                "--seen", "2026-11-01", "--audience", "owners"]
+        if flag == "--host":
+            args[4] = val
+        else:
+            args += [flag, val]
+        code, d = run(P, args, w)
+        check(f"review: an email or phone in {flag} is refused", code == 1 and "address book" in d.get("error", ""), d)
+    check("review: no email address reached pipeline.json", "@" not in (sp / "pipeline.json").read_text())
+
+    # 10. sources and sizes
+    for src in ("https://a.b", "member knows", "member knows it: yes"):
+        code, d = add_stage(w, name="Weak Source Club", host="Weak", source=src)
+        check(f"review: a weak source is refused: {src}", code == 1, d)
+    code, d = add_stage(w, name=" ", host=" ")
+    check("review: a nameless stage is refused", code == 1, d)
+    code, d = run(P, ["add", "--name", "Neg", "--host", "Neg Club", "--kind", "local", "--source", "https://example.org/n", "--seen", "2026-11-01",
+                      "--audience", "owners", "--size", "-40"], w)
+    check("review: a negative room size is refused", code == 1, d)
+
+    # 9. a pitched and dropped stage is not started again
+    run(P, ["pitch", "--id", "ST-001", "--channel", "email", "--text-file", "p.txt", "--today", "2026-11-03"], w)
+    run(P, ["drop", "--id", "ST-001", "--reason", "no answer"], w)
+    code, d = add_stage(w)
+    check("review: a pitched and dropped stage cannot be added again", code == 1 and "not started on again" in d.get("error", ""), d)
+
+    # 11, 12. later
+    add_stage(w, name="Dayton Owners Club", host="Dayton Owners")
+    vet(w, "ST-002")
+    (w / "p2.txt").write_text(PITCH.replace("Ohio Bookkeepers Association", "Dayton Owners Club"), encoding="utf-8")
+    (w / "f2.txt").write_text("Dana, is Stop Billing By The Hour still of interest to the Dayton Owners Club?\n", encoding="utf-8")
+    run(P, ["pitch", "--id", "ST-002", "--channel", "email", "--text-file", "p2.txt", "--today", "2026-11-03"], w)
+    run(P, ["reply", "--id", "ST-002", "--outcome", "later", "--ask-again", "2027-01-10", "--today", "2026-11-20"], w)
+    code, d = run(P, ["report", "--today", "2026-11-21"], w)
+    check("review: 'later' is not counted as an answer", d.get("replies", "").startswith("0 of 2") and "parked" in d.get("replies", ""), d)
+    code, d = run(P, ["follow", "--id", "ST-002", "--text-file", "f2.txt", "--today", "2026-12-01"], w)
+    check("review: the note after 'later' waits for its date", code == 1, d)
+    code, d = run(P, ["follow", "--id", "ST-002", "--text-file", "f2.txt", "--today", "2027-01-10"], w)
+    check("review: the note after 'later' can be recorded on its date", code == 0 and d.get("touch") == 2, d)
+    code, d = run(P, ["follow", "--id", "ST-002", "--text-file", "f2.txt", "--today", "2027-01-20"], w)
+    check("review: only one note after 'later'", code == 1, d)
+    run(P, ["reply", "--id", "ST-002", "--outcome", "yes", "--today", "2027-01-21"], w)
+    run(P, ["book", "--id", "ST-002", "--when", "2027-04-01", "--today", "2027-01-21"], w)
+    code, d = run(P, ["book", "--id", "ST-002", "--when", "2027-04-08", "--terms", "45 minutes, no fee, a free resource may be offered", "--today", "2027-02-01"], w)
+    check("review: a booking can be corrected when the date moves or the terms arrive", code == 0 and d.get("when") == "2027-04-08", d)
+    code, d = run(P, ["book", "--id", "ST-002", "--when", "2027-04-08", "--fee", "nan"], w)
+    check("review: a fee of nan is refused", code != 0, d)
+
+    # 14. the plan keeps the member's ticks
+    run(P, ["plan", "--weeks", "8", "--start", "2026-11-04"], w)
+    plan = sp / "plan.md"
+    plan.write_text(plan.read_text().replace("- [ ]", "- [x]", 1), encoding="utf-8")
+    code, d = run(P, ["plan", "--weeks", "8"], w)
+    check("review: an existing plan is not overwritten", code == 1 and "- [x]" in plan.read_text(), d)
+
+    # 18, 19. the scorecard and today
+    w2 = setup(work, "backlog")
+    for i in range(16):
+        add_stage(w2, name=f"Club number {i}", host=f"Host {i} Society", extra=("--deadline", "2026-11-07"))
+    code, d = run(P, ["report", "--today", "2026-11-02"], w2)
+    check("review: more than fifteen unpitched stages is called out", "stop finding" in d.get("backlog", ""), d)
+    code, d = run(P, ["today", "--today", "2026-11-02"], w2)
+    check("review: a deadline two weeks out is raised for a found stage", "the deadline is 2026-11-07" in d["due"][0]["do"], d)
+
+    # 13. a hand-edited file refuses cleanly
+    (w2 / "speaking/pipeline.json").write_text('{"stages":[{"id":"ST-001"}],"talks":[{}],"profile":{"goal":"clients"}}', encoding="utf-8")
+    for cmd in (["today"], ["report"], ["rank"], ["intake"], ["list"]):
+        code, d = run(P, cmd, w2)
+        check(f"review: a hand-edited pipeline.json gives no traceback in {cmd[0]}", "_raw" not in d, d)
+    (w2 / "x.txt").write_text("hello there host?", encoding="utf-8")
+    code, d = run(C, ["check", "--file", "x.txt", "--kind", "pitch", "--stage", "ST-001", "--today", "2026-11-02"], w2)
+    check("review: pitch_check takes --today and survives a hand-edited file", "_raw" not in d, d)
+    check("review: init makes the folders the docs list", (sp / "pitches/drafts").is_dir() and (sp / "forms").is_dir())
+
+
 def wiring_tests():
     rd = lambda p: (ROOT / p).read_text(encoding="utf-8")  # noqa: E731
     skill = rd("skills/buildroom-speaking-engine/SKILL.md")
@@ -372,6 +561,7 @@ def main():
     check_tests(work)
     pipeline_tests(work)
     sheet_tests(work)
+    review_tests(work)
     wiring_tests()
     passed = sum(1 for _, ok in RESULTS if ok)
     print(f"\n{passed}/{len(RESULTS)} checks passed" + (f" · work dir kept: {work}" if keep else ""))

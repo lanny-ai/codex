@@ -61,11 +61,11 @@ def cmd_init(a):
     f = sl.folder(a)
     existed = (f / "pipeline.json").exists()
     data = sl.load(a, create=True)
-    for sub in ("pitches", "one-sheet", "notes"):
+    for sub in ("pitches", "pitches/drafts", "one-sheet", "notes", "forms"):
         (f / sub).mkdir(parents=True, exist_ok=True)
     sl.save(a, data)
     return {"ok": True, "folder": str(f), "created": not existed,
-            "next": "speak_pipeline.py intake, then answer what the Business File does not already hold"}
+            "next": "speak_pipeline.py prefill (what the Business File already holds), then intake for the rest"}
 
 
 def intake_rows(data):
@@ -152,13 +152,16 @@ def cmd_answer(a):
         text = old + "\n\n" + text
     if a.draft and not getattr(a, "from"):
         sl.refuse("a draft says which section it was drafted from (--from \"§2\")")
-    data["profile"][a.key] = {"text": text, "from": getattr(a, "from") or "member", "date": str(sl.day(a)),
-                              "draft": bool(a.draft)}
-    sl.save(a, data)
-    md = ["# Speaking profile", ""]
+    src = (getattr(a, "from") or "member").strip()
+    a.draft = bool(a.draft) or src.lower() != "member"      # anything not straight from the member is a draft until they confirm it
+    data["profile"][a.key] = {"text": text, "from": src, "date": str(sl.day(a)), "draft": bool(a.draft)}
+    if a.draft:
+        data["profile_ready"] = None                        # the profile is not ready while a draft is unconfirmed
+    md = ["# Speaking profile", "", "_Written by the Speaking Engine from pipeline.json; edit answers with `answer`, not here._", ""]
     for key, q, _ in sl.QUESTIONS:
         md += [f"## {q}", "", str((data["profile"].get(key) or {}).get("text", "")) or "_not answered yet_", ""]
     sl.write_atomic(sl.folder(a) / "profile.md", "\n".join(md))
+    sl.save(a, data)
     warn = []
     if old and not a.append:
         warn.append("this replaced the earlier answer; use --append to add to it instead")
@@ -191,27 +194,42 @@ def cmd_talk(a):
     data = sl.load(a)
     if a.action == "list":
         return {"ok": True, "talks": data["talks"]}
+    if a.action == "remove":
+        if a.n is None or not any(t.get("n") == a.n for t in data["talks"]):
+            sl.refuse("--n is the number of a talk on file (speak_pipeline.py talk list)")
+        if any(tc.get("talk") == a.n for s in data["stages"] for tc in s.get("touches", [])):
+            sl.refuse(f"talk {a.n} has been pitched; it stays on file so the record of what was offered holds")
+        data["talks"] = [t for t in data["talks"] if t.get("n") != a.n]
+        sl.save(a, data)
+        return {"ok": True, "removed": a.n, "talks": len(data["talks"]),
+                "note": "the other talks keep their numbers; update one-sheet.json if it listed this one"}
+    a.title, a.promise = (a.title or "").strip(), (a.promise or "").strip()
+    setattr(a, "for", (getattr(a, "for") or "").strip())
     if not (a.title and a.promise and getattr(a, "for")):
         sl.refuse("a talk needs --title, --promise (what the room leaves able to do) and --for (who it is for)")
     takes = [t.strip() for t in (a.takeaway or []) if t.strip()]
     if len(takes) != 3:
         sl.refuse(f"a talk has three takeaways a host can print; got {len(takes)}")
-    for label, t in (("title", a.title), ("promise", a.promise)):
+    for label, t in (("title", a.title), ("promise", a.promise), ("takeaways", " ".join(takes)), ("--for", getattr(a, "for"))):
         if any(d in t for d in sl.DASHES):
             sl.refuse(f"no em or en dashes in the {label}")
+    if any(t.get("title", "").strip().lower() == a.title.lower() for t in data["talks"]):
+        sl.refuse("a talk with this title is already on file (talk list; talk remove --n N takes one off)")
     if sl.words(a.title) > 12:
         sl.refuse("the title is over twelve words; a host has to fit it on a flyer")
     try:
         lengths = [int(x) for x in str(a.length or "20,45").split(",") if x.strip()]
     except ValueError:
         sl.refuse("--length is minutes, comma separated: 20,45")
-    n = len(data["talks"]) + 1
+    if any(m < 3 or m > 480 for m in lengths) or not lengths:
+        sl.refuse("--length is minutes, 3 to 480")
+    n = max([t.get("n", 0) for t in data["talks"]] + [0]) + 1
     data["talks"].append({"n": n, "title": a.title.strip(), "promise": a.promise.strip(), "takeaways": takes,
                           "for": getattr(a, "for").strip(), "lengths": lengths, "format": a.format or "talk",
                           "added": str(sl.day(a))})
     sl.save(a, data)
     return {"ok": True, "talk": n, "talks": len(data["talks"]),
-            "warnings": ["three talks is plenty; hosts book the speaker with one clear topic"] if n > 3 else []}
+            "warnings": ["three talks is plenty; hosts book the speaker with one clear topic"] if len(data["talks"]) > 3 else []}
 
 
 # ---------------------------------------------------------------- stages
@@ -220,9 +238,17 @@ def cmd_add(a):
     if not data.get("profile_ready"):
         sl.refuse("the speaking profile is not ready (speak_pipeline.py ready): stages are chosen to fit it")
     src = (a.source or "").strip()
-    if not (re.match(r"https?://\S+\.\S+", src) or re.match(r"(?i)member (knows|has)", src)):
-        sl.refuse("--source is the page the stage was found on (https://…), or 'member knows it: how'. "
-                  "A stage with no source is not added: never list one from memory")
+    how = re.match(r"(?i)member (?:knows|has)[^:]*:\s*(.+)", src)
+    if not (re.fullmatch(r"https?://[\w-]+(?:\.[\w-]+)*\.[A-Za-z]{2,}(?:[/?#]\S*)?", src) and len(src) >= 14
+            or (how and sl.words(how.group(1)) >= 3)):
+        sl.refuse("--source is the page the stage was found on (https://…), or 'member knows it: how' with how they "
+                  "know it in a few words. A stage with no source is not added: never list one from memory")
+    for k in ("name", "host", "audience"):
+        setattr(a, k, (getattr(a, k) or "").strip())
+    sl.no_contacts(name=a.name, host=a.host, audience=a.audience, contact_role=a.contact_role, note=a.note,
+                   recurring=a.recurring, source=src if how else "")
+    if a.size is not None and a.size < 1:
+        sl.refuse("--size is the number of people in the room, 1 or more; leave it out if nobody has said")
     seen = sl.parse_date(a.seen, "--seen")
     if seen > sl.day(a):
         sl.refuse("--seen is the day the source was looked at; it cannot be in the future")
@@ -232,8 +258,9 @@ def cmd_add(a):
         sl.refuse(f"--kind is one of {', '.join(sl.KINDS)}")
     key = re.sub(r"[^a-z0-9]+", " ", f"{a.name} {a.host}".lower()).strip()
     for s in data["stages"]:
-        if s.get("key") == key and s["status"] not in ("dropped",):
-            sl.refuse(f"{s['id']} is already this stage ({s['name']})")
+        if s.get("key") == key and (s["status"] != "dropped" or s.get("touches")):
+            sl.refuse(f"{s['id']} is already this stage ({s['name']})" + ("; it was pitched and then dropped, and a host who "
+                      "has had their messages is not started on again" if s["status"] == "dropped" else ""))
     when = str(sl.parse_date(a.when, "--when")) if a.when else ""
     deadline = str(sl.parse_date(a.deadline, "--deadline")) if a.deadline else ""
     data["last_id"] = int(data.get("last_id", 0)) + 1
@@ -250,6 +277,8 @@ def cmd_add(a):
         warn.append("the source was seen more than 60 days ago: look again before pitching; contacts and dates change")
     if deadline and sl.parse_date(deadline) < sl.day(a):
         warn.append("the deadline has passed: note the next cycle with --recurring, or ask the host when it opens")
+    if when and sl.parse_date(when) < sl.day(a):
+        warn.append("that date has passed: this is a past event. Note when the next one is, or ask the host")
     return {"ok": True, "id": sid, "status": "found", "warnings": warn,
             "privacy": "a contact's name and email stay in the member's own address book or CRM; only the role goes here",
             "next": f"speak_pipeline.py vet --id {sid} …"}
@@ -278,10 +307,15 @@ def cmd_vet(a):
             sl.refuse(f"--{k} is a whole number from 1 to 5 (audience fit, how clear the decision-maker is, "
                       "whether the timing works, how much room there is to offer something)")
         scores[k] = v
-    flags = sorted(set(a.flag or []))
-    bad = [f for f in flags if f not in sl.RED_FLAGS]
+    cleared = sorted(set(a.unflag or []))
+    earlier = set((s.get("vet") or {}).get("flags", []))
+    flags = sorted((earlier | set(a.flag or [])) - set(cleared))      # a flag stands until it is cleared, with a reason
+    bad = [f for f in list(a.flag or []) + cleared if f not in sl.RED_FLAGS]
     if bad:
         sl.refuse(f"unknown flag(s) {', '.join(bad)}; speak_pipeline.py flags lists them")
+    if cleared and not (a.reason or "").strip():
+        sl.refuse("--unflag needs --reason: what was checked that shows the flag does not apply")
+    sl.no_contacts(checked=a.checked, reason=a.reason)
     if not (a.checked or "").strip():
         sl.refuse("--checked says what was looked at (the host's site, past agendas, who attended, the terms): "
                   "a stage is not vetted from its own invitation alone")
@@ -293,10 +327,13 @@ def cmd_vet(a):
             accepted = {"by": "member", "reason": a.reason.strip(), "date": str(sl.day(a))}
     fit = round(sum(scores[k] * w for k, w in WEIGHTS.items()) / sum(WEIGHTS.values()), 2)
     s["vet"] = {"scores": scores, "fit": fit, "flags": flags, "checked": a.checked.strip(), "accepted": accepted,
+                "cleared": ([{"flags": cleared, "reason": a.reason.strip(), "date": str(sl.day(a))}] if cleared else []),
                 "date": str(sl.day(a))}
     ok = not flags or accepted is not None
     if ok:
         move(a, data, s, "vetted", fit=fit)
+    elif s["status"] == "vetted":
+        move(a, data, s, "found", flags=", ".join(flags))            # no longer vetted: it cannot be pitched
     else:
         sl.save(a, data)
     return {"ok": True, "id": s["id"], "fit": fit, "status": s["status"], "flags": {f: sl.RED_FLAGS[f] for f in flags},
@@ -361,6 +398,9 @@ def cmd_pitch(a):
     if not 1 <= talk <= len(data["talks"]):
         sl.refuse(f"--talk is 1 to {len(data['talks'])}")
     saved = ""
+    if not a.text_file and a.channel in ("email", "form", "linkedin"):
+        sl.refuse(f"a pitch by {a.channel} is written down, so it is checked before it is recorded: give --text-file "
+                  "(only a phone call or a conversation in person has no text)")
     if a.text_file:
         checked(a, s, "pitch")
         text = sl.arg_text(None, a.text_file)
@@ -376,6 +416,26 @@ def cmd_pitch(a):
 def cmd_follow(a):
     data = sl.load(a)
     s = sl.find_stage(data, a.id)
+    r = s.get("reply") or {}
+    if s["status"] == "replied" and r.get("outcome") == "later":
+        if not r.get("ask_again") or sl.parse_date(r["ask_again"]) > sl.day(a):
+            sl.refuse(f"they said later; it comes back on {r.get('ask_again') or 'a date you set'} and not before")
+        if r.get("asked_again"):
+            sl.refuse(f"{s['id']} has already had its one note after 'later'. Wait for them, or drop it")
+        channel = s["touches"][-1]["channel"] if s.get("touches") else "email"
+        if not a.text_file and channel in ("email", "form", "linkedin"):
+            sl.refuse("the note is written down, so it is checked before it is recorded: give --text-file")
+        n = len(s["touches"]) + 1
+        saved = ""
+        if a.text_file:
+            checked(a, s, "followup")
+            saved = f"pitches/{s['id']}-{n}.txt"
+            sl.write_atomic(sl.folder(a) / saved, sl.arg_text(None, a.text_file) + "\n")
+        s["touches"].append({"n": n, "date": str(sl.day(a)), "channel": channel, "file": saved, "later": True})
+        r["asked_again"] = str(sl.day(a))
+        sl.save(a, data)
+        return {"ok": True, "id": s["id"], "touch": n, "follow_ups_left": 0,
+                "next_due": "none: one note after 'later', then it is theirs to answer"}
     if s["status"] != "pitched":
         sl.refuse(f"{s['id']} is {s['status']}; a follow-up goes to a stage that was pitched and has not answered")
     follows = len(s["touches"]) - 1
@@ -387,6 +447,8 @@ def cmd_follow(a):
         sl.refuse(f"the last message went {gap} day(s) ago; wait {FOLLOW_GAP} between touches")
     saved = ""
     n = len(s["touches"]) + 1
+    if not a.text_file and s["touches"][-1]["channel"] in ("email", "form", "linkedin"):
+        sl.refuse("a follow-up is written down, so it is checked before it is recorded: give --text-file")
     if a.text_file:
         checked(a, s, "followup")
         saved = f"pitches/{s['id']}-{n}.txt"
@@ -406,6 +468,7 @@ def cmd_reply(a):
     again = str(sl.parse_date(a.ask_again, "--ask-again")) if a.ask_again else ""
     if a.outcome == "later" and not again:
         sl.refuse("'later' needs --ask-again YYYY-MM-DD, so it comes back on that day and not before")
+    sl.no_contacts(note=a.note)
     s["reply"] = {"outcome": a.outcome, "date": str(sl.day(a)), "note": (a.note or "").strip(), "ask_again": again}
     move(a, data, s, "declined" if a.outcome == "no" else "replied", outcome=a.outcome)
     nxt = {"yes": f"confirm the date and terms in writing, then speak_pipeline.py book --id {s['id']} …",
@@ -418,8 +481,15 @@ def cmd_reply(a):
 def cmd_book(a):
     data = sl.load(a)
     s = sl.find_stage(data, a.id)
-    if s["status"] not in ("replied", "pitched", "vetted"):
+    if s["status"] not in ("replied", "pitched", "vetted", "booked"):
         sl.refuse(f"{s['id']} is {s['status']}")
+    if s["status"] == "vetted" and (s.get("vet") or {}).get("flags") and not (s.get("vet") or {}).get("accepted"):
+        sl.refuse(f"{s['id']} has red flags the member has not accepted")
+    sl.no_contacts(terms=a.terms)
+    again = s["status"] == "booked"
+    if again:                                              # a moved date or terms that arrived later
+        a.fee = s["booking"].get("fee") if a.fee is None else a.fee
+        a.terms = a.terms or s["booking"].get("terms", "")
     when = sl.parse_date(a.when, "--when")
     if a.fee is not None and a.fee < 0:
         sl.refuse("--fee is 0 or more")
@@ -428,7 +498,7 @@ def cmd_book(a):
     s["when"] = str(when)
     if a.selling:
         s["selling"] = a.selling
-    move(a, data, s, "booked", when=str(when))
+    move(a, data, s, "booked", when=str(when), **({"changed": "yes"} if again else {}))
     warn = []
     if not s["booking"]["terms"]:
         warn.append("nothing is recorded about the terms: get the date, length, fee or none, travel, recording and "
@@ -448,6 +518,7 @@ def cmd_deliver(a):
         v = getattr(a, k)
         if v is not None and v < 0:
             sl.refuse(f"--{k} is 0 or more")
+    sl.no_contacts(note=a.note)
     s["delivery"] = {"date": str(sl.day(a)), "attended": a.attended, "leads": a.leads, "note": (a.note or "").strip()}
     move(a, data, s, "delivered")
     return {"ok": True, "id": s["id"], "status": "delivered",
@@ -470,6 +541,7 @@ def cmd_after(a):
             sl.refuse("--clients is 0 or more")
         aft["clients"] = a.clients
     if a.note:
+        sl.no_contacts(note=a.note)
         aft["notes"].append({"date": str(sl.day(a)), "note": a.note.strip()})
     if aft["thanked"]:
         move(a, data, s, "followed_up")
@@ -522,6 +594,7 @@ def cmd_drop(a):
         sl.refuse("--reason says why, so the same stage is not found and chased again")
     if s["status"] in ("delivered", "followed_up"):
         sl.refuse(f"{s['id']} was delivered; it stays in the record")
+    sl.no_contacts(reason=a.reason)
     s["drop_reason"] = a.reason.strip()
     move(a, data, s, "dropped", reason=a.reason.strip())
     return {"ok": True, "id": s["id"], "status": "dropped"}
@@ -535,7 +608,11 @@ def cmd_today(a):
     for s in data["stages"]:
         st = s["status"]
         if st == "found":
-            due.append((2, s, "vet it, or drop it"))
+            dl = s.get("deadline")
+            if dl and 0 <= (sl.parse_date(dl) - now).days <= 14:
+                due.append((0, s, f"vet it now: the deadline is {dl}"))
+            else:
+                due.append((2, s, "vet it, or drop it"))
         elif st == "vetted":
             dl = s.get("deadline")
             if dl and sl.parse_date(dl) < now:
@@ -545,7 +622,7 @@ def cmd_today(a):
             else:
                 due.append((2, s, "pitch it"))
         elif st == "pitched":
-            follows = len(s["touches"]) - 1
+            follows = len([t for t in s["touches"] if not t.get("later")]) - 1
             gap = (now - last_touch(s)).days
             if follows < MAX_FOLLOWS and gap >= FOLLOW_GAP:
                 due.append((1, s, f"follow up (number {follows + 1} of {MAX_FOLLOWS}); the last message went {gap} days ago"))
@@ -553,8 +630,9 @@ def cmd_today(a):
                 due.append((3, s, "no answer after two follow-ups: mark it later with a date, or drop it"))
         elif st == "replied":
             r = s.get("reply") or {}
-            if r.get("outcome") == "later" and r.get("ask_again") and sl.parse_date(r["ask_again"]) <= now:
-                due.append((1, s, "they said later, and later is now: one short note"))
+            if r.get("outcome") == "later" and r.get("ask_again") and sl.parse_date(r["ask_again"]) <= now \
+                    and not r.get("asked_again"):
+                due.append((1, s, f"they said later, and later is now: one short note (speak_pipeline.py follow --id {s['id']} …)"))
             elif r.get("outcome") == "yes":
                 due.append((0, s, "they said yes: confirm the date and terms in writing, then book it"))
         elif st == "booked":
@@ -586,7 +664,9 @@ def cmd_report(a):
     st = data["stages"]
     count = lambda *names: sum(1 for s in st if s["status"] in names)  # noqa: E731
     pitched = [s for s in st if s.get("touches")]
-    answered = [s for s in pitched if s.get("reply")]
+    answered = [s for s in pitched if (s.get("reply") or {}).get("outcome") in ("yes", "no", "maybe")]
+    parked = [s for s in pitched if (s.get("reply") or {}).get("outcome") == "later"]
+    waiting = count("found", "vetted")
     yes = [s for s in pitched if s.get("booking")]
     done = [s for s in st if s.get("delivery")]
     att = sum((s["delivery"].get("attended") or 0) for s in done)
@@ -616,7 +696,8 @@ def cmd_report(a):
     return {"ok": True, "date": str(sl.day(a)),
             "stages": {"found": count("found"), "vetted": count("vetted"), "pitched": len(pitched), "answered": len(answered),
                        "booked": len(yes), "delivered": len(done), "declined": count("declined"), "dropped": count("dropped")},
-            "replies": f"{len(answered)} of {len(pitched)} pitches answered",
+            "replies": f"{len(answered)} of {len(pitched)} pitches answered" + (f" ({len(parked)} parked for later, not counted as answers)" if parked else ""),
+            "backlog": (f"{waiting} stages are on the list and not pitched: stop finding, and vet and pitch these first" if waiting > 15 else ""),
             "bookings": f"{len(yes)} of {len(pitched)} pitches booked",
             "from_the_stage": {"talks_given": len(done), "people_in_rooms": att, "leads": leads, "clients": clients,
                                "fees": fees},
@@ -663,6 +744,8 @@ def cmd_plan(a):
         else:
             todo = ["pitch three", "follow up what is due", "find and vet three more"]
         weeks.append({"week": i + 1, "monday": str(mon), "do": todo})
+    if (sl.folder(a) / "plan.md").exists() and not a.replace:
+        sl.refuse("plan.md is already there, with whatever the member has ticked off. Keep it, or write a new one with --replace")
     md = ["# Speaking plan", "", f"From {start} for {a.weeks} weeks. Ten minutes a day (`today`), one longer sitting a week.", ""]
     for w in weeks:
         md += [f"## Week {w['week']}: {w['monday']}", ""] + [f"- [ ] {t}" for t in w["do"]] + [""]
@@ -685,7 +768,8 @@ def main():
     x.add_argument("--from"); x.add_argument("--append", action="store_true"); x.add_argument("--draft", action="store_true")
     x = p("prefill"); x.add_argument("--business-file"); x.add_argument("--chars", type=int, default=1500)
     x = p("confirm"); x.add_argument("--keys"); x.add_argument("--all", action="store_true"); x.add_argument("--by", required=True)
-    x = p("talk"); x.add_argument("action", choices=["add", "list"]); x.add_argument("--title"); x.add_argument("--promise")
+    x = p("talk"); x.add_argument("action", choices=["add", "list", "remove"]); x.add_argument("--title"); x.add_argument("--promise")
+    x.add_argument("--n", type=int)
     x.add_argument("--takeaway", action="append"); x.add_argument("--for"); x.add_argument("--length"); x.add_argument("--format")
     x = p("add"); x.add_argument("--name"); x.add_argument("--host"); x.add_argument("--kind", required=True)
     x.add_argument("--source", required=True); x.add_argument("--seen", required=True); x.add_argument("--audience")
@@ -695,7 +779,8 @@ def main():
     x = p("vet"); x.add_argument("--id", required=True)
     for k in WEIGHTS:
         x.add_argument("--" + k, type=int)
-    x.add_argument("--flag", action="append"); x.add_argument("--checked"); x.add_argument("--accept-risk", action="store_true")
+    x.add_argument("--flag", action="append"); x.add_argument("--unflag", action="append")
+    x.add_argument("--checked"); x.add_argument("--accept-risk", action="store_true")
     x.add_argument("--by"); x.add_argument("--reason")
     x = p("list"); x.add_argument("--status", choices=sl.STATUSES); x.add_argument("--kind", choices=sl.KINDS)
     x = p("pitch"); x.add_argument("--id", required=True)
@@ -704,7 +789,7 @@ def main():
     x = p("follow"); x.add_argument("--id", required=True); x.add_argument("--text-file"); x.add_argument("--business-file")
     x = p("reply"); x.add_argument("--id", required=True); x.add_argument("--outcome", required=True, choices=["yes", "no", "maybe", "later"])
     x.add_argument("--note"); x.add_argument("--ask-again")
-    x = p("book"); x.add_argument("--id", required=True); x.add_argument("--when", required=True); x.add_argument("--fee", type=float)
+    x = p("book"); x.add_argument("--id", required=True); x.add_argument("--when", required=True); x.add_argument("--fee", type=sl.finite)
     x.add_argument("--terms"); x.add_argument("--selling", choices=["allowed", "not allowed"])
     x = p("deliver"); x.add_argument("--id", required=True); x.add_argument("--attended", type=int); x.add_argument("--leads", type=int)
     x.add_argument("--note")
@@ -712,14 +797,18 @@ def main():
     x.add_argument("--testimonial-asked", action="store_true"); x.add_argument("--referral-asked", action="store_true"); x.add_argument("--note")
     x = p("debrief"); x.add_argument("--id", required=True); x.add_argument("--reaction"); x.add_argument("--well")
     x.add_argument("--improve"); x.add_argument("--confidence", type=int)
-    x = p("goal"); x.add_argument("--talks-per-month", type=float); x.add_argument("--clients-per-quarter", type=float)
-    x.add_argument("--fee-income-year", type=float)
+    x = p("goal"); x.add_argument("--talks-per-month", type=sl.finite); x.add_argument("--clients-per-quarter", type=sl.finite)
+    x.add_argument("--fee-income-year", type=sl.finite)
     x = p("drop"); x.add_argument("--id", required=True); x.add_argument("--reason")
     x = p("today"); x.add_argument("--limit", type=int, default=10)
     p("report")
-    x = p("plan"); x.add_argument("--weeks", type=int, default=12); x.add_argument("--start")
+    x = p("plan"); x.add_argument("--weeks", type=int, default=12); x.add_argument("--start"); x.add_argument("--replace", action="store_true")
     a = ap.parse_args()
-    out = globals()["cmd_" + a.cmd](a)
+    try:
+        out = globals()["cmd_" + a.cmd](a)
+    except (KeyError, AttributeError, TypeError, IndexError) as e:
+        sl.refuse(f"pipeline.json is missing something the engine wrote ({type(e).__name__}: {e}); it was probably edited "
+                  "by hand. Restore it from a backup, or fix that entry")
     sl.emit(out, 0 if out.get("ok") else 1)
 
 
