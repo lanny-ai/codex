@@ -85,6 +85,8 @@ _Built by: Positioning & Messaging session · Requires: §2, §3_
 - **For you if (top 3):**
 - **Not for you if (top 3):**
 - **Unfair advantage:**
+- **Market sophistication** (how many promises like mine this buyer has already heard · stage 1–5 · evidence):
+- **Belief to move** (the one thing a buyer at the §2 awareness stage must believe to take the next step):
 - **Full Messaging Bible:** [filename or link]
 
 ---

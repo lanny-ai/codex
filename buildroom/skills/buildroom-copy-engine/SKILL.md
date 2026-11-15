@@ -35,6 +35,7 @@ Follow the protocol. From the file, fill the fact sheet both masters demand befo
 | What's being sold, the transformation, the deliverables, the price | §3 |
 | Proof | §3 guarantee and pitch, §5 proof assets and credibility anchor, §18 proof vault and never-say claims, and `proof/proof-bank.md` if it exists (only stories whose permission is `named` or `anonymous` and whose scope covers where this piece will run) |
 | What makes it different, the villain, for/not-for | §4 |
+| What the first line should lead with | §4 market sophistication (stage 1 to 2: the promise, made specific; 3 to 4: how it works; 5: the reader and their situation first) and §4 belief to move (the job of the first third of the piece). If §4 lacks them, use §2's awareness stage and ask the member what buyers have already tried. The stage never changes a claim; it changes which true thing is said first |
 | Existing headline, page, and lead magnet | §5, §7 |
 | Where the copy goes and what it must trigger | §6 funnel map and conversion event |
 | Voice | §4 tagline and positioning statement; the member's own writing if they paste any |

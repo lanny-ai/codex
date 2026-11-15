@@ -76,4 +76,6 @@ Every new weekly skill MUST:
 
 ## Versioning
 
+Version 1.11 also adds two fields to §4, *Market sophistication* and *Belief to move*, written by Positioning & Messaging and read by the Copy Engine and Ad Studio. Older files simply lack them; skills that read them fall back to §2's awareness stage and ask.
+
 The file carries `File version: 1.11` in its header (the spec version above). Additive changes (new sections, new fields) bump the minor version and require no migration. Skills treat unknown sections as opaque and preserve them byte-for-byte on rewrite — this is what lets a member's file move safely between skill generations.

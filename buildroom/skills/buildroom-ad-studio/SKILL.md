@@ -68,7 +68,7 @@ Then ask only the §18 gaps, one at a time, in this order: monthly ad budget; ma
 
 ### Phase 1 — The matrix
 
-Build the persona × awareness × angle grid from §2 triggers and objections and §4 (see `concept-matrix.md`). Name two to four **category entry points** as situations ("the week before a launch," "after the second no-show this month"). Mark which cells this month's concepts cover and which stay open for next month. One message, one table, member confirms or edits.
+Build the persona × awareness × angle grid from §2 triggers and objections and §4 (see `concept-matrix.md`). Start in the column §2's awareness stage names, and let §4's market sophistication decide whether the hook is the promise (stage 1 to 2), the mechanism (3 to 4) or the person and their situation (5). Name two to four **category entry points** as situations ("the week before a launch," "after the second no-show this month"). Mark which cells this month's concepts cover and which stay open for next month. One message, one table, member confirms or edits.
 
 ### Phase 2 — Three concepts, genuinely different (Gate G1)
 
