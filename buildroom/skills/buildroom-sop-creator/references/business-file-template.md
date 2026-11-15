@@ -4,7 +4,7 @@ _One file. Every Build Room session reads it before asking you anything, and upd
 
 **Owner:** [your name]
 **Business:** [business name]
-**File version:** 1.9
+**File version:** 1.10
 **Last updated:** [YYYY-MM-DD] by [session name]
 
 > **How to use this file:** Leave it in your Build Room folder. Each session reads it, skips every question it already answers, saves its changes here and tells you what changed. You can edit anything by hand at any time — your edits win.
@@ -402,6 +402,21 @@ _Built by: AI Momentum Labs Book Builder · Requires: §1, §2; best with §3, �
 - **Readers** (real: invited · responded · thresholds met; simulated runs, kept apart · waiver):
 - **Open issues** (P0 · P1 · P2 · P3):
 - **Book folder:** [book/]
+
+---
+
+## 24. Speaking
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: Speaking Engine · Requires: §1, §2; best with §3, §4, §6, §17, §18, §22_
+
+- **Goal** (clients first, fees second · talks by a date):
+- **Talks on file** (title · promise · lengths):
+- **Speaker kit** (bio · one-sheet · where they live):
+- **Stages** (found · vetted · pitched · answered · booked · dropped):
+- **Talks given** (count · people in rooms · leads · calls · clients; the member's own counts):
+- **Next step** (what · date):
+- **Speaking folder:** [speaking/]
 
 ---
 

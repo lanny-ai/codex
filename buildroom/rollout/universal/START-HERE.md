@@ -15,7 +15,7 @@ cd BuildRoom_OS
 claude
 ```
 
-The thirty-nine skills are picked up automatically from `.claude/skills/`. Say:
+The forty skills are picked up automatically from `.claude/skills/`. Say:
 
 > I'm new to the Build Room — set me up.
 
@@ -55,7 +55,7 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 
 | Path | What it is |
 |---|---|
-| `BUILDROOM_BUSINESS_FILE.md` | **Your** Business File. One file, twenty-three sections, every session builds on it. Your first session creates it from `templates/`. |
+| `BUILDROOM_BUSINESS_FILE.md` | **Your** Business File. One file, twenty-four sections, every session builds on it. Your first session creates it from `templates/`. |
 | `templates/BUILDROOM_BUSINESS_FILE_TEMPLATE.md` | The blank Business File the first session copies. Releases carry only this blank copy, never a file named like yours, so an update cannot replace your file. |
 | `update.sh`, `update.ps1` | Install a new release into this folder safely (see Updating below). |
 | `BuildRoom_OS_Say_These_Words.pdf` | Print it, keep it by your computer: every trigger phrase, what it needs, what it writes. |
@@ -63,7 +63,7 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 | `tools/Rent_Calculator.html` | Open in a browser: what your undocumented processes cost you. Copies a §9 block into your file. |
 | `tools/Business_File_Viewer.html` | Open in a browser: paste your Business File, see every section's status, your progress, the one session to run next, and your Build Plan. |
 | `tools/Brainstorm_Board.html` | Open in a browser: frame, diverge, cluster, dot-vote, decide, then "Copy for Claude." |
-| `skills/` | The thirty-nine skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
+| `skills/` | The forty skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
 | `CLAUDE.md`, `AGENTS.md` | Tell Claude Code and Codex what this folder is. Don't delete them. |
 
 ## Updating to a new release

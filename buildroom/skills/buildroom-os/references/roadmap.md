@@ -69,6 +69,13 @@ Run once the member knows their reader (§2) and, ideally, has an offer for the 
 |---|---|---|---|---|
 | 1 | AI Momentum Labs Book Builder (fifteen-question intake, mostly from the file → sufficiency gate → an outline the member approves → chapters one at a time from their material → developmental memo → sample-chapter edit and the member's decision → line edit → independent review and fact audit → simulated and real test readers → copyedit → regression check → the gate; twelve chapters by default, any shape the member wants; manuscript only) | `buildroom-book-builder` | §23, §13 rows | §1 §2 (best with §3 §4 §17 §18) |
 
+### Speaking — Speaking Engine
+Run once the member knows their buyer (§2); better with an offer for the talk to lead to (§3). Speaking is many short sittings; `speaking/pipeline.json` holds the state.
+
+| # | Session | Skill | Builds (file §) | Requires |
+|---|---|---|---|---|
+| 1 | Speaking Engine (a seventeen-question speaking profile drafted from the file and confirmed by the member → one to three talks a host can book → bio and one-page speaker sheet → real stages found with their source, vetted for bad deals → a checked pitch for each → follow-ups, bookings and a debrief after every talk → a scorecard from the member's own counts; clients first, fees second; the full talk is handed to the Webinar Builder) | `buildroom-speaking-engine` | §24, §13 rows | §1 §2 (best with §3 §4 §6 §17 §18 §22) |
+
 ### Launch sequence — Event Launcher
 Run once there is a decided offer (§3) and a list or audience to invite; repeat each quarter or each cohort. The debrief from each launch feeds the next.
 
@@ -157,6 +164,7 @@ When routing, give the member the exact words to start the session:
 - Proof Engine → "Capture this win" · "Ask for a testimonial" · "Build my proof bank" · "What proof can I use"
 - Search & Answer Engine → "Get found on Google" · "Fix my Google Business Profile" · "Get more Google reviews" · "Answer this question on my website" · "Publish this page" · "Am I showing up in ChatGPT" · "Search week"
 - AI Momentum Labs Book Builder → "Write my book" · "Plan my book" · "Write the next chapter" · "Edit my book" · "Review my book" · "Have readers test my book" · "Is my book ready" · "How is my book coming along"
+- Speaking Engine → "Get me speaking gigs" · "Find me places to speak" · "Help me pick a talk topic" · "Make my speaker one-sheet" · "Write my speaker pitch" · "Who should I pitch today" · "Is this speaking offer legit" · "How did my talk go" · "How is my speaking going"
 - Website Design Studio → "Make my website look like me" · "Design my landing page" · "My pages look like AI made them" · "Set up my taste vault" · "Tweak my page" · "Is my page ready to go live" · "Change my brand colours"
 - Webinar Builder → "Build my webinar" · "Write my webinar title and registration page" · "Make my webinar slides" · "Is my webinar ready" · "Rehearse my webinar" · "How did my webinar go" · "Why didn't my webinar sell" · "Make my webinar evergreen"
 - Event Launcher → "Plan my launch" · "Help me run a challenge" · "I want to do a 3-day bootcamp" · "Write my launch emails" · "Run sheet for day 2" · "Plan the close" · "Launch partners" · "Is my launch ready" · "How did my launch do"

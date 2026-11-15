@@ -934,7 +934,7 @@ def t_consistency():
     check("the fifteen questions match the intake reference", all(q in (R / "intake.md").read_text() for _, q, _ in bl.QUESTIONS))
     tpl = (ROOT / "templates/BUILDROOM_BUSINESS_FILE.md").read_text()
     check("the template has §23 Book", "## 23. Book" in tpl and "Built by: AI Momentum Labs Book Builder" in tpl)
-    check("the template is version 1.9", "**File version:** 1.9" in tpl)
+    check("the template is version 1.9 or later", re.search(r"File version:\*\* (1\.(9|\d\d)|[2-9])", tpl) is not None)
     check("the spec documents §23", "| 23 | Book |" in (ROOT / "BUSINESS-FILE-SPEC.md").read_text())
     check("the skill's template copy matches", (R / "business-file-template.md").read_bytes() == (ROOT / "templates/BUILDROOM_BUSINESS_FILE.md").read_bytes())
     check("the navigator's roadmap names the skill", "buildroom-book-builder" in (ROOT / "skills/buildroom-os/references/roadmap.md").read_text())

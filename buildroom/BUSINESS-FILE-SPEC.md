@@ -1,6 +1,6 @@
 # Build Room Business File — Specification
 
-**Version 1.9 · 2026-11-14** (1.8 · 2026-11-13; 1.7 · 2026-11-11; 1.6 · 2026-10-28; 1.5 · 2026-10-17; 1.4 · 2026-10-16; 1.3 · 2026-10-14; 1.2 · 2026-10-14; 1.1 · 2026-09-30; 1.0 · 2026-08-26)
+**Version 1.10 · 2026-11-15** (1.9 · 2026-11-14; 1.8 · 2026-11-13; 1.7 · 2026-11-11; 1.6 · 2026-10-28; 1.5 · 2026-10-17; 1.4 · 2026-10-16; 1.3 · 2026-10-14; 1.2 · 2026-10-14; 1.1 · 2026-09-30; 1.0 · 2026-08-26)
 
 ## Why this exists
 
@@ -24,7 +24,7 @@ The Business File moves that discipline into the skills. It is **one markdown do
 | `shared/business-file-protocol.md` | The behavioral contract every skill embeds (read/write/conflict/size rules). |
 | `skills/*/references/business-file-{template,protocol}.md` | Per-skill embedded copies (skills are standalone installers; `build-skills.sh` syncs them from the canonical sources). |
 
-## Section registry (v1.9)
+## Section registry (v1.10)
 
 | § | Section | Written by | Requires |
 |---|---|---|---|
@@ -50,6 +50,7 @@ The Business File moves that discipline into the skills. It is **one markdown do
 | 21 | Search & Answer Presence | Search & Answer Engine | §1, §2; best with §3, §4, §14, §18 |
 | 22 | Design System | Website Design Studio | §1, §2; best with §3, §4, §5 or §7, §18 |
 | 23 | Book | AI Momentum Labs Book Builder | §1, §2; best with §3, §4, §17, §18 |
+| 24 | Speaking | Speaking Engine | §1, §2; best with §3, §4, §6, §17, §18, §22 |
 | 8 | Session Log | every session (append-only) | — |
 
 The **Video Director** writes §19 and, by playbook, a §18 proof vault entry (proof), the §14 content line (content) and a §5 or §15 reference (sales). The **Proof Engine** keeps the proof bank in `proof/` and writes only §18's proof-vault and never-say lines, §19's testimonial count, §13 rows and §8; every other skill reads proof from that bank with its class and permission. The **Event Launcher** writes §20 (one current launch, its results and lessons, and a line per past launch) and, when the member keeps an Obsidian vault, a launch note there; the launch's emails, run sheet and tracker live in a `launches/` folder, never in the file. The **Webinar Builder** (v1.7) writes only §20's *Webinar* line (the talk version, format and length, the three beliefs, the last check and rehearsal, the last run's lessons, the folder); the talk, deck and scorecards live in `launches/<slug>/webinar/`. The **LinkedIn Engine** writes the three LinkedIn lines of §14 (engine, routine, last four weeks) and, when it was empty, §14's content line with LinkedIn as the platform. §1 *Retired lines* (v1.3) binds every skill: a line listed there is never used again in any output. The **Funnel Scorecard** also updates the §18 current-cycle line (winner, next brief) when it reads ad results, on the member's confirmation. Three skills write into sections owned by other sessions, by design: **Audience Insight** writes §2's sourced language, pains, and objections (with provenance tags); **Offer Deep Dive** hardens §3; the **Copy Engine** writes only §8 and, on confirmation, a page status in §5 or §7. Each asks before replacing anything a member or the owning session wrote. The **Website Design Studio** (v1.8) writes §22 (the taste vault, the directions tried, the locked system, imagery rules, do and don't, the files, which skills have used it) and, once §22 is complete, a pointer on §18's *Brand kit* line; the screenshots, pages and the system itself (`tokens.json`, `tokens.css`, `slides.json`, `design-system.md`) live in the member's vault under `Design/`, never in the file. Every skill that designs (Lead Capture, Offer Page Copy, the Webinar Builder, the Ad Studio, the Video Director) reads §22 and its `tokens.json` before inventing colours or fonts. The **AI Momentum Labs Book Builder** (v1.9) writes §23 (the book's title and promise, its shape, the stage reached, the last gate, the reader round with real and simulated readers kept apart, open issues, the folder); the intake, sources, outline, manuscript, editions, issue register and reader reports live in `book/<slug>/`, never in the file. It reads §1 *Retired lines* and §18 *Never-say claims* and blocks a manuscript that uses them. The **Search & Answer Engine** writes §21, one §14 channel row for organic search, and §18's review count and rating only (shared with the Ad Studio and the Proof Engine: its status at the end of that line, the section's own status left to the session that owns it).
@@ -74,4 +75,4 @@ Every new weekly skill MUST:
 
 ## Versioning
 
-The file carries `File version: 1.9` in its header (the spec version above). Additive changes (new sections, new fields) bump the minor version and require no migration. Skills treat unknown sections as opaque and preserve them byte-for-byte on rewrite — this is what lets a member's file move safely between skill generations.
+The file carries `File version: 1.10` in its header (the spec version above). Additive changes (new sections, new fields) bump the minor version and require no migration. Skills treat unknown sections as opaque and preserve them byte-for-byte on rewrite — this is what lets a member's file move safely between skill generations.
