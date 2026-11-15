@@ -6,6 +6,6 @@
 
 **What is Build Room OS's own.** The member's-own-numbers rule and the refusal of benchmarks; position contracts written as checkable results, with authority on both sides; the limit of five measures with exact definitions; the hand-off ranking from the member's own hours; the five-step read of owner dependence; the review that looks for the cause before the person; the legal limits; and the links to the SOP Creator, Hiring Kit, Training Docs, Ops Dashboard and Compass. None of these should be described as part of anyone else's method.
 
-**Left out on purpose.** Industry benchmark figures, example targets with numbers attached, generic seven-director org charts for businesses of two people, employment terms, and case studies. A made-up case study reads as evidence; this skill has none to offer and says so.
+**Left out on purpose.** Industry benchmark figures, starter measures with numbers attached, generic seven-director org charts for businesses of two people, employment terms, and case studies. A made-up case study reads as evidence; this skill has none to offer and says so.
 
 **A separate framework.** Looking at a business through money, clients, process and people at once is associated with Kaplan and Norton's balanced scorecard. The measures here can be read that way, and the skill does not claim that framework as its own or as part of the ideas above.

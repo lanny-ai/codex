@@ -28,7 +28,7 @@ A position contract says why a seat exists, what results it owns, what it may de
 | Responsible for operations. | Make sure every client gets what was sold, on the date agreed, without the owner stepping in. |
 | Manage the money. | Keep the business paid on time and its books ready for the accountant each month. |
 
-A mission under eight words, or one that starts with "help", "assist" or "support", is refused.
+A mission under eight words, or one that opens with "help with", "assist with" or "support the", is refused. "Support requests get a reply within one working day" is fine: there the word is the thing, not the vagueness.
 
 ## Accountabilities: results, not tasks
 
@@ -62,13 +62,15 @@ Hand-offs are where work is dropped. For each seat: what arrives, from which sea
 
 ## How many positions
 
-| Business | Usual number | Note |
-|---|---|---|
-| Solo | 4 to 6 | The owner holds all of them; the point is to see them |
-| 2 to 5 people | 5 to 8 | One per function, plus the seats others already hold |
-| 6 to 15 people | 8 to 14 | Split a function only when two people do different work in it |
+As few as cover the work. One at the top and one that answers for each function is the starting point, and for a solo owner that is the whole chart. Add a second position inside a function only when two people do different work in it. If a seat would have one accountability, it belongs inside another seat.
 
-These are working ranges for keeping the blueprint usable, not rules.
+## Changing a position
+
+`blueprint.py position set --id POS-02 --accountability "…" --accountability "…" --accountability "…"` replaces the fields given and keeps the position's measures and reviews. Give a list field in full: the new list replaces the old one. `position remove` deletes the position and its measures.
+
+## What does not go in
+
+Pay, hours of work, overtime, notice, probation and anything else about the terms of employment. The script refuses lines that read like them, because a page headed "not an employment contract" must not carry employment terms.
 
 ## When someone takes a seat
 

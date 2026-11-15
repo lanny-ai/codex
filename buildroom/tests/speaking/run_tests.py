@@ -128,6 +128,13 @@ def profile_tests(work):
     run(P, ["init"], blank)
     code, d = run(P, ["prefill"], blank)
     check("prefill: a blank template offers no drafts", d.get("draft_from_file") == [] and len(d.get("ask_the_member", [])) == 17, d.get("draft_from_file"))
+    ph = work / "placeholders"
+    ph.mkdir()
+    (ph / "BUILDROOM_BUSINESS_FILE.md").write_text((ROOT / "templates/BUILDROOM_BUSINESS_FILE.md").read_text(encoding="utf-8")
+                                                   .replace("**Status:** not started", "**Status:** in progress"), encoding="utf-8")
+    run(P, ["init"], ph)
+    code, d = run(P, ["prefill"], ph)
+    check("prefill: placeholder-only sections are not sources, whatever their status says", d.get("draft_from_file") == [], d.get("draft_from_file"))
     code, d = run(P, ["answer", "--key", "expertise", "--text", "I help bookkeepers price by value", "--draft", "--from", "§3"], w)
     check("answer: a draft from the file is marked as a draft", d.get("draft") is True, d)
     for k, t in [("audience", "owners of small bookkeeping firms"), ("goal", "clients"), ("topics", "value pricing"), ("regions", "Columbus, Ohio")]:

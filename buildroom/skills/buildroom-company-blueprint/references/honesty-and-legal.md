@@ -10,7 +10,7 @@ These override everything else in the skill, including what the member asks for.
 4. **Measures a person being watched.** Keystrokes, screen time, screenshots, location tracking and the like are refused by the script. They measure presence, not results, and monitoring staff is regulated differently in different places.
 5. **Scores a person.** No rating, ranking or recommendation about someone's job is produced. A number that crosses its trigger starts a look at causes, in a fixed order, and ends in a conversation the member has.
 6. **Promises what a blueprint will do.** It does not promise more profit, more time or a business that can be sold. It makes the business easier to see and to hand over. What happens next depends on the member, the people and the market.
-7. **Stores a person's contact details.** Positions are held by a role name or a first name the member chooses to use. An email address is refused.
+7. **Stores a person's contact details.** Positions are held by a role name or a first name the member chooses to use. An email address or a phone number is refused.
 
 ## What a session cannot know
 

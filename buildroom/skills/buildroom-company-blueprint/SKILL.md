@@ -52,7 +52,7 @@ Read these before member-facing work, in this order:
 ## Modes
 
 - **Build** (default; "build my company blueprint", "map my business"): Phases 0–6, usually two or three sittings.
-- **Chart** ("make my org chart", "who is accountable for what"): Phases 1–2, then `render`.
+- **Chart** ("make my org chart", "who is accountable for what"): Phases 1–3 with a short contract for each seat, then `render`. A chart needs at least one position.
 - **Position** ("write a position contract for …"): Phase 3 for one seat. If the functions are not listed yet, list them first; a contract needs somewhere to sit.
 - **Measures** ("what should I measure", "set my KPIs"): Phase 4 for one position or all.
 - **Hand-off** ("what should I hand off first"): Phase 5.
@@ -74,13 +74,13 @@ Follow `intake.md`. Three questions: the life they want and what the business mu
 
 ### Phase 2 — The functions and who covers them
 
-Follow `functions-and-chart.md`. Start from the seven starter functions and cut or rename to fit. For each: who covers it today, and, where that is the owner, three numbers only they have: hours a week, how much it needs them (1 only they can, 5 anyone trained could), and how written down it is (1 not at all, 5 fully). `function add …`. Never estimate these for them.
+Follow `functions-and-chart.md`. Start from the seven starter functions and cut or rename to fit. For each: who covers it today, and, where that is the owner, three numbers only they have: hours a week (`--hours`), how teachable it is (`--teachable`: 1 only they can, 5 anyone trained could), and how written down it is (`--documented`: 1 not at all, 5 fully). `function add … --covered-by owner`. Never estimate these for them.
 
 ### Phase 3 — The positions
 
 Follow `position-contracts.md`. One position at the top, then one that answers for each function. For each, in the member's words: a mission, three to seven results it owns, what it may decide alone, what needs approval, the procedures it runs, what it receives and passes on. `position add …`. The script refuses vague lines; rewrite them with the member, never around them.
 
-Keep it small. A solo business usually needs four to six positions. If the member wants twelve, ask which they would actually hand off in the next year.
+Keep it small: one position at the top and one for each function is enough to start. If the member wants many more, ask which they would actually hand off in the next year. To change a position later use `position set`, which keeps its measures; `position remove` takes them with it.
 
 ### Phase 4 — The measures
 
@@ -93,7 +93,7 @@ Offer starter ideas from `measures.md` as ideas, never as benchmarks, and never 
 1. `blueprint.py check`. Read out what is under fix and clear it with the member.
 2. `blueprint.py handoff`. Read the ranking and the first step for the top one. Say that it ranks and does not predict.
 3. `blueprint.py maturity`. One sentence on where they are and the next step. Say it is our own five-step read, not a standard.
-4. `blueprint.py render`. Give the paths: the chart, a contract per position, the definitions, the scorecard. They are drafts for the member to read and change.
+4. `blueprint.py render`. Give the paths: the chart, a contract per position, the definitions, the scorecard. They are written from `blueprint.json` each time; to change one, change the position or the measure and render again. If the member edited a file by hand, `render` stops and says which, and writes over it only with `--replace`.
 5. Point to what comes next: the **SOP Creator** for a procedure a contract names and §9 lacks, the **Hiring Kit** when a seat is to be filled, **Training Docs** to teach it, the **Ops Dashboard** for the weekly view.
 
 ### Phase 6 — The review

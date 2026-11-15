@@ -18,14 +18,14 @@ A solo coach may merge client care into delivery and drop people until there is 
 
 ## Who covers each one today
 
-For each function: `blueprint.py function add --key sales --name "Sales" --covered-by owner`. "Covered by" is a role or a first name, never an email.
+For each function: `blueprint.py function add --key sales --name "Sales" --covered-by owner`. "Covered by" is a role or a first name, never an email or a phone number. For the member's own work write exactly `owner`: that word is what the hand-off ranking looks for, and "the owner's assistant" is someone else.
 
 Where the owner covers it, ask for three numbers. They are the member's own estimates and only they can give them:
 
 | Flag | Question | Scale |
 |---|---|---|
 | `--hours` | About how many hours a week does this take you? | hours |
-| `--only-owner` | How much does it need you in particular? | 1 only I can · 3 someone skilled could · 5 anyone trained could |
+| `--teachable` | Could someone else do it? | 1 only I can · 3 someone skilled could · 5 anyone trained could |
 | `--documented` | How written down is it? | 1 all in my head · 3 notes and templates · 5 someone could follow it today |
 
 Never fill these in for the member. If they cannot say, leave the number out; the function is listed and not ranked.

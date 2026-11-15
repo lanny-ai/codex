@@ -327,7 +327,9 @@ def file_sections(business_file):
         out[cur]["lines"].append(t)
     for sec in out.values():
         sec["body"] = "\n".join(sec.pop("lines"))
-        sec["filled"] = words(sec["body"]) >= 8 and sec["status"] != "not started"   # a blank template is not a source
+        said = re.sub(r"\*\*[^*]+\*\*|\[[^\]]*\]|[\w /#'&()-]+:\s*\u2014|\$\s*\u2014", " ", sec["body"])   # labels and blanks are not content
+        said = {w.lower() for w in re.findall(r"[^\W\d_]{3,}", said)}
+        sec["filled"] = len(said) >= 8 and sec["status"] != "not started"            # a blank template is not a source
     return out
 
 

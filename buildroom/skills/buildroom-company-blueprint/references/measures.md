@@ -26,13 +26,13 @@ Two people working it out must get the same number. `blueprint.py kpi add` asks 
 | Where the number comes from | `--source` | the CRM's monthly report |
 | How often | `--period` | month |
 
-A rate without both halves defined is refused. Settle the awkward cases now: does a client who paid in instalments count once? Does an enquiry from last month that closes this month count here or there?
+The numbers in these examples show the shape of an entry; they are nobody's benchmark. A rate (a formula with "divided by", a spaced slash or a percent) without both halves defined is refused. Settle the awkward cases now: does a client who paid in instalments count once? Does an enquiry from last month that closes this month count here or there?
 
 ## Baseline
 
 The baseline is the number today, read off the member's records, with where it was read: `--baseline 0.2 --baseline-basis "CRM, July to September"`.
 
-If nobody has measured it, give neither. It is recorded as "not measured yet", and the first job is to count it for a full period. Never estimate a baseline. A guessed starting point makes every later number meaningless.
+A basis that is a guess, an estimate or an industry figure is refused. If nobody has measured it, give neither. It is recorded as "not measured yet", and the first job is to count it for a full period. Never estimate a baseline. A guessed starting point makes every later number meaningless.
 
 ## Target
 

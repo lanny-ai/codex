@@ -4,14 +4,14 @@
 
 `blueprint.py handoff` ranks the functions the owner covers, from the three numbers the member gave for each:
 
-> hours a week × how little it needs the owner (6 minus the `only-owner` score) × how written down it is
+> hours a week × how teachable it is (1 only the owner can, 5 anyone trained could) × how written down it is (1 in the owner's head, 5 someone could follow it today)
 
 It favours work that takes real time, that someone else could do, and that is already written down. It prints a first step for each:
 
 | What the numbers say | First step |
 |---|---|
 | Written down 1 or 2 | Write it down first. The **SOP Creator**, one procedure at a time |
-| Needs the owner 4 or 5 | Say what makes it owner-only: skill, trust or habit. Habit can be handed off; skill can sometimes be taught |
+| Teachable 1 or 2 | Say what makes it owner-only: skill, trust or habit. Habit can be handed off; skill can sometimes be taught |
 | Otherwise | Ready: contract, procedures, scorecard, then training |
 
 Say this every time: it ranks, it does not predict. The hours are the member's own estimate. And a hand-off takes time before it saves any, usually more than people expect.
@@ -25,7 +25,7 @@ A function with a number missing is listed as not ranked. Ask for the number; ne
 3. **The measures.** One to three, with baselines, so both sides know where it starts.
 4. **The person.** Hiring (**Hiring Kit**) or an existing team member. `position hold`.
 5. **The training.** Watch, do together, do alone and be checked (**Training Docs**).
-6. **The reviews.** Weekly at first. Four reviews without the owner stepping in is the sign it has moved.
+6. **The reviews.** Weekly at first. Reviews in four different weeks without the owner stepping in is the sign it has moved.
 
 Skipping to step 4 is the usual mistake: hiring someone into a seat that does not exist on paper, then being disappointed.
 
@@ -45,6 +45,8 @@ Skipping to step 4 is the usual mistake: hiring someone into a seat that does no
 | 2 | Partly written down | Positions exist, and `check` still lists things to fix |
 | 3 | Defined | `check` says GO: every function owned, every position measured |
 | 4 | Managed | Numbers reviewed in four different weeks out of the last sixty days |
-| 5 | Runs without the owner in that role | A position has been handed to someone else and its numbers reviewed four times since |
+| 5 | Runs without the owner in that role | A position has been handed to someone else and its numbers reviewed in four different weeks since |
+
+The read rests on the dates the member gives for each review. It cannot tell a review that happened from one typed in afterwards, so it is only as honest as the record.
 
 Read out the step, the evidence, and the one next step it names. Most members start at 1 or 2. Step 3 is a real achievement for a small business; say so.

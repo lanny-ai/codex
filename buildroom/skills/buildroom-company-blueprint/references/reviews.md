@@ -14,7 +14,7 @@ A solo owner does this alone, and it still helps. With a team, the holder of the
 
 ## Recording a number
 
-`blueprint.py review --kpi KPI-03 --value 0.18` records what the member read off the source. The value is theirs. Never work one out from memory or fill a gap in the series.
+`blueprint.py review --kpi KPI-03 --value 0.18` records what the member read off the source. Add `--today YYYY-MM-DD` for the day the number is about; a date in the future is refused. The value is theirs. Never work one out from memory or fill a gap in the series.
 
 ## When a number crosses its trigger
 
@@ -29,7 +29,7 @@ The script prints six questions. Take them in order, and stop at the first one t
 
 Record the answer: `blueprint.py review --kpi KPI-03 --value 0.18 --cause system --note "the reply template was out of date"`. Causes: `data`, `target`, `system`, `training`, `resources`, `person`.
 
-`--cause person` is refused unless `--ruled-out` says, in the member's words, what was checked first. This is deliberate. Most misses are one of the first five, and a business that reaches for the person first never fixes its systems.
+`--cause person` is refused unless `--ruled-out` says, in the member's words, what was checked first. This is deliberate. A business that reaches for the person first never fixes its systems. Notes that rate or label someone ("lazy", "2 out of 10") are refused too: write what happened and what the number was.
 
 ## What to do with the cause
 

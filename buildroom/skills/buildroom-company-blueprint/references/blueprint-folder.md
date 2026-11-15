@@ -13,8 +13,8 @@ blueprint/
 ```
 
 - `blueprint.json` is the source. Never edit it by hand; use the commands, so the documents and the record agree.
-- The four kinds of `.md` file are written by `render` and are rewritten each time it runs. If the member wants to change a contract, change the position (`position remove` then `position add`, or ask the session to), then `render` again. Notes the member wants to keep go in a separate file.
-- No email address is accepted in any field. A position is held by a role name or a first name.
+- The four kinds of `.md` file are written by `render` from `blueprint.json`. To change a contract, change the position (`position set`), then `render` again. If one of these files was edited by hand, `render` stops, names it and writes nothing; `render --replace` writes over it. Notes the member wants to keep go in a separate file. A contract for a position that was removed is left where it is and listed as left from before.
+- No email address or phone number is accepted in any field. A position is held by a role name or a first name.
 - Nothing here is sent anywhere. The member shares a contract with a team member themselves.
 
 ## What the Business File holds

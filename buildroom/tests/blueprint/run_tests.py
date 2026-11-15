@@ -82,7 +82,7 @@ def setup(work, name, aim=True):
 
 def fn(w, key, name, hours=None, only=None, doc=None, by="owner"):
     args = ["function", "add", "--key", key, "--name", name, "--covered-by", by]
-    for flag, v in (("--hours", hours), ("--only-owner", only), ("--documented", doc)):
+    for flag, v in (("--hours", hours), ("--teachable", only), ("--documented", doc)):
         if v is not None:
             args += [flag, v]
     return run(args, w)
@@ -111,9 +111,9 @@ def kpi(w, pos="POS-02", name="Enquiry to client rate", extra=(), rate=True, for
 
 def full(work, name):
     w = setup(work, name)
-    fn(w, "sales", "Sales", 8, 2, 4)
-    fn(w, "delivery", "Delivery", 20, 4, 2)
-    fn(w, "finance", "Finance and admin", 3, 1, 1)
+    fn(w, "sales", "Sales", 8, 4, 4)            # teachable 4: someone trained could
+    fn(w, "delivery", "Delivery", 20, 2, 4)     # teachable 2: close to owner-only
+    fn(w, "finance", "Finance and admin", 3, 5, 1)
     position(w, "Owner", "delivery", appr=(), acc=["Every client engagement finishes on the agreed date",
                                                   "Every client gets a written summary at the end", "The quarterly plan is written each quarter"])
     position(w, "Sales Lead", "sales", reports="POS-01", extra=("--sop", "New enquiry reply", "--gets-from", "Qualified enquiries from Marketing",
@@ -140,7 +140,7 @@ def aim_tests(work):
     run(["init"], blank)
     code, d = run(["prefill"], blank)
     check("prefill: a blank template offers no drafts", d.get("draft_from_file") == [] and len(d.get("ask_the_member", [])) == 3, d)
-    code, d = run(["aim", "--key", "primary_aim", "--text", "Three days a week", "--from", "§17"], w)
+    code, d = run(["aim", "--key", "primary_aim", "--text", "Work three days a week and keep the teaching", "--from", "§17"], w)
     check("aim: an answer drawn from a section is a draft", d.get("draft") is True, d)
     code, d = run(["aim", "--key", "nonsense", "--text", "x"], w)
     check("aim: an unknown key is refused", code == 1, d)
@@ -255,42 +255,53 @@ def whole_tests(work):
     check("check: the owner holding every seat is noted, not failed", any("holds all 3" in x for x in d.get("watch", [])), d)
     code, d = run(["handoff"], w)
     rank = [r["key"] for r in d.get("rank", [])]
-    check("handoff: ranked from the member's own three numbers", rank == ["sales", "delivery", "finance"] and d.get("hours_named") == 31, d)
+    check("handoff: teachable, written-down work ranks above more hours of owner-only work", rank == ["delivery", "sales", "finance"]
+          and [x["score"] for x in d["rank"]] == [6.4, 5.1, 0.6] and d.get("hours_named") == 31, d)
     steps = {r["key"]: r["first_step"] for r in d.get("rank", [])}
-    check("handoff: undocumented work is written down first", "write it down first" in steps["finance"] and "write it down first" in steps["delivery"], steps)
+    check("handoff: undocumented work is written down first", "write it down first" in steps["finance"], steps)
+    check("handoff: work only the owner can do is questioned, not handed off", "owner-only" in steps["delivery"], steps)
     check("handoff: documented, teachable work is ready", "ready to hand off" in steps["sales"], steps)
     check("handoff: it says it does not predict", "does not predict" in d.get("note", ""))
     code, d = run(["maturity"], w)
     check("maturity: step 3 when the check is GO and nothing is reviewed", d.get("level") == 3, d)
 
-    code, d = run(["review", "--kpi", "KPI-02", "--value", "0.1", "--today", "2026-11-02"], w)
+    code, d = run(["review", "--kpi", "KPI-02", "--value", "0.1", "--today", "2026-10-05"], w)
     check("review: a crossed trigger prints the six questions, person last", d.get("trigger_crossed") is True and len(d.get("look_into_it", [])) == 6
           and d["look_into_it"][-1].startswith("Only then"), d)
     check("review: no decision about a job is made from the file", "No decision about a person" in d.get("note", ""))
     code, d = run(["review", "--kpi", "KPI-02", "--value", "0.1", "--cause", "person"], w)
     check("review: 'person' is refused until the other causes are ruled out", code == 1 and "ruled out" in d.get("error", ""), d)
     code, d = run(["review", "--kpi", "KPI-02", "--value", "0.1", "--cause", "person", "--ruled-out",
-                   "the report was checked, the target was met last quarter, the procedure was followed, training was done"], w)
+                   "the report was checked, the target was met last quarter, the procedure was followed, training was done",
+                   "--today", "2026-10-05"], w)
     check("review: 'person' is accepted once the others are ruled out in words", code == 0, d)
     code, d = run(["review", "--kpi", "KPI-02", "--value", "0.1", "--cause", "laziness"], w)
     check("review: an unknown cause is refused", code == 1, d)
     code, d = run(["review", "--kpi", "KPI-02", "--value", "0.25", "--today", "2026-11-09"], w)
     check("review: a number inside the trigger raises nothing", d.get("trigger_crossed") is False and "look_into_it" not in d, d)
     check("review: it is shown against the member's target", "target of 0.3" in d.get("against_target", ""), d)
-    for day in ("2026-11-16", "2026-11-23"):
+    for day in ("2026-10-12", "2026-10-19"):
         run(["review", "--kpi", "KPI-02", "--value", "0.25", "--today", day], w)
-    code, d = run(["maturity", "--today", "2026-11-24"], w)
+    code, d = run(["review", "--kpi", "KPI-02", "--value", "0.25", "--today", "2031-01-01"], w)
+    check("review: a date in the future is refused", code == 1 and "future" in d.get("error", ""), d)
+    code, d = run(["maturity", "--today", "2026-11-10"], w)
     check("maturity: step 4 after four weeks of reviews", d.get("level") == 4, d)
-    code, d = run(["position", "hold", "--id", "POS-02", "--held-by", "sales assistant", "--today", "2026-11-24"], w)
+    code, d = run(["position", "hold", "--id", "POS-02", "--held-by", "sales assistant", "--today", "2026-11-10"], w)
     check("hold: handing a seat to someone else is recorded", d.get("handed_off") is True, d)
     data = json.loads((w / "blueprint/blueprint.json").read_text())
     check("hold: the function is now covered by the new holder", next(f for f in data["functions"] if f["key"] == "sales")["covered_by"] == "sales assistant")
-    for day in ("2026-12-01", "2026-12-08", "2026-12-15", "2026-12-22"):
-        run(["review", "--kpi", "KPI-02", "--value", "0.28", "--today", day], w)
-    code, d = run(["maturity", "--today", "2026-12-23"], w)
-    check("maturity: step 5 once a handed-off seat has four reviews", d.get("level") == 5 and d["evidence"]["positions_handed_off_and_reviewed"] == ["POS-02"], d)
+    for n in range(4):
+        run(["review", "--kpi", "KPI-02", "--value", "0.28", "--today", "2026-11-11"], w)
+    code, d = run(["maturity", "--today", "2026-11-15"], w)
+    check("maturity: four reviews on one day do not make step 5", d.get("level") == 4, d)
+    # step 5 needs four different weeks after the hand-off; those weeks have not happened yet, so the file is dated back by hand
+    data = json.loads((w / "blueprint/blueprint.json").read_text())
+    data["handed"][0]["date"] = "2026-10-01"
+    (w / "blueprint/blueprint.json").write_text(json.dumps(data), encoding="utf-8")
+    code, d = run(["maturity", "--today", "2026-11-15"], w)
+    check("maturity: step 5 once a handed-off seat has reviews in four different weeks", d.get("level") == 5 and d["evidence"]["positions_handed_off_and_reviewed"] == ["POS-02"], d)
 
-    code, d = run(["render", "--today", "2026-12-23"], w)
+    code, d = run(["render", "--today", "2026-11-15"], w)
     bp = w / "blueprint"
     check("render: the chart, contracts, definitions and scorecard are written", code == 0 and (bp / "org-chart.md").exists() and (bp / "kpis.md").exists()
           and (bp / "scorecard.md").exists() and len(list((bp / "positions").glob("*.md"))) == 3, d)
@@ -306,7 +317,7 @@ def whole_tests(work):
     check("render: the chart shows who reports to whom and who holds each seat", "  - **Sales Lead** (POS-02)" in chart and "held by sales assistant" in chart
           and "POS01 --> POS02" in chart)
     sc = (bp / "scorecard.md").read_text(encoding="utf-8")
-    check("render: the scorecard shows the latest recorded number", "| Sales Lead | Enquiry to client rate | 0.28 | 2026-12-22 | 0.3 | no |" in sc, sc)
+    check("render: the scorecard shows the latest recorded number", "| Sales Lead | Enquiry to client rate | 0.28 | 2026-11-11 | 0.3 | no |" in sc, sc)
     allmd = con + own + chart + sc + (bp / "kpis.md").read_text(encoding="utf-8")
     check("render: no em or en dash in any document", "—" not in allmd and "–" not in allmd)
     code, d = run(["report"], w)
@@ -320,6 +331,132 @@ def whole_tests(work):
     (bp / "blueprint.json").write_text("{ nope", encoding="utf-8")
     code, d = run(["report"], w)
     check("a broken blueprint.json refuses cleanly", code == 1 and "not valid JSON" in d.get("error", ""), d)
+
+
+def review_tests(work):
+    """Regressions from the independent review."""
+    w = setup(work, "rev")
+    fn(w, "sales", "Sales", 6, 5, 4)
+    fn(w, "delivery", "Delivery", 20, 1, 4)
+    fn(w, "finance", "Finance and admin", 3, 3, 3, by="the owner's assistant")
+    code, d = run(["handoff"], w)
+    rows = {r["key"]: r for r in d.get("rank", [])}
+    check("review: work anyone trained could do is ready; work only the owner can do is questioned",
+          "ready to hand off" in rows["sales"]["first_step"] and "owner-only" in rows["delivery"]["first_step"], d)
+    check("review: 'the owner's assistant' is not ranked as the owner", "finance" not in rows and any("Finance" in x for x in d.get("covered_by_someone_else", [])), d)
+    position(w, "Owner", "delivery", appr=())
+    # vague lines
+    for mission in ("Helping out with the general operations stuff wherever it is wanted", "a b c d e f g h"):
+        code, d = position(w, "Ops", "sales", reports="POS-01", mission=mission)
+        check(f"review: a vague or empty mission is refused: {mission[:30]}", code == 1, d)
+    for bad in (["Helps with sales and things when asked to", ACC[0], ACC[1]], [ACC[0], ACC[0], ACC[1]], ["a b c d e f", ACC[0], ACC[1]],
+                ["Works 40 hours a week for a salary agreed each year", ACC[0], ACC[1]],
+                ["Employment may be terminated with two weeks notice given", ACC[0], ACC[1]]):
+        code, d = position(w, "Ops", "sales", reports="POS-01", acc=bad)
+        check(f"review: a vague, repeated or employment-term accountability is refused: {bad[0][:34]}", code == 1, d)
+    good = ["Support requests get a reply within one working day", "Help desk tickets are closed within two working days",
+            "Handle every refund request within two working days of receipt", "Do not let any invoice go unpaid past thirty days",
+            "Invoices sent within two days"]
+    code, d = position(w, "Client Care Lead", "sales", reports="POS-01", acc=good)
+    check("review: specific lines that begin with support, help desk, handle or do are accepted", d.get("id") == "POS-02", d)
+    # measures
+    code, d = kpi(w, "POS-02", "New clients per month", rate=False, formula="count of clients who paid for the first time in the month")
+    check("review: a count named 'per month' is not treated as a rate", code == 0, d)
+    code, d = kpi(w, "POS-02", "Late tickets", rate=False, formula="count of tickets closed on/after the eleventh day")
+    check("review: 'on/after' is not a rate", code == 0, d)
+    code, d = kpi(w, "POS-02", "Win share", rate=False, formula="clients won divided by enquiries")
+    check("review: 'divided by' is a rate and needs both halves", code == 1 and "numerator" in d.get("error", ""), d)
+    for name, formula, extra in (("Activity", "count of key strokes logged by the monitoring tool", ()),
+                                 ("Active minutes", "minutes the screen recording shows them active", ()),
+                                 ("Presence", "minutes present divided by minutes scheduled", ("--numerator", "keystrokes and screenshots and gps tracking",
+                                                                                          "--denominator", "web cam minutes"))):
+        code, d = kpi(w, "POS-02", name, rate=False, formula=formula, extra=extra)
+        check(f"review: a reworded watching-people measure is refused: {name}", code == 1 and "watched" in d.get("error", ""), d)
+    for basis in ("industry average for bookkeepers", "a guess", "x"):
+        code, d = kpi(w, "POS-02", "Reply time", rate=False, formula="average working hours from enquiry to first reply",
+                      extra=("--baseline", "12", "--baseline-basis", basis))
+        check(f"review: a baseline from '{basis}' is refused", code == 1, d)
+    for flag, bad in (("--value", "abc"), ("--value", "nan")):
+        code, d = run(["review", "--kpi", "KPI-01", flag, bad], w)
+        check(f"review: a bad {flag} is refused as JSON", code == 1 and "_raw" not in d, d)
+    # contacts, labels
+    code, d = run(["aim", "--key", "objective", "--text", "Grow to ten clients, call me on 555-123-4567 or sam@example.com"], w)
+    check("review: contact details in an aim answer are refused", code == 1, d)
+    code, d = run(["position", "hold", "--id", "POS-02", "--held-by", "Sam, 07700 900123"], w)
+    check("review: a phone number in held-by is refused", code == 1, d)
+    code, d = run(["review", "--kpi", "KPI-01", "--value", "3", "--note", "Sam is useless, I rate him 2 out of 10"], w)
+    check("review: a note that labels or rates a person is refused", code == 1 and "no person is scored" in d.get("error", ""), d)
+    for ro in ("a a a a a a a a", "nothing was checked at all, Sam is just lazy"):
+        code, d = run(["review", "--kpi", "KPI-01", "--value", "3", "--cause", "person", "--ruled-out", ro], w)
+        check(f"review: 'person' with an empty ruling-out is refused: {ro[:20]}", code == 1, d)
+    check("review: nothing with an @ or a rating reached the file", "@" not in (w / "blueprint/blueprint.json").read_text())
+    code, d = position(w, "Dash", "sales", reports="POS-01", mission="Turn enquiries into clients ― the ones who are a good fit for us")
+    check("review: a horizontal bar is refused like a dash", code == 1, d)
+    code, d = position(w, "T" * 300, "sales", reports="POS-01")
+    check("review: an overlong title is refused", code == 1 and "characters" in d.get("error", ""), d)
+    code, d = position(w, "A | B", "sales", reports="POS-01")
+    check("review: a table-breaking character is refused", code == 1, d)
+    # position set keeps the measures
+    code, d = run(["position", "set", "--id", "POS-02", "--mission", "Make sure every client question is answered well and quickly by the team"], w)
+    data = json.loads((w / "blueprint/blueprint.json").read_text())
+    check("review: a position can be changed and keeps its measures", d.get("version") == 2 and sum(1 for k in data["kpis"] if k["position"] == "POS-02") == 2, d)
+    code, d = run(["position", "set", "--id", "POS-01", "--reports-to", "POS-02"], w)
+    check("review: a reporting loop is refused", code == 1 and "loop" in d.get("error", ""), d)
+    code, d = run(["position", "hold", "--id", "POS-02", "--held-by", "assistant to the owner"], w)
+    check("review: 'assistant to the owner' is a hand-off", d.get("handed_off") is True, d)
+    run(["position", "hold", "--id", "POS-02", "--held-by", "owner"], w)
+    code, d = run(["report"], w)
+    check("review: a seat taken back is no longer counted as handed off", d["counts"]["handed_off"] == 0, d)
+    # check does not pass junk
+    j = setup(work, "junk", aim=False)
+    for k in ("primary_aim", "objective", "owner_role"):
+        code, d = run(["aim", "--key", k, "--text", "."], j)
+    check("review: an aim of '.' is refused", code == 1, d)
+    # render never writes over the member's edits
+    r = full(work, "render2")
+    run(["render"], r)
+    con = r / "blueprint/positions/pos-02-sales-lead.md"
+    con.write_text(con.read_text() + "\nMy own note.\n", encoding="utf-8")
+    code, d = run(["render"], r)
+    check("review: render stops when a contract was edited by hand", code == 1 and "pos-02-sales-lead.md" in d.get("error", "") and "My own note." in con.read_text(), d)
+    code, d = run(["render", "--replace"], r)
+    check("review: render --replace writes over it", code == 0 and "My own note." not in con.read_text(), d)
+    run(["position", "remove", "--id", "POS-03"], r)
+    code, d = run(["render"], r)
+    check("review: a removed position's contract is listed as left from before", d.get("left_from_before") == ["positions/pos-03-bookkeeper.md"], d)
+    data = json.loads((r / "blueprint/blueprint.json").read_text())
+    data["kpis"][1]["baseline_basis"] = ""
+    data["kpis"][1]["target_basis"] = ""
+    (r / "blueprint/blueprint.json").write_text(json.dumps(data), encoding="utf-8")
+    code, d = run(["check"], r)
+    fx = " | ".join(d.get("fix", []))
+    check("review: a hand-edited baseline or target with no basis is a FIX", "nowhere it was read from" in fx and "no basis" in fx, d)
+    run(["render", "--replace"], r)
+    con_t = con.read_text()
+    check("review: and it is not printed as a baseline or a target", "not measured yet" in con_t and "| not set |" in con_t and "0.2 (" not in con_t, con_t[-900:])
+    data["positions"] = "oops"
+    (r / "blueprint/blueprint.json").write_text(json.dumps(data), encoding="utf-8")
+    code, d = run(["report"], r)
+    check("review: a wrong-typed list refuses and is not reset", code == 1 and "Nothing was changed" in d.get("error", "")
+          and json.loads((r / "blueprint/blueprint.json").read_text())["positions"] == "oops", d)
+    (work / "afile").write_text("x", encoding="utf-8")
+    code, d = run(["init", "--folder", "afile"], work)
+    check("review: init on a path that is a file refuses cleanly", code == 1 and "_raw" not in d, d)
+    # prefill: a template with only placeholders is not a source, whatever its status says
+    b = work / "placeholders"
+    b.mkdir()
+    (b / "BUILDROOM_BUSINESS_FILE.md").write_text((ROOT / "templates/BUILDROOM_BUSINESS_FILE.md").read_text(encoding="utf-8")
+                                                  .replace("**Status:** not started", "**Status:** in progress"), encoding="utf-8")
+    run(["init"], b)
+    code, d = run(["prefill"], b)
+    check("review: placeholder-only sections are not offered as drafts", d.get("draft_from_file") == [], d.get("draft_from_file"))
+    # the Business File beside the folder wins over the one in the current directory
+    other = work / "elsewhere"
+    other.mkdir()
+    (other / "BUILDROOM_BUSINESS_FILE.md").write_text(FILE.replace("New enquiry reply", "Something else entirely"), encoding="utf-8")
+    r2 = full(work, "beside")
+    code, d = run(["check", "--folder", str(r2 / "blueprint")], other)
+    check("review: SOP links are checked against the Business File beside the folder", not any("New enquiry reply" in x for x in d.get("watch", [])), d)
 
 
 def wiring_tests():
@@ -366,6 +503,7 @@ def main():
     structure_tests(work)
     kpi_tests(work)
     whole_tests(work)
+    review_tests(work)
     wiring_tests()
     passed = sum(1 for _, ok in RESULTS if ok)
     print(f"\n{passed}/{len(RESULTS)} checks passed" + (f" · work dir kept: {work}" if keep else ""))
