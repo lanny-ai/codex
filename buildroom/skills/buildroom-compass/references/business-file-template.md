@@ -4,7 +4,7 @@ _One file. Every Build Room session reads it before asking you anything, and upd
 
 **Owner:** [your name]
 **Business:** [business name]
-**File version:** 1.10
+**File version:** 1.11
 **Last updated:** [YYYY-MM-DD] by [session name]
 
 > **How to use this file:** Leave it in your Build Room folder. Each session reads it, skips every question it already answers, saves its changes here and tells you what changed. You can edit anything by hand at any time — your edits win.
@@ -417,6 +417,21 @@ _Built by: Speaking Engine · Requires: §1, §2; best with §3, §4, §6, §17,
 - **Talks given** (count · people in rooms · leads · calls · clients; the member's own counts):
 - **Next step** (what · date):
 - **Speaking folder:** [speaking/]
+
+---
+
+## 25. Company Blueprint
+
+**Status:** not started · **Updated:** — · **By:** —
+_Built by: Company Blueprint · Requires: §1, §3; best with §9, §10, §11, §12, §17_
+
+- **Aim** (the life the owner wants · where the business is going · the work they keep):
+- **Functions** (each one · who covers it today):
+- **Positions** (each seat · who holds it):
+- **Measures** (defined · measured · with a target; the member's own numbers):
+- **Hand-off list** (first to hand off · its first step):
+- **Step** (1 to 5 · next step) · **Review rhythm:**
+- **Blueprint folder:** [blueprint/]
 
 ---
 

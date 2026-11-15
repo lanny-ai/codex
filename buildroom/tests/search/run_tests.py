@@ -819,7 +819,7 @@ def consistency_tests():
     check("the Proof Engine's placement table has a row for answer pages", "Answer pages" in pp_ and "Search & Answer Engine" in pp_)
     cl = (ROOT / "rollout/universal/CLAUDE.md").read_text()
     sh = (ROOT / "rollout/universal/START-HERE.md").read_text()
-    check("CLAUDE.md and START-HERE count the sections as §1–§24 / twenty-four", "§1–§24" in cl and "twenty-four sections" in sh)
+    check("CLAUDE.md and START-HERE count the sections as §1–§25 / twenty-five", "§1–§25" in cl and "twenty-five sections" in sh)
     hits = []
     for p in list(SK.rglob("*")) + list(HERE.rglob("*")):
         if p.is_file() and p.suffix in (".md", ".py", ".txt", ".json"):

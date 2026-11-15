@@ -26,7 +26,7 @@ Everything in the hour serves that sentence. Don't teach the architecture — sh
 
 ### 00:12 — Install together (8 min)
 - Screen-share `START-HERE.md`.
-- Everyone unzips the folder and opens a terminal in it: `claude` or `codex`. The forty skills load on their own.
+- Everyone unzips the folder and opens a terminal in it: `claude` or `codex`. The forty-one skills load on their own.
 - Members with an earlier zip: do not unzip over the old folder or replace it. Unzip the new release in Downloads and run its `update.sh` or `update.ps1` with the old folder's path (see "Updating to a new release" in `START-HERE.md`). The Business File and everything they made stay as they are.
 - While uploads run, preview the session table — what each skill builds and its trigger phrase.
 
