@@ -69,7 +69,7 @@ Project **buildroom-connector**, service **connector**, in the lanny-ai workspac
 
 - **Pre-approved email** (on `BUILDROOM_PREAPPROVED`, a list of sha256 fingerprints of lowercase emails, built from the payment review): their personal link appears at once, with the setup steps.
 - **Anyone else**: a request waits on `/admin`. Once approved, they come back to `/join`, enter the same email and get their link. "Approve and get link" gives you a link to send by hand.
-- Someone already on the host's member list is told to use the link they were given. Signing up again with a sign-up email replaces that member's link (the old one stops).
+- Someone already on the host's member list is told to use the link they were given. A member who signs up again is told their link still works and is asked before it is replaced; only "I lost it. Give me a new link" makes a new one and stops the old one. Someone whose access was stopped on `/admin` cannot get it back by signing up again.
 - Sign-up closes after `BUILDROOM_JOIN_UNTIL` (UTC) or when `BUILDROOM_JOIN_CODE` is removed. Approvals and links keep working after it closes.
 - `/admin` takes the admin key (only its sha256 is stored, in `BUILDROOM_ADMIN_KEY_SHA256`). It lists requests and sign-ups, and can approve, decline, or stop someone's access.
 - Sign-ups and requests live in `signups.json` in `BUILDROOM_DATA_DIR`, a Railway volume mounted at `/data` (with `RAILWAY_RUN_UID=0` so the service can write to it). It holds emails and names of people who signed up, and key fingerprints, never keys.
