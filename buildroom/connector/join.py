@@ -147,9 +147,19 @@ class Join:
             return 400, {"state": "bad_email", "message": "Please enter the email you use for the Build Room."}
         if email in self.existing_emails():
             return 200, {"state": "already", "message": "You already have a personal link from the Build Room team. Use that one, or ask the team for a new one."}
-        if any(m["email"] == email and m.get("status") == "active" for m in self.store.members()) or self.preapproved(email):
+        mine = next((m for m in self.store.members() if m["email"] == email), None)
+        if mine and mine.get("status") != "active":
+            # access the team stopped does not come back by signing up again
+            return 200, {"state": "declined", "message": "Your Build Room access is not current. Please contact the Build Room team."}
+        if mine and body.get("replace") is not True:
+            # A link is shown once and only its fingerprint is kept, so it cannot be shown again. Making a new
+            # one stops the old one, which may already be set up in Claude: ask before doing that.
+            return 200, {"state": "have_link", "message": "You already have a Build Room OS link, and it is still working. "
+                         "If you set it up in Claude, you do not need to do anything. A new link will switch your old one off, "
+                         "and you would have to add the new one to Claude again."}
+        if mine or self.preapproved(email):
             return 200, {"state": "approved", "key": self.store.issue_key(email, name, "instant"),
-                         "message": "You're in. Here is your personal link."}
+                         "message": "Here is your new personal link. Your old one no longer works." if mine else "You're in. Here is your personal link."}
         r = self.store.request(email, name)
         if r["status"] == "approved":
             return 200, {"state": "approved", "key": self.store.issue_key(email, name, "approved"),
@@ -208,11 +218,14 @@ JOIN_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
 <p class="small">Claude Code instead: <span class="link" id="cc"></span></p></div>
 <script>
 const $=id=>document.getElementById(id);
-$('f').addEventListener('submit',async e=>{e.preventDefault();const out=$('out');out.className='msg';out.textContent='Checking...';
-try{const r=await fetch('/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:$('name').value,email:$('email').value,code:$('code').value})});
+async function go(replace){const out=$('out');out.className='msg';out.textContent='Checking...';
+try{const r=await fetch('/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:$('name').value,email:$('email').value,code:$('code').value,replace:replace===true})});
 const j=await r.json();out.textContent=j.message||'Something went wrong.';out.className='msg '+(j.state==='approved'?'ok':'wait');
+if(j.state==='have_link'){const b=document.createElement('button');b.type='button';b.className='ghost';b.style.marginTop='12px';b.textContent='I lost it. Give me a new link';
+b.addEventListener('click',()=>go(true));out.appendChild(document.createElement('br'));out.appendChild(b);}
 if(j.key){const url=location.origin+'/mcp/'+j.key;$('link').textContent=url;$('cc').textContent='claude mcp add --transport http buildroom '+location.origin+'/mcp --header "Authorization: Bearer '+j.key+'"';$('steps').hidden=false;$('steps').scrollIntoView({behavior:'smooth'});}}
-catch(err){out.textContent='Could not reach the Build Room server. Try again in a moment.';out.className='msg wait';}});
+catch(err){out.textContent='Could not reach the Build Room server. Try again in a moment.';out.className='msg wait';}}
+$('f').addEventListener('submit',e=>{e.preventDefault();go(false);});
 $('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('link').textContent);$('copy').textContent='Copied';}catch(e){}});
 </script></main></body></html>"""
 

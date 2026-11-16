@@ -244,8 +244,16 @@ def main():
             check("join: signups.json holds a key fingerprint, never the key", k1 not in (data / "signups.json").read_text())
             check("join: the pre-approved list holds no emails, only fingerprints", "payer@example.com" not in os.environ["BUILDROOM_PREAPPROVED"])
             s, r, _ = jn({"name": "Pat Payer", "email": "payer@example.com", "code": "ROOM-1111"})
-            check("join again: a new link, and the old one stops", r["state"] == "approved" and r["key"] != k1
-                  and post(b3 + "/mcp", {"jsonrpc": "2.0", "id": 1, "method": "tools/list"}, k1)[0] == 401)
+            check("join again: a returning member is asked first; no new link, and the old one keeps working",
+                  r["state"] == "have_link" and "key" not in r and "switch your old one off" in r["message"]
+                  and post(b3 + "/mcp", {"jsonrpc": "2.0", "id": 1, "method": "tools/list"}, k1)[0] == 200, r)
+            check("join again: 'replace' must be exactly true", jn({"name": "Pat Payer", "email": "payer@example.com", "code": "ROOM-1111",
+                                                                   "replace": "yes"})[1]["state"] == "have_link")
+            s, r, _ = jn({"name": "Pat Payer", "email": "payer@example.com", "code": "ROOM-1111", "replace": True})
+            check("join again, asking for a new link: a new one, and the old one stops", r["state"] == "approved" and r["key"] != k1
+                  and "old one no longer works" in r["message"]
+                  and post(b3 + "/mcp", {"jsonrpc": "2.0", "id": 1, "method": "tools/list"}, k1)[0] == 401, r)
+            check("join page: offers a new link only behind a button", "Give me a new link" in page and "replace:replace===true" in page)
             s, r, _ = jn({"name": "New Person", "email": "new@example.com", "code": "ROOM-1111"})
             check("join: an unknown email waits for approval, no key", r["state"] == "pending" and "key" not in r, r)
             check("join: waiting again stays pending, one request", jn({"name": "New Person", "email": "new@example.com", "code": "ROOM-1111"})[1]["state"] == "pending"
@@ -277,6 +285,11 @@ def main():
             adm("POST", {"email": "payer@example.com", "decision": "lapse"})
             newest = json.loads((data / "signups.json").read_text())
             check("admin: stop access lapses the member", [m["status"] for m in newest["members"] if m["email"] == "payer@example.com"] == ["lapsed"])
+            s, r, _ = jn({"name": "Pat Payer", "email": "payer@example.com", "code": "ROOM-1111", "replace": True})
+            check("join: access the team stopped does not come back by signing up again, even when pre-approved",
+                  r["state"] == "declined" and "key" not in r, r)
+            s, r, _ = jn({"name": "New Person", "email": "new@example.com", "code": "ROOM-1111"})
+            check("join: an approved member who comes back is asked first too", r["state"] == "have_link" and "key" not in r, r)
             check("admin: an unknown decision is refused", adm("POST", {"email": "x@example.com", "decision": "delete"})[0] == 400)
             os.environ["BUILDROOM_JOIN_UNTIL"] = (date.today() - timedelta(days=2)).isoformat()
             check("join: closed after the last day", jn({"name": "Late", "email": "late@example.com", "code": "ROOM-1111"})[1]["state"] == "closed")
