@@ -202,8 +202,8 @@ JOIN_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
 <button type="submit">Get my link</button></form><div id="out" role="status" aria-live="polite"></div></div>
 <div class="card" id="steps" hidden><h2 style="margin-top:0">Your personal link</h2><p class="small">Keep it to yourself: it is yours alone.</p>
 <div class="link" id="link"></div><button class="ghost" id="copy" type="button">Copy link</button>
-<h2>Set it up in Claude desktop</h2><ol><li>Open Claude, then <b>Settings</b>, then <b>Connectors</b>.</li><li>Click <b>Add custom connector</b>.</li>
-<li>Name it <b>Build Room OS</b> and paste your link.</li><li>Click <b>Add</b>.</li><li>Start a new chat, open the tools menu under the message box, and switch <b>Build Room OS</b> on.</li>
+<h2>Set it up in Claude desktop</h2><ol><li>Open Claude, then <b>Customize</b>, then <b>Connectors</b>. On some versions this is under <b>Settings</b>, then <b>Connectors</b>.</li><li>Click <b>Add custom connector</b>.</li>
+<li>Name it <b>Build Room OS</b> and paste your link. Paste it into Claude, not into your browser.</li><li>If Claude asks how to sign in, choose <b>No sign in</b>. Then click <b>Add</b> or <b>Connect</b>, and allow it when Claude asks.</li><li>Start a new chat, open the tools menu under the message box, and switch <b>Build Room OS</b> on.</li>
 <li>Type: <b>What Build Room sessions do I have?</b></li></ol>
 <p class="small">Claude Code instead: <span class="link" id="cc"></span></p></div>
 <script>
@@ -215,6 +215,25 @@ if(j.key){const url=location.origin+'/mcp/'+j.key;$('link').textContent=url;$('c
 catch(err){out.textContent='Could not reach the Build Room server. Try again in a moment.';out.className='msg wait';}});
 $('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('link').textContent);$('copy').textContent='Copied';}catch(e){}});
 </script></main></body></html>"""
+
+LINK_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Build Room OS: this link goes into Claude</title>""" + STYLE + """</head><body><main>
+<h1>This link goes into Claude, not your browser</h1>
+<p class="lede">Nothing is wrong. Your Build Room OS link is not a web page, so there is nothing to see here. Copy it and paste it into Claude like this.</p>
+<div class="card"><h2>Set it up in Claude</h2><ol>
+<li><b>Copy your link.</b> It is in the address bar at the top of this window. Click it once so it is all selected, then copy it.</li>
+<li>Open <b>Claude</b> (the desktop app, or claude.ai).</li>
+<li>Click <b>Customize</b>, then <b>Connectors</b>. On some versions this is under <b>Settings</b>, then <b>Connectors</b>.</li>
+<li>Click <b>Add custom connector</b>.</li>
+<li>Name it <b>Build Room OS</b> and paste your link.</li>
+<li>If Claude asks how to sign in, choose <b>No sign in</b>. Then click <b>Add</b> or <b>Connect</b>, and allow it when Claude asks.</li>
+<li>Start a new chat. Open the tools menu under the message box and switch <b>Build Room OS</b> on.</li>
+<li>Type: <b>What Build Room sessions do I have?</b></li>
+</ol></div>
+<div class="card"><h2>Good to know</h2>
+<p>Your link is yours alone. Do not post it or share your screen with it showing. If someone else has seen it, ask the Build Room team for a new one.</p>
+<p class="small">No link yet? <a href="/join">Get your link here</a>. Still stuck? Bring it to the next Build Room session.</p></div>
+</main></body></html>"""
 
 ADMIN_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Build Room OS: approvals</title>""" + STYLE + """</head><body><main style="max-width:900px">

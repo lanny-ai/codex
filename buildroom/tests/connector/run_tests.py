@@ -168,6 +168,21 @@ def main():
         except urllib.error.HTTPError as e:
             got = e.code
         check("GET /mcp answers 405 (no server-sent stream in the pilot)", got == 405, got)
+        # a member who opens their link in a browser gets instructions, and the key is not echoed
+        page = urllib.request.urlopen(urllib.request.Request(base + "/mcp/" + key, headers={"Accept": "text/html,application/xhtml+xml,*/*;q=0.8"}))
+        html = page.read().decode()
+        check("a link opened in a browser shows how to add it to Claude", page.status == 200 and "goes into Claude, not your browser" in html
+              and "Add custom connector" in html and "No sign in" in html, html[:200])
+        check("that page never echoes the key and is not cached", key not in html and page.headers.get("Cache-Control") == "no-store"
+              and page.headers.get("Referrer-Policy") == "no-referrer")
+        page = urllib.request.urlopen(urllib.request.Request(base + "/mcp/not-a-real-key", headers={"Accept": "text/html"}))
+        check("the page is the same for any key, so it reveals nothing about who is a member", page.read().decode() == html)
+        try:
+            urllib.request.urlopen(urllib.request.Request(url, headers={"Accept": "text/event-stream"}))
+            got = 200
+        except urllib.error.HTTPError as e:
+            got = e.code
+        check("an MCP client asking for a stream still gets 405", got == 405, got)
         check("bad JSON: 400", post(url, None, key, raw=b"{nope")[0] == 400)
         check("batch: 400", post(url, [{"jsonrpc": "2.0", "id": 1, "method": "ping"}], key)[0] == 400)
 
