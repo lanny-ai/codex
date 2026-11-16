@@ -14,7 +14,8 @@ Read these reference files, in order, before any member-facing work:
 
 1. **`references/knowledge-base.md`** — the research foundation: Dunford's 5-component positioning system, Ries & Trout's law of focus, the Differentiation Excavation method, value-proposition architecture, the psychology of exclusion, the messaging hierarchy, and the operating principles you will apply.
 2. **`references/prompt-system.md`** — the session's engine. Adopt its SYSTEM PROMPT as your operating identity and its standards as non-negotiable — above all the two tests: start from the competitive alternative, never from features (Dunford), and every claim must pass the "could a competitor say this?" test: if a competitor could say it, it is not differentiated (Ries & Trout). (Ignore its manual load/paste instructions — this skill replaces that mechanic.)
-3. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly.
+3. **`references/market-sophistication.md`** — the two short reads added after the positioning is locked: how many promises like this the buyer has already heard (five stages), and the one belief that moves a buyer from their §2 awareness stage to the next. Judgements from the member's evidence, never measurements.
+4. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly.
 
 ## Prerequisites
 
@@ -38,13 +39,22 @@ Run the five prompts from `references/prompt-system.md` in order, one at a time,
 4. **Value Proposition + Tagline System** — the one-sentence value prop; 15 tagline candidates narrowed to 1 with the member.
 5. **Anti-Audience + Full Messaging Bible Assembly** — "for you if / not for you if," villain statement, and the complete assembled Bible.
 
+### Phase 5b — Market sophistication and the belief to move
+
+Follow `references/market-sophistication.md`. Two short reads, after the position is locked and before the Bible is assembled:
+
+1. **Market sophistication.** Ask the four questions one at a time. Place the market at a stage from 1 to 5 from what the member can point to, and record the evidence. Never describe a competitor's page from memory; read it with the member or leave it out. If the evidence is thin, say so and record the reading as provisional.
+2. **The belief to move.** Read the awareness stage in §2. Write, in the buyer's words, the one thing they must believe to take the next step. If §2 has no awareness stage, ask where most buyers start.
+
+Say what each means for the first line of anything they write next. Neither changes a claim; they change which true thing is said first.
+
 Quality bar: every claim specific, verifiable, and genuinely absent from the alternatives. When a claim fails the competitor test, say so and excavate deeper — don't wordsmith a generic claim into sounding unique.
 
 ### Phase 6 — Deliverable + Business File update
 
 1. Assemble the **complete Messaging Bible** and tell the member to save it as its own document.
 2. Update the Business File per the protocol:
-   - **§4 Positioning & Messaging** — competitive alternative, category, core differentiator, positioning statement, value prop, tagline, villain statement, for/not-for top 3s, unfair advantage, link to the Bible. Status per the inheritance rule.
+   - **§4 Positioning & Messaging** — competitive alternative, category, core differentiator, positioning statement, value prop, tagline, villain statement, for/not-for top 3s, unfair advantage, market sophistication (stage and evidence), the belief to move, link to the Bible. Status per the inheritance rule.
    - **§8 Session Log** — append the row; ask for the 1–5 rating.
 3. Emit the entire updated file in one code block with the "what changed" summary.
 4. Close: "Next session: **Offer Page Copy**. Everything you've built so far becomes one page. Bring this file."

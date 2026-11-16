@@ -21,6 +21,16 @@ Rows: personas (from §2; usually one primary and one or two secondary situation
 |---|---|---|---|---|---|
 | … | | | | | |
 
+How market sophistication (§4) sets the hook, where the file has it:
+
+| Stage | The buyer has heard | Hook with |
+|---|---|---|
+| 1 to 2 | Few promises like this | The promise, made specific and provable |
+| 3 to 4 | Many promises, and many methods | How it works, for exactly this person |
+| 5 | Too many to believe | The person and their situation; the claim comes after |
+
+The stage never changes a claim. It changes which true thing is said first. If §4 has no stage, ask what buyers have already tried before choosing.
+
 How awareness sets the ad:
 
 | Stage | Lead with | Length | Typical hook tactic |

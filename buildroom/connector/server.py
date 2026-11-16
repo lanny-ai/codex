@@ -385,6 +385,10 @@ def make_handler(app):
             if self.path.split("?")[0] == "/health":
                 return self._send(200, {"ok": True, "version": SERVER_VERSION})
             if self._is_mcp_path():
+                # A member who opens their link in a browser gets instructions, never the key back.
+                # Claude and other MCP clients do not ask for HTML, and still get 405 (no server-sent stream).
+                if "text/html" in self.headers.get("Accept", ""):
+                    return self._page(join.LINK_PAGE)
                 return self._send(405, extra={"Allow": "POST"})
             self._send(404, {"error": "not found"})
 

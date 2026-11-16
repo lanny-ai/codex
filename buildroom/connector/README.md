@@ -76,7 +76,7 @@ Project **buildroom-connector**, service **connector**, in the lanny-ai workspac
 
 ## How members connect
 
-**Claude desktop or claude.ai** (paid plans): Settings, Connectors, Add custom connector, and paste their link:
+**Claude desktop or claude.ai** (paid plans): Customize (or Settings), Connectors, Add custom connector, paste their link, choose "No sign in" if asked, then Add or Connect. A member who opens the link in a web browser instead sees a page explaining these steps; the page never shows the key and is the same for any link. The link:
 
 ```
 https://YOUR-HOST/mcp/<their key>
