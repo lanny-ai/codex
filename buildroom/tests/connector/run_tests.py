@@ -215,9 +215,9 @@ def main():
               rj["build"]["builder"] == "DOCKERFILE" and rj["deploy"]["healthcheckPath"] == "/health" and "buildroom/skills/**" in rj["build"]["watchPatterns"])
         df = (CON / "Dockerfile").read_text()
         check("Dockerfile: copies only the connector, the skills and the release notes; runs as a non-root user",
-              df.count("COPY ") == 3 and "join.py" in df and "USER connector" in df and "members.json" not in df)
+              df.count("COPY ") == 3 and "join.py" in df and "guide.html" in df and "USER connector" in df and "members.json" not in df)
         di = (ROOT.parent / ".dockerignore").read_text()
-        check(".dockerignore: everything excluded except what the image needs", di.splitlines()[1] == "*" and "!buildroom/skills/**" in di)
+        check(".dockerignore: everything excluded except what the image needs", di.splitlines()[1] == "*" and "!buildroom/skills/**" in di and "!buildroom/connector/guide.html" in di)
 
         # ---- sign-up: instant for clear payers, admin approval for the rest ----------------
         import hashlib as _h
@@ -237,6 +237,24 @@ def main():
             page = urllib.request.urlopen(b3 + "/join").read().decode()
             check("join page: served, asks for name, email and room code, no outside scripts",
                   "Room code" in page and 'id="email"' in page and "<script src" not in page)
+            # ---- the public Quick Start Guide ---------------------------------------------------
+            import re as _re
+            gp = urllib.request.urlopen(b3 + "/guide")
+            guide = gp.read().decode()
+            check("guide: served at /guide and at the bare address", gp.status == 200 and "Quick Start Guide" in guide
+                  and urllib.request.urlopen(b3 + "/").read().decode() == guide)
+            slugs = set(_re.findall(r'^ \["[a-z]+","([a-z-]+)",', guide, _re.M))
+            on_disk = {d.name[len("buildroom-"):] for d in (ROOT / "skills").iterdir() if (d / "SKILL.md").exists()}
+            check("guide: lists every tool in the release, and nothing that is not in it", slugs == on_disk,
+                  f"missing {sorted(on_disk - slugs)}, extra {sorted(slugs - on_disk)}")
+            check("guide: has the Export as PDF button and a print layout", 'id="pdf"' in guide and "window.print()" in guide and "@media print" in guide)
+            check("guide: more commands for the book, speaking, blueprint and design tools",
+                  all(c in guide for c in ("Write the next chapter", "Find me places to speak", "Make my org chart", "Set up my taste vault")))
+            check("guide: self-contained (no outside scripts, styles, fonts or images)",
+                  not _re.search(r'(src|href)="(https?:)?//', guide) and "@import" not in guide and not _re.search(r"url\(\s*['\"]?(https?:|//|data:)", guide))
+            check("guide: holds no room code, access key or member link", not _re.search(r"BUILD-\d|ROOM-\d|br_[A-Za-z0-9]|/mcp/", guide))
+            check("guide: no dashes that read as AI, and no promise of results",
+                  "\u2014" not in guide and "\u2013" not in guide and not _re.search(r"guarantee[ds]? (results|leads|revenue|clients)", guide, _re.I))
             s, r, _ = jn({"name": "Pat Payer", "email": "  Payer@Example.com ", "code": "room-1111"})
             check("join: a pre-approved email gets a link at once (email and code case-insensitive)", s == 200 and r["state"] == "approved" and r["key"].startswith("br_"), r)
             k1 = r["key"]

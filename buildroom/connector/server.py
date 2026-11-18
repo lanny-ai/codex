@@ -377,6 +377,12 @@ def make_handler(app):
             route = self.path.split("?")[0].rstrip("/")
             if route == "/join":
                 return self._page(join.JOIN_PAGE)
+            if route in ("", "/guide"):
+                # The public Quick Start Guide: one file, so it is current the moment a release merges.
+                try:
+                    return self._page((HERE / "guide.html").read_text(encoding="utf-8"))
+                except OSError:
+                    return self._send(404, {"error": "not found"})
             if route == "/admin":
                 return self._page(join.ADMIN_PAGE)
             if route == "/admin/api":
