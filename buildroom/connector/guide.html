@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Build Room OS Quick Start Guide · AI Momentum Labs</title>
+<meta name="description" content="Every tool in Build Room OS, the words that start it, what it does and why it matters. Kept current by AI Momentum Labs.">
+<style>
+:root{
+  --navy:#0b1020;--navy2:#111834;--navy3:#1b2550;--ink:#0f1424;--ink2:#2b3247;--mute:#667089;--line:#e2e6ef;--panel:#f5f6fa;--paper:#ffffff;
+  --gold1:#ffe7a3;--gold2:#ffb547;--orange:#f97316;--cyan:#4fe3ff;--ok:#0f7a4d;
+  --radius:16px;--shadow:0 1px 2px rgba(15,20,36,.06),0 8px 28px rgba(15,20,36,.08);
+  --sans:"Inter","SF Pro Text",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --display:"Inter Tight","SF Pro Display",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--panel);color:var(--ink);font:17px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.sr{position:absolute;left:-9999px}
+
+/* ---------- hero ---------- */
+.hero{position:relative;overflow:hidden;background:var(--navy);color:#fff}
+.hero:before{content:"";position:absolute;inset:0;background:
+  radial-gradient(900px 520px at 88% -8%,rgba(249,115,22,.34),transparent 62%),
+  radial-gradient(760px 520px at -6% 108%,rgba(79,227,255,.16),transparent 60%),
+  linear-gradient(180deg,#0b1020 0%,#0e1430 100%)}
+.hero:after{content:"";position:absolute;inset:0;opacity:.5;background-image:
+  linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:56px 56px;-webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 30%,transparent 78%);mask-image:radial-gradient(ellipse at 50% 0%,#000 30%,transparent 78%)}
+.hero>*{position:relative;z-index:1}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 0}
+.brand{display:flex;align-items:center;gap:13px;text-decoration:none}
+.brand svg{width:44px;height:44px;border-radius:11px;flex:none;box-shadow:0 6px 22px rgba(249,115,22,.35)}
+.brand b{display:block;font:800 17px/1.1 var(--display);letter-spacing:.14em}
+.brand b i{font-style:normal;color:var(--gold2)}
+.brand span{display:block;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:#aab3cf;margin-top:3px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.btn{appearance:none;border:0;cursor:pointer;font:700 15px/1 var(--sans);padding:13px 18px;border-radius:999px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:transform .12s ease,box-shadow .12s ease,background .12s ease}
+.btn:hover{transform:translateY(-1px)}
+.btn:focus-visible,.chip:focus-visible,.say:focus-visible,input:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+.btn.gold{color:#1a1206;background:linear-gradient(180deg,var(--gold1),var(--gold2) 55%,var(--orange));box-shadow:0 8px 24px rgba(249,115,22,.35)}
+.btn.ghost{color:#fff;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
+.btn.ghost:hover{background:rgba(255,255,255,.14)}
+.btn svg{width:17px;height:17px}
+.lede{padding:44px 0 34px;max-width:860px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font:700 13px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--gold2)}
+.eyebrow:before{content:"";width:28px;height:2px;background:linear-gradient(90deg,var(--orange),var(--gold2))}
+h1{font:800 clamp(38px,6.2vw,68px)/1.02 var(--display);letter-spacing:-.025em;margin:18px 0 18px}
+h1 em{font-style:normal;background:linear-gradient(180deg,var(--gold1),var(--gold2) 50%,var(--orange));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede p{font-size:clamp(18px,2.1vw,21px);color:#cdd4ea;margin:0;max-width:720px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius);overflow:hidden;margin:6px 0 46px}
+.stat{background:rgba(11,16,32,.72);padding:20px 22px;backdrop-filter:blur(6px)}
+.stat b{display:block;font:800 34px/1 var(--display);letter-spacing:-.02em;color:#fff}
+.stat span{display:block;font-size:14.5px;color:#aab3cf;margin-top:7px}
+.edge{height:6px;background:linear-gradient(90deg,var(--orange),var(--gold2),var(--gold1))}
+
+/* ---------- start ---------- */
+main>section.wrap{padding-top:56px;padding-bottom:8px}
+.h2{font:800 clamp(26px,3.4vw,36px)/1.1 var(--display);letter-spacing:-.02em;margin:0 0 8px}
+.sub{color:var(--mute);margin:0 0 26px;max-width:720px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.step{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
+.step .n{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:50%;font:800 16px/1 var(--display);color:#1a1206;background:linear-gradient(180deg,var(--gold1),var(--gold2) 55%,var(--orange))}
+.step h3{font:800 20px/1.2 var(--display);margin:14px 0 6px}
+.step p{margin:0;color:var(--ink2);font-size:16px}
+.step a{color:#b4530a;font-weight:700}
+.note{margin-top:18px;background:#fff7ec;border:1px solid #f6d9b5;border-radius:12px;padding:14px 18px;color:#5a3a12;font-size:15.5px}
+
+/* ---------- filter ---------- */
+.bar{position:sticky;top:0;z-index:20;background:rgba(245,246,250,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);margin-top:46px}
+.bar .wrap{display:flex;gap:14px;align-items:center;padding-top:12px;padding-bottom:12px;flex-wrap:wrap}
+.search{position:relative;flex:1 1 260px;min-width:220px}
+.search svg{position:absolute;left:14px;top:50%;width:18px;height:18px;transform:translateY(-50%);color:var(--mute)}
+.search input{width:100%;font:500 16px/1 var(--sans);padding:13px 14px 13px 42px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{appearance:none;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink2);font:600 14.5px/1 var(--sans);padding:10px 14px;border-radius:999px}
+.chip[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.count{font-size:14.5px;color:var(--mute);white-space:nowrap}
+
+/* ---------- tools ---------- */
+.cat{padding-top:44px;scroll-margin-top:110px}
+.cat header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.cat h2{font:800 clamp(24px,3vw,31px)/1.1 var(--display);letter-spacing:-.02em;margin:0}
+.cat header p{margin:0;color:var(--mute);font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;align-items:start}
+.card{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:22px 22px 20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
+.card.new{border-color:#f5c489;box-shadow:0 1px 2px rgba(15,20,36,.06),0 10px 34px rgba(249,115,22,.16)}
+.card h3{font:800 20.5px/1.2 var(--display);letter-spacing:-.01em;margin:0;padding-right:64px}
+.badge{position:absolute;top:20px;right:20px;font:800 11.5px/1 var(--sans);letter-spacing:.12em;color:#1a1206;background:linear-gradient(180deg,var(--gold1),var(--gold2) 55%,var(--orange));padding:6px 9px;border-radius:999px}
+.say{appearance:none;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:1px solid #d8deee;background:linear-gradient(180deg,#f8f9fd,#eef1f9);border-radius:12px;padding:12px 14px;font:600 16.5px/1.3 var(--sans);color:var(--navy)}
+.say:hover{border-color:#b9c3e2}
+.say q{quotes:"\201C" "\201D"}
+.say small{flex:none;font:700 12px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.say.done small{color:var(--ok)}
+.row{display:grid;grid-template-columns:136px 1fr;gap:10px;font-size:15.5px;line-height:1.5}
+.row dt{font:700 12px/1.7 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);white-space:nowrap}
+.row dd{margin:0;color:var(--ink2)}
+.row.why dd{color:var(--ink)}
+dl{margin:0;display:grid;gap:8px}
+details{border-top:1px dashed var(--line);padding-top:10px;margin-top:2px}
+summary{cursor:pointer;font:700 14.5px/1.4 var(--sans);color:#b4530a;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary:after{content:" +"}details[open] summary:after{content:" \2212"}
+.more{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.more .say{width:auto;font-size:14.5px;padding:8px 12px;border-radius:999px}
+.more .say small{display:none}
+.empty{display:none;padding:40px 0;color:var(--mute);text-align:center}
+
+/* ---------- footer ---------- */
+footer{margin-top:64px;background:var(--navy);color:#b9c1dc;font-size:15px}
+footer .wrap{padding-top:34px;padding-bottom:40px;display:grid;grid-template-columns:1.4fr 1fr;gap:28px}
+footer h4{color:#fff;font:800 16px/1.2 var(--display);margin:0 0 8px}
+footer p{margin:0 0 8px}
+footer a{color:var(--gold2)}
+.print-head,.print-table{display:none}
+
+@media (max-width:900px){
+  .grid,.steps{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  footer .wrap{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  body{font-size:16px}.wrap{padding:0 16px}
+  .top{flex-direction:column;align-items:flex-start}
+  .actions{justify-content:flex-start}
+  .row{grid-template-columns:1fr;gap:0}
+  .lede{padding-top:26px}
+  .bar .wrap{gap:10px;padding-top:10px;padding-bottom:10px}
+  .search{flex-basis:100%}.count{display:none}
+  .chips{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px;padding:0 16px 2px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}.chip{flex:none}
+  .cat{scroll-margin-top:130px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}}
+
+/* ---------- print: a clean reference sheet ---------- */
+@page{size:Letter;margin:0.55in}
+@media print{
+  body{background:#fff;font:10.5pt/1.4 var(--sans);color:#000}
+  .hero,.bar,.screen,footer,.edge{display:none !important}
+  .print-head{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--orange);padding-bottom:10px;margin-bottom:14px}
+  .print-head .brand{color:#000}.print-head .brand svg{width:38px;height:38px;box-shadow:none}
+  .print-head .brand span{color:#444}.print-head .brand b i{color:#c2570a}
+  .print-head .meta{text-align:right;font-size:9.5pt;color:#333}
+  .print-head .meta b{display:block;font:800 15pt/1.1 var(--display);color:#000}
+  .print-table{display:block}
+  .print-table h2{font:800 12.5pt/1.2 var(--display);margin:16px 0 6px;color:#c2570a;break-after:avoid}
+  .print-table table{width:100%;border-collapse:collapse;font-size:9.4pt}
+  .print-table th{text-align:left;font:700 8pt/1.2 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#555;border-bottom:1.5px solid #222;padding:4px 6px}
+  .print-table td{vertical-align:top;border-bottom:1px solid #ccc;padding:6px}
+  .print-table tr{break-inside:avoid}
+  .print-table td:nth-child(1){width:19%;font-weight:800}
+  .print-table td:nth-child(2){width:25%;font-weight:600}
+  .print-table td:nth-child(3){width:28%}
+  .print-table .new{font:800 7pt/1 var(--sans);letter-spacing:.1em;color:#c2570a;margin-left:4px}
+  .print-table .alt{display:block;font-weight:400;color:#333;margin-top:3px}
+  .print-foot{margin-top:14px;font-size:8.6pt;color:#444;border-top:1px solid #ccc;padding-top:8px}
+}
+</style>
+</head>
+<body>
+
+<svg class="sr" aria-hidden="true" width="0" height="0"><defs>
+<symbol id="mark" viewBox="0 0 512 512">
+  <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE7A3"/><stop offset=".45" stop-color="#FFB547"/><stop offset="1" stop-color="#F97316"/></linearGradient>
+  <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1E2A5C"/><stop offset="1" stop-color="#0B1129"/></linearGradient>
+  <linearGradient id="g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A3A7A"/><stop offset="1" stop-color="#101838"/></linearGradient>
+  <rect width="512" height="512" rx="112" fill="#0B1020"/>
+  <polygon points="138,244 256,312 256,448 138,380" fill="url(#g2)"/>
+  <polygon points="256,312 374,244 374,380 256,448" fill="url(#g3)"/>
+  <polygon points="256,176 374,244 256,312 138,244" fill="url(#g1)"/>
+  <polygon points="256,64 300,150 256,176 212,150" fill="url(#g1)"/>
+  <g stroke="#4FE3FF" stroke-width="5" fill="none" opacity=".8"><polyline points="170,300 170,372 230,406"/><polyline points="342,300 342,372 282,406"/></g>
+</symbol></defs></svg>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="top">
+      <a class="brand" href="#top" aria-label="Build Room OS by AI Momentum Labs">
+        <svg aria-hidden="true"><use href="#mark"/></svg>
+        <div><b>BUILD ROOM <i>OS</i></b><span>AI Momentum Labs</span></div>
+      </a>
+      <div class="actions">
+        <button class="btn ghost" type="button" id="pdf">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+          Export as PDF
+        </button>
+        <a class="btn gold" href="/join">Get your link</a>
+      </div>
+    </div>
+    <div class="lede" id="top">
+      <div class="eyebrow">Quick Start Guide</div>
+      <h1><span id="n1">41</span> tools. One connection.<br><em>Say what you want built.</em></h1>
+      <p>Build Room OS connects Claude to every Build Room tool through one personal link. Each tool reads the same file about your business, so every session starts from what the last one finished. This page always shows what is in it today.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="n2">41</b><span>guided tools, each a full working session</span></div>
+      <div class="stat"><b>1</b><span>personal link, added to Claude once</span></div>
+      <div class="stat"><b>25</b><span>sections in the Business File that remembers your business</span></div>
+      <div class="stat"><b id="upd">Nov 18</b><span>last updated, 2026</span></div>
+    </div>
+  </div>
+  <div class="edge"></div>
+</header>
+
+<div class="print-head">
+  <div class="brand"><svg aria-hidden="true"><use href="#mark"/></svg><div><b>BUILD ROOM <i>OS</i></b><span>AI Momentum Labs</span></div></div>
+  <div class="meta"><b>Quick Start Guide</b><span id="pmeta"></span></div>
+</div>
+
+<main>
+<section class="wrap screen">
+  <h2 class="h2">Start in three steps</h2>
+  <p class="sub">About ten minutes, once. After that you only talk to Claude.</p>
+  <div class="steps">
+    <div class="step"><span class="n">1</span><h3>Get your personal link</h3><p>Open the <a href="/join">join page</a>. Enter your name, your Build Room email and the room code from your host. Your link appears on the page.</p></div>
+    <div class="step"><span class="n">2</span><h3>Add it to Claude</h3><p>In Claude, open Customize (or Settings), then Connectors, then Add custom connector. Name it Build Room OS, paste your link, choose No sign in, and connect.</p></div>
+    <div class="step"><span class="n">3</span><h3>Say what you want</h3><p>Start a new chat, switch Build Room OS on in the tools menu, and type any phrase on this page. Claude finds the right tool and runs it with you.</p></div>
+  </div>
+  <div class="note"><b>Two things that save trouble.</b> Your link goes into Claude, not your web browser, and it is yours alone. And if you already have a filled-in Business File, attach it to the chat or open Claude in its folder, so the tools start from what you have already built.</div>
+</section>
+
+<div class="bar screen">
+  <div class="wrap">
+    <label class="search"><span class="sr">Search the tools</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Search: leads, book, sales call, hire…" autocomplete="off">
+    </label>
+    <div class="chips" id="chips" role="group" aria-label="Filter by area"></div>
+    <span class="count" id="count" aria-live="polite"></span>
+  </div>
+</div>
+
+<div class="wrap screen" id="tools"></div>
+<p class="empty wrap" id="empty">Nothing matches that search. Try a simpler word, like “leads” or “offer”.</p>
+
+<div class="print-table" id="ptable"></div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <h4>What Build Room OS will and won’t do</h4>
+      <p>The tools are built to use your own facts. They do not make up numbers, testimonials or credentials, and they do not promise leads, bookings or revenue. Your Business File and everything you make stay on your own computer.</p>
+      <p>You need Claude on a paid plan. A few tools use your own accounts to finish the job, such as a CRM for funnels or an image and video service for ads.</p>
+    </div>
+    <div>
+      <h4>Build Room OS</h4>
+      <p>From AI Momentum Labs, for Build Room members.</p>
+      <p><a href="/join">Get your personal link</a></p>
+      <p id="foot"></p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const UPDATED = "2026-11-18", RELEASE = "November 15, 2026";
+const CATS = [
+  ["start", "Start here", "The foundation, in this order. Each one feeds the next."],
+  ["clients", "Get clients", "Ways to be found by the right people."],
+  ["convert", "Convert and keep clients", "From first conversation to proof you can show."],
+  ["run", "Run the business", "Get it out of your head so others can help."],
+  ["think", "Think, finish and build", "Decide, finish what you started, and build new things."]
+];
+// [category, slug, name, command, what it does, why it matters, new?, more commands]
+const TOOLS = [
+ ["start","os","Build Room OS Navigator","What should I work on next?","Reads your Business File, shows your progress and names the one session to run next.","You never have to wonder where to start or what comes after."],
+ ["start","ideal-client-avatar","Ideal Client Avatar","Help me build my ideal client avatar","Builds a full picture of your best client, in their own words.","Every page, ad and call gets easier when you know exactly who it is for."],
+ ["start","signature-offer","Signature Offer","Help me build my signature offer","Shapes your offer: what they get, the price, the guarantee and the pitch.","A clear offer is what people can say yes to."],
+ ["start","positioning-messaging","Positioning & Messaging","Help me position my business","Writes your Messaging Bible: who you are for, how you are different, your value in a sentence.","You stop sounding like everyone else."],
+ ["start","offer-page-copy","Offer Page Copy","Write my offer page","Turns your offer and message into a complete page, ready to publish.","The page that does the selling when you are not in the room."],
+ ["start","funnel-map","Funnel Map","Help me map my funnel","Plans your traffic, maps the steps from stranger to client, and writes the emails.","You can see the whole path, so nothing falls through."],
+ ["start","lead-capture","Lead Capture","Help me build my opt-in page","Builds a landing page, a free resource worth asking for, and its delivery.","Turns visitors into people you can follow up with."],
+
+ ["clients","leadgen","Lead Gen Machine","Help me get more leads","Works your warm network, outreach, referrals and content, one module per session.","A steady way to start conversations, without buying a list."],
+ ["clients","linkedin","LinkedIn Engine","Build my LinkedIn engine","A profile that converts, three posts a week in your words, and a short daily routine.","Clients from LinkedIn in about twenty minutes a day."],
+ ["clients","search-answer-engine","Search & Answer Engine","Get found on Google","Fixes your Google Business Profile and publishes one honest answer page a week.","People searching for what you do can find you, without ads."],
+ ["clients","ad-studio","Ad Studio","Make me ads","Three genuinely different ad concepts from your file, with copy and finished images.","Ads built on your real offer and proof, checked before they ship."],
+ ["clients","video-director","Video Director","Make me a video","Plans and edits ad, content, sales and testimonial videos around your real face and footage.","Video that looks like you, with a script, shot list and captions done for you."],
+ ["clients","speaking-engine","Speaking Engine","Get me speaking gigs","Drafts your speaker profile, settles a talk, finds real places to speak, checks them for bad deals and writes each pitch.","Puts you in front of rooms full of your buyers. Clients first, fees second.",1,
+   ["Find me places to speak","Help me pick a talk topic","Make my speaker one-sheet","Write my speaker pitch","Who should I pitch today?","Is this speaking offer legit?","How did my talk go?","How is my speaking going?"]],
+ ["clients","event-launcher","Event Launcher","Plan my launch","Plans a live challenge, workshop or webinar that sells: the numbers, emails, calendar and run-of-show.","A launch with dates and a checklist, so the day itself is calm."],
+ ["clients","webinar-builder","Webinar Builder","Build my webinar","Writes a live 60-minute webinar in your own voice, minute by minute, with slides.","A talk you can deliver with confidence, and an offer at the end."],
+ ["clients","book-builder","AI Momentum Labs Book Builder","Write my book","Writes your own non-fiction book in your voice: an outline you approve, chapters from your stories, an edit, a fact check and test readers.","A real book that sounds like you, where nothing is made up.",1,
+   ["Plan my book","Write the next chapter","Edit my book","Review my book","Have readers test my book","Is my book ready?","How is my book coming along?"]],
+
+ ["convert","sales-script","Sales Conversations","Help me with my sales call","Builds a seven-stage call script and your objection answers, then plays the prospect so you can practise.","You walk into the call knowing what to ask and what to say when they hesitate."],
+ ["convert","decision-machine","Decision Machine","Build my follow-up system","Writes a follow-up campaign for every yes and no in your funnel.","Most sales happen in the follow-up. This makes sure it happens."],
+ ["convert","copy-engine","Copy Engine","Write me …","Writes any email, ad, page or letter from your Business File.","Copy in minutes that already knows your offer, client and voice."],
+ ["convert","proof-engine","Proof Engine","Capture this win","Turns a client win into proof you are allowed to use, with permission recorded.","Real proof, ready to use, without awkward asks or made-up quotes."],
+ ["convert","offer-deep-dive","Offer Deep Dive","Make my offer a no-brainer","Strengthens the value stack, guarantee, urgency and the numbers behind your offer.","Removes the reasons people say “let me think about it”."],
+ ["convert","audience-insight","Audience Insight","Find the words my clients actually use","Finds real customer language, with sources, and writes it into your file.","Copy that sounds like your client talking, not like marketing."],
+ ["convert","funnel-scorecard","Funnel Scorecard","Where is my funnel leaking?","Measures every step and names the top three leaks, with fixes you approve.","You fix the step that is costing you the most, first."],
+ ["convert","website-design-studio","Website Design Studio","Make my website look like me","Learns your taste from screenshots you like, then shows three very different versions of your page side by side.","A look that is yours, instead of the look every AI page has.",1,
+   ["Design my landing page","My pages look like AI made them","Set up my taste vault","Tweak my page","Is my page ready to go live?","Change my brand colours"]],
+
+ ["run","company-blueprint","Company Blueprint","Build my company blueprint","Maps the work your business needs, who is responsible for each part, a one-page agreement for every role, and a few honest numbers.","Gets the business out of your head, and shows which job to hand off first.",1,
+   ["Map my business","Make my org chart","Write a position contract","What should I measure?","Set my KPIs","What should I hand off first?","How dependent is my business on me?","Review my numbers"]],
+ ["run","sop-creator","SOP Creator","Help me document my processes","Writes your procedures with checklists and a clear definition of done.","Work gets done the same way whether or not you are there."],
+ ["run","hiring-kit","Hiring Ad + Interview Kit","Help me hire someone","A role scorecard, a job ad and a structured interview kit.","You hire for the role you need, not the person you happen to like."],
+ ["run","training-docs","Team Training Doc Builder","Help me train my new hire","A training handbook with check-ins and a 30-day onboarding calendar.","New people become useful faster, without you repeating yourself."],
+ ["run","ops-dashboard","Weekly Ops Dashboard","What numbers should I be watching every week?","A one-page dashboard and a 30-minute weekly meeting.","You see trouble in the week it starts."],
+ ["run","boardroom","C-Suite Boardroom","Convene the board","Four executives argue your decision from your file, and a chairperson forces the call.","A hard decision made in one sitting, with what would change it written down."],
+
+ ["think","compass","Compass","Build my compass","A guided interview that ends in a statement of what you want and how you sound.","Every other tool reads it, so your work stays true to you."],
+ ["think","discovery-engine","Discovery Engine","Run discovery on this business","Researches a business first, then asks only the gaps, and writes a master summary.","A fast, thorough start on a new business or a new client."],
+ ["think","brainstorm","Brainstorm Session","Let’s brainstorm","Frames the question, gathers ideas and votes them on a board.","Good ideas get heard and the best one gets chosen."],
+ ["think","brainstorm-capture","Brainstorm Capture","Capture what we decided","Turns a brainstorm into decisions, first procedures, build briefs and plan items.","Ideas become next steps before they are forgotten."],
+ ["think","triage","Triage","Triage my projects","Scores your started projects, picks one to finish now and parks the rest with a date.","Ends the cycle of starting everything and finishing nothing."],
+ ["think","finish-it","Finish It","Finish it","Audits an unfinished project, cuts it to the smallest version worth shipping, and ships it.","Something of yours gets done."],
+ ["think","build-it","Build It","Build me an app","Takes an idea to a working app or tool: a goal you approve, then a crew that builds, tests and reviews it.","You get the tool you needed without hiring a developer."],
+ ["think","agent-forge","Agent Forge","Make me an agent","Defines a world-class AI agent for a job you describe and installs it.","A helper that does one job well, your way, every time."],
+ ["think","obsidian","Second Brain","Set up my second brain","Sets up Obsidian on your computer with Claude working inside it.","Your notes, files and business knowledge in one place Claude can use."],
+ ["think","source-watcher","Source Watcher","Build me a source watcher","Builds a watcher that files filtered notes from any source into your vault.","You keep up with what matters without reading everything."],
+ ["think","continuity","Continuity System","Set up the continuity system for this project","Keeps a long project resumable across new chats and between tools.","You pick up where you left off, even weeks later."]
+];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sayBtn = c => `<button class="say" type="button" data-say="${esc(c)}" aria-label="Copy the phrase: ${esc(c)}"><q>${esc(c)}</q><small>Copy</small></button>`;
+
+function render(){
+  const q = $("q").value.trim().toLowerCase(), cat = document.querySelector(".chip[aria-pressed=true]").dataset.cat;
+  let shown = 0, html = "";
+  for (const [key, title, blurb] of CATS){
+    if (cat !== "all" && cat !== "new" && cat !== key) continue;
+    const items = TOOLS.filter(t => t[0] === key && (cat !== "new" || t[6]) &&
+      (!q || [t[2], t[3], t[4], t[5], ...(t[7] || [])].join(" ").toLowerCase().includes(q)));
+    if (!items.length) continue;
+    shown += items.length;
+    html += `<section class="cat" id="${key}"><header><h2>${esc(title)}</h2><p>${esc(blurb)}</p></header><div class="grid">` +
+      items.map(t => `<article class="card${t[6] ? " new" : ""}" id="${t[1]}">${t[6] ? '<span class="badge">NEW</span>' : ""}
+        <h3>${esc(t[2])}</h3>${sayBtn(t[3])}
+        <dl><div class="row"><dt>What it does</dt><dd>${esc(t[4])}</dd></div><div class="row why"><dt>Why it matters</dt><dd>${esc(t[5])}</dd></div></dl>
+        ${t[7] ? `<details><summary>${t[7].length} more things you can say</summary><div class="more">${t[7].map(sayBtn).join("")}</div></details>` : ""}
+      </article>`).join("") + `</div></section>`;
+  }
+  $("tools").innerHTML = html;
+  $("empty").style.display = shown ? "none" : "block";
+  $("count").textContent = shown === TOOLS.length ? `${shown} tools` : `${shown} of ${TOOLS.length} tools`;
+}
+
+function printable(){
+  $("ptable").innerHTML = CATS.map(([key, title]) => `<h2>${esc(title)}</h2><table><thead><tr><th>Tool</th><th>Say this</th><th>What it does</th><th>Why it matters</th></tr></thead><tbody>` +
+    TOOLS.filter(t => t[0] === key).map(t => `<tr><td>${esc(t[2])}${t[6] ? '<span class="new">NEW</span>' : ""}</td>
+      <td>“${esc(t[3])}”${t[7] ? `<span class="alt">Also: ${t[7].map(c => "“" + esc(c) + "”").join(", ")}</span>` : ""}</td>
+      <td>${esc(t[4])}</td><td>${esc(t[5])}</td></tr>`).join("") + `</tbody></table>`).join("") +
+    `<p class="print-foot">Build Room OS, from AI Momentum Labs. ${TOOLS.length} tools as of the ${RELEASE} release. This sheet was printed from the live guide, which always shows the current list. The tools use your own facts and do not promise leads, bookings or revenue.</p>`;
+}
+
+const pretty = new Date(UPDATED + "T12:00:00Z").toLocaleDateString("en-US", {month:"long", day:"numeric", year:"numeric", timeZone:"UTC"});
+$("n1").textContent = $("n2").textContent = TOOLS.length;
+$("upd").textContent = new Date(UPDATED + "T12:00:00Z").toLocaleDateString("en-US", {month:"short", day:"numeric", timeZone:"UTC"});
+$("pmeta").textContent = `${TOOLS.length} tools · updated ${pretty}`;
+$("foot").textContent = `Updated ${pretty}. Latest release: ${RELEASE}.`;
+$("chips").innerHTML = [["all","All"],["new","New"]].concat(CATS.map(c => [c[0], c[1]]))
+  .map(([k, l], i) => `<button class="chip" type="button" data-cat="${k}" aria-pressed="${i === 0}">${esc(l)}</button>`).join("");
+$("chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if (!b) return;
+  document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === b)); render(); });
+$("q").addEventListener("input", render);
+document.addEventListener("click", async e => { const b = e.target.closest(".say"); if (!b) return;
+  try { await navigator.clipboard.writeText(b.dataset.say); } catch (err) { return; }
+  const s = b.querySelector("small"); b.classList.add("done"); if (s) s.textContent = "Copied";
+  setTimeout(() => { b.classList.remove("done"); if (s) s.textContent = "Copy"; }, 1600); });
+$("pdf").addEventListener("click", () => window.print());
+render(); printable();
+</script>
+</body>
+</html>
