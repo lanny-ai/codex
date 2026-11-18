@@ -67,6 +67,10 @@ main>section.wrap{padding-top:56px;padding-bottom:8px}
 .step h3{font:800 20px/1.2 var(--display);margin:14px 0 6px}
 .step p{margin:0;color:var(--ink2);font-size:16px}
 .step a{color:#b4530a;font-weight:700}
+.cta{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-top:18px;padding:22px 24px;border-radius:var(--radius);text-decoration:none;color:#fff;background:radial-gradient(520px 260px at 100% 0,rgba(249,115,22,.4),transparent 65%),var(--navy);box-shadow:var(--shadow)}
+.cta b{display:block;font:800 21px/1.25 var(--display)}
+.cta small{display:block;font-size:16px;color:#cdd4ea;margin-top:5px}
+.cta .go{flex:none;font:700 16px/1 var(--sans);color:#1a1206;padding:14px 20px;border-radius:999px;background:linear-gradient(180deg,var(--gold1),var(--gold2) 55%,var(--orange))}
 .note{margin-top:18px;background:#fff7ec;border:1px solid #f6d9b5;border-radius:12px;padding:14px 18px;color:#5a3a12;font-size:15.5px}
 
 /* ---------- filter ---------- */
@@ -188,7 +192,7 @@ footer a{color:var(--gold2)}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
           Export as PDF
         </button>
-        <a class="btn gold" href="/join">Get your link</a>
+        <a class="btn gold" href="/start">New here? Start here</a>
       </div>
     </div>
     <div class="lede" id="top">
@@ -214,12 +218,16 @@ footer a{color:var(--gold2)}
 <main>
 <section class="wrap screen">
   <h2 class="h2">Start in three steps</h2>
-  <p class="sub">About ten minutes, once. After that you only talk to Claude.</p>
+  <p class="sub">About ten minutes, one time. After that you only talk to Claude.</p>
   <div class="steps">
     <div class="step"><span class="n">1</span><h3>Get your personal link</h3><p>Open the <a href="/join">join page</a>. Enter your name, your Build Room email and the room code from your host. Your link appears on the page.</p></div>
     <div class="step"><span class="n">2</span><h3>Add it to Claude</h3><p>In Claude, open Customize (or Settings), then Connectors, then Add custom connector. Name it Build Room OS, paste your link, choose No sign in, and connect.</p></div>
-    <div class="step"><span class="n">3</span><h3>Say what you want</h3><p>Start a new chat, switch Build Room OS on in the tools menu, and type any phrase on this page. Claude finds the right tool and runs it with you.</p></div>
+    <div class="step"><span class="n">3</span><h3>Say what you want</h3><p>Start a new chat, turn Build Room OS on in the tools menu, and type any phrase on this page. Claude finds the right tool and runs it with you.</p></div>
   </div>
+  <a class="cta" href="/start">
+    <span><b>Brand new? Follow the step-by-step setup.</b><small>How to add it to Claude, Claude Code or Codex, and the one sentence that builds your Business File.</small></span>
+    <span class="go">Start here</span>
+  </a>
   <div class="note"><b>Two things that save trouble.</b> Your link goes into Claude, not your web browser, and it is yours alone. And if you already have a filled-in Business File, attach it to the chat or open Claude in its folder, so the tools start from what you have already built.</div>
 </section>
 
@@ -235,7 +243,7 @@ footer a{color:var(--gold2)}
 </div>
 
 <div class="wrap screen" id="tools"></div>
-<p class="empty wrap" id="empty">Nothing matches that search. Try a simpler word, like “leads” or “offer”.</p>
+<p class="empty wrap" id="empty">Nothing matches that search. Try a simpler word, like “leads” or “offer.”</p>
 
 <div class="print-table" id="ptable"></div>
 </main>
@@ -287,15 +295,15 @@ const TOOLS = [
  ["clients","book-builder","AI Momentum Labs Book Builder","Write my book","Writes your own non-fiction book in your voice: an outline you approve, chapters from your stories, an edit, a fact check and test readers.","A real book that sounds like you, where nothing is made up.",1,
    ["Plan my book","Write the next chapter","Edit my book","Review my book","Have readers test my book","Is my book ready?","How is my book coming along?"]],
 
- ["convert","sales-script","Sales Conversations","Help me with my sales call","Builds a seven-stage call script and your objection answers, then plays the prospect so you can practise.","You walk into the call knowing what to ask and what to say when they hesitate."],
+ ["convert","sales-script","Sales Conversations","Help me with my sales call","Builds a seven-stage call script and your objection answers, then plays the prospect so you can practice.","You walk into the call knowing what to ask and what to say when they hesitate."],
  ["convert","decision-machine","Decision Machine","Build my follow-up system","Writes a follow-up campaign for every yes and no in your funnel.","Most sales happen in the follow-up. This makes sure it happens."],
  ["convert","copy-engine","Copy Engine","Write me …","Writes any email, ad, page or letter from your Business File.","Copy in minutes that already knows your offer, client and voice."],
  ["convert","proof-engine","Proof Engine","Capture this win","Turns a client win into proof you are allowed to use, with permission recorded.","Real proof, ready to use, without awkward asks or made-up quotes."],
- ["convert","offer-deep-dive","Offer Deep Dive","Make my offer a no-brainer","Strengthens the value stack, guarantee, urgency and the numbers behind your offer.","Removes the reasons people say “let me think about it”."],
+ ["convert","offer-deep-dive","Offer Deep Dive","Make my offer a no-brainer","Strengthens the value stack, guarantee, urgency and the numbers behind your offer.","Removes the reasons people say “let me think about it.”"],
  ["convert","audience-insight","Audience Insight","Find the words my clients actually use","Finds real customer language, with sources, and writes it into your file.","Copy that sounds like your client talking, not like marketing."],
  ["convert","funnel-scorecard","Funnel Scorecard","Where is my funnel leaking?","Measures every step and names the top three leaks, with fixes you approve.","You fix the step that is costing you the most, first."],
  ["convert","website-design-studio","Website Design Studio","Make my website look like me","Learns your taste from screenshots you like, then shows three very different versions of your page side by side.","A look that is yours, instead of the look every AI page has.",1,
-   ["Design my landing page","My pages look like AI made them","Set up my taste vault","Tweak my page","Is my page ready to go live?","Change my brand colours"]],
+   ["Design my landing page","My pages look like AI made them","Set up my taste vault","Tweak my page","Is my page ready to go live?","Change my brand colors"]],
 
  ["run","company-blueprint","Company Blueprint","Build my company blueprint","Maps the work your business needs, who is responsible for each part, a one-page agreement for every role, and a few honest numbers.","Gets the business out of your head, and shows which job to hand off first.",1,
    ["Map my business","Make my org chart","Write a position contract","What should I measure?","Set my KPIs","What should I hand off first?","How dependent is my business on me?","Review my numbers"]],
