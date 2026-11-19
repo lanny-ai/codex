@@ -1,7 +1,7 @@
 ---
 name: buildroom-discovery-engine
 description: |
-  Researches a business first, asks only the gaps, then runs the Magic Business Genie outputs; for the member's business, a client or a prospect. Use for "run discovery on this business," "research this client before I talk to them," "prep me for this call," or "run the genie."
+  Researches a business first, asks only the gaps, then runs the Magic Business Genie outputs; for the member's business, a client or a prospect. Use for "run discovery on this business," "research my business first," "read my files and tell me what you found," "research this client before I talk to them," "prep me for this call," or "run the genie."
 ---
 
 # Build Room — Discovery Engine
@@ -18,7 +18,8 @@ Read these reference files, in order, before any member-facing work:
 2. **`references/discovery-method.md`** — the pipeline: research first → score the questions (answered / partial / gap, with certainty) → confirm → gaps become the scripted call → the ten prompts → outputs per subject. Also the two engagement levels and the rules.
 3. **`references/identity-verification.md`** — Phase 0 for any subject that is not the member's own business. Mandatory. "Never assume the email domain is the website."
 4. **`references/certainty-adapter.md`** — optional: if the member has a Jev or OpenAI Decisions key in their `.env`, `scripts/certainty.py` scores Phase 2 and the Phase 0 identity choice with calibrated probabilities. Without a key, the three-word scale stands. Read this before Phase 2.
-5. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly.
+5. **`references/deep-discovery.md`** — how the engine runs on the member's own business: agree what may be read, research their own files, their public footprint and their market, keep a ledger with a source and a confidence on every finding, show "What I found," ask at most ten questions, and say how ready the file is. `scripts/discover.py` is its helper.
+6. **`references/business-file-protocol.md`** — how you read and write the member's Build Room Business File. Follow it exactly.
 
 ## Prerequisites
 
@@ -37,7 +38,23 @@ Follow the protocol for the member's file. Then ask, one at a time, only what yo
 3. **What do they already have?** Anything pasted (call notes, emails, intake forms, reviews, a transcript) is `[client]` provenance and outranks the web.
 4. **Where does the output go?** Own business: this Business File. Client: a separate client Business File in its own project folder, never the member's. Prospect: a Prospect Brief.
 
+### Own business — Deep Discovery
+
+When the subject is the member's own business, Phases 1 to 4 are replaced by `references/deep-discovery.md`. Follow it in order:
+
+1. **Agree the scope.** `scripts/discover.py inventory <folder>` lists file names and opens nothing. Show the member the list, including the files it will not read because they look private, and ask what to leave out. For a drive connector, show titles first. Record the agreement.
+2. **Research in three rings:** their own files, their public footprint, their market. Collect voice samples, real client results and exact client words as you go.
+3. **Write `discovery/ledger.json`.** Every finding has a source and one of three confidence words. Record both sides of any disagreement. Run `discover.py check` and fix what it lists.
+4. **Show "What I found"** (`discover.py page`, saved as `discovery/What_I_Found.md`) before asking anything. Corrections become member findings.
+5. **Ask the gaps** from `discover.py gaps`: at most ten, disagreements first, one at a time, skippable.
+6. **Say how ready the file is** with `discover.py ready`, as a guide and not a measurement.
+
+Then go to Phase 5 if the member wants the ten Genie outputs today, or straight to Phase 6 if they only wanted their business researched. Ask which. Where the 36-question answer sheet is needed for Phase 5, fill it from the ledger.
+
 ### Phase 1 — Research first
+
+_Client or prospect. For the member's own business, see Deep Discovery above._
+
 
 Run the research sweep from `discovery-method.md`, grouped by what the 36 questions ask. Use a deep-research capability or subagents if the environment has them; otherwise search and fetch directly, and say which sources were reachable. Every fact carries `[web: URL]`, `[client]`, or `[hypothesis]`. If no web access exists, say so and work only from what was pasted and what the file holds.
 
@@ -65,7 +82,8 @@ Only once the answer sheet is complete (or, for a prospect, the assumptions are 
 
 1. Deliver the **Discovery Brief** (identity block, answer sheet with sources and certainty, confirmations, the ten outputs) as `Discovery_Brief_[business]_[date].md`. For a client, also the Discovery Call Script. For a prospect, the **Prospect Brief** instead.
 2. Update per the protocol, by subject:
-   - **Own business:** §1 empty fields from confirmed facts; §2 confirmed pains, objections, outcomes, and every verbatim phrase into the sourced bank with its tag, with P6–P9 material as hypothesis language and a `provisional` ICA only if §2 was empty; §3 and §4 as found and confirmed, `provisional`; §13 one `captured` row per friction point, source `Discovery Engine [date]`; §8.
+   - **Own business, after Deep Discovery:** write exactly what `deep-discovery.md` lists under "What goes into the Business File": confirmed findings only, §2 to §4 `provisional`, the readiness number in the §8 note, and the voice samples and proof list saved as their own two documents, never in the file.
+   - **Own business, original flow:** §1 empty fields from confirmed facts; §2 confirmed pains, objections, outcomes, and every verbatim phrase into the sourced bank with its tag, with P6–P9 material as hypothesis language and a `provisional` ICA only if §2 was empty; §3 and §4 as found and confirmed, `provisional`; §13 one `captured` row per friction point, source `Discovery Engine [date]`; §8.
    - **Client:** the client's own Business File §1–§4 seeded from the sheet, in the client's folder. The member's file gets §8 and, on request, one §13 row.
    - **Prospect:** one line in §14's pipeline tracker if §14 exists; §8. Nothing else.
 3. Emit the entire updated file in one code block with the "what changed" summary.
@@ -80,6 +98,10 @@ Only once the answer sheet is complete (or, for a prospect, the assumptions are 
 
 ## What This Skill Does NOT Do
 
+- Open a member's files before they have seen the list and agreed what may be read, or read a file that looks private without a clear yes.
+- Choose between two sources that disagree. The member decides.
+- Treat a client result it found as permission to use it. The Proof Engine session owns consent.
+- Call the readiness number anything but a guide. It does not measure the business or predict results.
 - Write anything inferred into a Business File as fact. The provenance rule is absolute.
 - Put a client's data into the member's own Business File.
 - Research a subject whose identity is ambiguous. Phase 0 stops the run.
@@ -90,4 +112,6 @@ Only once the answer sheet is complete (or, for a prospect, the assumptions are 
 
 ## When the Session Is Complete
 
-The member has: a Discovery Brief (or Prospect Brief) saved separately, the ten Genie outputs, the gap questions either answered or scripted for a call, and a Business File updated for the right subject with a Session Log entry and the next session named.
+After Deep Discovery, the member has: the "What I found" page, the ledger behind it, their voice samples and proof list saved separately, a readiness number with what would raise it, and a Business File updated with confirmed facts only.
+
+After the full run, the member has: a Discovery Brief (or Prospect Brief) saved separately, the ten Genie outputs, the gap questions either answered or scripted for a call, and a Business File updated for the right subject with a Session Log entry and the next session named.
