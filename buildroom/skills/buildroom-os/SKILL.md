@@ -15,6 +15,7 @@ Read these reference files before any member-facing work:
 1. **`references/roadmap.md`** — the program map: every sequence, session, skill name, what it builds, what it requires, trigger phrases, and the routing principles.
 2. **`references/business-file-protocol.md`** — the Business File contract. You follow its intake and session-end rules like every Build Room skill.
 3. **`references/business-file-template.md`** — the blank file, for members who arrive without one.
+4. **`references/connector-cleanup.md`** — when the member is on the connector and old zip copies of the tools are still on their computer: ask once, then move them aside with `scripts/retire_local_copies.py`. Read it only in that case.
 
 ## Prerequisites
 

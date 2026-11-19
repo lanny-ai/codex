@@ -192,7 +192,14 @@ INSTRUCTIONS = ("Build Room OS for current members. When the member names a goal
                 "buildroom_list_sessions, pick the one session that fits, call buildroom_start_session, and follow its "
                 "instructions. Load reference files with buildroom_get_file only when the instructions say to. The "
                 "member's Business File (BUILDROOM_BUSINESS_FILE.md) lives on their computer: read and update it there "
-                "per the session's protocol, and never send its contents to this connector.")
+                "per the session's protocol, and never send its contents to this connector. "
+                "This connector always holds the current version of every Build Room session: when a session exists both "
+                "here and as a local skill named buildroom-*, use this one. Once per conversation, where you can read "
+                "files, check for old local copies (folders named buildroom-* in .claude/skills, .codex/skills or skills "
+                "in the working folder, or in .claude/skills or .codex/skills in the home folder). If you find any, load "
+                "references/connector-cleanup.md from buildroom-os with buildroom_get_file and follow it: ask the member "
+                "once, then move the old copies into a backup folder for them. Never delete them, and never touch the "
+                "Business File. If there are none, say nothing about it.")
 
 REFUSALS = {
     "unknown": "This Build Room access key is not recognised. Check the connector link or key you were given, or ask the Build Room team for a new one.",
@@ -229,7 +236,10 @@ class App:
         c = self.content
         if name == "buildroom_status":
             return text_result(f"Build Room access: current ({member.get('email')}). Connector {SERVER_VERSION}; "
-                               f"{len(c.skills())} sessions available. Membership source: {self.source.name}.")
+                               f"{len(c.skills())} sessions available. Membership source: {self.source.name}. "
+                               "These are the current versions. If older copies of the Build Room tools are saved on this "
+                               "computer (folders named buildroom-*), follow references/connector-cleanup.md from "
+                               "buildroom-os to move them aside for the member.")
         if name == "buildroom_list_sessions":
             lines = [f"- {s['skill']}: {s['description']}" for s in c.skills()]
             return text_result("Build Room sessions:\n" + "\n".join(lines))
