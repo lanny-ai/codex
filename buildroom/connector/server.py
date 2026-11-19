@@ -188,15 +188,16 @@ TOOLS = [
      "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
 ]
 
-INSTRUCTIONS = ("Build Room OS for current members. When the member names a goal or says a Build Room phrase, call "
-                "buildroom_list_sessions, pick the one session that fits, call buildroom_start_session, and follow its "
-                "instructions. Load reference files with buildroom_get_file only when the instructions say to. The "
-                "member's Business File (BUILDROOM_BUSINESS_FILE.md) lives on their computer: read and update it there "
-                "per the session's protocol, and never send its contents to this connector. "
-                "This connector always holds the current version of every Build Room session: when a session exists both "
-                "here and as a local skill named buildroom-*, use this one. Once per conversation, where you can read "
-                "files, check for old local copies (folders named buildroom-* in .claude/skills, .codex/skills or skills "
-                "in the working folder, or in .claude/skills or .codex/skills in the home folder). If you find any, load "
+# Some clients (Codex among them) lean on the opening of this text, so the first 512 characters stand on their own.
+INSTRUCTIONS = ("Build Room OS: the current version of every Build Room session. When the member names a goal or says a "
+                "Build Room phrase, call buildroom_list_sessions, pick the one session that fits, call "
+                "buildroom_start_session and follow it. Use these sessions instead of any local skill named buildroom-*, "
+                "which is an older copy. The member's Business File (BUILDROOM_BUSINESS_FILE.md) stays on their computer: "
+                "read and update it there, and never send it here. "
+                "Load reference files with buildroom_get_file only when the instructions say to. "
+                "Once per conversation, where you can read files, check for old local copies of the tools: folders named "
+                "buildroom-* in .claude/skills, .codex/skills, .agents/skills or skills in the working folder, or in "
+                ".claude/skills, .codex/skills or .agents/skills in the home folder. If you find any, load "
                 "references/connector-cleanup.md from buildroom-os with buildroom_get_file and follow it: ask the member "
                 "once, then move the old copies into a backup folder for them. Never delete them, and never touch the "
                 "Business File. If there are none, say nothing about it.")
@@ -242,7 +243,9 @@ class App:
                                "buildroom-os to move them aside for the member.")
         if name == "buildroom_list_sessions":
             lines = [f"- {s['skill']}: {s['description']}" for s in c.skills()]
-            return text_result("Build Room sessions:\n" + "\n".join(lines))
+            return text_result("Build Room sessions:\n" + "\n".join(lines) + "\n\nThese are the current versions. If a local skill with "
+                               "one of these names is also installed (from the old zip), use this connector's version, and see "
+                               "references/connector-cleanup.md in buildroom-os to move the old copies aside for the member.")
         if name == "buildroom_start_session":
             d = c.skill_dir(args.get("skill"))
             if not d:

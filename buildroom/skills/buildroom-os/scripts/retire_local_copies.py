@@ -5,16 +5,24 @@
   retire_local_copies.py [--folder DIR] [--home] --apply    move them into DIR/backups/old-buildroom-tools-DATE/
 
 It only moves folders named buildroom-* that hold a SKILL.md, and only from the places the zip put them:
-  DIR/.claude/skills, DIR/.codex/skills, DIR/skills, and with --home: ~/.claude/skills, ~/.codex/skills.
+  DIR/.claude/skills, DIR/.codex/skills, DIR/.agents/skills, DIR/skills,
+  and with --home: ~/.claude/skills, ~/.codex/skills, ~/.agents/skills.
+(.claude is where Claude looks; .codex and .agents are where Codex looks.)
 Nothing is deleted. The Business File and everything the member made are never touched.
+The zip's own CLAUDE.md and AGENTS.md get one line added at the top saying the tools now come from the
+connector, with the original copied into the backup folder first.
 Standard library only.
 """
 import argparse, hashlib, shutil, sys
 from datetime import date
 from pathlib import Path
 
-SPOTS = (".claude/skills", ".codex/skills", "skills")
-HOME_SPOTS = (".claude/skills", ".codex/skills")
+SPOTS = (".claude/skills", ".codex/skills", ".agents/skills", "skills")
+HOME_SPOTS = (".claude/skills", ".codex/skills", ".agents/skills")
+# The project instructions the zip shipped. Claude reads CLAUDE.md; Codex reads AGENTS.md.
+GUIDES = ("CLAUDE.md", "AGENTS.md")
+GUIDE_MARK = "This folder is a Build Room member's workspace."
+NOTE_MARK = "Build Room tools now come from the Build Room OS connector"
 BUSINESS_FILE = "BUILDROOM_BUSINESS_FILE.md"
 
 
@@ -36,6 +44,32 @@ def find(folder, home):
             if d.is_dir() and not d.is_symlink():
                 out += [(p, f"{label}/{spot.replace('/', '-').lstrip('.')}") for p in sorted(d.iterdir()) if is_tool(p)]
     return out
+
+
+def note_guides(folder, dest):
+    """Tell Claude and Codex, in the zip's own instruction files, that the tools moved. The originals go to the backup first."""
+    done = []
+    for name in GUIDES:
+        p = folder / name
+        if p.is_symlink() or not p.is_file():
+            continue
+        try:
+            text = p.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        if GUIDE_MARK not in text or NOTE_MARK in text:
+            continue
+        keep = dest / "this-folder" / name
+        if keep.exists():
+            continue
+        keep.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(str(p), str(keep))
+        note = (f"> **{NOTE_MARK}.** The copies that used to be in this folder were moved to `backups/{dest.name}/` on "
+                f"{date.today().isoformat()}. Wherever this file names a skill in this folder, start that session through the "
+                "connector instead (buildroom_list_sessions, then buildroom_start_session). Everything below about the Business File still applies.\n\n")
+        p.write_text(note + text, encoding="utf-8")
+        done.append(name)
+    return done
 
 
 def digest(p):
@@ -78,7 +112,10 @@ def main():
             failed.append(f"{p}: {e}")
     if digest(bf) != before:
         sys.exit(f"STOP: {BUSINESS_FILE} changed during the move. That should be impossible. Check {bf} against your backups before doing anything else.")
+    noted = note_guides(folder, dest) if moved else []
     print(f"\nMoved {moved} to {dest}")
+    if noted:
+        print("Added a note to " + " and ".join(noted) + " so Claude and Codex know the tools now come from the connector. The originals are in the backup folder.")
     print(f"{BUSINESS_FILE}: " + ("not touched." if before else "none in this folder."))
     if failed:
         print(f"\nCould not move {len(failed)}:")
