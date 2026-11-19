@@ -260,6 +260,9 @@ def main():
                   and "claude mcp add --transport http buildroom" in sp and 'codex mcp add buildroom --url' in sp and "Streamable HTTP" in sp)
             check("start: explains the Business File and links back to the guide and the join page",
                   "BUILDROOM_BUSINESS_FILE.md" in sp and 'href="/guide"' in sp and 'href="/join"' in sp)
+            check("start: tells existing members to run Autopilot, with research as an optional first step",
+                  'id="autopilot"' in sp and ">Run autopilot<" in sp and ">Research my business first<" in sp and "Optional, about 15 minutes." in sp
+                  and "Nothing is published, sent or paid for." in sp and "does not run in a regular chat" in sp and 'href="#autopilot"' in sp)
             check("start: no video block until a video is uploaded", "<video" not in sp)
             check("start: self-contained, no room code or key, no long dashes",
                   not _re.search(r'(src|href)="(https?:)?//', sp) and not _re.search(r"BUILD-\d|ROOM-\d|br_[A-Za-z0-9]", sp)
