@@ -141,7 +141,8 @@ Capture turns a raw brainstorm (board export, transcript, notes) into outcome re
 | Finish It | `buildroom-finish-it` | The finishing crew for an existing project: snapshot, audit (STATE.md), the owner's questions, scope cut to the smallest shippable version (GOAL.md, LATER.md), then Build It's crew and a ship checklist. |
 | Build It | `buildroom-build-it` | The finishing crew for a new idea: brainstorm, Pursue Goal (GOAL.md), then planner, builder, QA, four reviewers, a five-persona panel seeded from §2, docs and a release judge. |
 | Continuity System | `buildroom-continuity` | From community member Jenn: PROJECT, STATE and DECISIONS in `projects/<name>/continuity/` keep any long project resumable across threads and between Claude and Codex. Reads the Business File, never writes it. |
-| Discovery Engine | `buildroom-discovery-engine` | The founder's Magic Business Genie (36 questions + ten prompts) rebuilt per the 2026-10-07 co-design: research first, score and confirm, scripted gaps, then the prompts. Three subjects: own business, client (separate file), prospect (brief). |
+| Autopilot | `buildroom-autopilot` | Drafts the foundation (ideal client, offer, positioning) without interviewing the member, stops once for them to review the Foundation Reveal page, then drafts the offer page, funnel, lead capture, sales script, follow-up, lead gen, LinkedIn and search work straight through. Needs §1 filled in and a folder (Cowork, Claude Code or Codex). Recommend Deep Discovery first. Every section it writes is `provisional`. It never publishes, sends or spends, and it lists the sessions that need the member with the phrase that starts each. |
+| Discovery Engine | `buildroom-discovery-engine` | The founder's Magic Business Genie (36 questions + ten prompts) rebuilt per the 2026-10-07 co-design: research first, score and confirm, scripted gaps, then the prompts. Three subjects: own business, client (separate file), prospect (brief). For the member's own business it runs Deep Discovery: agree what may be read, research their files, public footprint and market, keep a sourced ledger, show "What I found," ask at most ten questions, and give a readiness guide. |
 
 ### Sessions kept as notes, not skills
 | Session | Why not a skill | Where it lives |
@@ -172,6 +173,7 @@ When routing, give the member the exact words to start the session:
 - Search & Answer Engine → "Get found on Google" · "Fix my Google Business Profile" · "Get more Google reviews" · "Answer this question on my website" · "Publish this page" · "Am I showing up in ChatGPT" · "Search week"
 - AI Momentum Labs Book Builder → "Write my book" · "Plan my book" · "Write the next chapter" · "Edit my book" · "Review my book" · "Have readers test my book" · "Is my book ready" · "How is my book coming along"
 - Speaking Engine → "Get me speaking gigs" · "Find me places to speak" · "Help me pick a talk topic" · "Make my speaker one-sheet" · "Write my speaker pitch" · "Who should I pitch today" · "Is this speaking offer legit" · "How did my talk go" · "How is my speaking going"
+- Autopilot (after onboarding and, ideally, Deep Discovery) → "Run autopilot" · "Run the whole build" · "Build everything for me"
 - Company Blueprint → "Build my company blueprint" · "Map my business" · "Make my org chart" · "Write a position contract" · "What should I measure" · "Set my KPIs" · "What should I hand off first" · "How dependent is my business on me" · "Review my numbers"
 - Website Design Studio → "Make my website look like me" · "Design my landing page" · "My pages look like AI made them" · "Set up my taste vault" · "Tweak my page" · "Is my page ready to go live" · "Change my brand colours"
 - Webinar Builder → "Build my webinar" · "Write my webinar title and registration page" · "Make my webinar slides" · "Is my webinar ready" · "Rehearse my webinar" · "How did my webinar go" · "Why didn't my webinar sell" · "Make my webinar evergreen"
@@ -182,7 +184,7 @@ When routing, give the member the exact words to start the session:
 - Audience Insight → "Find the words my clients actually use"
 - Offer Deep Dive → "Make my offer a no-brainer"
 - Copy Engine → "Write me [the piece]"
-- Discovery Engine (anytime) → "Run discovery on this business"
+- Discovery Engine (anytime) → "Run discovery on this business" · "Research my business first" · "Read my files and tell me what you found"
 - Agent Forge (elective) → "Make me an agent"
 - Triage (elective) → "Triage my projects"
 - Finish It (elective) → "Finish it"

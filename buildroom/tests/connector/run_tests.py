@@ -215,7 +215,7 @@ def main():
               rj["build"]["builder"] == "DOCKERFILE" and rj["deploy"]["healthcheckPath"] == "/health" and "buildroom/skills/**" in rj["build"]["watchPatterns"])
         df = (CON / "Dockerfile").read_text()
         check("Dockerfile: copies only the connector, the skills and the release notes; runs as a non-root user",
-              df.count("COPY ") == 3 and "join.py" in df and "guide.html" in df and "USER connector" in df and "members.json" not in df)
+              df.count("COPY ") == 3 and "join.py" in df and "guide.html" in df and "start.html" in df and "USER connector" in df and "members.json" not in df)
         di = (ROOT.parent / ".dockerignore").read_text()
         check(".dockerignore: everything excluded except what the image needs", di.splitlines()[1] == "*" and "!buildroom/skills/**" in di and "!buildroom/connector/guide.html" in di)
 
@@ -252,6 +252,45 @@ def main():
                   all(c in guide for c in ("Write the next chapter", "Find me places to speak", "Make my org chart", "Set up my taste vault")))
             check("guide: self-contained (no outside scripts, styles, fonts or images)",
                   not _re.search(r'(src|href)="(https?:)?//', guide) and "@import" not in guide and not _re.search(r"url\(\s*['\"]?(https?:|//|data:)", guide))
+            # ---- the Start Here page and its setup video ------------------------------------
+            sp = urllib.request.urlopen(b3 + "/start").read().decode()
+            check("guide: has a clear call to action to the Start Here page", guide.count('href="/start"') >= 2 and "Brand new?" in guide)
+            check("start: served, with the first sentence and all three ways to connect",
+                  "I'm new here. Help me get started." in sp and "Add custom connector" in sp
+                  and "claude mcp add --transport http buildroom" in sp and 'codex mcp add buildroom --url' in sp and "Streamable HTTP" in sp)
+            check("start: explains the Business File and links back to the guide and the join page",
+                  "BUILDROOM_BUSINESS_FILE.md" in sp and 'href="/guide"' in sp and 'href="/join"' in sp)
+            check("start: no video block until a video is uploaded", "<video" not in sp)
+            check("start: self-contained, no room code or key, no long dashes",
+                  not _re.search(r'(src|href)="(https?:)?//', sp) and not _re.search(r"BUILD-\d|ROOM-\d|br_[A-Za-z0-9]", sp)
+                  and "\u2014" not in sp and "\u2013" not in sp)
+            def put(name, body, k=None):
+                rq = urllib.request.Request(b3 + "/admin/media/" + name, data=body, method="PUT")
+                if k:
+                    rq.add_header("Authorization", "Bearer " + k)
+                try:
+                    return urllib.request.urlopen(rq).status
+                except urllib.error.HTTPError as e:
+                    return e.code
+            clip = bytes(range(256)) * 40
+            check("media: upload refused without the admin key", put("setup.mp4", clip) == 401 and put("setup.mp4", clip, "wrong") == 401)
+            check("media: only the two known file names are accepted", put("../signups.json", clip, admin_key) == 400 and put("x.mp4", clip, admin_key) == 400)
+            check("media: the owner can upload the video", put("setup.mp4", clip, admin_key) == 200 and (data / "media" / "setup.mp4").read_bytes() == clip)
+            mr = urllib.request.urlopen(b3 + "/media/setup.mp4")
+            check("media: served whole with its type and Accept-Ranges", mr.read() == clip and mr.headers["Content-Type"] == "video/mp4" and mr.headers["Accept-Ranges"] == "bytes")
+            rq = urllib.request.Request(b3 + "/media/setup.mp4", headers={"Range": "bytes=100-199"})
+            mr = urllib.request.urlopen(rq)
+            check("media: a byte range gets 206 and exactly those bytes", mr.status == 206 and mr.read() == clip[100:200] and mr.headers["Content-Range"] == f"bytes 100-199/{len(clip)}")
+            mr = urllib.request.urlopen(urllib.request.Request(b3 + "/media/setup.mp4", headers={"Range": "bytes=-10"}))
+            check("media: a suffix range gets the last bytes", mr.status == 206 and mr.read() == clip[-10:])
+            def code(u, h=None):
+                try:
+                    return urllib.request.urlopen(urllib.request.Request(b3 + u, headers=h or {})).status
+                except urllib.error.HTTPError as e:
+                    return e.code
+            check("media: a range past the end gets 416; other files are not served", code("/media/setup.mp4", {"Range": "bytes=999999-"}) == 416
+                  and code("/media/signups.json") == 404 and code("/media/setup.jpg") == 404)
+            check("start: the video block appears once the video is there", "<video" in urllib.request.urlopen(b3 + "/start").read().decode())
             check("guide: holds no room code, access key or member link", not _re.search(r"BUILD-\d|ROOM-\d|br_[A-Za-z0-9]|/mcp/", guide))
             check("guide: no dashes that read as AI, and no promise of results",
                   "\u2014" not in guide and "\u2013" not in guide and not _re.search(r"guarantee[ds]? (results|leads|revenue|clients)", guide, _re.I))

@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Start Here · Build Room OS · AI Momentum Labs</title>
+<meta name="description" content="New to Build Room OS? Connect it to Claude or Codex step by step, then say one sentence to build your Business File.">
+<style>
+:root{
+  --navy:#0b1020;--ink:#0f1424;--ink2:#2b3247;--mute:#667089;--line:#e2e6ef;--panel:#f5f6fa;--paper:#fff;
+  --gold1:#ffe7a3;--gold2:#ffb547;--orange:#f97316;--cyan:#4fe3ff;--ok:#0f7a4d;--link:#b4530a;
+  --radius:16px;--shadow:0 1px 2px rgba(15,20,36,.06),0 8px 28px rgba(15,20,36,.08);
+  --sans:"Inter","SF Pro Text",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --display:"Inter Tight","SF Pro Display",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--panel);color:var(--ink);font:18px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--link);font-weight:700}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px}
+.sr{position:absolute;left:-9999px}
+:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+
+.hero{position:relative;overflow:hidden;background:var(--navy);color:#fff}
+.hero:before{content:"";position:absolute;inset:0;background:
+  radial-gradient(800px 480px at 90% -10%,rgba(249,115,22,.34),transparent 62%),
+  radial-gradient(700px 480px at -8% 110%,rgba(79,227,255,.16),transparent 60%),
+  linear-gradient(180deg,#0b1020,#0e1430)}
+.hero>*{position:relative}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 0}
+.brand{display:flex;align-items:center;gap:13px;text-decoration:none;color:#fff}
+.brand svg{width:44px;height:44px;border-radius:11px;flex:none;box-shadow:0 6px 22px rgba(249,115,22,.35)}
+.brand b{display:block;font:800 17px/1.1 var(--display);letter-spacing:.14em}
+.brand b i{font-style:normal;color:var(--gold2)}
+.brand span{display:block;font:500 12.5px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:#aab3cf;margin-top:4px}
+.btn{appearance:none;border:0;cursor:pointer;font:700 16px/1 var(--sans);padding:14px 20px;border-radius:999px;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn.gold{color:#1a1206;background:linear-gradient(180deg,var(--gold1),var(--gold2) 55%,var(--orange));box-shadow:0 8px 24px rgba(249,115,22,.35)}
+.btn.ghost{color:#fff;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
+.btn.dark{color:#fff;background:var(--navy)}
+.lede{padding:34px 0 44px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font:700 13px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--gold2)}
+.eyebrow:before{content:"";width:28px;height:2px;background:linear-gradient(90deg,var(--orange),var(--gold2))}
+h1{font:800 clamp(36px,6vw,60px)/1.04 var(--display);letter-spacing:-.025em;margin:16px 0}
+h1 em{font-style:normal;background:linear-gradient(180deg,var(--gold1),var(--gold2) 50%,var(--orange));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede p{font-size:clamp(18px,2.1vw,21px);color:#cdd4ea;margin:0 0 24px;max-width:680px}
+.path{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.path a{display:inline-flex;align-items:center;gap:8px;color:#e6eaf6;font:600 15px/1 var(--sans);text-decoration:none;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+.path b{color:var(--gold2)}
+.edge{height:6px;background:linear-gradient(90deg,var(--orange),var(--gold2),var(--gold1))}
+
+main{padding:36px 0 10px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px;margin:0 0 22px;scroll-margin-top:16px}
+.card.first{border-color:#f5c489;box-shadow:0 1px 2px rgba(15,20,36,.06),0 12px 40px rgba(249,115,22,.18)}
+.head{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.n{display:inline-grid;place-items:center;flex:none;width:42px;height:42px;border-radius:50%;font:800 19px/1 var(--display);color:#1a1206;background:linear-gradient(180deg,var(--gold1),var(--gold2) 55%,var(--orange))}
+h2{font:800 clamp(23px,3vw,28px)/1.15 var(--display);letter-spacing:-.015em;margin:0}
+h3{font:800 19px/1.25 var(--display);margin:22px 0 6px}
+.card p{margin:10px 0;color:var(--ink2)}
+ol,ul{margin:10px 0;padding-left:24px;color:var(--ink2)}
+li{margin:8px 0}
+li b,p b{color:var(--ink)}
+.see{background:#eef8f2;border:1px solid #c9e6d6;border-radius:12px;padding:13px 16px;color:#11402b;font-size:16.5px;margin-top:16px}
+.see b{color:#0b3221}
+.note{background:#fff7ec;border:1px solid #f6d9b5;border-radius:12px;padding:13px 16px;color:#5a3a12;font-size:16.5px;margin-top:16px}
+.note b{color:#3f2708}
+video{display:block;width:100%;aspect-ratio:16/9;border-radius:12px;background:#000;margin-top:14px}
+.small{font-size:15.5px;color:var(--mute)}
+
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 4px}
+.tab{appearance:none;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink2);font:700 16px/1 var(--sans);padding:12px 16px;border-radius:999px}
+.tab[aria-selected="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.pane[hidden]{display:none}
+.code{display:flex;align-items:stretch;gap:0;margin:10px 0;border:1px solid #d8deee;border-radius:12px;overflow:hidden;background:#0f1424}
+.code code{flex:1;min-width:0;font:15px/1.5 var(--mono);color:#e6eaf6;padding:14px 16px;overflow-x:auto;white-space:pre}
+.code button,.say button{appearance:none;border:0;cursor:pointer;font:700 13px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase}
+.code button{background:#1c2440;color:#cdd4ea;padding:0 16px;flex:none}
+.say{display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid #d8deee;background:linear-gradient(180deg,#f8f9fd,#eef1f9);border-radius:14px;padding:16px 18px;margin:14px 0}
+.say q{font:700 clamp(19px,2.6vw,24px)/1.3 var(--display);color:var(--navy);quotes:"\201C" "\201D"}
+.say.sm q{font-size:18px}
+.say button{flex:none;background:var(--navy);color:#fff;padding:12px 16px;border-radius:999px}
+button.done{background:var(--ok) !important;color:#fff !important}
+table{width:100%;border-collapse:collapse;font-size:16.5px;margin-top:10px}
+th,td{text-align:left;vertical-align:top;padding:11px 10px;border-bottom:1px solid var(--line)}
+th{font:700 12.5px/1.3 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+td:first-child{font-weight:700;color:var(--ink);width:42%}
+.next{background:var(--navy);color:#fff;border:0}
+.next h2{color:#fff}.next p{color:#cdd4ea}
+.next .row{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+footer{background:var(--navy);color:#b9c1dc;font-size:15px;margin-top:40px}
+footer .wrap{padding-top:28px;padding-bottom:34px}
+footer a{color:var(--gold2)}
+@media (max-width:560px){
+  body{font-size:17px}.wrap{padding:0 16px}.card{padding:22px 18px}
+  .top{flex-direction:column;align-items:flex-start}
+  .say{flex-direction:column;align-items:flex-start}
+  td:first-child{width:auto}
+  table,tbody,tr,td{display:block}thead{display:none}td{border:0;padding:4px 0}tr{border-bottom:1px solid var(--line);padding:10px 0}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<svg class="sr" aria-hidden="true" width="0" height="0"><defs>
+<symbol id="mark" viewBox="0 0 512 512">
+  <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE7A3"/><stop offset=".45" stop-color="#FFB547"/><stop offset="1" stop-color="#F97316"/></linearGradient>
+  <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1E2A5C"/><stop offset="1" stop-color="#0B1129"/></linearGradient>
+  <linearGradient id="g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A3A7A"/><stop offset="1" stop-color="#101838"/></linearGradient>
+  <rect width="512" height="512" rx="112" fill="#0B1020"/>
+  <polygon points="138,244 256,312 256,448 138,380" fill="url(#g2)"/>
+  <polygon points="256,312 374,244 374,380 256,448" fill="url(#g3)"/>
+  <polygon points="256,176 374,244 256,312 138,244" fill="url(#g1)"/>
+  <polygon points="256,64 300,150 256,176 212,150" fill="url(#g1)"/>
+  <g stroke="#4FE3FF" stroke-width="5" fill="none" opacity=".8"><polyline points="170,300 170,372 230,406"/><polyline points="342,300 342,372 282,406"/></g>
+</symbol></defs></svg>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="top">
+      <a class="brand" href="/guide" aria-label="Build Room OS by AI Momentum Labs, back to the guide">
+        <svg aria-hidden="true"><use href="#mark"/></svg>
+        <div><b>BUILD ROOM <i>OS</i></b><span>AI Momentum Labs</span></div>
+      </a>
+      <a class="btn ghost" href="/guide">See all the tools</a>
+    </div>
+    <div class="lede">
+      <div class="eyebrow">Start here</div>
+      <h1>Brand new? <em>Four steps and one sentence.</em></h1>
+      <p>Connect Build Room OS to Claude or Codex once. Then say one sentence, and it starts building the file that remembers your business. Plan on about fifteen minutes.</p>
+      <ol class="path">
+        <li><a href="#s1"><b>1</b> Get your link</a></li>
+        <li><a href="#s2"><b>2</b> Add it to Claude or Codex</a></li>
+        <li><a href="#s3"><b>3</b> Check it works</a></li>
+        <li><a href="#s4"><b>4</b> Say the first sentence</a></li>
+        <li><a href="#s5"><b>5</b> Keep your Business File</a></li>
+      </ol>
+    </div>
+  </div>
+  <div class="edge"></div>
+</header>
+
+<main class="wrap">
+
+<!--video-->
+<section class="card" id="watch">
+  <h2>Watch it done first (4 minutes)</h2>
+  <p>Lanny explains the setup, and Build Room member Jim shares his screen while he finds the right place in the Claude desktop app. Every step is also written out below.</p>
+  <video controls preload="metadata" playsinline poster="/media/setup.jpg"><source src="/media/setup.mp4" type="video/mp4">Your browser cannot play this video. The written steps below cover everything in it.</video>
+  <p class="small">Recorded in a live Build Room session. Pasting the personal link is not shown, because every link is private.</p>
+</section>
+<!--/video-->
+
+<section class="card">
+  <h2>What you need before you start</h2>
+  <ul>
+    <li><b>A Build Room membership.</b> You will use the email you joined with, and the room code your host gives you.</li>
+    <li><b>Claude or Codex.</b> Claude needs a paid plan to add a connector. The Claude desktop app is the easiest place to begin.</li>
+  </ul>
+</section>
+
+<section class="card" id="s1">
+  <div class="head"><span class="n">1</span><h2>Get your personal link</h2></div>
+  <ol>
+    <li>Open the <a href="/join" target="_blank" rel="noopener">join page</a>. It opens in a new tab so you can keep these steps in view.</li>
+    <li>Type your name and the email you use for the Build Room.</li>
+    <li>Type the room code from your host. If you paste it, check there is no blank space before or after it.</li>
+    <li>Press <b>Get my link</b>.</li>
+  </ol>
+  <div class="see"><b>What you should see:</b> your personal link, farther down on the same page, with a Copy button. It is not sent by email. If the page says the team will check your membership, come back a little later and enter the same email.</div>
+  <div class="note"><b>Keep it to yourself.</b> The link is yours alone. It goes into Claude or Codex, not into your web browser.</div>
+</section>
+
+<section class="card" id="s2">
+  <div class="head"><span class="n">2</span><h2>Add it to Claude or Codex</h2></div>
+  <p>Pick the one you use. You only do this once.</p>
+  <div class="tabs" role="tablist" aria-label="Which app do you use?">
+    <button class="tab" role="tab" aria-selected="true" aria-controls="p-claude" id="t-claude" type="button">Claude app</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-cc" id="t-cc" type="button">Claude Code</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-codex" id="t-codex" type="button">Codex</button>
+  </div>
+
+  <div class="pane" role="tabpanel" id="p-claude" aria-labelledby="t-claude">
+    <p class="small">For the Claude desktop app and claude.ai.</p>
+    <ol>
+      <li>Open Claude. Choose <b>Customize</b>, then <b>Connectors</b>. On some versions it is <b>Settings</b>, then <b>Connectors</b>.</li>
+      <li>Choose <b>Add custom connector</b>. You may find it behind a plus or <b>Add</b> button.</li>
+      <li>In the name box, type <b>Build Room OS</b>.</li>
+      <li>In the second box, paste your personal link.</li>
+      <li>If Claude asks how to sign in, choose <b>No sign in</b>. Your link already proves who you are.</li>
+      <li>Press <b>Add</b>. If it then shows a <b>Connect</b> button, press that too.</li>
+      <li>Claude lists what the connector may do. Allow the items so sessions can run without stopping to ask.</li>
+    </ol>
+    <div class="see"><b>What you should see:</b> Build Room OS in your list of connectors, with a check mark beside it.</div>
+  </div>
+
+  <div class="pane" role="tabpanel" id="p-cc" aria-labelledby="t-cc" hidden>
+    <p class="small">For Claude Code in a terminal.</p>
+    <ol>
+      <li>On the join page, under your link, there is a line that begins <b>claude mcp add</b>. It already has your key in it. Copy that line.</li>
+      <li>Paste it into your terminal and press Enter. It has this shape:</li>
+    </ol>
+    <div class="code"><code id="c-cc"></code><button type="button" data-copy="c-cc">Copy</button></div>
+    <ol start="3">
+      <li>Start Claude Code in the folder for your business, then type <b>/mcp</b> to check.</li>
+    </ol>
+    <div class="see"><b>What you should see:</b> <b>buildroom</b> in the list, shown as connected.</div>
+  </div>
+
+  <div class="pane" role="tabpanel" id="p-codex" aria-labelledby="t-codex" hidden>
+    <p class="small">For Codex in a terminal, the Codex IDE extension, or the ChatGPT desktop app.</p>
+    <h3>In a terminal</h3>
+    <ol>
+      <li>Run this line, with your own personal link in place of the capital letters. Keep the quotation marks.</li>
+    </ol>
+    <div class="code"><code id="c-codex">codex mcp add buildroom --url "YOUR-PERSONAL-LINK"</code><button type="button" data-copy="c-codex">Copy</button></div>
+    <ol start="2">
+      <li>Run <b>codex mcp list</b>, or start Codex and type <b>/mcp</b>, to check.</li>
+    </ol>
+    <h3>In the IDE extension or the desktop app</h3>
+    <ol>
+      <li>Open the gear menu or <b>Settings</b>, then <b>MCP servers</b>, then <b>Add server</b>.</li>
+      <li>Name it <b>buildroom</b>, choose <b>Streamable HTTP</b>, and paste your personal link as the URL.</li>
+      <li>Save, then restart the extension or the app.</li>
+    </ol>
+    <div class="see"><b>What you should see:</b> <b>buildroom</b> in the list of MCP servers, turned on. It needs no sign in.</div>
+  </div>
+</section>
+
+<section class="card" id="s3">
+  <div class="head"><span class="n">3</span><h2>Check it works</h2></div>
+  <ol>
+    <li>Start a new chat.</li>
+    <li>In the Claude app, open the tools menu under the message box and turn <b>Build Room OS</b> on.</li>
+    <li>Type this:</li>
+  </ol>
+  <div class="say sm"><q id="q-test">What Build Room sessions do I have?</q><button type="button" data-copy="q-test">Copy</button></div>
+  <div class="see"><b>What you should see:</b> a list of Build Room sessions. That means you are connected.</div>
+</section>
+
+<section class="card first" id="s4">
+  <div class="head"><span class="n">4</span><h2>Say the first sentence</h2></div>
+  <p>This is the quick start. Type it exactly, or in your own words.</p>
+  <div class="say"><q id="q-new">I'm new here. Help me get started.</q><button type="button" data-copy="q-new">Copy</button></div>
+  <h3>What happens next</h3>
+  <ol>
+    <li><b>A short welcome.</b> A few sentences on how the Build Room works.</li>
+    <li><b>Six quick questions about your business,</b> one at a time. Plan on about five minutes. Short, honest answers are fine.</li>
+    <li><b>Your Business File is created.</b> It is one document that every later session reads and adds to, so you never explain your business twice.</li>
+    <li><b>One next step.</b> It recommends the Ideal Client Avatar session first, and gives you the words to start it.</li>
+  </ol>
+  <div class="note"><b>Already have a filled-in Business File?</b> Skip this sentence. Attach your file to the chat, or open Claude or Codex in the folder that holds it, and ask <b>What should I work on next?</b></div>
+</section>
+
+<section class="card" id="s5">
+  <div class="head"><span class="n">5</span><h2>Keep your Business File</h2></div>
+  <p>The file is called <b>BUILDROOM_BUSINESS_FILE.md</b>. It lives on your computer. Build Room OS never stores it, so keeping it safe is the one job that is yours.</p>
+  <h3>If you use a regular Claude chat</h3>
+  <ol>
+    <li>At the end of a session Claude gives you the updated file. Save it to a folder you will remember, over the older copy.</li>
+    <li>Next time, start a new chat, turn Build Room OS on, and attach the file with the plus or paperclip button before you ask for anything.</li>
+  </ol>
+  <h3>If you use Cowork, Claude Code or Codex</h3>
+  <ol>
+    <li>Make one folder for your business and always open the app in that folder.</li>
+    <li>The file is read from that folder and saved back there. You do not attach anything.</li>
+  </ol>
+  <div class="see"><b>What you should see:</b> in later sessions Claude mentions things from your file, such as your ideal client or your offer, without asking for them again.</div>
+</section>
+
+<section class="card">
+  <h2>If something goes wrong</h2>
+  <table>
+    <thead><tr><th>What you see</th><th>What to do</th></tr></thead>
+    <tbody>
+      <tr><td>You clicked your link and saw a page saying it goes into Claude</td><td>Your link is fine. It is not a web page. Copy it and paste it into Claude or Codex, as in step 2.</td></tr>
+      <tr><td>The join page shows an error</td><td>Type the room code again by hand, with no space before or after it.</td></tr>
+      <tr><td>“The Build Room team will check your membership”</td><td>Wait a little, then go back to the join page and enter the same email.</td></tr>
+      <tr><td>The join page says you already have a link</td><td>Your link still works. Only ask for a new one if you really lost it, because a new link turns the old one off.</td></tr>
+      <tr><td>Claude asks about signing in</td><td>Choose <b>No sign in</b>.</td></tr>
+      <tr><td>The connector is listed but says Connect</td><td>Press <b>Connect</b>.</td></tr>
+      <tr><td>Your screen does not match these steps</td><td>Check whether the app is asking to update. Update it and try again.</td></tr>
+      <tr><td>Claude says your Business File is blank or it cannot find it</td><td>Attach your filled-in file, or open the app in the folder that holds it. See step 5.</td></tr>
+      <tr><td>Anything else</td><td>Take a screenshot and send it to your host.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="card next">
+  <h2>You are set up. Now see everything it can do.</h2>
+  <p>The Quick Start Guide lists every tool, the words that start it, what it does and why it matters. It is always current.</p>
+  <div class="row"><a class="btn gold" href="/guide">Open the Quick Start Guide</a><a class="btn ghost" href="/join" target="_blank" rel="noopener">Get your link</a></div>
+</section>
+
+</main>
+
+<footer><div class="wrap">Build Room OS, from AI Momentum Labs, for Build Room members. Your Business File and everything you make stay on your own computer. <a href="/guide">Back to the guide</a></div></footer>
+
+<script>
+const $ = id => document.getElementById(id);
+$("c-cc").textContent = 'claude mcp add --transport http buildroom ' + location.origin + '/mcp --header "Authorization: Bearer YOUR-KEY"';
+const tabs = [...document.querySelectorAll(".tab")];
+tabs.forEach(t => t.addEventListener("click", () => tabs.forEach(o => {
+  const on = o === t; o.setAttribute("aria-selected", on); $(o.getAttribute("aria-controls")).hidden = !on; })));
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-copy]"); if (!b) return;
+  try { await navigator.clipboard.writeText($(b.dataset.copy).textContent); } catch (err) { return; }
+  b.classList.add("done"); b.textContent = "Copied";
+  setTimeout(() => { b.classList.remove("done"); b.textContent = "Copy"; }, 1600);
+});
+</script>
+</body>
+</html>

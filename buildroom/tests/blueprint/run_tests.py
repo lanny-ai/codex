@@ -485,14 +485,14 @@ def wiring_tests():
     check("navigator: the progress view runs to §25", "§14–§25" in rd("skills/buildroom-os/SKILL.md"))
     cl, sh = rd("rollout/universal/CLAUDE.md"), rd("rollout/universal/START-HERE.md")
     check("CLAUDE.md: the skill, the range and the rule", "`buildroom-company-blueprint` (§25" in cl and "§1–§25" in cl
-          and "- **Company blueprint:**" in cl and "Forty-one skills" in cl)
-    check("START-HERE: forty-one skills, twenty-five sections", "forty-one skills" in sh and "twenty-five sections" in sh)
+          and "- **Company blueprint:**" in cl and "Forty-two skills" in cl)
+    check("START-HERE: forty-two skills, twenty-five sections", "forty-two skills" in sh and "twenty-five sections" in sh)
     for doc in ("README.md", "rollout/MEMBER-README.md"):
         check(f"{doc}: lists the skill", "`buildroom-company-blueprint`" in rd(doc))
     check("Quick Start: the phrase is there", "Build my company blueprint" in rd("rollout/BuildRoom_OS_Quick_Start.html"))
-    check("protocol: forty-one sessions", "41 standalone sessions" in rd("shared/business-file-protocol.md"))
+    check("protocol: forty-two sessions", "42 standalone sessions" in rd("shared/business-file-protocol.md"))
     skills = [p for p in (ROOT / "skills").iterdir() if (p / "SKILL.md").exists()]
-    check("there are forty-one skills", len(skills) == 41, len(skills))
+    check("there are forty-two skills", len(skills) == 42, len(skills))
     check("no __pycache__ written into the skill folder", not list(SK.rglob("__pycache__")))
 
 

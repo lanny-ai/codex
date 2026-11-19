@@ -26,6 +26,14 @@ SERVER_VERSION = "0.1.0-pilot"
 PROTOCOL_VERSIONS = ("2025-06-18", "2025-03-26", "2024-11-05")
 GRACE_DAYS_DEFAULT = 7
 MAX_BODY = 1_000_000
+# Media for the public pages (the setup video and its poster). Kept on the data volume, never in the repository.
+MEDIA_TYPES = {"setup.mp4": "video/mp4", "setup.jpg": "image/jpeg"}
+MAX_MEDIA = 80_000_000
+
+
+def media_path(name):
+    d = os.environ.get("BUILDROOM_DATA_DIR")
+    return Path(d) / "media" / name if d and name in MEDIA_TYPES else None
 SAFE_NAME = re.compile(r"^[a-z0-9][a-z0-9-]{1,63}$")
 SAFE_FILE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,120}$")
 
@@ -377,6 +385,18 @@ def make_handler(app):
             route = self.path.split("?")[0].rstrip("/")
             if route == "/join":
                 return self._page(join.JOIN_PAGE)
+            if route == "/start":
+                # Step-by-step setup for a new member. The video block shows only once a video has been uploaded.
+                try:
+                    html = (HERE / "start.html").read_text(encoding="utf-8")
+                except OSError:
+                    return self._send(404, {"error": "not found"})
+                mp4 = media_path("setup.mp4")
+                if not (mp4 and mp4.is_file()):
+                    html = re.sub(r"<!--video-->.*?<!--/video-->", "", html, flags=re.S)
+                return self._page(html)
+            if route.startswith("/media/"):
+                return self._media(route[len("/media/"):])
             if route in ("", "/guide"):
                 # The public Quick Start Guide: one file, so it is current the moment a release merges.
                 try:
@@ -397,6 +417,80 @@ def make_handler(app):
                     return self._page(join.LINK_PAGE)
                 return self._send(405, extra={"Allow": "POST"})
             self._send(404, {"error": "not found"})
+
+        def _media(self, name):
+            """A public media file from the data volume, with byte ranges so a video can be scrubbed."""
+            f = media_path(name)
+            if not (f and f.is_file()):
+                return self._send(404, {"error": "not found"})
+            size = f.stat().st_size
+            start, end, status = 0, size - 1, 200
+            m = re.fullmatch(r"bytes=(\d*)-(\d*)", self.headers.get("Range", "").strip())
+            if m and (m.group(1) or m.group(2)):
+                if m.group(1):
+                    start = int(m.group(1))
+                    end = min(int(m.group(2)), size - 1) if m.group(2) else size - 1
+                else:
+                    start = max(size - int(m.group(2)), 0)
+                if start > end or start >= size:
+                    self.send_response(416)
+                    self.send_header("Content-Range", f"bytes */{size}")
+                    self.send_header("Content-Length", "0")
+                    return self.end_headers()
+                status = 206
+            self.send_response(status)
+            self.send_header("Content-Type", MEDIA_TYPES[name])
+            self.send_header("Accept-Ranges", "bytes")
+            self.send_header("Cache-Control", "public, max-age=3600, no-transform")
+            self.send_header("Content-Length", str(end - start + 1))
+            if status == 206:
+                self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+            self.end_headers()
+            left = end - start + 1
+            try:
+                with f.open("rb") as fh:
+                    fh.seek(start)
+                    while left > 0:
+                        chunk = fh.read(min(262144, left))
+                        if not chunk:
+                            break
+                        self.wfile.write(chunk)
+                        left -= len(chunk)
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+
+        def do_PUT(self):
+            """The owner uploads the setup video or its poster: PUT /admin/media/<name> with the admin key."""
+            route = self.path.split("?")[0].rstrip("/")
+            name = route[len("/admin/media/"):] if route.startswith("/admin/media/") else None
+            if name is None:
+                return self._send(405, extra={"Allow": "POST"})
+            if not app.join.admin_ok(self._admin_key()):
+                return self._send(401, {"error": "admin key required"})
+            f = media_path(name)
+            try:
+                n = int(self.headers.get("Content-Length", ""))
+            except ValueError:
+                n = -1
+            if f is None or not 0 < n <= MAX_MEDIA:
+                self.close_connection = True
+                return self._send(400, {"error": "unknown file name, no data folder, or a body that is missing or too large"})
+            f.parent.mkdir(parents=True, exist_ok=True)
+            tmp = f.with_suffix(f.suffix + ".part")
+            left = n
+            with tmp.open("wb") as fh:
+                while left > 0:
+                    chunk = self.rfile.read(min(262144, left))
+                    if not chunk:
+                        break
+                    fh.write(chunk)
+                    left -= len(chunk)
+            if left:
+                tmp.unlink(missing_ok=True)
+                self.close_connection = True
+                return self._send(400, {"error": "upload cut short"})
+            tmp.replace(f)
+            return self._send(200, {"ok": True, "name": name, "bytes": n})
 
         def do_DELETE(self):
             self._send(405, extra={"Allow": "POST"})
