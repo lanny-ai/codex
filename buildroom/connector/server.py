@@ -429,13 +429,15 @@ def make_handler(app):
                     return self._page((HERE / "dashboard.html").read_text(encoding="utf-8"))
                 except OSError:
                     return self._send(404, {"error": "not found"})
-            if route == "/admin/usage":
-                status, obj = app.join.admin("GET", route, self._admin_key(), {})
+            if route in ("/admin/usage", "/admin/digest"):
+                status, obj = app.join.admin("GET", "/admin/usage", self._admin_key(), {})
                 if status != 200:
                     return self._send(status, obj, {"Cache-Control": "no-store"})
                 d = os.environ.get("BUILDROOM_DATA_DIR")
                 out = usage.summarize(usage.read(d), obj["members"], app.content.skills())
                 out["open"], out["pending"] = obj["open"], sum(1 for r in obj["requests"] if r.get("status") == "pending")
+                if route == "/admin/digest":
+                    out = usage.digest(out, out["pending"])
                 return self._send(200, out, {"Cache-Control": "no-store"})
             if self.path.split("?")[0] == "/health":
                 return self._send(200, {"ok": True, "version": SERVER_VERSION})

@@ -319,6 +319,15 @@ def main():
             check("dashboard: tools ranked by sessions, unused tools listed with none", su["tools"][0]["skill"] == "buildroom-os" and tl["buildroom-os"]["starts"] == 5
                   and tl["buildroom-os"]["starts_30"] == 4 and tl["buildroom-autopilot"]["members"] == 1 and tl["buildroom-compass"]["starts"] == 0 and tl["buildroom-compass"]["last"] is None)
             check("dashboard: thirty days of activity, and it says when counting began", len(su["daily"]) == 30 and su["daily"][-2]["members"] == 3 and su["tracking_since"].startswith("2026-10-12"))
+            dg = _u.digest(su, 2)
+            dt = dg["text"]
+            check("digest: the week in numbers, counting only sessions started", "2 of 6 members ran at least one session (4 sessions in all)" in dt and "2 sign-up request(s) waiting" in dt, dt[:500])
+            check("digest: each group to check in on is named, with a note to send", "CONNECTED BUT NEVER RAN A SESSION: 1" in dt and "C <c@x.com>, connected 3 day(s) ago" in dt
+                  and "GONE QUIET (no session in over 21 days): 1" in dt and "G <g@x.com>, last session 40 days ago" in dt and "HAVE A LINK, NEVER CONNECTED: 1" in dt and dt.count("A note you could send:") == 4)
+            check("digest: first sessions are called out, stopped members are not chased", "WORTH A CONGRATULATIONS" in dt and "<h@x.com>" in dt.split("WORTH A CONGRATULATIONS")[1] and "s@x.com" not in dt.split("WORTH A CONGRATULATIONS")[0])
+            check("digest: the subject line carries the two numbers that matter", dg["subject"] == "Build Room OS weekly: 2 active, 2 to check in on")
+            check("digest: says what it counts, promises nothing, no long dashes", "counts sessions started, not results" in dt and "\u2014" not in dt and "\u2013" not in dt)
+            check("digest: with nothing recorded it says so", "No activity has been recorded yet" in _u.digest(_u.summarize([], mem, sk, now))["text"])
             check("dashboard: no activity at all is handled", _u.summarize([], mem, sk, now)["tracking_since"] is None and _u.summarize([], [], [], now)["members"] == [])
             (data / "usage.jsonl").write_text("not json\n" + json.dumps(recs[0]) + "\n{\"at\": 1}\n")
             check("dashboard: damaged lines in the stored log are skipped", len(_u.read(str(data))) == 1 and _u.read(None) == [])
@@ -371,6 +380,15 @@ def main():
                 except urllib.error.HTTPError as e:
                     return e.code, None
             check("dashboard: the numbers need the admin key", ucode()[0] == 401 and ucode("wrong")[0] == 401)
+            def dcode(k=None):
+                rq = urllib.request.Request(b3 + "/admin/digest", headers={"Authorization": "Bearer " + k} if k else {})
+                try:
+                    r = urllib.request.urlopen(rq)
+                    return r.status, json.loads(r.read())
+                except urllib.error.HTTPError as e:
+                    return e.code, None
+            check("digest: needs the admin key, and comes back as a subject and plain text", dcode()[0] == 401 and dcode(admin_key)[0] == 200
+                  and set(dcode(admin_key)[1]) == {"subject", "text"} and "THE WEEK IN NUMBERS" in dcode(admin_key)[1]["text"])
             dkey = post(b3 + "/admin/api", {"email": "dash@example.com", "decision": "link"}, admin_key)[1].get("key")
             call(b3 + "/mcp", dkey, "buildroom_status")
             call(b3 + "/mcp", dkey, "buildroom_start_session", {"skill": "buildroom-os"})
@@ -385,6 +403,7 @@ def main():
                   and "dash@example.com" not in dh and "noindex" in dh and not _re.search(r'(src|href)="(https?:)?//', dh))
             check("dashboard: says what is and is not recorded", "Nothing a member types and nothing from their Business File is ever stored here." in dh)
             check("dashboard: linked from the approvals page", 'href="/admin/dashboard"' in urllib.request.urlopen(b3 + "/admin").read().decode())
+            check("dashboard: the week in words is one press away", 'id="dg"' in dh and "/admin/digest" in dh)
             check("dashboard: no long dashes", "\u2014" not in dh and "\u2013" not in dh)
             check("admin: approve", adm("POST", {"email": "new@example.com", "decision": "approve"})[1].get("ok"))
             s, r, _ = jn({"name": "New Person", "email": "new@example.com", "code": "ROOM-1111"})
