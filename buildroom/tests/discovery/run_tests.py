@@ -194,6 +194,13 @@ def main():
           and all(dm.looks_private(n) for n in ("Finance/2025 taxes.md", "Notes/therapy notes.md", "Notes/private.md", "Clients/Whitcombe P&L 2025.pdf", "Admin/payroll.xlsx", "Personal/journal.md")))
     QREF = (SCRIPT.parent.parent / "references/deep-discovery.md").read_text()
     QSK = (SCRIPT.parent.parent / "SKILL.md").read_text()
+    write(thin, skipped=["2.pains", "2.profile"])
+    c, out = run("ready", led)
+    check("ready: the extra round leads with what an owner knows and drops a section whose basics were skipped", "What do you charge" in out and "hesitate to buy" not in out and "look like after working with you" not in out
+          and "record \"extra_round\": true" in out, out)
+    write(thin, skipped=["2.pains", "2.profile"], extra_round=True)
+    c, out = run("ready", led)
+    check("ready: after the one extra round it offers no more questions", c == 2 and "The one extra round of questions has been asked. Do not offer more questions." in out and "What do you charge" not in out, out)
     # ---- Quick Start: the short interview for a member with little written down -----------------
     write(thin + [none], skipped=["2.dream"])
     c, out = run("interview", led)

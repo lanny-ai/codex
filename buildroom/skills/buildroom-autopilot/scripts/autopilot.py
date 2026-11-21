@@ -82,6 +82,8 @@ SCOPE = {
     "decision-machine": "The follow-up after a call and for a no-show only. The welcome sequence belongs to Funnel Map; do not write a second one. No tags built, no CRM build.",
     "leadgen": "One module only: the one that matches where the member most wants clients from. Record this step as partial and name the module.",
 }
+# The sessions most members reach for first after a run.
+NEXT_UP = ("proof-engine", "offer-deep-dive", "compass", "linkedin", "search-answer-engine", "funnel-scorecard")
 STATUSES = ("drafted", "partial", "blocked", "skipped")
 DONE_OK = ("drafted", "partial")
 # The three a run cannot go on without. Audience Insight is helpful, not required.
@@ -93,6 +95,7 @@ DRAFTS = "autopilot/drafts/"
 # What a step leans on. When the member has said there is none, or was never asked, the step would come back
 # mostly blank, so the member is offered the choice to leave it out before the straight run starts.
 LEANS_ON = {
+    "funnel-map": ("free_resource", "a free resource to offer (without one there is only the path as it stands to map)"),
     "lead-capture": ("free_resource", "a free resource to offer"),
     "decision-machine": ("tools", "the tools you use for email and follow-up"),
     "leadgen": ("preferred_source", "where you most want new clients to come from"),
@@ -261,7 +264,7 @@ def thin_steps(run):
     out = []
     for s in pending(run, "auto"):
         need = LEANS_ON.get(s["slug"])
-        if need and (need[0] not in dec or NONE.match(dec[need[0]])):
+        if need and (need[0] not in dec or NONE.match(dec[need[0]]) or re.match(r"\s*(none|no|nothing)\b", dec[need[0]], re.I)):
             out.append((s["slug"], need[1]))
     return out
 
@@ -325,7 +328,7 @@ def cmd_done(a):
         if not todo:
             die(f"--redo replaces the record of a step already finished. {a.slug} has not been finished.")
     if not todo:
-        die("Nothing is waiting. If the foundation is drafted, the member has to review it first.")
+        die("Nothing is waiting. If the foundation is drafted, the member has to review it first. To record a step again after redrafting it, add --redo.")
     if todo[0]["slug"] != a.slug:
         die(f"Out of order. The step to finish now is {todo[0]['slug']}, not {a.slug}.")
     outs = [str(o).replace("\\", "/") for o in (a.outputs or [])]
@@ -358,7 +361,7 @@ def cmd_approve(a):
     if thin:
         print("\nASK ONCE, before going on. These steps lean on something the member does not have yet and would come back mostly blank:")
         for slug, need in thin:
-            print(f"  - {TOOL[slug][1]}: needs {need}")
+            print(f"  - {TOOL[slug][1]} ({slug}): needs {need}")
         print("Ask the member whether to run them anyway or leave them out. To leave one out: "
               f"autopilot.py leave-out --dir {a.dir} SLUG --words \"what they said\". This is the last question of the run.")
 
@@ -366,6 +369,8 @@ def cmd_approve(a):
 def cmd_leave_out(a):
     run = load(a.dir)
     s = next((s for s in pending(run, "auto") if s["slug"] == a.slug), None)
+    if a.slug not in TOOL:
+        die(f"Unknown step “{a.slug}”. The steps still waiting are: " + ", ".join(x["slug"] for x in pending(run, "auto")) + ".")
     if not s:
         die(f"{a.slug} is not a step still waiting in the straight run. The ideal client, the offer and the positioning cannot be left out.")
     words = (a.words or "").strip()
@@ -429,8 +434,11 @@ def cmd_report(a):
         out += ["## Left out", ""] + [f"- **{TOOL[s['slug']][1]}:** {s.get('note', '')}. To run it yourself later, say “{TOOL[s['slug']][2]}”." for s in by["skipped"]] + [""]
     if by["pending"]:
         out += ["## Not reached yet", ""] + [f"- {TOOL[s['slug']][1]}" for s in by["pending"]] + ["", "Say “Run autopilot” to carry on from here.", ""]
-    out += ["## Needs you, so it was not run", "", "These depend on something only you have. Each one is a session you start with one sentence. Not all of them will fit your business; pick what does.", ""]
-    out += [f"- **{n}:** {why}. Say “{phrase}”." for _s, n, phrase, mode, why in TOOLS if mode == "needs_you"]
+    needs = [t for t in TOOLS if t[3] == "needs_you"]
+    out += ["## Needs you, so it was not run", "", "These depend on something only you have. Each one is a session you start with one sentence. Most members reach for these first:", ""]
+    out += [f"- **{t[1]}:** {t[4]}. Say “{t[2]}”." for t in needs if t[0] in NEXT_UP]
+    out += ["", "The rest, for when you need them. Not all of them will fit your business; pick what does.", ""]
+    out += [f"- **{t[1]}:** {t[4]}. Say “{t[2]}”." for t in needs if t[0] not in NEXT_UP]
     print("\n".join(out))
 
 

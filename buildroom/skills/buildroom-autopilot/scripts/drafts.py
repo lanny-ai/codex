@@ -7,13 +7,15 @@ FIX lines stop the handover (handover.py runs this check and will not build the 
   - a line the member retired, in the Business File or at the start of the run
   - a client's words used without permission recorded as yes, in copy a stranger reads (the offer page,
     the funnel emails, the opt-in page, outreach). In notes written for the member it is a LOOK line instead
-  - a price, percentage or multiple that nobody confirmed
+  - a price, percentage or multiple that nobody confirmed, or a count of clients, births, years and the like
+  - words in quotation marks given to someone ("...," said one mother) that match no real quote on record
   - a sentence that offers a guarantee or refund the member does not have, or without their exact wording
   - "double" or "triple" as a promise of an outcome
   - a draft with no "Draft by Autopilot" line at the top
 
-LOOK lines do not stop anything. They are sentences that share words with something the member refuses to claim.
-A script cannot judge meaning, so read each one against the rule and reword it if it comes close.
+LOOK lines do not stop anything. They are sentences that share a word with something the member refuses to claim,
+or that make a general claim about what clients get. A script cannot judge meaning, so read each one and reword
+it if it comes close. No LOOK lines is not a clean bill: the session still reads every draft against the rules.
 
 It reads run.json, foundation.json, the drafts, and the Business File and ledger when they are there.
 It writes nothing. Standard library only.
@@ -24,7 +26,15 @@ from pathlib import Path
 MONEY = re.compile(r"[$€£]\s?\d[\d,.]*|\d[\d,.]*\s?%|\b\d+(?:\.\d+)?x\b", re.I)
 # A sentence that offers a guarantee, as opposed to a heading or a note that names the subject.
 GUARANTEE_OFFER = re.compile(r"\b(we|i|you are|you'?re|it is|it'?s|is|are|fully|100%)\s+guarantee[ds]?\b|\bguaranteed\b|\bguarantee (that|you|your|it|a|the)\b"
-                             r"|money[- ]back|\bor (your|a full) (money|refund)\b|\b(full|your) refund\b|\brefund(ed)? (if|you|your)\b", re.I)
+                             r"|money[- ]back|\bor (your|a full) (money|refund)\b|\b(full|your) refund\b|\brefund(ed)? (if|you|your|in full)\b"
+                             r"|\b(will|we|i|we'll|i'll) refund\b", re.I)
+# A count of people or years is a fact about the member: "over 50 births", "200 clients", "15 years".
+COUNT = re.compile(r"\b(\d[\d,]*)\+?\s+(?:\w+\s+)?(births?|clients?|customers?|years?|students?|members?|families|projects?|businesses|studios?|practices|patients?|owners?)\b", re.I)
+# Words in quotation marks that are handed to someone: "...," said one mother.
+ATTRIBUTED = re.compile(r"[\"“]([^\"”]{15,})[\"”][,.]?\s*(?:said|says|wrote|writes|told|shared)\b|[\"“]([^\"”]{15,})[\"”]\s*[-–—]\s*[A-Z]")
+# A general claim about what clients get. Not refused, because it may be the member's own honest view. Listed to be read.
+GENERAL_CLAIM = re.compile(r"\b(most|many|all|every|typical(ly)?)\b[^.]{0,40}\b(clients?|customers?|parents|members|students|owners|people|practices|studios)\b[^.]{0,60}"
+                           r"\b(get|gets|see|sees|have|has|are|feel|report|save|earn|grow|need|needs)\b|\b(less|more) likely\b", re.I)
 OUTCOME = re.compile(r"\b(doubl(e|ed|es|ing)|tripl(e|ed|es|ing))\b", re.I)
 # Drafts whose words reach a stranger. In the others a client's words are notes for the member.
 PUBLIC = ("offer-page-copy", "funnel-map", "lead-capture", "leadgen")
@@ -45,8 +55,19 @@ def fig(m):
     return re.sub(r"[\s,]", "", m).rstrip(".").lower()
 
 
+def counts(text):
+    return {m.group(1).replace(",", "") + " " + m.group(2).lower().rstrip("s") for m in COUNT.finditer(str(text))}
+
+
 def figures(text):
-    return {fig(m) for m in MONEY.findall(str(text))}
+    return {fig(m) for m in MONEY.findall(str(text))} | counts(text)
+
+
+def negated(raw, m):
+    """Is the matched word itself denied? Only a negation in the same clause, just before it, counts:
+    "there is no guarantee" is; "if you are not happy, I will refund you" is not."""
+    clause = re.split(r"[,;:.!?]", raw[:m.start()])[-1]
+    return bool(NEGATED.search(clause[-45:]) or re.search(r"\b(dropped|removed|retired|stopped|no longer|used to|old|former)\b", clause[-45:], re.I))
 
 
 def parse_retired(line):
@@ -93,17 +114,22 @@ def rules(folder, business_file=None, ledger=None):
             guarantee = bf_field(text, "Guarantee")
         known |= figures(text)
     fnd = read_json(folder / "foundation.json") or {}
+    fquotes = []
     for part in fnd.values() if isinstance(fnd, dict) else []:
-        for v in (part.values() if isinstance(part, dict) else []):
+        for key, v in (part.items() if isinstance(part, dict) else []):
             for x in (v if isinstance(v, list) else [v]):
                 if isinstance(x, dict) and x.get("basis") in ("confirmed", "files"):
                     known |= figures(x.get("v", ""))
-    barred, allowed = [], []
+                    if key == "language":
+                        fquotes.append(str(x.get("v", "")))
+    barred, allowed, real_quotes = [], [], []
     led = read_json(ledger) if ledger else None
     for f in (led or {}).get("findings", []) if isinstance(led, dict) else []:
         if not isinstance(f, dict) or not isinstance(f.get("source"), dict):
             continue
         words = str(f.get("quote") or "")
+        if words:
+            real_quotes.append(words)
         if f.get("field") == "x.proof" and not f.get("absent"):
             # A real figure is not an invented one, whoever may quote it. Whether the words may be used is checked apart.
             known |= figures(str(f.get("value", "")) + " " + words)
@@ -123,7 +149,7 @@ def rules(folder, business_file=None, ledger=None):
         if squash(r) and squash(r) not in seen:
             seen.add(squash(r))
             uniq.append(r)
-    return {"run": run, "retired": uniq, "never": never, "guarantee": guarantee, "figures": known, "barred": barred, "allowed": allowed}
+    return {"run": run, "retired": uniq, "never": never, "guarantee": guarantee, "figures": known, "barred": barred, "allowed": allowed, "quotes": real_quotes + fquotes}
 
 
 def key_words(entry):
@@ -158,21 +184,31 @@ def check_text(name, text, r, public=True):
             continue
         where = f"{name}:{n}"
         permitted = any(a in s or s in a for a in allowed)
-        new = sorted({m.strip() for m in MONEY.findall(raw) if fig(m) not in r["figures"]})
+        new = sorted({m.strip() for m in MONEY.findall(raw) if fig(m) not in r["figures"]} | {c for c in counts(raw) if c not in r["figures"]})
         if new and not permitted:
             fixes.append(f"{where}: a figure nobody confirmed ({', '.join(new)}). Take it out, or mark it [needs you: ...]: {raw.strip()[:110]}")
-        if not NEGATED.search(raw) and not permitted:
-            if GUARANTEE_OFFER.search(raw) and (not wording or wording not in whole):
+        if not permitted:
+            g = next((m for m in GUARANTEE_OFFER.finditer(raw) if not negated(raw, m)), None)
+            o = next((m for m in OUTCOME.finditer(raw) if not negated(raw, m)), None)
+            if g and (not wording or wording not in whole):
                 fixes.append(f"{where}: offers a guarantee or refund, and " + ("the member's exact wording is nowhere in the draft" if wording else "the member has "
                              + ("none" if r["guarantee"] else "not confirmed one")) + f": {raw.strip()[:110]}")
-            elif OUTCOME.search(raw):
+            elif o:
                 fixes.append(f"{where}: reads as a promise of an outcome (double, triple). That is the member's to write: {raw.strip()[:110]}")
-        if not NEGATED.search(raw):
-            tokens = {w[:6] for w in re.findall(r"[a-z]{5,}", raw.lower())}
-            for entry, keys in never:
-                if keys and len(keys & tokens) >= min(2, len(keys)):
-                    looks.append(f"{where}: read this against what the member refuses to claim (“{entry}”): {raw.strip()[:110]}")
-                    break
+            for m in ATTRIBUTED.finditer(raw):
+                q = squash(m.group(1) or m.group(2))
+                if not any(q in squash(k) or squash(k) in q for k in r["quotes"] if squash(k)):
+                    fixes.append(f"{where}: words in quotation marks given to someone, with no real source for them. A client's words are copied from where they said them, or left out: {raw.strip()[:110]}")
+        tokens = {w[:6] for w in re.findall(r"[a-z]{5,}", raw.lower())}
+        hit = False
+        for entry, keys in never:
+            # A short rule ("any medical outcome") is matched on one shared word; a longer one needs two.
+            if keys and len(keys & tokens) >= (1 if len(keys) <= 3 else 2):
+                looks.append(f"{where}: read this against what the member refuses to claim (“{entry}”): {raw.strip()[:110]}")
+                hit = True
+                break
+        if public and not hit and not permitted and GENERAL_CLAIM.search(raw) and not NEGATED.search(raw):
+            looks.append(f"{where}: a general claim about what clients get. Keep it only if the member said it; a draft does not make it true: {raw.strip()[:110]}")
     return fixes, looks
 
 

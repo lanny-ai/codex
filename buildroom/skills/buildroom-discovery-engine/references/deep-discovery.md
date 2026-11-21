@@ -15,7 +15,7 @@ The helper is `scripts/discover.py`. It never opens a member's file and never go
 5. Ask the few questions that matter
 6. Say how ready the file is, and what to do about it
 
-The scope question in step 1 and the Business File intake come first. Skip the intake's confirm-or-correct summary here: the page in step 4 does that job better. After those, ask nothing about the business until the member has seen the page.
+The scope question in step 1 comes first, then the Business File intake. Skip the intake's confirm-or-correct summary here: the page in step 4 does that job better. After those, ask nothing about the business until the member has seen the page.
 
 Deep Discovery produces the page, the ledger and two lists. It does not produce a Discovery Brief, and it does not ask for a 1 to 5 rating. Those belong to the full Genie run.
 
@@ -133,6 +133,8 @@ Say two things with it:
 >
 > One question while you read: the lines marked "your file" came from your own documents. Are any of them out of date?
 
+Ask the second part only when the page has at least one line that came from a file. With nothing from a file, there is nothing to be out of date.
+
 A person corrects a wrong statement faster than they answer an open question, and it shows them the work was done.
 
 - Every correction becomes a new finding with source kind `member`, confidence `confirmed`. A member finding settles a disagreement and outranks every other source. Do not delete the findings it replaces; the ledger is the record.
@@ -150,8 +152,9 @@ Run `discover.py gaps`. It returns at most ten questions, in this order:
 2. old material on a price, a guarantee, an offer name or how the work runs ("an older source says X. Is that still true?"),
 3. the four things that must be known (what they do, who they serve, the core result, the core promise). When the core result is already the member's own word and the promise is not known, the promise is put as that result to confirm, not as an open question,
 4. what every owner knows off the top of their head: the price, what a client receives, how someone books, the guarantee, how the work runs, their background, the offer's name,
-5. the other fields with nothing reliable, the ones most later work depends on first,
-6. last, fields where all you have is your own guess to confirm.
+5. what they can say without looking anything up: how people find them, their tools, a typical result, who they turn away, why they started,
+6. the other fields with nothing reliable, the ones most later work depends on first,
+7. last, fields where all you have is your own guess to confirm.
 
 Ask them one at a time, in that order. The member may skip any question. Add a skipped field to `skipped` so it is never asked again. If an answer to one question also answers another, record it under both. Whatever is left over is listed as "left for the build sessions", which do their own intake.
 
@@ -181,7 +184,7 @@ Tell the member what the number is: a guide to how much is known, not a measurem
 
 Recommend the first when there are questions to ask, otherwise the second. Do not recommend Autopilot to a member who is not ready. A long run on a thin file mostly hands their own few sentences back in different shapes.
 
-**One more round, then stop.** If they choose to answer, ask the questions `ready` names, five at most, and run `ready` again. That is the last round. If it still says not ready, do not ask again and do not offer more questions: tell them the number, name the session to run by hand, and leave the choice with them. When `ready` says there is nothing left to ask, there is no extra round at all.
+**One more round, then stop.** If they choose to answer, ask the questions `ready` names, five at most, then set `"extra_round": true` at the top level of the ledger and run `ready` again. That is the last round. The extra round leaves out the harder questions in a section where the member already skipped two, because they will skip those too. If it still says not ready, do not ask again and do not offer more questions: tell them the number, name the session to run by hand, and leave the choice with them. When `ready` says there is nothing left to ask, there is no extra round at all.
 
 If Autopilot starts straight after this in the same conversation, it does not put the same choice to the member again.
 

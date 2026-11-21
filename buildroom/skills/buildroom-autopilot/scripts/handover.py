@@ -25,7 +25,7 @@ drafts = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(drafts)
 
 # The sessions most members reach for first after a run. The rest sit behind one click, so the page is not a wall.
-NEXT_UP = ("proof-engine", "offer-deep-dive", "compass", "linkedin", "search-answer-engine", "funnel-scorecard")
+NEXT_UP = keeper.NEXT_UP
 
 # What each drafted piece is for, in a line the member would say.
 FOR = {
@@ -158,10 +158,18 @@ def build(run, folder, page_dir, business):
         else "The run is not finished. Here is what is drafted so far. Say “Run autopilot” to carry on."
     o.append(f'<header class="cover"><div class="wrap"><div class="eyebrow">Build Room OS · Your Build</div>'
              f'<h1>{lead}<em>{"your first build, started." if mostly_partial else "your first build, drafted."}</em></h1><p>{E(done_line)} Started {E(str(run.get("started", "")))}.</p>'
-             f'<div class="stats"><div class="stat a"><b>{len(made)}</b><span>pieces drafted for you' + (f', {len(by["partial"])} of them only in part' if by["partial"] else "") + '</span></div>'
+             f'<div class="stats"><div class="stat a"><b>{len(by["drafted"])}</b><span>pieces drafted for you' + (f', and {len(by["partial"])} more only in part' if by["partial"] else "") + '</span></div>'
              f'<div class="stat b"><b>{gaps}</b><span>different things they still need from you</span></div>'
              f'<div class="stat c"><b>{len(needs)}</b><span>sessions waiting for you to start</span></div></div></div></header><div class="edge"></div><main class="wrap">')
 
+    r = run.get("readiness")
+    if run.get("thin_ok") or mostly_partial:
+        o.append('<section><div class="card warn"><h3>Read this first</h3><p>'
+                 + (f'When this run started, your file was at {E(str(r))} out of 100 for how much is known, below the 70 a run needs to be worth it. ' if str(r).isdigit() and int(r) < keeper.READY_AT
+                    else 'No research or interview was done before this run. ' if r == "none" else "")
+                 + (f'You chose to go ahead: {E(keeper.said(run["thin_ok"]))} ' if run.get("thin_ok") else "")
+                 + 'So most of what is here is your own few sentences in different shapes, with the gaps marked. The most useful next step is not to polish these drafts. '
+                   'It is to answer what is still open, or to run the Ideal Client Avatar session yourself.</p>' + say(TOOL["ideal-client-avatar"][2]) + '</div></section>')
     o.append('<section><div class="num">Start here</div><h2>What to do first</h2><p class="sub">Everything on this page is a draft. Nothing was published, sent or paid for. It becomes real when you have checked it.</p>'
              '<div class="first"><div class="card"><span class="n">1</span><h3>Read the drafts</h3><p class="why">Open each one below and fix anything that does not sound like you. Every one was written for you to check; each ends with a short list of what in it is yours and what is not.</p></div>'
              '<div class="card"><span class="n">2</span><h3>Fill what needs you</h3><p class="why">Each draft lists what is still missing. Tick them off here as you go. Your ticks are remembered on this computer.</p></div>'

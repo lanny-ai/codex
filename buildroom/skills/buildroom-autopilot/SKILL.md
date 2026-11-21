@@ -43,11 +43,11 @@ Three helpers, all standard library only:
    - If Deep Discovery put this same choice to the member a moment ago in this conversation, do not ask it again. Act on the answer they gave.
    - If they do not choose to go ahead, there is no run. Write nothing, and tell them the one session to start next.
 4. Tell the member, in a few sentences, what will happen: a few questions, the foundation, one review, then the rest straight through; everything is a draft; nothing is published, sent or paid for; it takes a couple of hours and a large share of their usage allowance, and it saves its place after every step.
-5. Make the plan: `autopilot.py plan --dir autopilot --readiness <number or none>`, with `--no-web` when there is no web access. Show it. Do not ask the member to choose steps by name; only leave one out (`--skip`) if they ask.
+5. Make the plan: `autopilot.py plan --dir autopilot --readiness <number or none>`, with `--no-web` when there is no web access. Show it. On a thin file the member chose to run anyway, say now, before any drafting, that all three foundation pieces will most likely come back only partly drafted. Do not ask the member to choose steps by name; only leave one out (`--skip`) if they ask.
 
 ### Phase 1: The questions only they can answer
 
-This is the last chance to ask before the run, so ask what unblocks the most. One at a time, **only** the ones the Business File and the ledger do not already answer as the member's own word. A question the member skipped in Deep Discovery (the ledger's `skipped` list), or answered there with "none", is not asked again. Ten at most, in this order:
+This is the last chance to ask before the run, so ask what unblocks the most. One at a time, **only** the ones the Business File and the ledger do not already answer as the member's own word. A question the member skipped in Deep Discovery (the ledger's `skipped` list), or answered there with "none", is not asked again. Eleven at most, in this order:
 
 1. The price they charge today.
 2. Whether they offer a guarantee, and its exact wording if so. Ask this even when a file mentions one, unless the member has confirmed it.
@@ -57,8 +57,9 @@ This is the last chance to ask before the run, so ask what unblocks the most. On
 6. Any line, story or old offer that must never be used.
 7. How someone books a call or buys, with the link if there is one.
 8. The tools they use for email, their CRM, their website and booking.
-9. Where they most want new clients to come from, and the one result they want in the next 90 days.
-10. Whether they have a free resource to offer, and what it is.
+9. Where they most want new clients to come from.
+10. The one result they want in the next 90 days.
+11. Whether they have a free resource to offer, and what it is.
 
 Record each answer as they give it: `autopilot.py decide --dir autopilot --key <key> --value "<their words>"`. Keys: `price`, `guarantee`, `deliverables`, `typical_result`, `never_claim`, `retired`, `booking`, `tools`, `preferred_source`, `goal_90`, `free_resource`, `credentials`. A skipped question is recorded as nothing.
 
@@ -95,7 +96,7 @@ If the run is cut short, the state is already saved. Tell the member how far it 
 2. `autopilot.py report`, saved as `autopilot/Autopilot_Report.md`.
 3. `handover.py build --dir autopilot autopilot/Your_Build.html`. It runs the same check and refuses to build while a `FIX` remains. Tell the member to open it in their browser.
 4. Update the Business File as the method says: one §8 row for the run that names every draft. The sections the Phase 4 sessions own are left as they are.
-5. Close with the three things from the top of the report's "What to do first", in the member's terms. Then the one session to run themselves next: usually **Proof Engine** ("Capture this win") when they have clients, and the questions still open when they do not.
+5. Close with the three things from the top of the report's "What to do first", in the member's terms. Then the one session to run themselves next: **Ideal Client Avatar** by hand when most of the foundation came back partial; otherwise usually **Proof Engine** ("Capture this win") when they have clients, and the questions still open when they do not.
 
 ### Optional: GoHighLevel values
 

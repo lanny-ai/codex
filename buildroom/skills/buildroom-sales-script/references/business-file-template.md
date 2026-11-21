@@ -4,7 +4,7 @@ _One file. Every Build Room session reads it before asking you anything, and upd
 
 **Owner:** [your name]
 **Business:** [business name]
-**File version:** 1.11
+**File version:** 1.12
 **Last updated:** [YYYY-MM-DD] by [session name]
 
 > **How to use this file:** Leave it in your Build Room folder. Each session reads it, skips every question it already answers, saves its changes here and tells you what changed. You can edit anything by hand at any time — your edits win.

@@ -309,8 +309,10 @@ def main():
     check("done: a step drafted again after the review can be recorded again", code == 0 and json.loads((R2 / "run.json").read_text())["steps"][1]["note"] == "redrafted after the review")
     check("done: --redo does not record a step that never ran", ap2("done", "funnel-map", "--status", "drafted", "--outputs", D2 + "x.md", "--redo")[0] != 0)
     code, out = ap2("approve", "--words", "Go.")
-    check("approve: steps that lean on something the member lacks are put to them once", "ASK ONCE" in out and "Lead Capture: needs a free resource to offer" in out
-          and "Lead Gen Machine: needs where you most want new clients" in out and "Decision Machine" not in out)
+    check("approve: steps that lean on something the member lacks are put to them once", "ASK ONCE" in out and "Lead Capture (lead-capture): needs a free resource to offer" in out and "Funnel Map (funnel-map): needs a free resource" in out
+          and "Lead Gen Machine (leadgen): needs where you most want new clients" in out and "Decision Machine (decision-machine): needs the tools" in out and "Sales Conversations" not in out)
+    code, out = ap2("leave-out", "lead-gen-machine", "--words", "leave it")
+    check("leave-out: an unknown step is called unknown, with the real names", code != 0 and "Unknown step" in out and "leadgen" in out)
     check("leave-out: needs the member's words, and only drops a waiting run step", ap2("leave-out", "lead-capture")[0] != 0 and ap2("leave-out", "signature-offer", "--words", "skip it")[0] != 0)
     check("leave-out: records the member's choice", ap2("leave-out", "lead-capture", "--words", "Leave that one out")[0] == 0)
     out = ap2("report")[1]
@@ -346,7 +348,7 @@ def main():
     hh = hp.read_text()
     check("handover: one self-contained page, named for the business from the Business File", code == 0 and hh.startswith("<!doctype html>") and "<title>Your Build · Harbor &lt;Coaching&gt;</title>" in hh
           and not re.search(r'(src|href)="https?:', hh) and "@import" not in hh and "url(" not in hh)
-    check("handover: counts drafted pieces, open items and waiting sessions", "<b>4</b><span>pieces drafted for you, 1 of them only in part" in hh and "<span>different things they still need from you" in hh
+    check("handover: counts drafted pieces, open items and waiting sessions", "<b>3</b><span>pieces drafted for you, and 1 more only in part" in hh and "<span>different things they still need from you" in hh
           and f"<b>{sum(1 for t in am.TOOLS if t[3] == 'needs_you')}</b><span>sessions waiting" in hh)
     check("handover: leads with the answers that unlock more than one draft", "Answer these first" in hh and "A booking link" in hh.split("Answer these first")[1].split("</div>")[0]
           and "Two real client" not in hh.split("Answer these first")[1].split("</div>")[0])
@@ -409,7 +411,12 @@ def main():
     code, out = drafts(HEAD + "x", "“We went from 22 to 41 students in a term” (not for public quoting)")
     check("drafts: marked not for public quoting in the member's notes, it is left alone", code == 0 and "LOOK" not in out, out)
     code, out = drafts(HEAD + "Enrollment that keeps growing, term after term.\nMore revenue from the classes you already run, and fuller enrollment.")
-    check("drafts: a sentence near what the member refuses to claim is listed to be read, not refused", code == 0 and out.count("LOOK") == 1 and "Doubling enrollment or revenue" in out, out)
+    check("drafts: a sentence near what the member refuses to claim is listed to be read, not refused", code == 0 and out.count("LOOK") == 2 and "Doubling enrollment or revenue" in out, out)
+    code, out = drafts(HEAD + "If you are not happy, I will refund you in full.\nI have helped over 50 studios.\n“He was the reason our classes filled,” said one owner.\nI dropped the money-back guarantee years ago.")
+    check("drafts: a refund offer is caught even when the sentence holds a 'not'; an invented count and an invented quote are refused; a dropped guarantee is not an offer",
+          code == 1 and out.count("FIX") == 3 and "offers a guarantee or refund" in out and "50 studio" in out and "no real source" in out and "dropped" not in out.split("FIX")[1], out)
+    code, out = drafts(HEAD + "Most studio owners see fuller classes within a term.\nOwners who do this are more likely to stay open.")
+    check("drafts: a general claim about what clients get is listed to be read", code == 0 and out.count("a general claim about what clients get") == 2, out)
     code, out = drafts("Classes that fill.")
     check("drafts: a draft that does not say it is a draft is refused", code == 1 and "must say it is a draft" in out)
     run(AP, "decide", "--dir", CA, "--key", "guarantee", "--value", "If your books are not closed by the 10th, that month is free.")
@@ -445,7 +452,7 @@ def main():
     check("skill: imagined client words never become quotes", "never **Sourced language**" in me and "never inside quotation marks" in me)
     check("skill: the member's rules are carried into every session", "Give those to every session and every subagent, word for word." in me and "autopilot.py decide" in sk)
     check("skill: the questions asked are the ones that unblock the most", all(x in sk for x in ("A typical client result", "How someone books a call or buys", "The tools they use", "Ask this even when a file mentions one"))
-          and "Ten at most" in sk and "What a client actually receives" in sk and "the next 90 days" in sk and "Record what is already known too." in sk)
+          and "Eleven at most" in sk and "What a client actually receives" in sk and "the next 90 days" in sk and "Record what is already known too." in sk)
     check("skill: the member is not asked to choose steps by name", "Do not ask the member to choose steps by name" in sk)
     check("skill: one stop, and only the member's own go-ahead passes it", "Never record a go-ahead they did not give." in sk and "Silence, or your own judgement that it is good, is not." in me
           and "means show them the page again" in me)

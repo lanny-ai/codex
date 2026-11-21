@@ -101,7 +101,7 @@ After the foundation and before anything else, the member sees the Foundation Re
 
 - Nothing in Phase 4 starts until `autopilot.py approve` has recorded the member's own words.
 - "Go ahead: yes" on the review, or "looks fine, keep going", is a go-ahead. Silence, or your own judgement that it is good, is not. "Looks right" on all three parts with no go-ahead means show them the page again.
-- A line they change becomes theirs: apply it in their words and tag it confirmed. If the change they ask for is already there, say so and change nothing.
+- A line they change becomes theirs: apply it in their words and tag it confirmed, on the page and in the draft document it came from, and record that step again with `--redo`. If the change they ask for is already there, say so and change nothing.
 - A part they say nothing about stays drafted. Their go-ahead covers it; do not ask again. In a part they marked "Change this", the lines they did not mention stay drafted too.
 - A part they mark "Looks right" changes its drafted lines to **reviewed**: a draft they approved as it stands. It is not their own words, so it never becomes confirmed, and later sessions still treat it as a draft that may be reworded.
 - A change that says what **not** to say is recorded with `autopilot.py decide --key never_claim` (or `retired`), so every later session carries it.

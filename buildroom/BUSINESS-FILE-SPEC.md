@@ -1,6 +1,6 @@
 # Build Room Business File — Specification
 
-**Version 1.11 · 2026-11-15** (1.10 · 2026-11-15; 1.9 · 2026-11-14; 1.8 · 2026-11-13; 1.7 · 2026-11-11; 1.6 · 2026-10-28; 1.5 · 2026-10-17; 1.4 · 2026-10-16; 1.3 · 2026-10-14; 1.2 · 2026-10-14; 1.1 · 2026-09-30; 1.0 · 2026-08-26)
+**Version 1.12 · 2026-11-21** (1.11 · 2026-11-15; 1.10 · 2026-11-15; 1.9 · 2026-11-14; 1.8 · 2026-11-13; 1.7 · 2026-11-11; 1.6 · 2026-10-28; 1.5 · 2026-10-17; 1.4 · 2026-10-16; 1.3 · 2026-10-14; 1.2 · 2026-10-14; 1.1 · 2026-09-30; 1.0 · 2026-08-26)
 
 ## Why this exists
 
@@ -24,7 +24,7 @@ The Business File moves that discipline into the skills. It is **one markdown do
 | `shared/business-file-protocol.md` | The behavioral contract every skill embeds (read/write/conflict/size rules). |
 | `skills/*/references/business-file-{template,protocol}.md` | Per-skill embedded copies (skills are standalone installers; `build-skills.sh` syncs them from the canonical sources). |
 
-## Section registry (v1.11)
+## Section registry (v1.12)
 
 | § | Section | Written by | Requires |
 |---|---|---|---|
@@ -78,4 +78,6 @@ Every new weekly skill MUST:
 
 Version 1.11 also adds two fields to §4, *Market sophistication* and *Belief to move*, written by Positioning & Messaging and read by the Copy Engine and Ad Studio. Older files simply lack them; skills that read them fall back to §2's awareness stage and ask.
 
-The file carries `File version: 1.11` in its header (the spec version above). Additive changes (new sections, new fields) bump the minor version and require no migration. Skills treat unknown sections as opaque and preserve them byte-for-byte on rewrite — this is what lets a member's file move safely between skill generations.
+Version 1.12 adds four fields to §1: *How someone books or buys*, *Background and credentials*, *A typical client result* and *Never claim or promise*. Deep Discovery and Autopilot write them; every session reads *Never claim or promise* the way it reads *Retired lines*. Older files simply lack them, and a session adds a field the first time it has something to put there.
+
+The file carries `File version: 1.12` in its header (the spec version above). Additive changes (new sections, new fields) bump the minor version and require no migration. Skills treat unknown sections as opaque and preserve them byte-for-byte on rewrite — this is what lets a member's file move safely between skill generations.

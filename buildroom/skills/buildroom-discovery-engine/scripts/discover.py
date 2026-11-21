@@ -61,6 +61,8 @@ FACTS = ("1.price", "3.guarantee", "3.typical_result", "3.offer_name", "3.struct
 # Things every owner knows off the top of their head. Asked before the hard ones, so a member with little
 # written down gets to answer something early instead of skipping eight questions in a row.
 EASY = ("1.price", "3.deliverables", "1.booking", "3.guarantee", "3.structure", "x.credentials", "3.offer_name")
+# Next easiest: no research needed, just what the owner already knows about their own business.
+SIMPLE = ("1.lead_sources", "1.tools", "3.typical_result", "2.negative", "x.story")
 HEARSAY = re.compile(r"\b(someone (told|said)|i heard|heard that|apparently|supposedly|never saw|second[- ]?hand|word is|rumou?r)\b", re.I)
 # "None" is a real answer for a guarantee. It is not evidence of proof, a voice or client words.
 NO_CREDIT_WHEN_ABSENT = ("x.proof", "x.voice", "2.language", "x.credentials", "3.typical_result")
@@ -354,7 +356,10 @@ def gap_list(d, cap):
             if answered_none(bf.get(key, [])):
                 continue
             known = [f for f in bf.get(key, []) if not f.get("absent")]
-            rank = 2 if key in CORE else 3 if key in EASY else 4 if key in FACTS or not known else 5
+            rank = 2 if key in CORE else 3 if key in EASY else 4 if key in SIMPLE else 5 if key in FACTS or not known else 6
+            # A member who skipped two questions in a section will skip the harder ones there too. Ask those last.
+            if rank >= 5 and sum(1 for k in skipped if FIELD.get(k, (0, None))[1] == _sec) >= 2:
+                rank = 7
             core = best(bf["1.core_result"]) if cr.get("1.core_result", 0) >= 1 else None
             if key == "3.promise" and not known and core:
                 rows.append((rank, -weight, key, f"Core promise: is it roughly your core result, “{core['value']}”? Say yes, or put it in your own words."))
@@ -510,13 +515,17 @@ def cmd_ready(a):
         if weak:
             print("These must be known first: " + ", ".join(weak) + ".")
         cr = credit(d)
-        ask, _ = gap_list(d, 5)
+        # In the extra round, leave out the questions in a section where the member already skipped the basics.
+        ask = [r for r in gap_list(d, 40)[0] if r[0] < 7][:5]
         skipped = [FIELD[s][2] for s in d.get("skipped") or [] if s in FIELD and cr.get(s, 0) < CONF["likely"]]
+        if ask and d.get("extra_round"):
+            print("The one extra round of questions has been asked. Do not offer more questions.")
+            ask = []
         if ask:
-            print("Answering these would help most. Ask them once, as one more round, and then stop asking:")
+            print("Answering these would help most. Ask them once, as one more round, record \"extra_round\": true in the ledger, and then stop asking:")
             for _, _, _key, q in ask:
                 print(f"  - {q}")
-        else:
+        elif not d.get("extra_round"):
             print("There is nothing left to ask that the member has not already answered or skipped. Do not offer more questions.")
         if skipped:
             print("Already skipped by the member: " + ", ".join(skipped) + ". Those stay open until they choose to answer.")
