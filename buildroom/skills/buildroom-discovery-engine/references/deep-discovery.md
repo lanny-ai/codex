@@ -193,19 +193,43 @@ If Autopilot starts straight after this in the same conversation, it does not pu
 
 This is what runs when a brand-new member says **"I'm new here. Help me get started."** The navigator welcomes them and hands over to this section. The aim is that they leave with something they can use today, and that the first thing they see is their own business understood, not a form.
 
+**Read only what this needs:** this section, the Business File protocol and the template. Not the Genie source, the discovery method or the certainty adapter. A new member should not wait while you read.
+
+**A new member is not asked about a Business File.** They said they are new. If there is no file in the folder, create one in step 7. Do not ask whether they keep one somewhere else, do not ask for a rating at the end, and do not tell them to save over an old copy.
+
 1. **Ask one thing.** "Do you have a website or a LinkedIn page for the business? Paste the address, or say you have nothing online." Nothing else yet.
 2. **If they give an address and you can reach the web,** read that page and up to three more on the same site (about, services or pricing, contact). Read nothing else and nobody else's site. Record what you find as `web` findings in `discovery/ledger.json`, in the page's own words, with the scope `{"read": ["<the address>"], "agreed": "<date>: they gave the address"}`.
-   Then show them, in the chat, **"Here is what I learned about your business"**: eight lines at most, the plainest facts first (what you do, who it is for, the result, what you sell, the price if it is shown, how someone books), each with the page it came from. End with: "Tell me what is wrong or out of date. If it is right, say so."
+   Then show them, in the chat, **"Here is what I learned about your business"**: twelve lines at most, numbered, the plainest facts first (the business's name and theirs, what you do, who it is for, the result, what you sell and what a client receives, the price if it is shown, how someone books, their background), each with the page it came from. End with: "Tell me what is wrong or out of date. If it is right, say so."
    - A line they correct becomes a `member` finding in their words.
-   - A line they say is right becomes a `member` finding: it is their own site and they have just confirmed it.
-   - A line they do not mention stays a `web` finding. It is not theirs yet and does not go into the Business File.
+   - A line they say is right becomes a `member` finding: it is their own site and they have just confirmed it. "The rest is right" covers only the lines they named or plainly meant.
+   - **Then ask once about the lines they did not mention:** "You did not mention lines 4, 6 and 8. Are those still right?" What they confirm becomes theirs. What they still do not confirm stays a `web` finding: it is not theirs yet and does not go into the Business File.
+   - If they drop something (a guarantee, an offer name, a claim), mark that finding `"retired": true` at once. The page check reads retired lines from the ledger, so it is barred before the Business File exists. Tell them once, plainly, that their site still shows it.
    - Never guess what a page does not say. A site with no price has no price.
-3. **If they have nothing online, or you cannot reach the web,** say so in one line and skip to step 4. Do not ask them to paste their site.
-4. **Ask only what is still missing** from the Business Snapshot: what they do, who they serve, the core result, the price, how people find them, their tools. One at a time. Then two more, because the page and the three drafts need them: what a client actually receives, and their background ("What training, experience or track record should a client know about?"). Any of them can be skipped. Stop there. This is a first session, not the interview.
-5. **Write three ways to say what they do,** from their own words only, as `discovery/first_words.json`: one sentence, one paragraph, and a short bio. Use their nouns and their phrasing. Add no number, no result, no credential and no claim they did not give. No bio unless they gave their background or their story. These are drafts and the page says so.
-6. **Build the page:** `onepage.py check discovery/ledger.json --words discovery/first_words.json`, fix what it lists, then `onepage.py build discovery/ledger.json Your_Business_On_One_Page.html --words discovery/first_words.json --next "Help me build my ideal client avatar"`. Tell them to open it. In a chat with no folder, show the same content in the chat instead: their words under plain headings, then the three drafts marked as drafts.
-7. **Create the Business File** per the protocol with §1 filled from what is now theirs, and one §8 row. Tell them where it is saved.
-8. **Close with one next step,** not a menu: the Ideal Client Avatar session, with its sentence. If they have files worth reading, mention "Research my business first" in one line. If they want to keep answering now, "Interview me about my business" carries on where this stopped.
+3. **If they have nothing online, or you cannot reach the web,** say so in one line ("That is fine. I will just ask you a few things instead.") and go on. Do not ask them to paste their site.
+4. **Ask only what is still missing,** one at a time, in these words or plainer ones. Skip any that the member has already said or confirmed. Any can be skipped; say so once at the start.
+   1. "What is your name, and what do you call the business?" (Skip if they confirmed both from their site. This becomes the ledger's `subject` and the Business File header.)
+   2. "In a sentence or two, what do you do for people?"
+   3. "Who do you do it for?"
+   4. "What is the main thing they get out of it?"
+   5. "What do you charge today? A price or a range is fine."
+   6. "What does someone actually get when they hire you?"
+   7. "How do people find you today?"
+   8. "When someone is ready, how do they book or buy?"
+   9. "What should someone know about your background? Training, experience, how long you have done this."
+   10. Only if they have something online: "What do you use to run things: email, website, calendar?" A member with nothing online is not asked about tools.
+   Stop there. This is a first session, not the interview. `discover.py ready` may print more questions; do not ask them.
+5. **Write up to three ways to say what they do,** from their own words only, as `discovery/first_words.json`: one sentence, one paragraph, and a short bio. Use their nouns and their phrasing; yours are only the joining words. Add no number, no result, no credential and no claim they did not give, and nothing from their site that they did not confirm. No bio unless they gave their background or their story. These are drafts and the page says so.
+6. **Build the page:** `onepage.py check discovery/ledger.json --words discovery/first_words.json`. Fix every `FIX`. For every `LOOK`, which lists words in a draft that the member never used, keep a word only if it adds no fact of its own. A clean check is not proof; read the drafts once more against what they said. Then `onepage.py build discovery/ledger.json Your_Business_On_One_Page.html --words discovery/first_words.json --next "Help me build my ideal client avatar" --why "This session works out who your best customer is, so everything after it is written to one person."` Tell them to open the page by double-clicking the file.
+7. **Create the Business File** from the template:
+   - the header's Owner and Business, from what they said;
+   - §1 from what is now theirs, status `provisional`. Write their tools answer as they gave it, in place of the empty slots;
+   - what a client receives, and "Guarantee: none" if they said so, into §3 with status `provisional`, so the offer session does not ask again;
+   - anything they retired into §1 Retired lines;
+   - one §8 row, rating "not asked: first session".
+   Where files can be written, save it in the folder and say where. Do not print it into the chat.
+8. **Close with one next step,** not a menu: the Ideal Client Avatar session, with its sentence and one plain line on what it does. Nothing else: no Compass, no second phrase.
+
+**In a chat with no folder,** nothing can be saved and no script can run. Check the drafts by hand against the same rules. End with one message in this order: their words under plain headings; the drafts, each marked DRAFT; the one next step; and last, the start of their Business File in one code block, **only the header, §1, any §3 lines and the §8 row**, with one line saying "Save this as a note or a document. Later sessions add to it." Do not emit the empty template.
 
 Keep it to about fifteen minutes. The page is the payoff: get to it.
 

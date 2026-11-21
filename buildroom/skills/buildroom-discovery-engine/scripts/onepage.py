@@ -2,7 +2,7 @@
 """Your business on one page: the page a member gets at the end of their first session.
 
   onepage.py check LEDGER.json [--words WORDS.json] [--business-file FILE]
-  onepage.py build LEDGER.json OUT.html [--words WORDS.json] [--business-file FILE] [--next "sentence to say next"]
+  onepage.py build LEDGER.json OUT.html [--words WORDS.json] [--business-file FILE] [--next "sentence to say next"] [--why "what that session does, in plain words"]
 
 The page shows what the member said, in their own words, from the ledger's member and Business File findings.
 Nothing found on a page or in a file, and nothing guessed, is shown as theirs.
@@ -10,7 +10,8 @@ Nothing found on a page or in a file, and nothing guessed, is shown as theirs.
 WORDS.json is optional: three ways to say what they do, written by the session from the member's words only.
   {"sentence": "...", "paragraph": "...", "bio": "..."}
 They are shown as drafted, never as the member's words, and are refused if they carry a number the member
-did not give, a guarantee or a promise of an outcome, or a line the member retired. A bio is refused unless
+did not give (in digits or in words), a claim about them they did not make (certified, insured, trusted, best),
+a guarantee or a promise of an outcome, or a line the member retired. A bio is refused unless
 the member has given their background or their story.
 
 One self-contained file. It works offline and prints cleanly. Standard library only.
@@ -25,11 +26,16 @@ _spec.loader.exec_module(dz)
 E = html.escape
 
 FIGURE = re.compile(r"[$€£]\s?\d[\d,.]*|\d[\d,.]*\s?(?:%|percent\b|per cent\b)|\b\d+(?:\.\d+)?x\b|\b\d[\d,]*\b", re.I)
-PROMISE = re.compile(r"\b(guarantee[ds]?|money[- ]back|refund(s|ed)?|doubl(e|ed|es|ing)(?![- ]?(check|book|click|sided))|tripl(e|ed|es|ing))\b", re.I)
+PROMISE = re.compile(r"\b(guarantee[ds]?|money[- ]back|refund(s|ed)?|or (you|they) pay nothing|or it'?s free|or your money|risk[- ]free|doubl(e|ed|es|ing)(?![- ]?(check|book|click|sided))|tripl(e|ed|es|ing))\b", re.I)
+NUMBER_WORD = re.compile(r"\b(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundreds?|thousands?|"
+                         r"millions?|dozens?|decades?|several|countless|many years)\b", re.I)
+# Words that claim something about the member. A draft may use one only if the member used it.
+CLAIM_WORD = re.compile(r"\b(certified|licen[cs]ed|insured|bonded|accredited|award[- ]?winning|awards?|trusted|best|leading|top|expert|experts|premier|number one|#1|"
+                        r"renowned|proven|world[- ]class|experienced|qualified|specialists?|professional|years of experience|results)\b", re.I)
 LIMITS = {"sentence": 220, "paragraph": 700, "bio": 600}
-LABELS = {"sentence": ("In one sentence", "For an introduction, a bio line or the top of a page."),
-          "paragraph": ("In one paragraph", "For an About section or the opening of an email."),
-          "bio": ("A short bio", "For a profile, a speaker page or a guest post.")}
+LABELS = {"sentence": ("In one sentence", "For when someone asks what you do."),
+          "paragraph": ("In one paragraph", "For a flyer, a card, an About section or a note to a new client."),
+          "bio": ("A short bio", "For a profile or anywhere someone asks about you.")}
 HEAD = ("1.what_i_do", "1.who_i_serve", "1.core_result")
 # The ledger's labels are written for the session. These are written for the member.
 PLAIN = {"3.deliverables": "What a client receives", "2.pains": "What they struggle with", "2.profile": "My best client", "2.dream": "What they want",
@@ -51,6 +57,24 @@ def said(d):
     return " ".join(str(f.get("value", "")) + " " + str(f.get("quote", "")) for fs in dz.by_field(d).values() for f in fs if dz.kind(f) in dz.OWN and not f.get("stale"))
 
 
+COMMON = set("""about after again against also always been before being between both could does doing down during each every from have here into just more most much
+only other over same should some such than that their them then there these they this those through under until very were what when where which while will with
+would your yours mine myself work works working help helps helping make makes made give gives take takes come comes goes going know knows knowing need needs
+like want wants people person someone anyone everyone thing things time times month months week weeks year years today each call called business""".split())
+
+
+def unfamiliar(d, words):
+    """Words in a draft that appear in nothing the member said. Not a refusal: a list for the session to justify, one by one."""
+    stem = lambda w: re.sub(r"(ings?|ed|es|s|e|ly)$", "", w) if len(w) > 5 else w  # noqa: E731
+    theirs = {stem(w) for w in re.findall(r"[a-z]{5,}", (said(d) + " " + str(d.get("subject", ""))).lower())}
+    out = {}
+    for k, v in (words or {}).items():
+        new = sorted({w for w in re.findall(r"[a-z]{5,}", str(v).lower()) if w not in COMMON and stem(w) not in theirs})
+        if new:
+            out[k] = new
+    return out
+
+
 def word_problems(d, words, retired=()):
     out = []
     if not isinstance(words, dict):
@@ -69,6 +93,13 @@ def word_problems(d, words, retired=()):
         new = sorted({m for m in FIGURE.findall(v) if re.sub(r"[\s,]", "", m).lower().rstrip(".") not in known})
         if new:
             out.append(f"{k}: carries a number the member did not give ({', '.join(new)})")
+        theirs = said(d).lower()
+        nw = sorted({m.group(0).lower() for m in NUMBER_WORD.finditer(v) if m.group(0).lower() not in theirs})
+        if nw:
+            out.append(f"{k}: carries a number or amount the member did not give ({', '.join(nw)})")
+        cw = sorted({m.group(0).lower() for m in CLAIM_WORD.finditer(v) if m.group(0).lower() not in theirs})
+        if cw:
+            out.append(f"{k}: makes a claim the member did not make ({', '.join(cw)}). Use their words, or leave it out")
         if PROMISE.search(v):
             out.append(f"{k}: reads as a guarantee or a promise of an outcome. That is the member's to write")
         if re.search(r"[\"“][^\"”]{12,}[\"”]", v):
@@ -135,16 +166,19 @@ var p=document.getElementById("print");if(p)p.addEventListener("click",function(
 """
 
 
-def build(d, words=None, next_phrase=""):
+def build(d, words=None, next_phrase="", why=""):
     name = str(d.get("subject") or "Your business")
     o = [f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{E(name)} on one page</title><style>{CSS}</style></head><body>']
     o.append(f'<header class="cover"><div class="wrap"><div class="eyebrow">Build Room OS · Your business on one page</div><h1>{E(name)},<br><em>in your own words.</em></h1>'
-             f'<p>Everything here is what you said, as you said it. Nothing was added and nothing was polished.{" As of " + E(str(d["date"])) + "." if d.get("date") else ""}</p></div></header><div class="edge"></div><main class="wrap">')
+             f'<p>The boxes are what you said or confirmed, in your words. Anything written for you is marked as a draft.{" As of " + E(str(d["date"])) + "." if d.get("date") else ""}</p></div></header><div class="edge"></div><main class="wrap">')
     head = [(dz.FIELD[k][2].replace(" I deliver", ""), dz.best(own(d, k))["value"]) for k in HEAD if own(d, k)]
     if head:
         o.append('<div class="trio">' + "".join(f'<div class="big"><div class="k">{E(l)}</div><p>{E(str(v))}</p></div>' for l, v in head) + '</div>')
     if words:
-        o.append('<section><h2>Three ways to say what you do</h2><p class="sub">Written from your words above, with nothing added. They are drafts: change anything that does not sound like you.</p><div class="say3">')
+        n = sum(1 for k in ("sentence", "paragraph", "bio") if words.get(k))
+        count = {1: "One way", 2: "Two ways", 3: "Three ways"}.get(n, "Ways")
+        o.append(f'<section><h2>{count} to say what you do</h2><p class="sub">Written only from what you told me. They are drafts: change anything that does not sound like you.'
+                 + ("" if words.get("bio") else " A short bio comes later, once you have said something about your background.") + '</p><div class="say3">')
         for k in ("sentence", "paragraph", "bio"):
             if words.get(k):
                 o.append(f'<div class="way"><div class="t"><h3>{LABELS[k][0]}</h3><span class="tag">Drafted for you</span></div><p class="for">{LABELS[k][1]}</p>'
@@ -161,20 +195,20 @@ def build(d, words=None, next_phrase=""):
                 continue
             shown.add(key)
             mine = lambda f: " (my wording; you said it looks right)" if f.get("guess_ok") else ""  # noqa: E731
-            vals = list(dict.fromkeys(str(f["value"]) + mine(f) for f in (fs if dz.FIELD[key][4] else [dz.best(fs)])))
+            vals = list(dict.fromkeys(("None" if f.get("absent") else str(f["value"])) + mine(f) for f in (fs if dz.FIELD[key][4] else [dz.best(fs)])))
             body = f"<p>{E(vals[0])}</p>" if len(vals) == 1 else "<ul>" + "".join(f"<li>{E(v)}</li>" for v in vals) + "</ul>"
             cards.append(f'<div class="card"><div class="k">{E(label(key))}</div>{body}</div>')
         if cards:
             o.append(f'<section><h2>{E(title)}</h2><div class="grid">{"".join(cards)}</div></section>')
-    todo = [label(k) for _t, keys in dz.INTERVIEW for k in keys if k not in shown]
-    if todo:
-        o.append('<section><h2>Still open</h2><p class="sub">Yours to answer when you are ready. Nothing was guessed to fill these.</p><div class="open">' + E(", ".join(todo)) + '.</div></section>')
-    pct, _weak = dz.score(d)
-    o.append(f'<section><h2>How much is known so far</h2><div class="card"><div class="meter"><i style="width:{max(2, min(100, pct))}%"></i></div>'
-             f'<p style="margin:0"><b>{pct} out of 100.</b> A guide to how much your sessions have to work from. It is not a score for your business, and it promises nothing.</p></div></section>')
+    # Not a list of homework and not a grade: the few things the next session works out, leaving out anything they chose to skip.
+    skipped = set(d.get("skipped") or [])
+    coming = [label(k) for k in ("2.profile", "2.pains", "2.dream", "2.objections") if k not in shown and k not in skipped][:4]
+    answered = len(shown)
+    o.append('<section><h2>What comes next</h2><div class="open">' + f'You have told us {answered} things about your business so far. That is enough to start. '
+             + (f'The next session works out: {E(", ".join(c[0].lower() + c[1:] for c in coming))}.' if len(coming) >= 2 else 'Later sessions fill in the rest, one piece at a time.') + '</div></section>')
     if next_phrase:
-        o.append(f'<section><div class="next"><h2>What to do next</h2><p>One step. Say this in a new chat:</p><div class="phrase"><span id="nx">{E(next_phrase)}</span>'
-                 '<button class="copy noprint" type="button" data-copy="nx">Copy</button></div></div></section>')
+        o.append(f'<section><div class="next"><h2>What to do next</h2><p>One step. Start a new conversation with Claude and say this:</p><div class="phrase"><span id="nx">{E(next_phrase)}</span>'
+                 '<button class="copy noprint" type="button" data-copy="nx">Copy</button></div>' + (f'<p style="margin-top:14px">{E(why)}</p>' if why else "") + '</div></section>')
     o.append('<section class="noprint"><button class="btn" id="print" type="button">Print or save as PDF</button></section>')
     o.append(f'</main><footer class="wrap">Build Room OS, from AI Momentum Labs. This page is a file on your own computer. Nothing on it was published or sent, and nothing on it promises results.</footer><script>{JS}</script></body></html>')
     return "".join(o)
@@ -183,7 +217,7 @@ def build(d, words=None, next_phrase=""):
 def main():
     a = sys.argv[1:]
     opt = {}
-    for flag in ("--words", "--business-file", "--next"):
+    for flag in ("--words", "--business-file", "--next", "--why"):
         if flag in a:
             k = a.index(flag)
             if k + 1 >= len(a):
@@ -194,6 +228,8 @@ def main():
         sys.exit(__doc__)
     d = dz.load(a[1])
     retired = dz.retired_lines(opt["--business-file"]) if opt.get("--business-file") else []
+    # A line the member retired in this very session is in the ledger before any Business File exists.
+    retired += [str(f.get("quote") or f.get("value")) for f in d["findings"] if isinstance(f, dict) and f.get("retired") and (f.get("quote") or f.get("value"))]
     probs = [f"ledger: {p}" for p in dz.problems(d, retired)]
     words = None
     if opt.get("--words"):
@@ -207,15 +243,17 @@ def main():
     if a[0] == "check" or probs:
         for p in probs:
             print("FIX  " + p)
+        for k, new in (unfamiliar(d, words).items() if words else ()):
+            print(f"LOOK  {k}: these words are in nothing the member said: {', '.join(new)}. Keep each only if it adds no fact, credential or claim of its own")
         if a[0] == "check":
-            print(f"{len(probs)} to fix.")
+            print(f"{len(probs)} to fix." + (" A clean check is not proof: it reads for numbers, claims and promises, not for meaning." if not probs else ""))
         sys.exit(1 if probs else 0)
     out = Path(a[2])
     if out.suffix.lower() != ".html":
         sys.exit("The output file must end in .html")
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(build(d, words, opt.get("--next", "")), encoding="utf-8")
-    print(f"Wrote {out}. Open it in a browser.")
+    out.write_text(build(d, words, opt.get("--next", ""), opt.get("--why", "")), encoding="utf-8")
+    print(f"Wrote {out}. Tell the member to open it by double-clicking the file; it opens in their web browser.")
 
 
 if __name__ == "__main__":

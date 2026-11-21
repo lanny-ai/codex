@@ -48,7 +48,7 @@ Welcome them in four sentences or less: what the Build Room is (guided weekly bu
 
 Then run **the first session** without making them say another sentence: start the Discovery Engine session (`buildroom-discovery-engine`) and follow the section "The first session" in its `references/deep-discovery.md`. In short: ask for their website or LinkedIn address; if they have one and you can reach the web, read it and show them what you learned for them to correct, instead of opening with questions; ask only what is still missing from the Business Snapshot; and end by giving them their business on one page, in their own words, with three drafted ways to say what they do. Their Business File is created along the way. If that session cannot be started, fall back to the §1 Business Snapshot intake: the six snapshot fields, one question at a time, five minutes.
 
-Recommend the Ideal Client Avatar session first (it's the root of everything) and hand them the trigger phrase. Mention the Compass once as an optional thirty-minute start ("Build my compass") for a member who wants every later session to sound like them from day one; it is never a requirement, and the Avatar comes first either way. Then and emit their new Business File per the protocol so they can save it before they go.
+The first session ends with one next step, the Ideal Client Avatar session (it's the root of everything), and its trigger phrase. Nothing else in that close: no second phrase and no Compass mention. The Compass ("Build my compass", an optional thirty-minute session so later work sounds like them) is offered on a later visit. The first session creates and saves their Business File as its own instructions say.
 
 ### Case 4 — Asked about something not yet in the program
 

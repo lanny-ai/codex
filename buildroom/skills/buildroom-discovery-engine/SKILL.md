@@ -23,7 +23,7 @@ Read these reference files, in order, before any member-facing work:
 
 ## Prerequisites
 
-**For the member's own business:** requires §1 (Business Snapshot), even a thin one. If §1 is empty, run the Build Room OS onboarding first; it takes five minutes.
+**For the member's own business:** requires §1 (Business Snapshot), even a thin one. If §1 is empty, the member is new: run the first session in `deep-discovery.md`, which creates it. A new member's first session needs only that section, the protocol and the template, not the references listed above.
 
 **For a client or prospect:** requires nothing from the member's file beyond knowing who the member is. Requires a subject that passes Phase 0.
 

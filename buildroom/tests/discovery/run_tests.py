@@ -222,14 +222,30 @@ def main():
           and not re.search(r'(src|href)="https?:', ph) and "@import" not in ph and "url(" not in ph, out)
     check("onepage: what a page or a guess said is never shown as theirs", "$9,999" not in ph and "fear of audits" not in ph)
     check("onepage: the three ways to say it are marked as drafted, each with a copy button", ph.count("Drafted for you") == 3 and ph.count('data-copy="w-') == 3 and "They are drafts" in ph)
-    check("onepage: plain labels, what is open, one next step, and no promise", "What a client receives" in ph and "Still open" in ph and "Help me build my ideal client avatar" in ph
-          and "It is not a score for your business, and it promises nothing." in ph and "\u2014" not in ph and "\u2013" not in ph)
+    check("onepage: plain labels, what is open, one next step, and no promise", "What a client receives" in ph and "What comes next" in ph and "Help me build my ideal client avatar" in ph
+          and "out of 100" not in ph and "Still open" not in ph and "The next session works out:" in ph and "\u2014" not in ph and "\u2013" not in ph)
     def wbad(change, expect):
         wf.write_text(json.dumps({**W, **change}))
         c, o = op("check", led, "--words", wf)
         return c == 1 and expect in o
     check("onepage: a draft may not add a number, a promise or a quotation", wbad({"sentence": "I have helped 200 practices."}, "a number the member did not give")
           and wbad({"paragraph": "Clean books, guaranteed."}, "reads as a guarantee") and wbad({"paragraph": "“Best decision we made,” they say."}, "no quotation marks"))
+    check("onepage: a draft may not add a number in words, a credential, or a reworded money-back offer", wbad({"sentence": "I keep books, with twenty years behind me."}, "a number or amount the member did not give")
+          and wbad({"paragraph": "I am fully certified, insured and the most trusted bookkeeper in town."}, "makes a claim the member did not make")
+          and wbad({"paragraph": "Clean books in two weeks or you pay nothing."}, "reads as a guarantee"))
+    wf.write_text(json.dumps({"sentence": "I keep the books for owner-dentists and their veterinarian neighbours."}))
+    check("onepage: words the member never used are listed to be justified, and a clean check says it is not proof", "these words are in nothing the member said: neighbours, veterinarian" in op("check", led, "--words", wf)[1]
+          and "A clean check is not proof" in op("check", led, "--words", wf)[1])
+    write(mine + [dict(F(40, "3.guarantee", "Results in two weeks or your money back", "web", "https://example.com/", "likely"), retired=True)])
+    wf.write_text(json.dumps({"sentence": "Monthly bookkeeping. Results in two weeks or your money back."}))
+    check("onepage: a line retired in this session is barred before any Business File exists", "carries a retired line" in op("check", led, "--words", wf)[1])
+    write(mine + [dict(F(41, "3.guarantee", "none, I dropped it", "member", "said in session", "confirmed"), absent=True)])
+    wf.write_text(json.dumps({k: v for k, v in W.items() if k != "bio"}))
+    bc, bo = op("build", led, page, "--words", wf, "--next", "Help me build my ideal client avatar", "--why", "This session works out who your best customer is.")
+    p2 = page.read_text() + bo
+    check("onepage: two drafts are called two, a 'none' shows as None, and the next step says what it does", "Two ways to say what you do" in p2 and "A short bio comes later" in p2 and "<p>None</p>" in p2
+          and "This session works out who your best customer is." in p2)
+    write(mine)
     check("onepage: a draft may repeat the member's own numbers", (wf.write_text(json.dumps(W)), op("check", led, "--words", wf)[0])[1] == 0)
     write([f for f in mine if f["field"] != "x.credentials"])
     check("onepage: no bio without the member's background or story", "nothing to write a bio from" in op("check", led, "--words", wf)[1])
@@ -237,7 +253,8 @@ def main():
     check("onepage: no page until something is the member's own word", op("build", led, page)[0] != 0)
     osk = (SCRIPT.parent.parent.parent / "buildroom-os/SKILL.md").read_text()
     check("skill: a new member's first session reads their site first and ends with the page", "## The first session: a new member's first fifteen minutes" in QREF and "Here is what I learned about your business" in QREF
-          and "Never guess what a page does not say." in QREF and "A line they do not mention stays a `web` finding." in QREF and "onepage.py build" in QREF
+          and "Never guess what a page does not say." in QREF and "Then ask once about the lines they did not mention" in QREF and "A new member is not asked about a Business File." in QREF
+          and "A member with nothing online is not asked about tools." in QREF and "Do not emit the empty template." in QREF and "no Compass, no second phrase" in QREF and "onepage.py build" in QREF
           and "follow the section \"The first session\"" in osk and "onepage.py" in QSK)
     osrc = OP.read_text()
     check("onepage: standard library only, no network", not any(x in osrc for x in ("requests", "urllib", "socket", "http.client", "subprocess")))
