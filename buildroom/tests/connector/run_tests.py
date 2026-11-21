@@ -215,7 +215,7 @@ def main():
               rj["build"]["builder"] == "DOCKERFILE" and rj["deploy"]["healthcheckPath"] == "/health" and "buildroom/skills/**" in rj["build"]["watchPatterns"])
         df = (CON / "Dockerfile").read_text()
         check("Dockerfile: copies only the connector, the skills and the release notes; runs as a non-root user",
-              df.count("COPY ") == 3 and "join.py" in df and "guide.html" in df and "start.html" in df and "usage.py" in df and "dashboard.html" in df and "USER connector" in df and "members.json" not in df)
+              df.count("COPY ") == 3 and "join.py" in df and "guide.html" in df and "start.html" in df and "usage.py" in df and "dashboard.html" in df and all(f"example-{n}.html" in df for n in ("review", "build", "onepage", "offer-page", "sales-script", "referrals")) and "USER connector" in df and "members.json" not in df)
         di = (ROOT.parent / ".dockerignore").read_text()
         check(".dockerignore: everything excluded except what the image needs", di.splitlines()[1] == "*" and "!buildroom/skills/**" in di and "!buildroom/connector/guide.html" in di)
 
@@ -254,6 +254,30 @@ def main():
                   not _re.search(r'(src|href)="(https?:)?//', guide) and "@import" not in guide and not _re.search(r"url\(\s*['\"]?(https?:|//|data:)", guide))
             # ---- the Start Here page and its setup video ------------------------------------
             sp = urllib.request.urlopen(b3 + "/start").read().decode()
+            # ---- the finished example ------------------------------------------------------------
+            ex = {}
+            for n in ("review", "build", "onepage", "offer-page", "sales-script", "referrals"):
+                r = urllib.request.urlopen(b3 + "/example/" + n)
+                ex[n] = r.read().decode()
+            check("example: every page is served and says plainly that the business is made up", all("everyone named here are made up" in h and 'href="/guide#example"' in h for h in ex.values()))
+            check("example: self-contained, and its links stay on the site", all(not _re.search(r'(src|href)="https?:', h) and "@import" not in h for h in ex.values())
+                  and all(l.startswith("/example/") or l == "/guide#example" for h in ex.values() for l in _re.findall(r'href="([^"#][^"]*)"', h)), [l for h in ex.values() for l in _re.findall(r'href="([^"#][^"]*)"', h)][:8])
+            check("example: the build page links to the review page and the three drafts", all(f'href="/example/{n}"' in ex["build"] for n in ("review", "offer-page", "sales-script", "referrals")))
+            check("example: the review page tags its lines and the drafts show their blanks", "Drafted, approved by you" in ex["review"] and "From your files" in ex["review"] and "Needs you:" in ex["offer-page"])
+            check("example: the one page shows her words and three drafted ways to say it", "in your own words." in ex["onepage"] and ex["onepage"].count("Drafted for you") == 3)
+            check("example: no key, room code or real address, and no promise of results", not any(_re.search(r"BUILD-\d|br_[A-Za-z0-9]{8}|/mcp/|@gmail|@aimomentum", h) for h in ex.values())
+                  and not any(_re.search(r"guaranteed results|you will (get|make|earn)", h, _re.I) for h in ex.values()))
+            try:
+                urllib.request.urlopen(b3 + "/example/../server.py"); bad = True
+            except urllib.error.HTTPError:
+                bad = False
+            try:
+                urllib.request.urlopen(b3 + "/example/secret"); bad2 = True
+            except urllib.error.HTTPError:
+                bad2 = False
+            check("example: only the listed pages are served", not bad and not bad2)
+            check("guide: shows a finished example before asking for anything", 'id="example"' in guide and "See what you get" in guide and guide.count('href="/example/') == 6
+                  and "An example shows the work, not a result" in guide)
             check("guide: has a clear call to action to the Start Here page", guide.count('href="/start"') >= 2 and "Brand new?" in guide)
             check("start: served, with the first sentence and all three ways to connect",
                   "I'm new here. Help me get started." in sp and "Add custom connector" in sp

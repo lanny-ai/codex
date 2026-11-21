@@ -47,6 +47,8 @@ def key_hash(key):
 # One question, asked in one place: is the person behind this key a current member?
 # Swap the source by writing another class with the same check() and setting BUILDROOM_MEMBER_SOURCE.
 
+EXAMPLE_PAGES = ("review", "build", "onepage", "offer-page", "sales-script", "referrals")
+
 class AllowlistSource:
     """Pilot source: a members.json you control (see members.py). Keys are stored only as sha256."""
 
@@ -401,6 +403,12 @@ def make_handler(app):
             route = self.path.split("?")[0].rstrip("/")
             if route == "/join":
                 return self._page(join.JOIN_PAGE)
+            if route.startswith("/example/") and route[9:] in EXAMPLE_PAGES:
+                # A finished build for a made-up business, so a new member can see what they will get.
+                try:
+                    return self._page((HERE / f"example-{route[9:]}.html").read_text(encoding="utf-8"))
+                except OSError:
+                    return self._send(404, {"error": "not found"})
             if route == "/start":
                 # Step-by-step setup for a new member. The video block shows only once a video has been uploaded.
                 try:
