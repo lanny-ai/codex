@@ -112,9 +112,9 @@ def main():
     dec("never_claim", "any medical outcome, and doubling anything")
     code, out = run(AP, "next", "--dir", Dr)
     check("next: starts with the research step, with its scope and where to save", "Audience Insight" in out and "SCOPE  Public research only" in out and "SAVE  every document under autopilot/drafts/" in out)
-    check("next: what the member refuses to claim and their guarantee are printed for every session, latest answer only",
+    check("next: what the member refuses to claim and their guarantee are printed for every session, and the other answers as known facts",
           "RULE  Never claim or promise: any medical outcome, and doubling anything" in out and "RULE  Guarantee, exact wording, or none: none" in out
-          and out.count("Never claim") == 1 and "RULE  Price" not in out)
+          and out.count("Never claim") == 1 and "RULE  Price" not in out and "KNOWN  Price today: $4,500" in out)
 
     # ---- the run: order, where drafts go, and the review gate -----------------------------------
     nxt = lambda: run(AP, "next", "--dir", Dr)  # noqa: E731
@@ -150,7 +150,7 @@ def main():
           and "1. A booking link (needed by Ideal Client Avatar, Signature Offer, Positioning & Messaging, Offer Page Copy)" in out, out[:900])
     check("report: the same gap worded twice is counted once", out.count("A booking link (needed by") == 1)
     check("report: says how ready the file was and what the member said at the start and at the review", "Readiness when it started: 81 out of 100." in out
-          and "## What you told me at the start" in out and "**Never claim or promise:** any medical outcome, and doubling anything" in out and "“Looks right, go”" in out)
+          and "## What you told me" in out and "**Never claim or promise:** any medical outcome, and doubling anything" in out and "“Looks right, go”" in out)
     check("report: partly drafted work is set apart from drafted work", "## Partly drafted" in out and "What was and was not drafted: Profile and pains drafted" in out
           and out.index("## Drafted for you") < out.index("## Partly drafted"))
     check("report: drafted work with where it is saved and what it still needs", "### Offer Page Copy" in out and "Saved as: autopilot/drafts/04_Offer_Page.md" in out and "Still needs you: Two testimonials you may use" in out)
@@ -248,8 +248,8 @@ def main():
     bad(lambda g: g["offer"].update(bonus=c("x")), "not a field this page knows", "an unknown field is refused")
     bad(lambda g: g.pop("positioning"), "positioning: missing", "a missing part is refused")
     rbf = tmp / "BF_retired.md"
-    rbf.write_text(tpl.replace("- **Retired lines** (never used again in any output, by any session — e.g. a credibility story, a claim, an old offer):",
-                               "- **Retired lines** (never used again in any output, by any session — e.g. a credibility story, a claim, an old offer): \"Featured in Ceramics Monthly\""))
+    rbf.write_text(tpl.replace("- **Retired lines** (never used again in any output, by any session — e.g. a credibility story, a claim, an old offer; each one in quotation marks, separated by semicolons):",
+                               "- **Retired lines** (never used again in any output, by any session — e.g. a credibility story, a claim, an old offer; each one in quotation marks, separated by semicolons): \"Featured in Ceramics Monthly\""))
     bad(lambda g: g["positioning"].update(advantage=f("Featured in Ceramics Monthly. Eight years running a studio.", "Notes/bio old.md")), "carries a retired line", "a retired line is refused when the Business File is given", ("--business-file", rbf))
     g = copy.deepcopy(GOOD)
     g["positioning"]["value_prop"] = d("Two patient sources you own for $4,500.")
@@ -260,6 +260,63 @@ def main():
     write(g)
     check("reveal: a decision of 'none' is shown as itself", run(RV, "build", fj, page)[0] == 0 and "<p>None</p>" in page.read_text())
     write(GOOD)
+
+    # ---- round 2 of the trial runs ---------------------------------------------------------------
+    rv = lambda v: {"v": v, "basis": "reviewed"}  # noqa: E731
+    bad(lambda g: g["offer"].update(urgency=rv("We double enrollment for every studio.")), "reads as a guarantee", "an approved draft is still checked for promises")
+    bad(lambda g: g["positioning"].update(value_prop=rv("Fuller classes for $9,999.")), "a figure nobody confirmed", "an approved draft is still checked for new figures")
+    (fj.parent / "run.json").write_text(json.dumps({"decisions": [{"key": "retired", "value": "the name Studio Growth Sprint"}]}))
+    bad(lambda g: g["offer"].update(pitch=d("Formerly the Studio Growth Sprint, now 12 weeks.")), "carries a retired line", "a line retired at the start of the run is refused before it reaches the Business File")
+    (fj.parent / "run.json").unlink()
+    oled = tmp / "old_ledger.json"
+    oled.write_text(json.dumps({"findings": [
+        {"field": "3.guarantee", "value": "Double or money back", "source": {"kind": "file", "ref": "Old/Proposal 2024.md, page 2"}, "confidence": "inferred", "stale": True},
+        {"field": "1.price", "value": "$4,800", "source": {"kind": "file", "ref": "Offers/Program.md"}, "confidence": "likely"}]}))
+    bad(lambda g: g["positioning"].update(advantage=f("Eight weeks, start to finish.", "Old/Proposal 2024.md")), "set aside as out of date", "a line from a source the research set aside is not 'from your files'", ("--ledger", oled))
+    g = copy.deepcopy(GOOD)
+    g["positioning"]["advantage"] = f("Twelve weeks, start to finish.", "Offers/Program.md")
+    write(g)
+    check("reveal: a line from a current source passes with the ledger", run(RV, "check", fj, "--ledger", oled)[0] == 0)
+    g = copy.deepcopy(GOOD)
+    g["avatar"]["profile"] = dict(c("Owner-dentists with one or two locations"), source="your review today")
+    write(g)
+    run(RV, "build", fj, page)
+    check("reveal: the source prints on a confirmed line too, on the page and in text", "your review today" in page.read_text() and "your review today" in run(RV, "text", fj)[1])
+    write(GOOD)
+
+    R2 = tmp / "r2" / "autopilot"
+    ap2 = lambda *a: run(AP, *a[:1], "--dir", R2, *a[1:])  # noqa: E731
+    code, out = ap2("plan", "--readiness", "40", "--no-web", "--thin-ok", "I don't know, skip that one.")
+    check("plan: words that are not a choice to go ahead do not start a thin run", code == 5 and "not a choice to go ahead" in out and not (R2 / "run.json").exists())
+    check("plan: a clear choice does", ap2("plan", "--readiness", "40", "--no-web", "--thin-ok", "No, go ahead anyway.")[0] == 0)
+    ap2("decide", "--key", "never_claim", "--value", "Doubling enrollment or revenue.")
+    code, out = ap2("decide", "--key", "never_claim", "--value", "Do not say I work with all creative businesses.")
+    check("decide: a second thing the member refuses to claim is added, never in place of the first",
+          "Doubling enrollment or revenue.; Do not say I work with all creative businesses." in out)
+    ap2("decide", "--key", "retired", "--value", "None.")
+    ap2("decide", "--key", "free_resource", "--value", "None yet")
+    ap2("decide", "--key", "tools", "--value", "None really. Gmail.")
+    ap2("decide", "--key", "booking", "--value", "Text me on 555 0100")
+    out = ap2("next")[1]
+    check("next: 'none' for lines never to use is not printed as a rule", "Lines never to use" not in out and "RULE  Never claim or promise: Doubling" in out)
+    check("next: everything else the member said is printed as known", "KNOWN  How someone books or buys: Text me on 555 0100" in out)
+    D2 = "autopilot/drafts/"
+    for i, sl in enumerate(("ideal-client-avatar", "signature-offer", "positioning-messaging"), 1):
+        ap2("done", sl, "--status", "drafted" if sl == "signature-offer" else "partial", "--outputs", f"{D2}0{i}.md", "--note", "mostly blanks", "--gaps", "Your promise in one sentence" if i > 1 else "What your best client struggles with")
+    code, out = ap2("next")
+    check("next: a foundation that is mostly partial is said plainly at the review", code == 3 and "NOTE  2 of the 3 foundation sessions are only partly drafted" in out and "stop here" in out)
+    code, out = ap2("done", "ideal-client-avatar", "--status", "partial", "--outputs", D2 + "01.md", "--note", "redrafted after the review", "--redo")
+    check("done: a step drafted again after the review can be recorded again", code == 0 and json.loads((R2 / "run.json").read_text())["steps"][1]["note"] == "redrafted after the review")
+    check("done: --redo does not record a step that never ran", ap2("done", "funnel-map", "--status", "drafted", "--outputs", D2 + "x.md", "--redo")[0] != 0)
+    code, out = ap2("approve", "--words", "Go.")
+    check("approve: steps that lean on something the member lacks are put to them once", "ASK ONCE" in out and "Lead Capture: needs a free resource to offer" in out
+          and "Lead Gen Machine: needs where you most want new clients" in out and "Decision Machine" not in out)
+    check("leave-out: needs the member's words, and only drops a waiting run step", ap2("leave-out", "lead-capture")[0] != 0 and ap2("leave-out", "signature-offer", "--words", "skip it")[0] != 0)
+    check("leave-out: records the member's choice", ap2("leave-out", "lead-capture", "--words", "Leave that one out")[0] == 0)
+    out = ap2("report")[1]
+    check("report: a step left out is listed with why and how to start it later", "**Lead Capture:** left out at your request (“Leave that one out”): it needs a free resource to offer. To run it yourself later, say “Help me build my opt-in page”." in out)
+    check("report: the member's words are closed with one full stop", "“No, go ahead anyway.”." not in out and "“Go.”." not in out and "You chose to go ahead: “No, go ahead anyway.”" in out)
+    check("report: among gaps repeated equally, the one that came up first leads", out.index("Your promise in one sentence") < out.index("What your best client struggles with") if "What your best client struggles with" in out.split("## What you told me")[0] else True)
     check("reveal: output must be an .html file", run(RV, "build", fj, tmp / "out.txt")[0] != 0)
     rsrc = RV.read_text()
     check("reveal: standard library only, no network", not any(x in rsrc for x in ("requests", "urllib", "socket", "http.client", "subprocess")))
@@ -289,7 +346,7 @@ def main():
     hh = hp.read_text()
     check("handover: one self-contained page, named for the business from the Business File", code == 0 and hh.startswith("<!doctype html>") and "<title>Your Build · Harbor &lt;Coaching&gt;</title>" in hh
           and not re.search(r'(src|href)="https?:', hh) and "@import" not in hh and "url(" not in hh)
-    check("handover: counts drafted pieces, open items and waiting sessions", "<b>4</b><span>pieces drafted for you, 1 of them only in part" in hh and "<b>4</b><span>things in them that still need you" in hh
+    check("handover: counts drafted pieces, open items and waiting sessions", "<b>4</b><span>pieces drafted for you, 1 of them only in part" in hh and "<span>different things they still need from you" in hh
           and f"<b>{sum(1 for t in am.TOOLS if t[3] == 'needs_you')}</b><span>sessions waiting" in hh)
     check("handover: leads with the answers that unlock more than one draft", "Answer these first" in hh and "A booking link" in hh.split("Answer these first")[1].split("</div>")[0]
           and "Two real client" not in hh.split("Answer these first")[1].split("</div>")[0])
@@ -319,7 +376,7 @@ def main():
     head = sk.split("---")[1]
     check("skill: name, start phrases and a description that fits the listing", "name: buildroom-autopilot" in head and "run autopilot" in head and len(head) < 700)
     check("skill: needs a filled snapshot and a folder", "autopilot.py preflight BUILDROOM_BUSINESS_FILE.md" in sk and "Cowork, Claude Code or Codex" in sk)
-    check("skill: a thin file is named for what it is, before the run", "mostly blanks and guesses" in sk and "Never supply those words yourself." in sk and "Say that before the run, not after." in me)
+    check("skill: a thin file is named for what it is, before the run", "mostly blanks and guesses" in sk and "Never supply those words yourself, and never pass words that are not a clear choice to go ahead." in sk and "Say that before the run, not after." in me)
     check("skill: the never-draft list wins over a session's own prompts", "## The never-draft list wins" in me and "the list wins: leave that part out and mark the gap" in me
           and "The never-draft list wins." in sk)
     check("skill: what is never drafted is named", all(x in me for x in ("prices, dollar values, price tiers, anchors", "client names, quotes, testimonials, results", "composite stories",
@@ -327,7 +384,7 @@ def main():
     check("skill: imagined client words never become quotes", "never **Sourced language**" in me and "never inside quotation marks" in me)
     check("skill: the member's rules are carried into every session", "Give those to every session and every subagent, word for word." in me and "autopilot.py decide" in sk)
     check("skill: the questions asked are the ones that unblock the most", all(x in sk for x in ("A typical client result", "How someone books a call or buys", "The tools they use", "Ask this even when a file mentions one"))
-          and "Eight at most" in sk)
+          and "Ten at most" in sk and "What a client actually receives" in sk and "the next 90 days" in sk and "Record what is already known too." in sk)
     check("skill: the member is not asked to choose steps by name", "Do not ask the member to choose steps by name" in sk)
     check("skill: one stop, and only the member's own go-ahead passes it", "Never record a go-ahead they did not give." in sk and "Silence, or your own judgement that it is good, is not." in me
           and "means show them the page again" in me)
@@ -339,8 +396,8 @@ def main():
     check("skill: proof needs recorded permission before a stranger could read it", "only when permission is recorded as yes" in me and "is never named, anywhere" in me
           and "without permission recorded as yes" in sk)
     check("skill: stale, retired and unsettled findings are not sources", "Not findings marked `stale`, `retired` or `inferred`" in me and "Never a finding the ledger marks stale, retired, inferred or unsettled." in ref)
-    check("skill: what a run writes into the Business File is narrow and tagged", "## What a run writes into the Business File" in me and "**Before the review:** nothing." in me
-          and "only the name of its document" in me and "`[reviewed draft]`" in me and "Write unreviewed drafts into the Business File." in sk)
+    check("skill: what a run writes into the Business File is narrow and tagged", "## What a run writes into the Business File" in me and "**Before the review:** nothing drafted." in me
+          and "nothing is written into the sections those sessions own" in me and "`[reviewed draft]`" in me and "Write unreviewed drafts into the Business File." in sk)
     check("skill: a run never marks a section complete", "A run never marks a section `complete`." in me and "Mark a section `complete`." in sk)
     check("skill: 'none' is never written into retired lines", '"None" is never written into Retired lines' in me)
     check("skill: one session log row for the run", "one row for the whole run" in me)
@@ -360,7 +417,7 @@ def main():
     check("skill: carries the shared protocol and template unchanged", (SK / "references/business-file-template.md").read_text() == tpl
           and (SK / "references/business-file-protocol.md").read_text() == (ROOT / "shared/business-file-protocol.md").read_text())
     proto = (ROOT / "shared/business-file-protocol.md").read_text()
-    check("protocol: the Autopilot exception is stated and narrow", "The one exception is an Autopilot run" in proto and "never a fact" in proto
+    check("protocol: the Autopilot exception is stated and narrow", "And an Autopilot run" in proto and "Deep Discovery may write" in proto and "never a fact" in proto
           and "update the file in place instead" in proto and "of the member's own content" in proto)
 
     # ---- wired in -----------------------------------------------------------------------------

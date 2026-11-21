@@ -139,9 +139,60 @@ def main():
     write(full)
     c, out = run("ready", led)
     check("ready: everything confirmed is 100 and ready", c == 0 and "100 out of 100" in out and "Ready:" in out, out)
+    write([f for f in full if f["field"] != "1.core_result"])
+    c, out = run("ready", led)
+    check("ready: a high score without a core field is still not ready", c == 2 and "Core result" in out and int(out.split("Readiness: ")[1].split()[0]) >= 70, out)
     write([f for f in full if f["field"] != "3.promise"])
     c, out = run("ready", led)
-    check("ready: a high score without the core promise is still not ready", c == 2 and "Core promise" in out and int(out.split("Readiness: ")[1].split()[0]) >= 70, out)
+    check("ready: a core result in the member's own words stands in for a missing promise", c == 0 and "Ready:" in out, out)
+    c, out = run("gaps", led)
+    check("gaps: the promise is put as the core result to confirm, not as an open question", "is it roughly your core result" in out and "known 1.core_result" in out, out)
+    write([f for f in full if f["field"] not in ("3.promise", "1.core_result")] + [F(900, "1.core_result", "fuller classes", "file", "a.md", "likely")])
+    c, out = run("ready", led)
+    check("ready: a core result only found in a file does not stand in for the promise", c == 2 and "Core promise" in out, out)
+
+    # ---- round 2 of the trial runs ------------------------------------------------------------
+    thin = [F(1, "1.what_i_do", "doula", "business_file", "§1", "confirmed"), F(2, "1.who_i_serve", "first-time parents", "business_file", "§1", "confirmed"),
+            F(3, "1.core_result", "a calmer birth", "business_file", "§1", "confirmed")]
+    write(thin)
+    lines = [l for l in run("gaps", led)[1].splitlines() if l[:1].isdigit()]
+    easy = [i for i, l in enumerate(lines) if any(q in l for q in ("What do you charge", "actually receive", "book a call or buy"))]
+    hard = [i for i, l in enumerate(lines) if any(q in l for q in ("struggling with", "exact words do your clients", "hesitate to buy"))]
+    check("gaps: on a thin file, what every owner knows is asked before the hard questions", len(easy) == 3 and (not hard or max(easy) < min(hard)), lines)
+    none = dict(F(4, "x.proof", "none yet", "member", "said in session", "confirmed"), absent=True)
+    none2 = dict(F(5, "3.typical_result", "none I can back up", "member", "said in session", "confirmed"), absent=True)
+    write(thin + [none, none2])
+    out = run("gaps", led, "--cap", "40")[1]
+    check("gaps: a member's answer of none is not asked again", "one real result a client got" not in out and "typical client get" not in out, out)
+    c, out = run("ready", led)
+    check("ready: none earns no credit, and is not listed again as a question that would help", c == 2 and "typical client get" not in out, out)
+    write(thin, skipped=[f[0] for f in dm.FIELDS if f[0] not in ("1.what_i_do", "1.who_i_serve", "1.core_result")])
+    c, out = run("ready", led)
+    check("ready: with nothing left to ask it says so and names the session to run by hand", c == 2 and "nothing left to ask" in out and "Do not offer more questions" in out and "Ideal Client Avatar" in out, out)
+    old = [dict(F(6, "x.story", "Ran a studio for eight years", "file", "Notes/bio old.md", "inferred"), stale=True),
+           dict(F(7, "1.price", "$3,000", "file", "Old/proposal.md", "inferred"), stale=True), F(8, "1.price", "$4,800", "member", "said in session", "confirmed")]
+    write(thin + old)
+    page = run("page", led)[1]
+    body, older = page.split("## Older material")[0], page.split("## Older material")[1]
+    check("page: out-of-date material never sits among the findings", "eight years" not in body and "$3,000" not in body and "$4,800" in body, body)
+    check("page: every out-of-date finding is listed apart, including ones a current answer replaced", "eight years" in older and "$3,000" in older, older)
+    out = run("gaps", led, "--cap", "40")[1]
+    check("gaps: an old file is worded as an older source, never as my best guess", "an older source says “Ran a studio" in out and "my best guess is “Ran a studio" not in out, out)
+    write(thin + [F(9, "1.who_i_serve", "any creative business", "file", "Notes/bio.md", "likely")])
+    c, out = run("conflicts", led)
+    check("conflicts: a file that differs from the Business File is not an open choice", "No disagreements" in out and "something different from the member's Business File" in out and "any creative business" in out, out)
+    check("page: it is listed as a place that says something different", "## Places that say something different from your Business File" in run("page", led)[1])
+    write(thin + [dict(F(10, "x.proof", "revenue basically doubled", "file", "wins.md", "likely", quote="someone told me revenue doubled"), permission="unknown")])
+    check("check: second-hand talk is refused as proof", "second-hand" in run("check", led)[1])
+    write([F(1, "1.price", "$1,450 per month. One-time setup fee: $2,000.", "file", "Offers/a.md", "likely"), F(2, "1.price", "$1,450 a month", "web", "https://example.com", "likely")])
+    check("conflicts: a price with a setup fee does not disagree with the same price without it", "No disagreements" in run("conflicts", led)[1])
+    write(thin + [dict(F(11, "4.category", "bookkeeping for dental practices", "member", "said in session", "confirmed"), guess_ok=True)])
+    check("page: a guess the member okayed is shown as my wording, not as their own words", "my wording; you said it looks right" in run("page", led)[1])
+    check("inventory: a trade word in an offer file is not private; plainly private names are",
+          not dm.looks_private("Clients/payroll cleanup offer.md") and not dm.looks_private("Offers/Diagnosis call script.md")
+          and all(dm.looks_private(n) for n in ("Finance/2025 taxes.md", "Notes/therapy notes.md", "Notes/private.md", "Clients/Whitcombe P&L 2025.pdf", "Admin/payroll.xlsx", "Personal/journal.md")))
+    check("retired: entries split on semicolons, notes in brackets ignored, an unquoted entry counts whole",
+          dm.parse_retired(' “Featured in Ceramics Monthly” (you said "Do not use it"); the name Studio Growth Sprint; none') == ["Featured in Ceramics Monthly", "Studio Growth Sprint"])
     write([dict(f, source={"kind": "hypothesis", "ref": "reasoned"}, confidence="inferred") for f in full])
     c, out = run("ready", led)
     check("ready: guesses alone never reach ready", c == 2 and int(out.split("Readiness: ")[1].split()[0]) < 70, out)
@@ -181,8 +232,8 @@ def main():
     # retired lines
     bfile = tmp / "BF.md"
     bfile.write_text((ROOT / "templates/BUILDROOM_BUSINESS_FILE.md").read_text().replace(
-        "- **Retired lines** (never used again in any output, by any session — e.g. a credibility story, a claim, an old offer):",
-        "- **Retired lines** (never used again in any output, by any session — e.g. a credibility story, a claim, an old offer): \"Featured in Ceramics Monthly\" (withdrawn); “Studio Growth Sprint”"))
+        "- **Retired lines** (never used again in any output, by any session — e.g. a credibility story, a claim, an old offer; each one in quotation marks, separated by semicolons):",
+        "- **Retired lines** (never used again in any output, by any session — e.g. a credibility story, a claim, an old offer; each one in quotation marks, separated by semicolons): \"Featured in Ceramics Monthly\" (withdrawn); “Studio Growth Sprint”"))
     write([F(1, "x.credentials", "Ran a studio for eight years. Featured in Ceramics Monthly.", "file", "Notes/bio.md", "likely")])
     check("retired: nothing is flagged without the Business File", run("check", led)[0] == 0)
     c, out = run("check", led, "--business-file", bfile)
@@ -270,7 +321,7 @@ def main():
     check("skill: Deep Discovery is in the foundation list and the flow", "references/deep-discovery.md" in sk and "### Own business — Deep Discovery" in sk)
     check("skill: scope is agreed before anything is opened", "opens nothing" in sk and "Scope first. Nothing is opened before the member has seen the list and agreed." in ref)
     check("skill: the page is shown before any question", "before asking anything" in sk and "Show the page before asking a single question about the business." in ref)
-    check("skill: ten questions at most, skippable", "at most ten" in sk and "Do not go past ten." in ref and "may skip any question" in ref)
+    check("skill: ten questions at most, skippable", "at most ten" in sk and "Do not go past ten in this round." in ref and "That is the last round." in ref and "may skip any question" in ref)
     check("skill: disagreements go to the member", "Choose between two sources that disagree. The member decides." in sk and "You never pick. The member does." in ref)
     check("skill: found proof is not permission", "Finding a client result is not permission to use it." in ref and "The Proof Engine session owns consent." in sk)
     check("skill: readiness is a guide and never a promise", "not a prediction of results" in ref and "does not measure the business or predict results" in sk)
@@ -282,7 +333,7 @@ def main():
     check("skill: the Business File is the member's own word", "| `business_file` | already in their Business File." in ref)
     check("skill: old material is set apart and asked about; retired lines are flagged", "Old material is recorded as old, never relied on" in ref and "Retired lines are never used, and the member is told where they still live." in ref
           and "Rely on out-of-date material, or use a retired line." in sk)
-    check("skill: hearsay is neither proof nor a client's words", "Hearsay is not proof and is not a client's words." in ref and "is not proof. Leave it out." in ref)
+    check("skill: hearsay is neither proof nor a client's words", "Hearsay is not proof and is not a client's words." in ref and "is not proof. Leave it out; the script refuses it." in ref)
     check("skill: the member's own files count once they say those are current, never before", "Are any of them out of date?" in ref and "`files_current`" in ref and "**only after** they said their files are current" in ref)
     check("skill: saying nothing is wrong never confirms a guess", "that is not a confirmation of your guesses" in ref)
     check("skill: not ready means say so, recommend answering, and never recommend Autopilot", "Do not recommend Autopilot to a member who is not ready." in ref and "do not recommend Autopilot" in sk

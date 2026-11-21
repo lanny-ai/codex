@@ -24,7 +24,7 @@ Write `autopilot/foundation.json`. Every value is an object:
 | `confirmed` | the member said it, in this run or in their Business File | optional |
 | `files` | found in their own current files or public pages. Never a finding the ledger marks stale, retired, inferred or unsettled. | required, and shown |
 | `drafted` | written by you for them to check | optional note, shown |
-| `reviewed` | a drafted line in a part the member marked "Looks right". Set after the review, never before. | optional note, shown |
+| `reviewed` | a drafted line in a part the member marked "Looks right", set after the review. Also, from the start, a line of your wording the member said yes to in Deep Discovery (`guess_ok` in the ledger). | optional note, shown |
 
 When the words are the member's but the choice to use them is yours (their own LinkedIn line as a tagline), tag it `files` and say so in the source: "your post of 2 June; using it as the tagline is my suggestion".
 
@@ -75,6 +75,7 @@ Do not summarise the page in the chat, do not tell them it is good, and do not a
 ## After the review
 
 - Apply each change in the member's words. Change that line's `basis` to `confirmed`. Where a comment fits no single line, change the lines it most plainly speaks to and say which you changed.
+- The source prints beside every line, confirmed ones included, so "you told me in your review" and "from your Business File" do not look the same.
 - In a part marked "Looks right", change every `drafted` line to `reviewed`. Leave `files` lines as they are. Nothing becomes `confirmed` because it was glanced at.
 - A change that says what not to say goes to `autopilot.py decide --key never_claim` or `--key retired` as well.
 - If who they serve, what they sell or the price changed, rerun what depends on it, rebuild the page and show it again.

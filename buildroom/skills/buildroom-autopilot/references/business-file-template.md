@@ -21,7 +21,11 @@ _One file. Every Build Room session reads it before asking you anything, and upd
 - **Current price / price range:**
 - **Lead sources today (how people find me):**
 - **Tools:** email platform: — · CRM: — · website/page builder: — · automation: —
-- **Retired lines** (never used again in any output, by any session — e.g. a credibility story, a claim, an old offer):
+- **How someone books or buys (link if there is one):**
+- **Background and credentials:**
+- **A typical client result (the honest middle case, or "none yet"):**
+- **Never claim or promise:**
+- **Retired lines** (never used again in any output, by any session — e.g. a credibility story, a claim, an old offer; each one in quotation marks, separated by semicolons):
 
 ---
 

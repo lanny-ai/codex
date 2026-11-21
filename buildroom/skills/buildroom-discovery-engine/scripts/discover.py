@@ -56,6 +56,10 @@ OWN = ("member", "business_file")
 CORE = ("1.what_i_do", "1.who_i_serve", "1.core_result", "3.promise")
 # A wrong answer here does real damage, so an old or unsure one is always put to the member.
 FACTS = ("1.price", "3.guarantee", "3.typical_result", "3.offer_name", "3.structure")
+# Things every owner knows off the top of their head. Asked before the hard ones, so a member with little
+# written down gets to answer something early instead of skipping eight questions in a row.
+EASY = ("1.price", "3.deliverables", "1.booking", "3.guarantee", "3.structure", "x.credentials", "3.offer_name")
+HEARSAY = re.compile(r"\b(someone (told|said)|i heard|heard that|apparently|supposedly|never saw|second[- ]?hand|word is|rumou?r)\b", re.I)
 # "None" is a real answer for a guarantee. It is not evidence of proof, a voice or client words.
 NO_CREDIT_WHEN_ABSENT = ("x.proof", "x.voice", "2.language", "x.credentials", "3.typical_result")
 NEEDS_QUOTE = ("2.language", "x.voice", "x.proof")
@@ -68,10 +72,19 @@ SKIP_DIRS = {"node_modules", "__pycache__", "venv",
 BUSINESS_FILE = "BUILDROOM_BUSINESS_FILE.md"
 SENSITIVE = re.compile(
     r"(passw|secret|credential|\.env\b|api[-_ ]?key|access[-_ ]?token|"
-    r"\btax(es)?[-_ ](return|notes|filing|form)|\b1040\b|\bw-?2\b|bank[-_ ]statement|account[-_ ]statement|"
-    r"passport|\bssn\b|social[-_ ]security|medical[-_ ]record|health[-_ ]record|diagnosis|payroll|salary|pay[-_ ]?stub|"
+    r"\btax(es)?\b|\b1040\b|\bw-?2\b|bank[-_ ]statement|account[-_ ]statement|\bp ?(&|and) ?l\b|profit[-_ ]and[-_ ]loss|"
+    r"passport|\bssn\b|social[-_ ]security|medical[-_ ]record|health[-_ ]record|therapy|pay[-_ ]?stub|"
     r"divorce|custody|last[-_ ]will|license[-_ ]?scan|\bid[-_ ]?card|"
-    r"(^|[\\/])(personal|private)([\\/]|$)|journal|diary)", re.I)
+    r"(^|[\\/])(personal|private)([\\/]|$)|\bprivate\b|diary)", re.I)
+# Words that are private in one file name and the member's trade in another ("payroll cleanup offer").
+SENSITIVE_SOFT = re.compile(r"diagnosis|payroll|salary|journal", re.I)
+MARKETING = re.compile(r"offer|script|sales|program|page|copy|webinar|proposal|post|email|blog", re.I)
+
+
+def looks_private(rel):
+    return bool(SENSITIVE.search(rel)) or bool(SENSITIVE_SOFT.search(rel) and not MARKETING.search(rel))
+
+
 RELEVANT = [(r"offer|program|package|pricing|price|proposal|sales[-_ ]?page", 5), (r"client|customer|avatar|\bica\b|audience|\bpersonas?\b", 5),
             (r"testimonial|review|case[-_ ]?stud|result|\bwins?\b", 5), (r"about|\bbio\b|story|mission|values|compass", 4),
             (r"transcript|\bcalls?\b|interview|podcast|webinar|\btalk\b|speech|voice[-_ ]?memo", 4),
@@ -95,6 +108,14 @@ def claim(field, f):
     if field == "1.price" and numbers(f.get("value")):
         return "n:" + ",".join(numbers(f["value"]))
     return "v:" + norm(f.get("value"))
+
+
+def price_overlap(a, b):
+    """One source giving the price and another giving the same price plus a fee is one answer with more detail."""
+    if a.get("claim") or b.get("claim"):
+        return False
+    x, y = set(numbers(a.get("value"))), set(numbers(b.get("value")))
+    return bool(x and y) and (x <= y or y <= x)
 
 
 def kind(f):
@@ -132,12 +153,21 @@ def retired_lines(business_file):
         text = Path(business_file).read_text(encoding="utf-8")
     except OSError as e:
         sys.exit(f"Cannot read the Business File: {e}")
-    m = re.search(r"^- \*\*Retired lines\*\*.*$", text, re.M)
-    if not m:
-        return []
-    line = m.group(0).split(":**", 1)[-1]
-    found = re.findall(r"[\"“]([^\"”]{4,})[\"”]", line)
-    return [x.strip() for x in found if not x.strip().lower().startswith("e.g")]
+    m = re.search(r"^- \*\*Retired lines(?::\*\*|\*\*(?:\s*\([^)]*\))?:?)(.*)$", text, re.M)
+    return parse_retired(m.group(1)) if m else []
+
+
+def parse_retired(line):
+    """Entries are separated by semicolons. A note in brackets is not part of the line. Within an entry the
+    quoted words are the retired line; an entry with no quotation marks is retired as a whole."""
+    out = []
+    for entry in re.sub(r"\([^)]*\)|\[[^\]]*\]", " ", line).split(";"):
+        quoted = re.findall(r"[\"“]([^\"”]{4,})[\"”]", entry)
+        if not quoted:
+            bare = re.sub(r"^(the )?(name|phrase|line|words?|claim|offer|tagline)\s+", "", entry.strip(" .—-"), flags=re.I).strip()
+            quoted = [bare] if len(bare) >= 4 and not re.match(r"(none|n/?a|nothing)\b", bare, re.I) else []
+        out += [x.strip() for x in quoted if not x.strip().lower().startswith("e.g")]
+    return out
 
 
 def usable(f):
@@ -185,10 +215,14 @@ def problems(d, retired=()):
                 out.append(f"{tag}: 'confirmed' needs the member's word or a second independent source; one source is 'likely'")
         if field in NEEDS_QUOTE and k in ("file", "web") and not f.get("absent") and not str(f.get("quote", "")).strip():
             out.append(f"{tag}: client words, voice samples and proof need the exact quote")
+        if f.get("guess_ok") and k != "member":
+            out.append(f"{tag}: \"guess_ok\" marks a guess of yours the member said yes to, so its source kind is member")
         if f.get("absent") and k not in OWN:
             out.append(f"{tag}: only the member can say there is none")
         if field == "x.proof" and not f.get("absent") and f.get("permission") not in ("yes", "no", "unknown"):
             out.append(f"{tag}: proof needs \"permission\": yes, no or unknown")
+        if field == "x.proof" and not f.get("absent") and HEARSAY.search(" ".join(str(f.get(x, "")) for x in ("value", "quote", "note"))):
+            out.append(f"{tag}: this reads as second-hand (someone heard or was told). That is not proof. Leave it out, or cite where the client said it themselves")
         if not f.get("retired"):
             for line in retired:
                 if norm(line) and norm(line) in norm(str(f.get("value", "")) + " " + str(f.get("quote", ""))):
@@ -210,8 +244,10 @@ def by_field(d):
     return out
 
 
-def find_conflicts(d):
-    """Single-answer fields where real, current sources disagree and the member has not settled it."""
+def find_conflicts(d, business_file_side=False):
+    """Single-answer fields where real, current sources disagree and the member has not settled it.
+    The Business File is the member's own word, so a file that differs from it is not an open choice:
+    with business_file_side those are returned instead, to be shown as places that say something different."""
     out = []
     for key, fs in by_field(d).items():
         if FIELD[key][4]:
@@ -220,10 +256,12 @@ def find_conflicts(d):
             continue
         # An out-of-date source does not argue with a current one. It is set apart on the page instead.
         real = [f for f in fs if kind(f) in ("file", "web", "business_file") and not f.get("absent") and not f.get("stale")]
+        if any(kind(f) == "business_file" for f in real) != bool(business_file_side):
+            continue
         groups = []
         for f in real:
             for g in groups:
-                if claim(key, g[0]) == claim(key, f):
+                if claim(key, g[0]) == claim(key, f) or (key == "1.price" and price_overlap(g[0], f)):
                     g.append(f)
                     break
             else:
@@ -273,14 +311,22 @@ def src_text(f):
     s = f.get("source", {})
     k, ref = s.get("kind"), str(s.get("ref", ""))
     when = f" ({s['date']})" if s.get("date") else ""
+    if k == "member" and f.get("guess_ok"):
+        return "my wording; you said it looks right"
     if k == "hypothesis":
         return "my guess, " + (ref if re.match(r"(from|reasoned|based)\b", ref, re.I) else "from " + ref)
     return {"member": "you told me", "business_file": "your Business File" + (f", {ref}" if ref else ""), "web": ref + when,
             "file": f"your file {ref}{when}"}.get(k, ref)
 
 
+def answered_none(fs):
+    """The member already said there is none. That is an answer, whether or not it earns credit."""
+    return any(f.get("absent") and kind(f) in OWN for f in fs)
+
+
 def gap_list(d, cap):
-    """The questions worth asking, by how much harm a wrong answer does, then by how much later work leans on it."""
+    """The questions worth asking: disagreements and old facts first, then the core, then what every owner
+    knows, then the rest by how much later work leans on it."""
     cr, bf = credit(d), by_field(d)
     conflicted = dict(find_conflicts(d))
     skipped = set(d.get("skipped") or [])
@@ -296,9 +342,17 @@ def gap_list(d, cap):
             b = stale[key]
             rows.append((1, -weight, key, f"{label}: an older source says “{b['value']}” ({src_text(b)}). Is that still true today?"))
         elif cr.get(key, 0) < CONF["likely"]:
+            if answered_none(bf.get(key, [])):
+                continue
             known = [f for f in bf.get(key, []) if not f.get("absent")]
-            rank = 2 if key in CORE else 3 if key in FACTS else 4 if not known else 5
-            if known:
+            rank = 2 if key in CORE else 3 if key in EASY else 4 if key in FACTS or not known else 5
+            core = best(bf["1.core_result"]) if cr.get("1.core_result", 0) >= 1 else None
+            if key == "3.promise" and not known and core:
+                rows.append((rank, -weight, key, f"Core promise: is it roughly your core result, “{core['value']}”? Say yes, or put it in your own words."))
+            elif known and best(known).get("stale"):
+                b = best(known)
+                rows.append((rank, -weight, key, f"{label}: an older source says “{b['value']}” ({src_text(b)}). Does that still hold? If not: {question}"))
+            elif known:
                 b = best(known)
                 rows.append((rank, -weight, key, f"{label}: my best guess is “{b['value']}” ({src_text(b)}). Is that right? If not: {question}"))
             else:
@@ -312,6 +366,9 @@ def score(d):
     total = sum(f[3] for f in FIELDS)
     pct = round(100 * sum(f[3] * cr.get(f[0], 0) for f in FIELDS) / total)
     weak = [FIELD[k][2] for k in CORE if cr.get(k, 0) < CONF["likely"]]
+    # A promise can be drafted as a plain restatement of a core result the member has given in their own words.
+    if cr.get("1.core_result", 0) >= 1 and FIELD["3.promise"][2] in weak:
+        weak.remove(FIELD["3.promise"][2])
     return pct, weak
 
 
@@ -343,7 +400,7 @@ def cmd_inventory(a):
             if fn.startswith((".", "_")) or p.suffix.lower() not in READABLE or p.is_symlink():
                 skipped += 1
                 continue
-            if SENSITIVE.search(rel):
+            if looks_private(rel):
                 sensitive.append(rel)
                 continue
             try:
@@ -394,14 +451,23 @@ def cmd_check(a):
 def cmd_conflicts(a):
     d = load(a.ledger)
     cs = find_conflicts(d)
+    side = find_conflicts(d, business_file_side=True)
     if not cs:
         print("No disagreements between sources.")
-        return
     for key, groups in cs:
         print(f"{FIELD[key][2]}:")
         for g in groups:
             print(f"  “{g[0]['value']}”  from " + "; ".join(src_text(f) for f in g))
-    print(f"\n{len(cs)} to ask the member about. Never pick one yourself.")
+    if cs:
+        print(f"\n{len(cs)} to ask the member about. Never pick one yourself.")
+        if any(not f.get("claim") for _k, groups in cs for g in groups for f in g):
+            print("If two of these say the same thing in different words, give both findings the same short \"claim\" and run this again.")
+    if side:
+        print("\nThese places say something different from the member's Business File. The Business File stands; the page lists them so the member can fix the old place or correct the file:")
+        for key, groups in side:
+            for g in groups:
+                if not any(kind(f) == "business_file" for f in g):
+                    print(f"  {FIELD[key][2]}: “{g[0]['value']}”  in " + "; ".join(src_text(f) for f in g))
 
 
 def cmd_gaps(a):
@@ -434,15 +500,23 @@ def cmd_ready(a):
         print("Not ready yet for a straight run through the build sessions (Autopilot). A run now would be mostly blanks and guesses.")
         if weak:
             print("These must be known first: " + ", ".join(weak) + ".")
+        cr = credit(d)
         ask, _ = gap_list(d, 5)
+        skipped = [FIELD[s][2] for s in d.get("skipped") or [] if s in FIELD and cr.get(s, 0) < CONF["likely"]]
         if ask:
-            print("Answering these would help most:")
+            print("Answering these would help most. Ask them once, as one more round, and then stop asking:")
             for _, _, _key, q in ask:
                 print(f"  - {q}")
-        skipped = [FIELD[s][2] for s in d.get("skipped") or [] if s in FIELD]
+        else:
+            print("There is nothing left to ask that the member has not already answered or skipped. Do not offer more questions.")
         if skipped:
             print("Already skipped by the member: " + ", ".join(skipped) + ". Those stay open until they choose to answer.")
-        print("Tell the member plainly: a few minutes of answers now is worth more than a long run. Running one session by hand is the other good choice.")
+        if weak and set(weak) & set(skipped):
+            print("A skipped question is among the ones that must be known. No more asking gets past that; the session that works it out with the member does.")
+        client_open = sum(1 for k in ("2.profile", "2.pains", "2.dream", "2.objections", "2.language") if cr.get(k, 0) < CONF["likely"])
+        by_hand = "Ideal Client Avatar (“Help me build my ideal client avatar”)" if client_open >= 3 else "Signature Offer (“Help me build my signature offer”)"
+        print("Tell the member plainly: " + ("a few minutes of answers now is worth more than a long run. " if ask else "")
+              + f"The session to run by hand next is {by_hand}. Going ahead with Autopilot anyway is theirs to choose, not yours to recommend.")
     sys.exit(0 if ready else 2)
 
 
@@ -456,15 +530,18 @@ def cmd_page(a):
         out += [f"_Researched {d['date']}. Correct anything that is wrong. Your word always wins._", ""]
     scope = d.get("scope") or {}
     if scope.get("read"):
-        out += ["**What I read:** " + "; ".join(map(str, scope["read"])) + (f" ({scope['opened']} files opened)" if scope.get("opened") else ""), ""]
+        out += ["**What I read:** " + "; ".join(map(str, scope["read"])) + (f" ({scope['opened']} file{'' if str(scope['opened']) == '1' else 's'} opened)" if scope.get("opened") else ""), ""]
     if scope.get("excluded"):
         out += ["**What I left alone, as you asked:** " + "; ".join(map(str, scope["excluded"])), ""]
     for sec in (1, 2, 3, 4, 0):
         lines = []
         for key, s, label, _w, multi, _q in FIELDS:
-            if s != sec or key not in bf or key in conflicted or key in stale:
+            if s != sec or key not in bf or key in conflicted:
                 continue
-            fs = sorted(bf[key], key=lambda f: -CONF.get(f.get("confidence"), 0))
+            # Out-of-date material never sits among the findings. It is listed apart, below.
+            fs = sorted((f for f in bf[key] if not f.get("stale")), key=lambda f: -CONF.get(f.get("confidence"), 0))
+            if not fs:
+                continue
             if not multi:
                 b = best(fs)
                 also = sorted({src_text(f) for f in fs if f is not b and claim(key, f) == claim(key, b) and not f.get("stale")} - {src_text(b)})
@@ -491,16 +568,34 @@ def cmd_page(a):
         for key, groups in conflicted.items():
             out.append(f"- **{FIELD[key][2]}:** " + " **or** ".join(f"“{g[0]['value']}” ({'; '.join(src_text(f) for f in g)})" for g in groups))
         out.append("")
-    if stale:
-        out += ["## Older material I am not relying on", "", "These came only from sources that look out of date. I will ask you before using any of them.", ""]
-        out += [f"- **{FIELD[k][2]}:** “{b['value']}” ({src_text(b)})" for k, b in stale.items()] + [""]
+    differs = find_conflicts(d, business_file_side=True)
+    if differs:
+        out += ["## Places that say something different from your Business File", "", "I am going by your Business File. If one of these is the right one, tell me and I will correct the file.", ""]
+        for key, groups in differs:
+            out += [f"- **{FIELD[key][2]}:** “{g[0]['value']}” ({'; '.join(src_text(f) for f in g)})" for g in groups if not any(kind(f) == "business_file" for f in g)]
+        out.append("")
+    old = [f for fs in bf.values() for f in fs if f.get("stale")]
+    if old:
+        out += ["## Older material I am not relying on", "", "These came from sources that look out of date, so I have set them aside. Nothing here is used unless you tell me it still holds.", ""]
+        seen = set()
+        for f in old:
+            line = f"- **{FIELD[f['field']][2]}:** “{f.get('quote') or f['value']}” ({src_text(f)})" + (" I will ask you about this one." if f["field"] in stale else "")
+            if line not in seen:
+                out.append(line)
+                seen.add(line)
+        out.append("")
     gone = [f for f in d["findings"] if isinstance(f, dict) and f.get("retired") and isinstance(f.get("source"), dict)]
     if gone:
         out += ["## Retired lines still in your files", "", "You told us never to use these. They are still written in the places below, so you may want to remove them there.", ""]
         out += [f"- “{f.get('quote') or f.get('value')}” ({src_text(f)})" for f in gone] + [""]
-    missing = [f[2] for f in FIELDS if f[0] not in bf]
+    skipped = set(d.get("skipped") or [])
+    current = {k for k, fs in bf.items() if any(not f.get("stale") for f in fs)}
+    missing = [f[2] for f in FIELDS if f[0] not in current and f[0] not in skipped]
     if missing:
         out += ["## What I could not find", "", ", ".join(missing) + ".", ""]
+    passed = [f[2] for f in FIELDS if f[0] not in current and f[0] in skipped]
+    if passed:
+        out += ["## What you chose to skip for now", "", ", ".join(passed) + ".", ""]
     out += ["## How ready this is", "", f"{pct} out of 100. A guide to how much is known, not a measurement of your business."
             + (f" Still needed first: {', '.join(weak)}." if weak else "")]
     print("\n".join(out))

@@ -5,8 +5,9 @@
   autopilot.py plan   --dir autopilot --readiness N|none [--thin-ok "the member's words"] [--skip SLUG ...] [--no-web]
   autopilot.py decide --dir autopilot --key KEY --value "the member's answer"
   autopilot.py next   --dir autopilot             the one step to run now, its scope and the standing rules
-  autopilot.py done   --dir autopilot SLUG --status drafted|partial|blocked|skipped [--outputs F ...] [--gaps TEXT ...] [--note TEXT]
+  autopilot.py done   --dir autopilot SLUG --status drafted|partial|blocked|skipped [--outputs F ...] [--gaps TEXT ...] [--note TEXT] [--redo]
   autopilot.py approve --dir autopilot --words "what the member said"
+  autopilot.py leave-out --dir autopilot SLUG --words "what the member said"   drop a step whose input they lack
   autopilot.py status --dir autopilot
   autopilot.py report --dir autopilot             the review list, as markdown
 
@@ -71,11 +72,11 @@ TOOL = {t[0]: t for t in TOOLS}
 # What a run drafts in each session, and what it leaves for the member. Printed by `next`.
 SCOPE = {
     "audience-insight": "Public research only: the words buyers use, each with its source. No interviews.",
-    "ideal-client-avatar": "The avatar from what is known. Leave out anything that asks you to imagine clients: no invented complaints, no 'as if you interviewed 50', no testimonial fragments, no revenue or years figures. Guessed phrases go under hypothesis language, never in quotation marks.",
+    "ideal-client-avatar": "The avatar from what is known. Leave out anything that asks you to imagine clients: no invented complaints, no 'as if you interviewed 50', no testimonial fragments, no revenue or years figures, no imagined scenes (a typical Tuesday, thoughts at 11pm). Guessed phrases go under hypothesis language, never in quotation marks.",
     "signature-offer": "Document the offer as it stands: name, promise, how it runs, phases, deliverables, price, guarantee. Do not set dollar values per deliverable, price tiers, price anchors, cost-of-problem math or new guarantee options. Those are the member's, in Offer Deep Dive.",
     "positioning-messaging": "Positioning from the avatar and the offer. No claims about competitors you have not seen. Taglines and statements are drafts.",
     "offer-page-copy": "The full page as copy. No cost math, no value stack figures, no composite or 'typical' results. Proof only where permission is recorded as yes. Missing proof is a marked gap, not a made-up story.",
-    "funnel-map": "The funnel map and the welcome email sequence. Do not write the opt-in page (Lead Capture does) and do not run any CRM build.",
+    "funnel-map": "The funnel map and the welcome email sequence. Do not write the opt-in page (Lead Capture does) and do not run any CRM build. If the member has no free resource, there is no opt-in and nobody to welcome: map how people reach them today and how a first call gets booked, write no email sequence, and record the step as partial. Follow-up after a call belongs to Decision Machine.",
     "lead-capture": "The opt-in page copy, the thank-you page and the delivery email. If the free resource does not exist, say so and outline what it would cover; do not write as if it exists. No CRM build, no web application.",
     "sales-script": "The call script and objection answers, using the guarantee wording exactly. No role-play.",
     "decision-machine": "The follow-up after a call and for a no-show only. The welcome sequence belongs to Funnel Map; do not write a second one. No tags built, no CRM build.",
@@ -89,6 +90,16 @@ SNAPSHOT = ("What I do", "Who I serve", "Core result I deliver")
 READY_AT = 70
 DRAFTS = "autopilot/drafts/"
 # key: (what it is, whether every later session must be told)
+# What a step leans on. When the member has said there is none, or was never asked, the step would come back
+# mostly blank, so the member is offered the choice to leave it out before the straight run starts.
+LEANS_ON = {
+    "lead-capture": ("free_resource", "a free resource to offer"),
+    "decision-machine": ("tools", "the tools you use for email and follow-up"),
+    "leadgen": ("preferred_source", "where you most want new clients to come from"),
+}
+NONE = re.compile(r"\s*((none|no|nothing|n/?a|not yet)( yet| really)?[\s.!]*$|i don'?t (know|have)\b|don'?t (know|have)\b|skip\b)", re.I)
+# Decisions that add up instead of replacing: a second answer never erases the first.
+ADDS = ("never_claim", "retired")
 DECISIONS = {
     "price": ("Price today", False),
     "guarantee": ("Guarantee, exact wording, or none", True),
@@ -100,6 +111,8 @@ DECISIONS = {
     "free_resource": ("Free resource to offer, or none yet", False),
     "goal_90": ("The one result wanted in the next 90 days", False),
     "preferred_source": ("Where they most want clients from", False),
+    "deliverables": ("What a client receives", False),
+    "credentials": ("Background and credentials", False),
 }
 
 
@@ -183,8 +196,11 @@ def cmd_plan(a):
     thin_ok = (a.thin_ok or "").strip()
     if (r == "none" or int(r) < READY_AT) and len(thin_ok) < 2:
         why = "There is no discovery ledger, so nobody knows how much is known." if r == "none" else f"Readiness is {r} out of 100, below {READY_AT}."
-        die(why + " A run now would be mostly blanks and guesses. Tell the member, and offer: answer the questions Discovery named, "
-            "run one session by hand, or go ahead anyway. If they choose to go ahead, record their words with --thin-ok.", 5)
+        die(why + " A run now would be mostly blanks and guesses. Tell the member, and offer: answer the questions Discovery still has "
+            "(only if `discover.py ready` names some), run the one session it names by hand, or go ahead anyway. If they choose to go ahead, "
+            "record their words with --thin-ok. Words that are not a clear choice to go ahead (\"I don't know\", \"skip that\") are not one.", 5)
+    if thin_ok and NONE.match(thin_ok):
+        die(f"“{thin_ok}” is not a choice to go ahead. Do not start a run on it.", 5)
     steps = []
     for slug, _n, _p, mode, _w in TOOLS:
         if mode not in ("foundation", "auto"):
@@ -221,8 +237,30 @@ def standing(run):
     """What every session in the run must be told. These are the member's rules, in their words."""
     out = []
     for dct in run.get("decisions", []):
-        if DECISIONS[dct["key"]][1]:
+        if DECISIONS[dct["key"]][1] and not (dct["key"] in ADDS and NONE.match(dct["value"])):
             out.append(f"{DECISIONS[dct['key']][0]}: {dct['value']}")
+    return out
+
+
+def known(run):
+    """Everything else the member said at the start, so each session works from it instead of leaving a blank."""
+    return [f"{DECISIONS[x['key']][0]}: {x['value']}" for x in run.get("decisions", []) if not DECISIONS[x["key"]][1]]
+
+
+def said(words):
+    """The member's words in quotation marks, closed with one full stop however they ended."""
+    w = str(words).strip()
+    return f"“{w}”" + ("" if w[-1:] in ".!?" else ".")
+
+
+def thin_steps(run):
+    """Pending steps whose main input the member does not have yet."""
+    dec = {x["key"]: x["value"] for x in run.get("decisions", [])}
+    out = []
+    for s in pending(run, "auto"):
+        need = LEANS_ON.get(s["slug"])
+        if need and (need[0] not in dec or NONE.match(dec[need[0]])):
+            out.append((s["slug"], need[1]))
     return out
 
 
@@ -234,9 +272,12 @@ def cmd_decide(a):
     if not val:
         die("Record what the member actually said (--value). If they skipped the question, record nothing.")
     run.setdefault("decisions", [])
+    before = [x["value"] for x in run["decisions"] if x["key"] == a.key]
+    if a.key in ADDS and before and not NONE.match(before[0]) and before[0].lower() not in val.lower():
+        val = before[0] if val.lower() in before[0].lower() else before[0].rstrip("; ") + "; " + val
     run["decisions"] = [x for x in run["decisions"] if x["key"] != a.key] + [{"key": a.key, "value": val, "date": date.today().isoformat()}]
     save(a.dir, run)
-    print(f"Recorded: {DECISIONS[a.key][0]}.")
+    print(f"Recorded: {DECISIONS[a.key][0]}." + (f" Now: {val}" if a.key in ADDS else ""))
 
 
 def cmd_next(a):
@@ -248,6 +289,8 @@ def cmd_next(a):
         print(f"SAVE  every document under {DRAFTS}")
         for line in standing(run):
             print("RULE  " + line)
+        for line in known(run):
+            print("KNOWN  " + line)
 
     f = pending(run, "foundation")
     if f:
@@ -258,6 +301,10 @@ def cmd_next(a):
               + ". Tell the member what is missing and ask for it. Do not go on without it.")
         sys.exit(4)
     if not run.get("approved"):
+        part = [TOOL[s["slug"]][1] for s in run["steps"] if s["slug"] in MUST and s["status"] == "partial"]
+        if len(part) >= 2:
+            print(f"NOTE  {len(part)} of the 3 foundation sessions are only partly drafted ({', '.join(part)}). Say so when you show the page, "
+                  "and offer the member the choice to stop here and run the Ideal Client Avatar session by hand instead of going on.")
         print("REVIEW  The foundation is drafted. Build the Foundation Reveal, show it to the member, apply their changes, "
               "and record their go-ahead with 'approve'. Nothing else runs until then.")
         sys.exit(3)
@@ -270,6 +317,11 @@ def cmd_next(a):
 def cmd_done(a):
     run = load(a.dir)
     todo = pending(run, "foundation") or (pending(run, "auto") if run.get("approved") else [])
+    if a.redo:
+        # A step drafted again, for example after the member's review changed it. Its record is replaced.
+        todo = [s for s in run["steps"] if s["slug"] == a.slug and s["status"] in DONE_OK + ("blocked",)]
+        if not todo:
+            die(f"--redo replaces the record of a step already finished. {a.slug} has not been finished.")
     if not todo:
         die("Nothing is waiting. If the foundation is drafted, the member has to review it first.")
     if todo[0]["slug"] != a.slug:
@@ -300,6 +352,27 @@ def cmd_approve(a):
     run["approved"] = {"date": date.today().isoformat(), "words": words}
     save(a.dir, run)
     print("Recorded the member's go-ahead. The run can continue.")
+    thin = thin_steps(run)
+    if thin:
+        print("\nASK ONCE, before going on. These steps lean on something the member does not have yet and would come back mostly blank:")
+        for slug, need in thin:
+            print(f"  - {TOOL[slug][1]}: needs {need}")
+        print("Ask the member whether to run them anyway or leave them out. To leave one out: "
+              f"autopilot.py leave-out --dir {a.dir} SLUG --words \"what they said\". This is the last question of the run.")
+
+
+def cmd_leave_out(a):
+    run = load(a.dir)
+    s = next((s for s in pending(run, "auto") if s["slug"] == a.slug), None)
+    if not s:
+        die(f"{a.slug} is not a step still waiting in the straight run. The ideal client, the offer and the positioning cannot be left out.")
+    words = (a.words or "").strip()
+    if len(words) < 2:
+        die("Record what the member actually said (--words). Leaving a step out is their choice.")
+    need = LEANS_ON.get(a.slug)
+    s.update(status="skipped", note=f"left out at your request ({said(words).rstrip('.')})" + (f": it needs {need[1]}" if need else ""), finished=date.today().isoformat())
+    save(a.dir, run)
+    print(f"Recorded: {TOOL[a.slug][1]} is left out of this run. It is listed in the report with the sentence that starts it.")
 
 
 def cmd_status(a):
@@ -316,7 +389,8 @@ def rollup(run):
                 e = seen.setdefault(k, {"text": str(g), "in": []})
                 if TOOL[s["slug"]][1] not in e["in"]:
                     e["in"].append(TOOL[s["slug"]][1])
-    return sorted(seen.values(), key=lambda e: (-len(e["in"]), e["text"]))
+    # Most repeated first. Ties keep the order they came up in, so a gap in the foundation leads.
+    return sorted(seen.values(), key=lambda e: -len(e["in"]))
 
 
 def cmd_report(a):
@@ -325,8 +399,8 @@ def cmd_report(a):
     r = run.get("readiness")
     out = ["# Your Autopilot run", "", f"Started {run['started']}. "
            + ("No discovery was run first." if r == "none" else f"Readiness when it started: {r} out of 100.")
-           + (f" You chose to go ahead: “{run['thin_ok']}”." if run.get("thin_ok") else ""),
-           (f"You approved the foundation on {run['approved']['date']}: “{run['approved']['words']}”." if run.get("approved") else "The foundation has not been approved yet."), "",
+           + (f" You chose to go ahead: {said(run['thin_ok'])}" if run.get("thin_ok") else ""),
+           (f"You approved the foundation on {run['approved']['date']}: {said(run['approved']['words'])}" if run.get("approved") else "The foundation has not been approved yet."), "",
            "Everything below is a draft for you to review. Nothing was published, sent or paid for.", ""]
     top = rollup(run)
     if top:
@@ -336,7 +410,7 @@ def cmd_report(a):
     else:
         out += ["## What to do first", "", "1. Read the drafts and fix anything that does not sound like you.", "2. Publish only what you have checked.", ""]
     if run.get("decisions"):
-        out += ["## What you told me at the start", ""] + [f"- **{DECISIONS[x['key']][0]}:** {x['value']}" for x in run["decisions"]] + [""]
+        out += ["## What you told me", ""] + [f"- **{DECISIONS[x['key']][0]}:** {x['value']}" for x in run["decisions"]] + [""]
     for st, title in (("drafted", "Drafted for you"), ("partial", "Partly drafted")):
         if by[st]:
             out += [f"## {title}", ""]
@@ -350,7 +424,7 @@ def cmd_report(a):
     if by["blocked"]:
         out += ["## Could not be drafted", ""] + [f"- **{TOOL[s['slug']][1]}:** {s['note']} To run it yourself, say “{TOOL[s['slug']][2]}”." for s in by["blocked"]] + [""]
     if by["skipped"]:
-        out += ["## Left out", ""] + [f"- **{TOOL[s['slug']][1]}:** {s.get('note', '')}" for s in by["skipped"]] + [""]
+        out += ["## Left out", ""] + [f"- **{TOOL[s['slug']][1]}:** {s.get('note', '')}. To run it yourself later, say “{TOOL[s['slug']][2]}”." for s in by["skipped"]] + [""]
     if by["pending"]:
         out += ["## Not reached yet", ""] + [f"- {TOOL[s['slug']][1]}" for s in by["pending"]] + ["", "Say “Run autopilot” to carry on from here.", ""]
     out += ["## Needs you, so it was not run", "", "These depend on something only you have. Each one is a session you start with one sentence. Not all of them will fit your business; pick what does.", ""]
@@ -368,7 +442,8 @@ def main():
     for name, fn in (("next", cmd_next), ("status", cmd_status), ("report", cmd_report)):
         p = sub.add_parser(name); p.add_argument("--dir", required=True); p.set_defaults(fn=fn)
     p = sub.add_parser("done"); p.add_argument("--dir", required=True); p.add_argument("slug"); p.add_argument("--status", required=True, choices=STATUSES)
-    p.add_argument("--outputs", nargs="*"); p.add_argument("--gaps", nargs="*"); p.add_argument("--note"); p.set_defaults(fn=cmd_done)
+    p.add_argument("--outputs", nargs="*"); p.add_argument("--gaps", nargs="*"); p.add_argument("--note"); p.add_argument("--redo", action="store_true"); p.set_defaults(fn=cmd_done)
+    p = sub.add_parser("leave-out"); p.add_argument("--dir", required=True); p.add_argument("slug"); p.add_argument("--words"); p.set_defaults(fn=cmd_leave_out)
     p = sub.add_parser("approve"); p.add_argument("--dir", required=True); p.add_argument("--words"); p.set_defaults(fn=cmd_approve)
     a = ap.parse_args()
     a.fn(a)

@@ -135,7 +135,8 @@ def build(run, folder, page_dir, business):
     steps = run.get("steps", [])
     by = {st: [s for s in steps if s.get("status") == st] for st in ("drafted", "partial", "blocked", "skipped", "pending")}
     made = [s for s in steps if s.get("status") in ("drafted", "partial")]
-    gaps = sum(len(s.get("gaps") or []) for s in made)
+    gaps = len(keeper.rollup(run))  # each thing counted once, however many drafts ask for it
+    mostly_partial = len(by["partial"]) > len(by["drafted"])
     top = [e for e in keeper.rollup(run) if len(e["in"]) > 1][:5]
     needs = [t for t in keeper.TOOLS if t[3] == "needs_you"]
     approved = run.get("approved")
@@ -145,13 +146,13 @@ def build(run, folder, page_dir, business):
     done_line = "Here is everything that was drafted, where it is saved, and what still needs you." if not by["pending"] \
         else "The run is not finished. Here is what is drafted so far. Say “Run autopilot” to carry on."
     o.append(f'<header class="cover"><div class="wrap"><div class="eyebrow">Build Room OS · Your Build</div>'
-             f'<h1>{lead}<em>your first build, drafted.</em></h1><p>{E(done_line)} Started {E(str(run.get("started", "")))}.</p>'
+             f'<h1>{lead}<em>{"your first build, started." if mostly_partial else "your first build, drafted."}</em></h1><p>{E(done_line)} Started {E(str(run.get("started", "")))}.</p>'
              f'<div class="stats"><div class="stat a"><b>{len(made)}</b><span>pieces drafted for you' + (f', {len(by["partial"])} of them only in part' if by["partial"] else "") + '</span></div>'
-             f'<div class="stat b"><b>{gaps}</b><span>things in them that still need you</span></div>'
+             f'<div class="stat b"><b>{gaps}</b><span>different things they still need from you</span></div>'
              f'<div class="stat c"><b>{len(needs)}</b><span>sessions waiting for you to start</span></div></div></div></header><div class="edge"></div><main class="wrap">')
 
     o.append('<section><div class="num">Start here</div><h2>What to do first</h2><p class="sub">Everything on this page is a draft. Nothing was published, sent or paid for. It becomes real when you have checked it.</p>'
-             '<div class="first"><div class="card"><span class="n">1</span><h3>Read the drafts</h3><p class="why">Open each one below and fix anything that does not sound like you. Lines marked [draft] were written for you.</p></div>'
+             '<div class="first"><div class="card"><span class="n">1</span><h3>Read the drafts</h3><p class="why">Open each one below and fix anything that does not sound like you. Every one was written for you to check; each ends with a short list of what in it is yours and what is not.</p></div>'
              '<div class="card"><span class="n">2</span><h3>Fill what needs you</h3><p class="why">Each draft lists what is still missing. Tick them off here as you go. Your ticks are remembered on this computer.</p></div>'
              '<div class="card"><span class="n">3</span><h3>Publish what you have checked</h3><p class="why">Only you can put a page live or send an email. Do it one piece at a time.</p></div></div>')
     if top:

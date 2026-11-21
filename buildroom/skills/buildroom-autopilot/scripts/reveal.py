@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The Foundation Reveal: the member's ideal client, offer and positioning on one page they can review.
 
-  reveal.py check FOUNDATION.json [--business-file FILE]   every line says where it came from; nothing guessed is shown as fact
+  reveal.py check FOUNDATION.json [--business-file FILE] [--ledger LEDGER.json]   every line says where it came from; nothing guessed is shown as fact
   reveal.py build FOUNDATION.json OUT.html [--business-file FILE]   the review page (one file, works offline, prints cleanly)
   reveal.py text FOUNDATION.json             the same content as plain markdown, for a chat with no files
 
@@ -11,9 +11,12 @@ Every value in the JSON is {"v": "...", "basis": "confirmed" | "files" | "drafte
   drafted    written by the session for the member to check
   reviewed   drafted, then approved by the member as it stands. Still not their own words.
 
-With --business-file, any line that carries one of the member's retired lines is refused.
+With --business-file, any line that carries one of the member's retired lines is refused. Lines the member
+retired at the start of the run (run.json, beside the foundation file) are refused the same way.
+With --ledger, or when discovery/ledger.json sits beside the autopilot folder, a "files" line whose source
+the research set aside as out of date is refused.
 
-Standard library only. It reads one JSON file and writes one HTML file. Nothing else.
+Standard library only. It reads those files and writes one HTML file. Nothing else.
 """
 import html, json, re, sys
 from pathlib import Path
@@ -80,18 +83,52 @@ def retired_lines(business_file):
         text = Path(business_file).read_text(encoding="utf-8")
     except OSError as e:
         sys.exit(f"Cannot read the Business File: {e}")
-    m = re.search(r"^- \*\*Retired lines\*\*.*$", text, re.M)
-    if not m:
+    m = re.search(r"^- \*\*Retired lines(?::\*\*|\*\*(?:\s*\([^)]*\))?:?)(.*)$", text, re.M)
+    return parse_retired(m.group(1)) if m else []
+
+
+def parse_retired(line):
+    """Entries are separated by semicolons. A note in brackets is not part of the line. Within an entry the
+    quoted words are the retired line; an entry with no quotation marks is retired as a whole."""
+    out = []
+    for entry in re.sub(r"\([^)]*\)|\[[^\]]*\]", " ", str(line)).split(";"):
+        quoted = re.findall(r"[\"“]([^\"”]{4,})[\"”]", entry)
+        if not quoted:
+            bare = re.sub(r"^(the )?(name|phrase|line|words?|claim|offer|tagline)\s+", "", entry.strip(" .—-"), flags=re.I).strip()
+            quoted = [bare] if len(bare) >= 4 and not re.match(r"(none|n/?a|nothing)\b", bare, re.I) else []
+        out += [x.strip() for x in quoted if not x.strip().lower().startswith("e.g")]
+    return out
+
+
+def run_retired(foundation_path):
+    """Lines the member retired at the start of this run. They are not in the Business File yet, and they count."""
+    try:
+        run = json.loads(Path(foundation_path).with_name("run.json").read_text(encoding="utf-8"))
+        return [l for x in run.get("decisions", []) if x.get("key") == "retired" for l in parse_retired(x.get("value", ""))]
+    except (OSError, ValueError, AttributeError):
         return []
-    found = re.findall(r"[\"“]([^\"”]{4,})[\"”]", m.group(0).split(":**", 1)[-1])
-    return [x.strip() for x in found if not x.strip().lower().startswith("e.g")]
+
+
+def old_sources(ledger):
+    """File and page references the research ledger holds only as out of date or retired."""
+    try:
+        fs = json.loads(Path(ledger).read_text(encoding="utf-8")).get("findings", [])
+    except (OSError, ValueError, AttributeError) as e:
+        sys.exit(f"Cannot read the ledger: {e}")
+    def ref(f):
+        r = str((f.get("source") or {}).get("ref", "")).strip().lower()
+        m = re.match(r"(.+?\.[a-z0-9]{1,5})(?=$|[\s,:;#(§])", r)
+        return m.group(1) if m else r
+    fs = [f for f in fs if isinstance(f, dict) and isinstance(f.get("source"), dict) and f["source"].get("kind") in ("file", "web")]
+    old = {ref(f) for f in fs if f.get("stale") or f.get("retired")}
+    return sorted(r for r in old - {ref(f) for f in fs if not (f.get("stale") or f.get("retired"))} if len(r) >= 4)
 
 
 def squash(v):
     return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", str(v).lower())).strip()
 
 
-def problems(d, retired=()):
+def problems(d, retired=(), old=()):
     out = []
     # money and percentages the member has confirmed or that are in their files may be repeated in a drafted line
     figures = set()
@@ -129,7 +166,12 @@ def problems(d, retired=()):
                     out.append(f"{where}: a drafted line is not a client's words. Move it out of 'language', or give its real source")
                 if kind == "quotes" and x.get("basis") in ("confirmed", "files") and not WHERE.search(str(x.get("source", ""))):
                     out.append(f"{where}: a client quote needs where it was found (a file, a page, a date, or the kind of record), not just who")
-                if x.get("basis") == "drafted":
+                if x.get("basis") == "files":
+                    for r in old:
+                        if r in str(x.get("source", "")).lower():
+                            out.append(f"{where}: its source ({r}) is one the research set aside as out of date. It is not 'from your files' until the member says it still holds")
+                # An approved draft is still a draft: the member said the wording is fine, not that a new fact is true.
+                if x.get("basis") in ("drafted", "reviewed"):
                     v = str(x.get("v", ""))
                     new = [m for m in MONEY.findall(v) if re.sub(r"[\s,]", "", m).rstrip(".") not in figures]
                     if new:
@@ -169,7 +211,7 @@ E = html.escape
 def badge(x, show_source=True):
     """The tag, and in plain sight where the line came from. Nothing is hidden behind a hover."""
     b = x["basis"]
-    src = f' <span class="src">{E(str(x["source"]))}</span>' if show_source and x.get("source") and b != "confirmed" else ""
+    src = f' <span class="src">{E(str(x["source"]))}</span>' if show_source and x.get("source") else ""
     return f'<span class="b {b}">{E(BASIS[b])}</span>{src}'
 
 
@@ -421,7 +463,7 @@ def text(d):
     tag = {"confirmed": "[you]", "files": "[files]", "drafted": "[draft]", "reviewed": "[draft, approved]"}
 
     def t(x):
-        return tag[x["basis"]] + (f" ({x['source']})" if x.get("source") and x["basis"] != "confirmed" else "")
+        return tag[x["basis"]] + (f" ({x['source']})" if x.get("source") else "")
     for part, title, fields in PARTS:
         out += [f"## {title}", ""]
         for key, label, kind in fields:
@@ -445,17 +487,23 @@ def text(d):
 
 def main():
     a = sys.argv[1:]
-    bf = None
-    if "--business-file" in a:
-        k = a.index("--business-file")
-        if k + 1 >= len(a):
-            sys.exit(__doc__)
-        bf = a[k + 1]
-        del a[k:k + 2]
+    opt = {}
+    for flag in ("--business-file", "--ledger"):
+        if flag in a:
+            k = a.index(flag)
+            if k + 1 >= len(a):
+                sys.exit(__doc__)
+            opt[flag] = a[k + 1]
+            del a[k:k + 2]
+    bf = opt.get("--business-file")
     if len(a) < 2 or a[0] not in ("check", "build", "text") or (a[0] == "build" and len(a) != 3):
         sys.exit(__doc__)
     d = load(a[1])
-    probs = problems(d, retired_lines(bf) if bf else ())
+    led = opt.get("--ledger")
+    if not led and len(a) > 1 and (Path(a[1]).resolve().parent.parent / "discovery" / "ledger.json").is_file():
+        led = str(Path(a[1]).resolve().parent.parent / "discovery" / "ledger.json")
+    retired = list(retired_lines(bf) if bf else ()) + run_retired(a[1])
+    probs = problems(d, retired, old_sources(led) if led else ())
     if a[0] == "check" or probs:
         for p in probs:
             print("FIX  " + p)
