@@ -669,7 +669,8 @@ def main():
             return lp("check", pf, *extra)
         check("check: a prospect with a visible reason to fit and an honest opener passes", pc([P()])[0] == 0)
         check("check: a fit that rests on nothing the profile shows is refused", "does not rest on their role, company or what you noticed" in pc([P(why=["Seems like a great person to know"])])[1])
-        check("check: a first message to someone not connected is refused", "can only go to someone already connected" in pc([P(connected=False)])[1])
+        check("check: a first message to someone not connected is refused", "can only go to someone already connected" in pc([P(connected=False)])[1]
+              and pc([P(connected=False, opener={"kind": "DM", "text": good, "after_accept": True})])[0] == 0)
         check("check: nothing noticed means a blank request and no opener", "nothing to personalise" in pc([P(hook={"kind": "none"})])[1] and pc([P(hook={"kind": "none"}, opener=None)])[0] == 0)
         check("check: a post hook needs its link, and copied profile text is refused as a hook", "needs the link" in pc([P(hook={"kind": "post", "note": HOOK})])[1]
               and "not copied profile text" in pc([P(hook={"kind": "about", "note": "hygienist " + "x" * 220})])[1])
@@ -689,8 +690,87 @@ def main():
         check("say: the invitation needs two exchanges, an easy no, and no link", lp("say", "--stage", "invite", "--exchanges", "2", "--text", inv)[0] == 0
               and "after 1 real exchange" in lp("say", "--stage", "invite", "--exchanges", "1", "--text", inv)[1]
               and "no easy way to say no" in lp("say", "--stage", "invite", "--exchanges", "3", "--text", "It sounds like month end keeps slipping. Would a short call be useful?")[1])
+        # ---- from the trial run ----------------------------------------------------------------------
+        H2 = "commented that he has no idea what his overhead actually is"
+        op2 = lambda t: lp("opener", "--kind", "DM", "--hook", H2, "--text", t)[1]  # noqa: E731
+        check("opener: a promise is refused with or without a number", "promises a result" in op2("Hi Marcus, I can cut your overhead by ten percent. Is that worth a look?")
+              and "promises a result" in op2("Marcus, we get overhead under control fast for practices. Is that of interest?"))
+        check("opener: a soft pitch is still a pitch", "pitches" in op2("Marcus, saw your overhead comment. Open to a quick chat?"))
+        check("opener: a problem they did not state is not assumed", "assumes a problem they did not state" in op2("Marcus, I saw your overhead comment and that you are struggling with messy books. What is going on?"))
+        check("say: ordinary words like 'calendar' and 'limited' are not a pitch", lp("say", "--stage", "situation", "--text", "Lease signed and opening in March on the calendar, with limited help. Who is carrying most of it at the moment?")[0] == 0)
+        bfn = _t / "BF.md"
+        bfn.write_text("- **Never claim or promise:** Any tax savings figure, and anything that sounds like tax advice\n- **Retired lines** (x): “Featured in Dental Monthly”\n")
+        check("say: what the member refuses to claim is refused when the Business File is given", "refuses to say" in lp("say", "--stage", "situation", "--business-file", bfn, "--text", "Most owners find tax savings once the books are clean. How are yours looked after today?")[1])
+        code, out = lp("next", "--stage", "booked")
+        check("next: after a yes there is a booked stage where the link and the real price are allowed", code == 0 and "They said yes." in out and "link and the price are allowed now" in out
+              and lp("say", "--stage", "booked", "--text", "Glad it would help. It is $1,450 a month plus a one-time $2,000 setup. Would Tuesday at 10 or Thursday at 2 suit you?")[0] == 0
+              and "promises a result" in lp("say", "--stage", "booked", "--text", "Great, we can cut your overhead. Tuesday at 10?")[1])
+        pc([P(), P(name="Derek Shaw", url="https://www.linkedin.com/in/derekshaw", role="Associate Dentist", company="Aspen Smiles", fit="C", why=["Associate dentist at a large group"], hook={"kind": "none"}, opener=None)])
+        code, out = lp("handoff", pf)
+        check("handoff: a poor fit is left out and said so; the pipeline setup is named", "Left out, a poor fit (C): Derek Shaw" in out and "--name \"Derek Shaw\"" not in out and "li_pipeline.py settings" in out)
+        plan.write_text(json.dumps({"titles": ["Owner"], "keywords": ["dental"], "partners": ["cpa"]}))
+        conn.write_text("First Name,Last Name,URL,Email Address,Company,Position,Connected On\nGreg,Hall,https://www.linkedin.com/in/greghall,,Hall Plumbing,Owner,01 May 2021\n"
+                        "Priya,Nair,https://www.linkedin.com/in/priyanair,,Nair Family Dental,Owner Dentist,12 Jan 2023\nTom,Becker,https://www.linkedin.com/in/tombecker,,Becker CPA Group,Partner,03 Mar 2022\n")
+        code, out = lp("network", plan, conn)
+        check("network: a bare 'Owner' does not match a plumber, and people who could refer are listed apart", "Priya Nair" in out and "Greg Hall" not in out and "could refer you" in out and "Tom Becker" in out.split("match")[0], out)
+        plan.write_text(json.dumps({"titles": ["Practice owner"], "keywords": ["dental"], "problem_words": ["what I actually took home at the end of the year"]}))
+        check("searches: a whole sentence as a search phrase is refused", "too long to search for" in lp("searches", plan)[1])
+
+        # ---- comment first, the reply playbook, the pre-call brief, the daily page -------------------
+        POST = "She is opening a second location in Fort Collins in March"
+        cgood = "Opening a second location changes the books more than most people expect. The part that surprises owners is seeing each location on its own. Are you planning to track them separately from day one?"
+        check("comment: a specific idea about the post, with no pitch, passes", lp("comment", "--post", POST, "--text", cgood)[0] == 0)
+        code, out = lp("comment", "--post", POST, "--text", "Great post! My clients saved 30% doing this. DM me and I will show you how.")
+        check("comment: praise, a pitch, a client result and missing the post are refused", code == 1 and all(x in out for x in ("opens with praise", "pitches or asks them to get in touch", "claims a client result", "does not pick up anything the post says")), out)
+        kinds = {"Not interested, please don't message me again.": "stop", "Yes that would help. What do you charge?": "price", "What is this about? Are you selling something?": "what_do_you_do",
+                 "Can you send me some info?": "send_info", "We already have a bookkeeper.": "have_someone", "Not right now, maybe next quarter.": "not_now",
+                 "Sorry, do I know you?": "who_are_you", "You should talk to my office manager.": "referred_on"}
+        got = {t: lp("reply", "--text", t)[1] for t in kinds}
+        check("reply: each kind of reply is recognised", all(f"KIND   {k}" in got[t] for t, k in kinds.items()), {t: got[t].splitlines()[0] for t in kinds})
+        check("reply: a no is final, and the price is answered straight", "li_pipeline.py forget" in got["Not interested, please don't message me again."] and "Never ask why" in got["Not interested, please don't message me again."]
+              and "Never dodge it" in got["Yes that would help. What do you charge?"] and "never quote a number the member has not confirmed" in got["Yes that would help. What do you charge?"])
+        check("reply: a real answer is read first, not skipped past", "KIND   an answer" in lp("reply", "--text", "Honestly the books. My office manager does them at night.")[1])
+        check("say: a price is allowed only when they asked for it", lp("say", "--stage", "invite", "--exchanges", "3", "--they-asked", "--text", "It is $1,450 a month. Would a short call to see if it fits be useful? If not, no problem at all.")[0] == 0
+              and "price or a figure" in lp("say", "--stage", "want", "--text", "It is $1,450 a month. Does that work?")[1])
+        cv = _t / "conv.json"
+        cv.write_text(json.dumps({"name": "Priya Nair", "role": "Owner Dentist", "company": "Nair Family Dental", "hook": "Opening a second location", "call": "2026-12-02 10:00", "messages": [
+            {"from": "me", "stage": "open", "text": "Is the bigger job the build-out or the team?"}, {"from": "them", "text": "Lease is signed, opening in March. It's a lot."},
+            {"from": "me", "stage": "problem", "text": "What is the part you would change?"}, {"from": "them", "text": "Honestly the books. My office manager does them at night."},
+            {"from": "me", "stage": "invite", "text": "Would a short call be useful? If not, no problem."}, {"from": "them", "text": "Yes, that would help. What do you charge?"}]}))
+        code, out = lp("brief", cv)
+        check("brief: their own words, word for word, under what they were asked about", code == 0 and "# Before your call with Priya Nair" in out and "> “Honestly the books. My office manager does them at night.”" in out
+              and out.index("## What is not working") < out.index("## What they said about a call"))
+        check("brief: what they asked, what is not covered yet, and that it is private", "What do you charge?" in out.split("## What they asked you")[1] and "## Not covered yet" in out and "What it is costing them" in out.split("## Not covered yet")[1]
+              and "not for a post or a page" in out and "do not assume" in out)
+        cv.write_text(json.dumps({"name": "X", "messages": [{"from": "me", "stage": "open", "text": "Hi?"}]}))
+        check("brief: nothing is written until they have said something", lp("brief", cv)[0] == 2)
+        LT = SK / "scripts/li_today.py"
+        lt = lambda *a: (lambda r: (r.returncode, r.stdout + r.stderr))(_sp.run([sys.executable, str(LT), *map(str, a)], capture_output=True, text=True, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}))  # noqa: E731
+        IT = lambda **k: {"name": "Dana Ruiz", "url": "https://www.linkedin.com/in/danaruiz", "role": "Owner", "company": "Ruiz Dental", "do": "message", "stage": "open", "why": HOOK, "text": good, **k}  # noqa: E731
+        tj, th = _t / "today.json", _t / "Today.html"
+        def tb(items, *extra):
+            tj.write_text(json.dumps({"date": "2026-11-24", "items": items}))
+            return lt("build", tj, th, *extra)
+        code, out = tb([IT(), IT(name="Hannah <Cole>", url="https://www.linkedin.com/in/hannahcole", do="request", text="", why="")])
+        page = th.read_text() if th.exists() else ""
+        check("today: one self-contained page, a card per person, with a button to open and the words to copy", code == 0 and page.startswith("<!doctype html>") and page.count('class="card"') == 2
+              and 'href="https://www.linkedin.com/in/danaruiz"' in page and "Copy the words" in page and "Hannah &lt;Cole&gt;" in page and "@import" not in page and "<script src" not in page, out)
+        check("today: says the member does every step, and promises nothing", "You do every step yourself" in page and "It sends nothing and opens nothing by itself" in page and "nothing on it promises replies, calls or clients" in page
+              and "\u2014" not in page and "\u2013" not in page)
+        th.unlink()
+        code, out = tb([IT(text="Hi Dana, I help dentists like you. Book a call: example.com")])
+        check("today: the page will not build while a line would be refused", code == 1 and "pitches" in out and not th.exists(), out)
+        check("today: more than twenty requests in a day is refused", "connection requests in one day" in tb([IT(name=f"P{i}", url=f"https://www.linkedin.com/in/p{i}", do="request", text="", why="") for i in range(21)])[1])
+        check("today: 'just following up' is refused as a follow-up", "adds nothing" in tb([IT(do="follow-up", text="Just following up on my last message, any thoughts?")])[1])
+        pipe = _t / "pipeline.json"
+        _sp.run([sys.executable, str(SK / "scripts/li_pipeline.py"), "settings", str(pipe)], capture_output=True, text=True)
+        _sp.run([sys.executable, str(SK / "scripts/li_pipeline.py"), "add", str(pipe), "--name", "Dana Ruiz", "--url", "https://www.linkedin.com/in/danaruiz", "--signal", "sig:fit", "--fit", "A"], capture_output=True, text=True)
+        _sp.run([sys.executable, str(SK / "scripts/li_pipeline.py"), "forget", str(pipe), "1"], capture_output=True, text=True)
+        check("today: someone who asked not to be contacted cannot appear on the page", "asked not to be contacted" in tb([IT()], "--pipeline", pipe)[1])
+    tsrc = (SK / "scripts/li_today.py").read_text()
+    check("today: standard library only, never online", not re.search(r"^\s*(import|from)\s+(requests|urllib|socket|http|subprocess|selenium|playwright)", tsrc, re.M))
     lsrc = LP.read_text()
-    check("prospector: standard library only, never online, writes nothing", not any(x in lsrc for x in ("requests", "urllib", "socket", "http.client", "subprocess", "selenium", "playwright", "write_text", "open(")))
+    check("prospector: standard library only, never online, writes nothing", not re.search(r"^\s*(import|from)\s+(requests|urllib|socket|http|subprocess|selenium|playwright)", lsrc, re.M) and "write_text" not in lsrc and "open(" not in lsrc)
     pref = (SK / "references/prospector.md").read_text()
     lsk = (SK / "SKILL.md").read_text()
     check("prospector: it never searches, reads or sends on LinkedIn, and says why", "It does not search LinkedIn, read search results, or read profiles through a browser" in pref and "no \"at human speed\" exception" in pref
