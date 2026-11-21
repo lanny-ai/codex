@@ -1,7 +1,7 @@
 ---
 name: buildroom-linkedin
 description: |
-  Organic LinkedIn engine, done by hand: profile as a landing page, pillars, three posts a week in the member's words, carousels, a daily comment-and-message routine, pipeline, weekly scorecard (§14). Use for "build my LinkedIn engine," "help me get clients from LinkedIn," "fix my LinkedIn profile," "write my LinkedIn posts," "plan my LinkedIn week," "who should I message on LinkedIn today," or "how is my LinkedIn doing."
+  Organic LinkedIn engine, done by hand: profile as a landing page, pillars, three posts a week in the member's words, carousels, a daily comment-and-message routine, pipeline, weekly scorecard (§14). Use for "build my LinkedIn engine," "help me get clients from LinkedIn," "fix my LinkedIn profile," "write my LinkedIn posts," "plan my LinkedIn week," "who should I message on LinkedIn today," "find me leads on LinkedIn," "write my LinkedIn opening lines," "what do I say next to this person," or "how is my LinkedIn doing."
 ---
 
 # Build Room — LinkedIn Engine
@@ -47,6 +47,7 @@ Read these before any member-facing work, in this order:
 - **Single piece** ("fix my LinkedIn profile", "write my LinkedIn posts", "make me a LinkedIn carousel"): run only that phase, reading the file and anything already in `linkedin/`.
 - **Weekly** ("plan my LinkedIn week"): the weekly loop at the end (capture, three drafts, the scorecard, next week's calendar).
 - **Daily** ("who should I message on LinkedIn today"): `li_pipeline.py today` plus drafts for each due item; log what the member sent (`touch --text`) and who replied (`reply`).
+- **Prospector** ("find me leads on LinkedIn", "who should I reach out to on LinkedIn", "write my LinkedIn opening lines", "what do I say next to this person"): `references/prospector.md` and `scripts/li_prospect.py`. From the ideal client it writes the searches the member runs themselves, starting with their own connections; the member brings back up to twenty people they looked at, each with one real thing they noticed; it scores the fit, writes one opening line per person from that and nothing else, and then guides each conversation one question at a time (open, situation, problem, cost, want, invite). It never searches or reads LinkedIn, never sends, and never pitches in a first message. People are logged to the pipeline as `sig:fit`.
 - **Log** ("I posted it: [link]", "log my comments"): `li_pipeline.py log-post` or `log-comments`, mark the calendar row posted, nothing else.
 - **Review** ("how is my LinkedIn doing"): the scorecard and diagnosis only.
 - **Demo** ("show me how the LinkedIn engine works"): a short labelled walkthrough on the member's file or an obviously hypothetical example: one headline, one post, one DM, one scorecard. Nothing written to the file; say once that it was a demo.

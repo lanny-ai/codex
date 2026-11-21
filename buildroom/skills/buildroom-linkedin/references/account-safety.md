@@ -16,10 +16,13 @@ The rules below come from LinkedIn's User Agreement (section 8.2, "Don'ts"), the
 8. **Strips or hides AI labels** (Content Credentials on images and video) or tells the member to.
 9. **Stores data the prospect did not knowingly give the member:** no profile photos, no copied profile text, no personal emails or phone numbers they did not share.
 
+**This includes reading.** Having an assistant or a browser extension read search results or profiles in the member's own logged-in browser is the same thing as scraping to LinkedIn, however slowly it is done. The Prospector (`prospector.md`) therefore works from what the member tells it they saw.
+
 ## The skill may (off LinkedIn, on the member's computer)
 
 - Draft posts, hooks, carousels, comments, connection notes and DMs from the member's own material.
 - Keep queues and calendars: the post backlog, today's comment list (accounts the member named), DM follow-ups due, a content calendar.
+- Write the searches the member runs themselves, shortlist the member's own Connections export against their ideal client, check openers and replies (`scripts/li_prospect.py`).
 - Keep a local pipeline (`scripts/li_pipeline.py`) with the source signal, stage, next action, consent and objection flags and a retention date.
 - Read the member's own exports: the creator analytics `.xlsx` and the Connections `.csv` (`scripts/li_scorecard.py`).
 - Render the banner and carousels (`scripts/render_linkedin.mjs`).

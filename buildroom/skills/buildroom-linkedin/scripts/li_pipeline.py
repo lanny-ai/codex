@@ -19,7 +19,8 @@ Usage
                           sig:posted-problem sig:inbound-connect sig:dm-inbound sig:event sig:referral sig:launch
                           sig:known (a past client, colleague or someone who already knows the member: the member
                           says how in --note) · sig:reacted (reacted to the member's post: a weaker signal; the
-                          today list suggests a comment or a profile visit before a DM)
+                          today list suggests a comment or a profile visit before a DM) · sig:fit (found by
+                          li_prospect.py: matches the ideal client, no signal yet; comment or a blank request first)
                           --connected: already 1st-degree, so the record starts at stage connected
                           The URL is reduced to linkedin.com/in/<slug> (decoded, lower case, no sub-domain, query,
                           fragment or extra path) for duplicates, suppression and import-connections. A member-ID
@@ -85,7 +86,7 @@ STAGES = ["signal", "warming", "connected", "conversation", "qualified", "call-o
           "call-held", "proposal", "won", "lost", "nurture"]
 SIGNALS = ["sig:commented-my-post", "sig:commented-peer-post", "sig:viewed-profile", "sig:new-role",
            "sig:posted-problem", "sig:inbound-connect", "sig:dm-inbound", "sig:event", "sig:referral", "sig:launch",
-           "sig:known", "sig:reacted"]
+           "sig:known", "sig:reacted", "sig:fit"]
 # signals where the person is often 1st-degree already: the DM warning asks rather than asserts
 LIKELY_CONNECTED = {"sig:commented-my-post", "sig:dm-inbound", "sig:known", "sig:reacted"}
 TEMPLATES = {"C1": "connection request (blank)", "C2": "connection request with note", "C3": "welcome after accepting",
@@ -308,6 +309,8 @@ def cmd_add(data, a):
     warn = url_warnings(a.url)
     if a.signal == "sig:reacted":
         out["suggest"] = REACTED_HINT
+    if a.signal == "sig:fit":
+        out["suggest"] = FIT_HINT
     if a.signal == "sig:known" and not a.note:
         warn.append("sig:known: add --note saying how they know you (past client, colleague, met at ...)")
     if warn:
@@ -317,6 +320,8 @@ def cmd_add(data, a):
     return out
 
 
+FIT_HINT = ("they match your ideal client and have shown no signal yet: follow them and comment on a post first, or send a "
+            "blank request (C1). A first message comes only after they accept, and it opens with what you noticed about them")
 REACTED_HINT = ("a reaction is a weak signal: comment on one of their posts or visit their profile first, "
                 "and send the first DM when they engage again (a blank request C1 is fine now)")
 
@@ -535,7 +540,7 @@ def cmd_today(data, a):
     on = today(a)
     d = due_list(data, on, retention=True)
     waiting = [{"id": p["id"], "name": p["name"], "signal": p["signal"], "since": p["signal_date"],
-                **({"suggest": REACTED_HINT} if p["signal"] == "sig:reacted" else {})}
+                **({"suggest": REACTED_HINT} if p["signal"] == "sig:reacted" else {"suggest": FIT_HINT} if p["signal"] == "sig:fit" else {})}
                for p in data["people"] if p["stage"] in ("signal", "connected") and not p["touches"]]
     listed = {w["id"] for w in waiting}
     c_today = sum(c["n"] for c in data["comments"] if c["date"] == on.isoformat())

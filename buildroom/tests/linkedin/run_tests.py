@@ -633,6 +633,73 @@ def main():
                           env={**os.environ, "TMPDIR": str(longtmp)})
             check("renderer: works when TMPDIR is a long path", (work / "renders-longtmp/banner.png").exists(), out[-300:])
 
+    # ---- the Prospector: searches, fit, opening lines, the conversation one question at a time ----
+    import subprocess as _sp, tempfile as _tf
+    LP = SK / "scripts/li_prospect.py"
+    lp = lambda *a: (lambda r: (r.returncode, r.stdout + r.stderr))(_sp.run([sys.executable, str(LP), *map(str, a)], capture_output=True, text=True, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}))  # noqa: E731
+    with _tf.TemporaryDirectory() as _t:
+        _t = Path(_t)
+        plan = _t / "plan.json"
+        plan.write_text(json.dumps({"titles": ["Practice owner", "Owner dentist"], "keywords": ["dental"], "exclude": ["student"], "locations": ["Colorado"], "problem_words": ["dental overhead"]}))
+        code, out = lp("searches", plan)
+        check("prospector: the searches are written for the member to run, own network first", code == 0 and out.index("YOUR OWN NETWORK FIRST") < out.index("LINKEDIN SEARCH")
+              and '("Practice owner" OR "Owner dentist") AND dental NOT student' in out and "Nothing here searches for you." in out and '"dental overhead"' in out, out[:400])
+        (_t / "bad.json").write_text(json.dumps({"titles": []}))
+        check("prospector: a plan with no titles or no narrowing word is refused", lp("searches", _t / "bad.json")[0] == 1)
+        conn = _t / "Connections.csv"
+        conn.write_text("Notes:\n\nFirst Name,Last Name,URL,Email Address,Company,Position,Connected On\nDana,Ruiz,https://www.linkedin.com/in/danaruiz,,Ruiz Dental,Practice Owner,01 Mar 2024\n"
+                        "Sam,Lee,https://www.linkedin.com/in/samlee,,State U,Dental student,02 Mar 2024\nKit,Poe,https://www.linkedin.com/in/kitpoe,,Acme,Plumber,03 Mar 2024\n")
+        code, out = lp("network", plan, conn)
+        check("prospector: the member's own connections who match are listed first, exclusions left out, nothing saved", code == 0 and "Dana Ruiz" in out and "Sam Lee" not in out and "Kit Poe" not in out
+              and "Nothing is saved from this list." in out and len(list(_t.iterdir())) == 3)
+        HOOK = "Posted on Nov 18 about hiring a second hygienist"
+        good = "Hi Dana, saw your post about hiring a second hygienist. Is that to open more chair time, or to take pressure off the one you have?"
+        check("opener: an honest line about what was noticed, with one question, passes", lp("opener", "--kind", "DM", "--hook", HOOK, "--text", good)[0] == 0)
+        code, out = lp("opener", "--kind", "DM", "--hook", HOOK, "--text", "Hi Dana, I love your profile! I help dentists save 30% on overhead. Book a call: example.com")
+        check("opener: a pitch, a link, flattery, an invented number and no question are all refused", code == 1 and all(x in out for x in ("pitches", "carries a link", "opens like every other message", "30%", "0 questions", "does not mention what the member noticed")), out)
+        check("opener: a connection note over 200 characters is refused on a free account and allowed on Premium",
+              lp("opener", "--kind", "C2", "--hook", HOOK, "--text", "Dana, your post on hiring a second hygienist stuck with me. " + "x" * 160)[0] == 1
+              and lp("opener", "--kind", "C2", "--hook", HOOK, "--premium", "--text", "Dana, your post on hiring a second hygienist stuck with me. " + "x" * 160)[0] == 0)
+        check("opener: with nothing noticed there is no opener, only a blank request", "send a blank request" in lp("opener", "--kind", "C2", "--text", "Hi Dana, would love to connect?")[1])
+        P = lambda **k: {"name": "Dana Ruiz", "url": "https://www.linkedin.com/in/danaruiz", "role": "Owner", "company": "Ruiz Dental", "fit": "A", "why": ["Owner of a dental practice"],  # noqa: E731
+                         "connected": True, "hook": {"kind": "post", "note": HOOK, "link": "https://www.linkedin.com/posts/x"}, "opener": {"kind": "DM", "text": good}, **k}
+        pf = _t / "prospects.json"
+        def pc(ps, *extra):
+            pf.write_text(json.dumps({"prospects": ps}))
+            return lp("check", pf, *extra)
+        check("check: a prospect with a visible reason to fit and an honest opener passes", pc([P()])[0] == 0)
+        check("check: a fit that rests on nothing the profile shows is refused", "does not rest on their role, company or what you noticed" in pc([P(why=["Seems like a great person to know"])])[1])
+        check("check: a first message to someone not connected is refused", "can only go to someone already connected" in pc([P(connected=False)])[1])
+        check("check: nothing noticed means a blank request and no opener", "nothing to personalise" in pc([P(hook={"kind": "none"})])[1] and pc([P(hook={"kind": "none"}, opener=None)])[0] == 0)
+        check("check: a post hook needs its link, and copied profile text is refused as a hook", "needs the link" in pc([P(hook={"kind": "post", "note": HOOK})])[1]
+              and "not copied profile text" in pc([P(hook={"kind": "about", "note": "hygienist " + "x" * 220})])[1])
+        check("check: more than twenty at a time is refused", "at most 20 at a time" in pc([P(url=f"https://www.linkedin.com/in/p{i}") for i in range(21)])[1])
+        pc([P()])
+        code, out = lp("handoff", pf)
+        check("handoff: prints the pipeline line for each person, and sends nothing", code == 0 and "li_pipeline.py add --name \"Dana Ruiz\"" in out and "--signal sig:posted-problem --fit A --connected" in out and "Nothing is sent" in out)
+        code, out = lp("next", "--stage", "problem")
+        check("next: each stage says what the message is for and forbids naming the problem for them", code == 0 and "Do not name the problem for them" in out and "One question." in out and "move to: cost" in out)
+        check("next: an invitation before two real exchanges is held back", "WAIT" in lp("next", "--stage", "invite", "--exchanges", "1")[1] and "WAIT" not in lp("next", "--stage", "invite", "--exchanges", "2")[1])
+        check("next: two follow-ups then stop, and a no is final", "then stop" in out and "never message them again" in out)
+        check("say: one honest question passes", lp("say", "--stage", "situation", "--text", "Makes sense. How are you handling the books at the moment?")[0] == 0)
+        code, out = lp("say", "--stage", "problem", "--text", "You need a proper bookkeeper. I help practices like yours and it is only $1,450. Want to book a call? Does Tuesday work?")
+        check("say: a pitch, a price, two questions and telling them their problem are refused before the invitation", code == 1 and all(x in out for x in ("2 questions", "pitches", "price or a figure", "tells them what their problem is")), out)
+        check("say: if they asked what the member does, saying so is allowed", lp("say", "--stage", "situation", "--they-asked", "--text", "I work with dental practices on their monthly books. How are you handling yours at the moment?")[0] == 0)
+        inv = "It sounds like month end keeps slipping. That is the kind of thing I work on. Would a short call to map your options be useful? If not, no problem at all."
+        check("say: the invitation needs two exchanges, an easy no, and no link", lp("say", "--stage", "invite", "--exchanges", "2", "--text", inv)[0] == 0
+              and "after 1 real exchange" in lp("say", "--stage", "invite", "--exchanges", "1", "--text", inv)[1]
+              and "no easy way to say no" in lp("say", "--stage", "invite", "--exchanges", "3", "--text", "It sounds like month end keeps slipping. Would a short call be useful?")[1])
+    lsrc = LP.read_text()
+    check("prospector: standard library only, never online, writes nothing", not any(x in lsrc for x in ("requests", "urllib", "socket", "http.client", "subprocess", "selenium", "playwright", "write_text", "open(")))
+    pref = (SK / "references/prospector.md").read_text()
+    lsk = (SK / "SKILL.md").read_text()
+    check("prospector: it never searches, reads or sends on LinkedIn, and says why", "It does not search LinkedIn, read search results, or read profiles through a browser" in pref and "no \"at human speed\" exception" in pref
+          and "This includes reading." in (SK / "references/account-safety.md").read_text())
+    check("prospector: the opener is about them, from one real thing, and never a pitch", "It says nothing about what the member sells." in pref and "Never invent something to personalise." in pref)
+    check("prospector: the conversation is one question at a time and promises nothing", "**One question.**" in pref and "Never name the problem for them." in pref and "nothing here promises replies, calls or clients" in pref
+          and "\u2014" not in pref and "\u2013" not in pref and "NEPQ" not in pref and "NEPQ" not in lsrc)
+    check("skill: the Prospector is a mode with its own phrases", "find me leads on LinkedIn" in lsk.split("---")[1] and "**Prospector**" in lsk and "sig:fit" in lsk)
+
     caches = [str(x) for x in SK.rglob("__pycache__")]
     check("no __pycache__ written into the skill folder", not caches, caches)
 
