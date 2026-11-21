@@ -250,7 +250,7 @@ LINK_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta 
 
 ADMIN_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Build Room OS: approvals</title>""" + STYLE + """</head><body><main style="max-width:900px">
-<h1>Build Room OS approvals</h1><p class="lede" id="state">Enter your admin key.</p>
+<h1>Build Room OS approvals</h1><p class="lede" id="state">Enter your admin key.</p><p class="small"><a href="/admin/dashboard">Host dashboard: who is using it, and who needs a nudge</a></p>
 <div class="card" id="login"><label for="k">Admin key</label><input id="k" type="password" autocomplete="off"><button id="go" type="button">Open</button></div>
 <div class="card" id="reqs" hidden><h2 style="margin-top:0">Waiting for approval</h2><div id="pending"></div><h2>Decided</h2><div id="done"></div></div>
 <div class="card" id="mems" hidden><h2 style="margin-top:0">Signed up</h2><div id="members"></div></div>

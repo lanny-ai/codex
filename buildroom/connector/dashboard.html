@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Host Dashboard · Build Room OS</title>
+<style>
+:root{--navy:#0b1020;--ink:#0f1424;--ink2:#2b3247;--mute:#667089;--line:#e2e6ef;--panel:#f5f6fa;--paper:#fff;
+--gold1:#ffe7a3;--gold2:#ffb547;--orange:#f97316;--cyan:#4fe3ff;--ok:#0f7a4d;--okbg:#e7f6ee;--warn:#92400e;--warnbg:#fff1d6;--bad:#9a3412;--badbg:#fde8df;--blue:#1d4ed8;--bluebg:#e8efff;--grey:#475069;--greybg:#eceef4;
+--sans:"Inter","SF Pro Text",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;--display:"Inter Tight","SF Pro Display",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--panel);color:var(--ink);font:17px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+header{background:var(--navy);color:#fff;position:relative;overflow:hidden}
+header:before{content:"";position:absolute;inset:0;background:radial-gradient(800px 420px at 90% -10%,rgba(249,115,22,.32),transparent 62%)}
+header .wrap{position:relative;padding-top:26px;padding-bottom:30px}
+.eyebrow{font:700 13px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--gold2)}
+h1{font:800 clamp(30px,4.6vw,46px)/1.05 var(--display);letter-spacing:-.025em;margin:12px 0 8px}
+header p{margin:0;color:#cdd4ea;max-width:760px}
+header a{color:var(--gold2);font-weight:700}
+.edge{height:6px;background:linear-gradient(90deg,var(--orange),var(--gold2),var(--gold1))}
+main{padding:28px 0 60px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px rgba(15,20,36,.06),0 8px 28px rgba(15,20,36,.07);padding:24px;margin-bottom:20px}
+h2{font:800 23px/1.15 var(--display);letter-spacing:-.015em;margin:0 0 6px}
+.sub{color:var(--mute);margin:0 0 16px;font-size:15.5px}
+label{display:block;font-weight:700;margin-bottom:6px}
+input[type=password],input[type=search]{font:inherit;padding:12px 14px;border:1px solid var(--line);border-radius:10px;width:100%;max-width:420px;color:var(--ink);background:#fff}
+button{appearance:none;border:0;cursor:pointer;font:700 15.5px/1 var(--sans);padding:13px 18px;border-radius:999px;color:#1a1206;background:linear-gradient(180deg,var(--gold1),var(--gold2) 55%,var(--orange))}
+button.ghost{background:#fff;color:var(--ink2);border:1px solid var(--line);padding:9px 14px}
+button.ghost[aria-pressed=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
+.tile{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:0 1px 2px rgba(15,20,36,.06)}
+.tile b{display:block;font:800 36px/1 var(--display);letter-spacing:-.02em}
+.tile span{display:block;color:var(--mute);font-size:14.5px;margin-top:7px;line-height:1.35}
+.tile.hot{border-color:#f5c489;background:#fffaf0}
+.pill{display:inline-block;font:700 11.5px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:5px 8px;border-radius:999px;white-space:nowrap}
+.s-active{color:var(--ok);background:var(--okbg)}.s-quiet{color:var(--warn);background:var(--warnbg)}.s-gone_quiet,.s-connected_not_started{color:var(--bad);background:var(--badbg)}
+.s-not_connected{color:var(--blue);background:var(--bluebg)}.s-stopped{color:var(--grey);background:var(--greybg)}
+table{width:100%;border-collapse:collapse;font-size:15.5px}
+th,td{text-align:left;vertical-align:top;padding:10px 10px;border-bottom:1px solid var(--line)}
+th{font:700 12px/1.3 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);white-space:nowrap}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+td small{display:block;color:var(--mute);font-size:13.5px;word-break:break-all}
+.nudge{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.nudge li{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.nudge .why{color:var(--ink2);font-size:15px}
+.bars{display:flex;align-items:flex-end;gap:3px;height:120px;margin-top:8px}
+.bars div{flex:1;min-width:3px;background:linear-gradient(180deg,var(--gold2),var(--orange));border-radius:3px 3px 0 0;position:relative}
+.bars div.z{background:var(--line)}
+.axis{display:flex;justify-content:space-between;color:var(--mute);font-size:13px;margin-top:6px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.note{background:#fff7ec;border:1px solid #f6d9b5;border-radius:12px;padding:12px 16px;color:#5a3a12;font-size:15px;margin:0 0 20px}
+.scroll{overflow-x:auto}
+[hidden]{display:none !important}
+@media (max-width:900px){.tiles{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.wrap{padding:0 14px}.card{padding:18px 14px}.tiles{grid-template-columns:1fr 1fr}th,td{padding:8px 6px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="eyebrow">Build Room OS · Host only</div>
+  <h1>Who is using it, and who needs a nudge</h1>
+  <p id="lede">Enter your admin key to see activity. <a href="/admin">Approvals</a></p>
+</div></header><div class="edge"></div>
+
+<main class="wrap">
+  <div class="card" id="login"><label for="k">Admin key</label><div class="row"><input id="k" type="password" autocomplete="off"><button id="go" type="button">Open</button></div><p class="sub" id="err" role="status" aria-live="polite"></p></div>
+
+  <div id="app" hidden>
+    <div class="note" id="since"></div>
+    <div class="tiles" id="tiles"></div>
+
+    <div class="card"><h2>Check in on these people</h2><p class="sub">Connected but never started a session, or started and then went quiet. Longest wait first.</p><ul class="nudge" id="nudge"></ul></div>
+
+    <div class="card"><h2>Activity, last 30 days</h2><p class="sub">Members who used Build Room OS each day.</p>
+      <div class="bars" id="bars" role="img" aria-label="Members active each day for the last 30 days"></div><div class="axis"><span id="ax0"></span><span id="ax1"></span></div></div>
+
+    <div class="card"><h2>Members</h2><p class="sub" id="msub"></p>
+      <div class="row"><input id="q" type="search" placeholder="Search a name or email" aria-label="Search members"><span id="filters"></span></div>
+      <div class="scroll"><table><thead><tr><th>Member</th><th>State</th><th>Last session</th><th class="n">Sessions</th><th class="n">Tools tried</th><th>Most used</th></tr></thead><tbody id="mrows"></tbody></table></div></div>
+
+    <div class="card"><h2>Tools</h2><p class="sub">Sessions started per tool, most used first. Tools nobody has started are at the bottom.</p>
+      <div class="scroll"><table><thead><tr><th>Tool</th><th class="n">Sessions</th><th class="n">Last 30 days</th><th class="n">Members</th><th>Last used</th></tr></thead><tbody id="trows"></tbody></table></div></div>
+
+    <p class="sub">What is recorded: the time, the member, the tool and whether it worked. Nothing a member types and nothing from their Business File is ever stored here.</p>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let KEY = ""; try { KEY = sessionStorage.getItem("brk") || ""; } catch (e) {}
+let DATA = null, FILTER = "all";
+const STATES = {active:"Active", quiet:"Quiet", gone_quiet:"Gone quiet", connected_not_started:"Connected, never started", not_connected:"Not connected yet", stopped:"Access stopped"};
+const toolName = s => String(s || "").replace(/^buildroom-/, "").split("-").map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join(" ").replace(/^Os$/, "Navigator").replace("Sop ", "SOP ").replace("Linkedin", "LinkedIn").replace("Leadgen", "Lead Gen");
+const day = iso => iso ? new Date(iso).toLocaleDateString("en-US", {month:"short", day:"numeric"}) : "";
+const ago = n => n === null || n === undefined ? "" : n === 0 ? "today" : n === 1 ? "yesterday" : n + " days ago";
+
+async function load() {
+  let r, j;
+  try { r = await fetch("/admin/usage", {headers: {Authorization: "Bearer " + KEY}}); j = await r.json(); }
+  catch (e) { $("err").textContent = "Could not reach the server. Try again."; return; }
+  if (r.status !== 200) { $("err").textContent = KEY ? "That admin key is not right." : ""; $("login").hidden = false; $("app").hidden = true; return; }
+  try { sessionStorage.setItem("brk", KEY); } catch (e) {}
+  DATA = j; $("login").hidden = true; $("app").hidden = false; render();
+}
+
+function render() {
+  const d = DATA, c = d.counts || {}, t = d.thresholds;
+  const total = d.members.filter(m => m.state !== "stopped").length;
+  $("lede").innerHTML = `Sign-up is ${d.open ? "open" : "closed"}${d.pending ? `, with <b>${d.pending}</b> waiting for approval` : ""}. <a href="/admin">Approvals</a>`;
+  $("since").innerHTML = d.tracking_since
+    ? `<b>Activity is counted from ${esc(day(d.tracking_since))}.</b> Anything a member did before that date is not shown, so "not connected yet" can include people who connected earlier and have not been back.`
+    : `<b>No activity has been recorded yet.</b> Counting starts with the next thing a member does. Earlier activity is not shown.`;
+  const tiles = [
+    [total, "people with access", ""],
+    [c.active || 0, `active: a session in the last ${t.active_days} days`, ""],
+    [(c.connected_not_started || 0), "connected but never started a session", (c.connected_not_started ? "hot" : "")],
+    [(c.quiet || 0) + (c.gone_quiet || 0), `quiet: no session for more than ${t.active_days} days`, ((c.quiet || 0) + (c.gone_quiet || 0) ? "hot" : "")],
+    [c.not_connected || 0, "no activity recorded yet", ""]];
+  $("tiles").innerHTML = tiles.map(([n, l, k]) => `<div class="tile ${k}"><b>${n}</b><span>${esc(l)}</span></div>`).join("");
+
+  const need = d.members.filter(m => ["connected_not_started", "gone_quiet", "quiet"].includes(m.state));
+  $("nudge").innerHTML = need.length ? need.map(m => `<li><span><b>${esc(m.name || m.email)}</b> <span class="pill s-${m.state}">${STATES[m.state]}</span><br><span class="why">${
+    m.state === "connected_not_started" ? `Connected ${esc(day(m.first_seen))} and has not started a session. A good nudge: "Say: I'm new here. Help me get started."`
+      : `Last session ${esc(ago(m.days_since_session))}${m.top_tool ? `, mostly ${esc(toolName(m.top_tool))}` : ""}.`}</span></span><a href="mailto:${encodeURIComponent(m.email)}">${esc(m.email)}</a></li>`).join("")
+    : `<li><span class="why">Nobody right now. Everyone who has connected has started a session in the last ${t.active_days} days.</span></li>`;
+
+  const max = Math.max(1, ...d.daily.map(x => x.members));
+  $("bars").innerHTML = d.daily.map(x => `<div class="${x.members ? "" : "z"}" style="height:${x.members ? Math.max(6, Math.round(100 * x.members / max)) : 2}%" title="${esc(day(x.date + "T12:00:00Z"))}: ${x.members} member${x.members === 1 ? "" : "s"}, ${x.sessions} session${x.sessions === 1 ? "" : "s"} started"></div>`).join("");
+  $("ax0").textContent = day(d.daily[0].date + "T12:00:00Z"); $("ax1").textContent = day(d.daily[d.daily.length - 1].date + "T12:00:00Z") + " (busiest day: " + max + ")";
+
+  const present = Object.keys(STATES).filter(s => c[s]);
+  $("filters").innerHTML = [["all", "All"]].concat(present.map(s => [s, STATES[s] + " (" + c[s] + ")"])).map(([k, l]) => `<button class="ghost" type="button" data-f="${k}" aria-pressed="${k === FILTER}">${esc(l)}</button>`).join(" ");
+  members();
+
+  $("trows").innerHTML = d.tools.map(x => `<tr><td><b>${esc(toolName(x.skill))}</b></td><td class="n">${x.starts}</td><td class="n">${x.starts_30}</td><td class="n">${x.members}</td><td>${x.last ? esc(day(x.last)) : '<span class="pill s-stopped">Never</span>'}</td></tr>`).join("");
+}
+
+function members() {
+  const q = $("q").value.trim().toLowerCase();
+  const rows = DATA.members.filter(m => (FILTER === "all" || m.state === FILTER) && (!q || (m.name + " " + m.email).toLowerCase().includes(q)));
+  $("msub").textContent = rows.length + " of " + DATA.members.length + " shown.";
+  $("mrows").innerHTML = rows.map(m => `<tr><td><b>${esc(m.name || "(no name)")}</b><small>${esc(m.email)}${m.via ? " · " + esc(m.via) : ""}</small></td><td><span class="pill s-${m.state}">${STATES[m.state]}</span></td><td>${m.last_session ? esc(day(m.last_session)) + "<small>" + esc(ago(m.days_since_session)) + "</small>" : ""}</td><td class="n">${m.sessions}</td><td class="n">${m.tools_used}</td><td>${m.top_tool ? esc(toolName(m.top_tool)) : ""}</td></tr>`).join("")
+    || `<tr><td colspan="6">No one matches.</td></tr>`;
+}
+
+$("go").addEventListener("click", () => { KEY = $("k").value.trim(); load(); });
+$("k").addEventListener("keydown", e => { if (e.key === "Enter") { KEY = $("k").value.trim(); load(); } });
+$("q").addEventListener("input", () => DATA && members());
+$("filters").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (!b) return; FILTER = b.dataset.f; render(); });
+if (KEY) load();
+</script>
+</body>
+</html>

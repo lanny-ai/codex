@@ -42,14 +42,14 @@ Follow the protocol for the member's file. Then ask, one at a time, only what yo
 
 When the subject is the member's own business, Phases 1 to 4 are replaced by `references/deep-discovery.md`. Follow it in order:
 
-1. **Agree the scope.** `scripts/discover.py inventory <folder>` lists file names and opens nothing. Show the member the list, including the files it will not read because they look private, and ask what to leave out. For a drive connector, show titles first. Record the agreement.
-2. **Research in three rings:** their own files, their public footprint, their market. Collect voice samples, real client results and exact client words as you go.
-3. **Write `discovery/ledger.json`.** Every finding has a source and one of three confidence words. Record both sides of any disagreement. Run `discover.py check` and fix what it lists.
-4. **Show "What I found"** (`discover.py page`, saved as `discovery/What_I_Found.md`) before asking anything. Corrections become member findings.
-5. **Ask the gaps** from `discover.py gaps`: at most ten, disagreements first, one at a time, skippable.
-6. **Say how ready the file is** with `discover.py ready`, as a guide and not a measurement.
+1. **Agree the scope.** `scripts/discover.py inventory <folder>` lists file names and opens nothing. It lists the Business File apart and never offers Build Room's own output as research. Show the member the list, including the files it will not read because they look private, and ask what to leave out; `--exclude` takes folders and single files. For a drive connector, show titles first. Record the agreement.
+2. **Research in three rings:** their own files, their public footprint, their market. Collect voice samples, real client results with who said them and whether they may be used, and first-hand client words. Mark old material `stale` and retired lines `retired`.
+3. **Write `discovery/ledger.json`.** Every finding has a source and one of three confidence words. Keep each source's own words in `value` and say what it claims in `claim`, so agreement and disagreement are judged on meaning. Record both sides of any disagreement. Run `discover.py check <ledger> --business-file <Business File>` and fix what it lists.
+4. **Show "What I found"** (`discover.py page`, saved as `discovery/What_I_Found.md`) before asking anything about the business. Ask one thing with it: are any of the lines from their own files out of date? Corrections become member findings; "my files are current", or their naming the ones that are not, is recorded in `files_current`.
+5. **Ask the gaps** from `discover.py gaps`: at most ten, one at a time. Record a skip in `skipped`; it is not asked again, and neither is a question answered with "none". A guess the member only says yes to is recorded with `guess_ok`: their approval of your wording, not their words.
+6. **Say how ready the file is** with `discover.py ready`, as a guide and not a measurement. When it says not ready, say so plainly, recommend answering the named questions, and do not recommend Autopilot.
 
-Then go to Phase 5 if the member wants the ten Genie outputs today, or straight to Phase 6 if they only wanted their business researched. Ask which. Where the 36-question answer sheet is needed for Phase 5, fill it from the ledger.
+Deep Discovery ends with the page, the ledger, the two lists and the Business File update. It produces no Discovery Brief and asks for no 1 to 5 rating. If the member also wants the ten Genie outputs, go on to Phase 5 and fill the 36-question answer sheet from the ledger.
 
 ### Phase 1 — Research first
 
@@ -82,7 +82,7 @@ Only once the answer sheet is complete (or, for a prospect, the assumptions are 
 
 1. Deliver the **Discovery Brief** (identity block, answer sheet with sources and certainty, confirmations, the ten outputs) as `Discovery_Brief_[business]_[date].md`. For a client, also the Discovery Call Script. For a prospect, the **Prospect Brief** instead.
 2. Update per the protocol, by subject:
-   - **Own business, after Deep Discovery:** write exactly what `deep-discovery.md` lists under "What goes into the Business File": confirmed findings only, §2 to §4 `provisional`, the readiness number in the §8 note, and the voice samples and proof list saved as their own two documents, never in the file.
+   - **Own business, after Deep Discovery:** write exactly what `deep-discovery.md` lists under "What goes into the Business File": the member's own word, what two sources agree on, and their own current files once they have said those are current; nothing inferred, stale or retired; §2 to §4 `provisional`; the readiness number in the §8 note; and the voice samples and proof list saved as their own two documents, never in the file. Skip step 1 of this phase (no brief). Where you can write files, update the file in place and say what changed.
    - **Own business, original flow:** §1 empty fields from confirmed facts; §2 confirmed pains, objections, outcomes, and every verbatim phrase into the sourced bank with its tag, with P6–P9 material as hypothesis language and a `provisional` ICA only if §2 was empty; §3 and §4 as found and confirmed, `provisional`; §13 one `captured` row per friction point, source `Discovery Engine [date]`; §8.
    - **Client:** the client's own Business File §1–§4 seeded from the sheet, in the client's folder. The member's file gets §8 and, on request, one §13 row.
    - **Prospect:** one line in §14's pipeline tracker if §14 exists; §8. Nothing else.
@@ -101,6 +101,10 @@ Only once the answer sheet is complete (or, for a prospect, the assumptions are 
 - Open a member's files before they have seen the list and agreed what may be read, or read a file that looks private without a clear yes.
 - Choose between two sources that disagree. The member decides.
 - Treat a client result it found as permission to use it. The Proof Engine session owns consent.
+- Rely on out-of-date material, or use a retired line. Old material is set apart and asked about; a retired line is flagged with where it still lives.
+- Treat hearsay as proof or as a client's words.
+- Read a draft a Build Room session wrote as evidence about the business.
+- Recommend Autopilot to a member whose file is not ready.
 - Call the readiness number anything but a guide. It does not measure the business or predict results.
 - Write anything inferred into a Business File as fact. The provenance rule is absolute.
 - Put a client's data into the member's own Business File.

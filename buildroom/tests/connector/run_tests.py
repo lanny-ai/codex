@@ -215,7 +215,7 @@ def main():
               rj["build"]["builder"] == "DOCKERFILE" and rj["deploy"]["healthcheckPath"] == "/health" and "buildroom/skills/**" in rj["build"]["watchPatterns"])
         df = (CON / "Dockerfile").read_text()
         check("Dockerfile: copies only the connector, the skills and the release notes; runs as a non-root user",
-              df.count("COPY ") == 3 and "join.py" in df and "guide.html" in df and "start.html" in df and "USER connector" in df and "members.json" not in df)
+              df.count("COPY ") == 3 and "join.py" in df and "guide.html" in df and "start.html" in df and "usage.py" in df and "dashboard.html" in df and "USER connector" in df and "members.json" not in df)
         di = (ROOT.parent / ".dockerignore").read_text()
         check(".dockerignore: everything excluded except what the image needs", di.splitlines()[1] == "*" and "!buildroom/skills/**" in di and "!buildroom/connector/guide.html" in di)
 
@@ -294,6 +294,35 @@ def main():
             check("media: a range past the end gets 416; other files are not served", code("/media/setup.mp4", {"Range": "bytes=999999-"}) == 416
                   and code("/media/signups.json") == 404 and code("/media/setup.jpg") == 404)
             check("start: the video block appears once the video is there", "<video" in urllib.request.urlopen(b3 + "/start").read().decode())
+            # ---- the host dashboard ---------------------------------------------------------------
+            import usage as _u
+            from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+            now = _dt(2026, 11, 21, 12, 0, tzinfo=_tz.utc)
+            L = lambda days, who, tool="buildroom_start_session", skill="buildroom-os", outcome="ok": {  # noqa: E731
+                "at": (now - _td(days=days)).isoformat(), "member": who, "tool": tool, "skill": skill, "outcome": outcome}
+            recs = [L(1, "a@x.com"), L(2, "a@x.com", skill="buildroom-autopilot"), L(2, "a@x.com", skill="buildroom-autopilot"),
+                    L(10, "q@x.com"), L(40, "g@x.com"), L(3, "c@x.com", "buildroom_status", None), L(3, "c@x.com", "buildroom_list_sessions", None),
+                    L(1, "h@x.com"), L(1, "s@x.com"), L(1, "bad@x.com", outcome="unknown")]
+            mem = [{"email": e, "name": e[0].upper(), "status": "active", "added": "2026-11-01", "via": "instant"} for e in ("a@x.com", "q@x.com", "g@x.com", "c@x.com", "n@x.com")]
+            mem.append({"email": "s@x.com", "name": "S", "status": "lapsed", "added": "2026-11-01", "via": "instant"})
+            sk = [{"skill": "buildroom-os", "description": ""}, {"skill": "buildroom-autopilot", "description": ""}, {"skill": "buildroom-compass", "description": ""}]
+            su = _u.summarize(recs, mem, sk, now)
+            st = {m["email"]: m["state"] for m in su["members"]}
+            check("dashboard: each member lands in the right state", st == {"a@x.com": "active", "q@x.com": "quiet", "g@x.com": "gone_quiet",
+                  "c@x.com": "connected_not_started", "n@x.com": "not_connected", "s@x.com": "stopped", "h@x.com": "active"}, st)
+            check("dashboard: people to check in on come first, longest wait first", [m["email"] for m in su["members"]][:3] == ["c@x.com", "g@x.com", "q@x.com"])
+            ma = next(m for m in su["members"] if m["email"] == "a@x.com")
+            check("dashboard: sessions, tools tried and the most used tool are counted", ma["sessions"] == 3 and ma["tools_used"] == 2 and ma["top_tool"] == "buildroom-autopilot" and ma["days_since_session"] == 1)
+            check("dashboard: someone on the host list shows up from their activity alone", next(m for m in su["members"] if m["email"] == "h@x.com")["via"] == "host list")
+            check("dashboard: a refused call never counts as activity", "bad@x.com" not in st and su["refused_30"] == 1)
+            tl = {x["skill"]: x for x in su["tools"]}
+            check("dashboard: tools ranked by sessions, unused tools listed with none", su["tools"][0]["skill"] == "buildroom-os" and tl["buildroom-os"]["starts"] == 5
+                  and tl["buildroom-os"]["starts_30"] == 4 and tl["buildroom-autopilot"]["members"] == 1 and tl["buildroom-compass"]["starts"] == 0 and tl["buildroom-compass"]["last"] is None)
+            check("dashboard: thirty days of activity, and it says when counting began", len(su["daily"]) == 30 and su["daily"][-2]["members"] == 3 and su["tracking_since"].startswith("2026-10-12"))
+            check("dashboard: no activity at all is handled", _u.summarize([], mem, sk, now)["tracking_since"] is None and _u.summarize([], [], [], now)["members"] == [])
+            (data / "usage.jsonl").write_text("not json\n" + json.dumps(recs[0]) + "\n{\"at\": 1}\n")
+            check("dashboard: damaged lines in the stored log are skipped", len(_u.read(str(data))) == 1 and _u.read(None) == [])
+            (data / "usage.jsonl").unlink()
             check("guide: holds no room code, access key or member link", not _re.search(r"BUILD-\d|ROOM-\d|br_[A-Za-z0-9]|/mcp/", guide))
             check("guide: no dashes that read as AI, and no promise of results",
                   "\u2014" not in guide and "\u2013" not in guide and not _re.search(r"guarantee[ds]? (results|leads|revenue|clients)", guide, _re.I))
@@ -334,6 +363,29 @@ def main():
                   [r["email"] for r in listing["requests"]] == ["new@example.com"] and listing["members"][0]["email"] == "payer@example.com"
                   and "key_sha256" not in json.dumps(listing))
             check("admin page: served, asks for the admin key", "Admin key" in urllib.request.urlopen(b3 + "/admin").read().decode())
+            def ucode(k=None):
+                rq = urllib.request.Request(b3 + "/admin/usage", headers={"Authorization": "Bearer " + k} if k else {})
+                try:
+                    r = urllib.request.urlopen(rq)
+                    return r.status, json.loads(r.read())
+                except urllib.error.HTTPError as e:
+                    return e.code, None
+            check("dashboard: the numbers need the admin key", ucode()[0] == 401 and ucode("wrong")[0] == 401)
+            dkey = post(b3 + "/admin/api", {"email": "dash@example.com", "decision": "link"}, admin_key)[1].get("key")
+            call(b3 + "/mcp", dkey, "buildroom_status")
+            call(b3 + "/mcp", dkey, "buildroom_start_session", {"skill": "buildroom-os"})
+            s, du = ucode(admin_key)
+            me = next((m for m in (du or {}).get("members", []) if m["email"] == "dash@example.com"), {})
+            check("dashboard: a member's real session shows up for the host", s == 200 and me.get("state") == "active" and me.get("sessions") == 1 and me.get("top_tool") == "buildroom-os", me)
+            stored = (data / "usage.jsonl").read_text()
+            check("dashboard: the stored log holds the member, tool and outcome, and never a key", "dash@example.com" in stored and "buildroom_start_session" in stored and "br_" not in stored)
+            dp = urllib.request.urlopen(b3 + "/admin/dashboard")
+            dh = dp.read().decode()
+            check("dashboard: the page is served, asks for the admin key, and holds no member data itself", dp.status == 200 and 'id="k" type="password"' in dh
+                  and "dash@example.com" not in dh and "noindex" in dh and not _re.search(r'(src|href)="(https?:)?//', dh))
+            check("dashboard: says what is and is not recorded", "Nothing a member types and nothing from their Business File is ever stored here." in dh)
+            check("dashboard: linked from the approvals page", 'href="/admin/dashboard"' in urllib.request.urlopen(b3 + "/admin").read().decode())
+            check("dashboard: no long dashes", "\u2014" not in dh and "\u2013" not in dh)
             check("admin: approve", adm("POST", {"email": "new@example.com", "decision": "approve"})[1].get("ok"))
             s, r, _ = jn({"name": "New Person", "email": "new@example.com", "code": "ROOM-1111"})
             check("join after approval: the link is given", r["state"] == "approved" and r["key"].startswith("br_"), r)
@@ -368,8 +420,10 @@ def main():
                     os.environ[k] = v
 
         src = (CON / "server.py").read_text()
+        check("usage: standard library only", all(l.split()[1].split(".")[0] in {"json", "datetime", "pathlib"}
+              for l in (CON / "usage.py").read_text().splitlines() if l.startswith(("import ", "from "))))
         check("server: no third-party imports (runs on any Python host)",
-              all(m.strip().split(".")[0] in {"argparse", "hashlib", "hmac", "json", "os", "re", "secrets", "sys", "threading", "datetime", "http", "pathlib", "join"}
+              all(m.strip().split(".")[0] in {"argparse", "hashlib", "hmac", "json", "os", "re", "secrets", "sys", "threading", "datetime", "http", "pathlib", "join", "usage"}
                   for l in src.splitlines() if l.startswith(("import ", "from "))
                   for m in (l.split()[1:2] if l.startswith("from ") else l.split("#")[0][7:].split(","))))
         check("server: the request log is silenced (paths can carry keys)", "def log_message" in src)

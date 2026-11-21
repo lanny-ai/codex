@@ -3,6 +3,8 @@
 !buildroom/connector/server.py
 !buildroom/connector/members.py
 !buildroom/connector/join.py
+!buildroom/connector/usage.py
+!buildroom/connector/dashboard.html
 !buildroom/connector/guide.html
 !buildroom/connector/start.html
 !buildroom/skills/**
