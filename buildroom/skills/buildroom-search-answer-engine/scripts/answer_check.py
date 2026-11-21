@@ -150,6 +150,38 @@ COUNT_PHRASE = re.compile(r"\bby (?:our|my) (?:own )?(?:count|records|numbers|bo
                           r"\bbased on (?:our|my|the) (?:own )?(?:[\w'’-]+\s+){0,3}(?:count|records|files|books|data|jobs|clients|clean-?ups|projects|cases|numbers|tally|log)\b|"
                           r"\b(?:our|my) (?:own )?(?:count|tally|records|tracking|job log|client files) (?:of|from|for|shows?|says?|across)\b|"
                           r"\baccording to\b|\b(?:survey|study|report|analysis) (?:of|by|from|found|shows?)\b", re.I)
+# --- a price is not a result ----------------------------------------------------------------------------------------------
+# What the member charges ("The birth package is $1,800 [own]") is a price. It takes its [own] marker like any number,
+# but an outcome word that only describes the price or the booking in the same paragraph ("the price is reduced to
+# $1,200 for a year paid up front", "paid when your date is booked", "the balance is cleared by the birth") does not
+# make it a results claim. Any other outcome word in the paragraph still does.
+MONEY = re.compile(r"\$\s?\d[\d,]*(?:\.\d+)?")
+PRICE_WORD = re.compile(r"\b(?:price[sd]?|pricing|fees?|costs?|rates?|deposit|retainer|packages?|programs?|plans?|charges?|tuition|membership|quote[sd]?)\b", re.I)
+PRICE_LEAD = re.compile(r"(?:\b(?:is|are|costs?|runs?|starts? at|starting at|from|of|to|at|for|charges?|pays?|paid|between|and|or|plus)\s+"
+                        r"(?:(?:just|only|about|around|a flat|flat|an? (?:extra|additional|further)|another)\s+)*|[:(]\s*)$", re.I)
+_PRICE_NOUN = r"(?:(?!late|penalt|bank|interest|tax|overdraft)[\w-]+\s+){0,2}(?:price|fee|rate|charge|deposit|balance|total|retainer|invoice|payment)s?"
+_BOOKABLE = r"(?:date|call|slot|spot|session|visit|appointment|consult(?:ation)?|start|place)s?"
+PRICE_TALK = re.compile(
+    r"\b(?:the|our|my|this|that|its|a|an)\s+" + _PRICE_NOUN + r"\s+(?:is|are|was|were|will be|gets?|can be|has been|have been)\s+"
+    r"(?:(?:then|also|now)\s+)?(?:reduced|cut|increased|cleared|paid off)\b|"                       # "the monthly price is reduced"
+    r"\b(?:reduced?|cut|increased?)\s+(?:the|our|my|this|that)\s+" + _PRICE_NOUN + r"(?=\s+(?:to|by|from)\s+\$)|"   # "we cut the price to $1,200"
+    r"\b" + _BOOKABLE + r"\s+(?:is|are|has been|have been|gets?)\s+booked\b|"                       # "once your date is booked"
+    r"\bbooked\s+(?:your|the|a|an)\s+(?:[\w-]+\s+)?" + _BOOKABLE + r"\b|"                           # "when you have booked your date"
+    r"\b(?:when|once|after|until|before)\s+booked\b", re.I)                                       # "paid when booked"
+
+
+def states_own_price(para):
+    """True when the paragraph states a price the member charges: a dollar figure led in as a price ("is $1,800",
+    "a fee of $2,000", "from $900") beside a price word, and no one else's money ("their fees")."""
+    t = plain_text(para)
+    if not PRICE_WORD.search(t) or re.search(r"\b(?:their|his|her)\b", t, re.I):
+        return False
+    return any(PRICE_LEAD.search(t[:m.start()]) for m in MONEY.finditer(t))
+
+
+def price_talk_removed(para):
+    """The paragraph with outcome words that only describe the member's own price or the booking taken out."""
+    return PRICE_TALK.sub(" ", para) if states_own_price(para) else para
 
 
 def claim_sentences(para):
@@ -471,6 +503,7 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
     # claims ledger: every paragraph or list item with a number (after dates, durations, phones, steps and links are set
     # aside) carries at least one marker; every [S#] used exists in the front matter
     unsupported, unknown, vague = [], [], []
+    own_price = False                         # the first unsupported paragraph is a price the member charges
     ids = {s["id"] for s in sources}
     for heading, sec in sections:
         if heading.lower().startswith(("sources", "about the author")):
@@ -480,6 +513,7 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
                 continue
             marks = MARKER.findall(para)
             if NUMBER.search(unexempt(para)) and not marks:
+                own_price = own_price or (not unsupported and states_own_price(para))
                 unsupported.append(plain_text(para)[:90])
             elif not marks and vague_results(para):
                 vague.append(vague_results(para)[0][:200])
@@ -487,7 +521,8 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
                 if m.startswith("S") and m not in ids:
                     unknown.append(m)
     if unsupported:
-        fail("claims_supported", f"{len(unsupported)} paragraph(s) with a number and no [S#]/[own]/[method] marker, e.g. '{unsupported[0]}'")
+        fail("claims_supported", f"{len(unsupported)} paragraph(s) with a number and no [S#]/[own]/[method] marker, e.g. '{unsupported[0]}'"
+                                 + (". A price you charge is your own number: end it with [own]" if own_price else ""))
     if vague and not unsupported:
         fail("claims_supported", f"{len(vague)} sentence(s) give a result as a vague quantity with no [S#]/[own]/[method] marker: '{vague[0]}'. "
                                  "Give the real figure with its marker, or take the claim out")
@@ -576,6 +611,7 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
 
     # typical result beside any results claim, whatever the marker: an outcome with a number or a client noun and a marker,
     # or a sentence saying what clients got (no number or marker needed), or a marked vague quantity used as a result.
+    # A price the member charges is not a result: an outcome word that only describes that price or the booking is set aside.
     # The typical-result statement needs its basis in the same paragraph: a quantifier word ("most clients", "average",
     # "typically") does not support a claim on its own, and a claim led by one is still a claim
     bare, no_basis = [], []
@@ -590,7 +626,7 @@ def check_page(path, business_file=None, site=None, questions=None, require_inte
             loose = False
             if got:                             # what clients got, with or without a number or a marker
                 claim = got[0][:200]
-            elif OUTCOME.search(para) and MARKER.search(para) and (numbered or CLIENT_NOUNS.search(para)):
+            elif OUTCOME.search(price_talk_removed(para)) and MARKER.search(para) and (numbered or CLIENT_NOUNS.search(para)):
                 claim = plain_text(para)[:200]
                 loose = not numbered            # an outcome word near a client noun, no figure and no client-got sentence
             elif MARKER.search(para) and vague_results(para):

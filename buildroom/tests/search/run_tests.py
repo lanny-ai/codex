@@ -195,6 +195,44 @@ def answer_tests(tmp, qm_cwd):
     n = variant(fh, [("## What doubles it?", "We counted 38 clients in 2025 [own].\n\n## What doubles it?")], cwd, "count-not-claim.md")
     ok, out, _ = run([PY, AC, "check", n, "--site", "https://example.com"], cwd)
     check("ac a plain count of clients is not a results claim", ok and pj(out)["gates"]["typical_result"], out[:300])
+    # a price the member charges is not a results claim: it takes [own] under claims_supported and nothing more, even when
+    # the paragraph also says how the price or the booking works; a real outcome beside a price is still a claim
+    for sentence, label in [
+        ("The Clean Books Program is $1,450 a month, with a one-time setup fee of $2,000 [own].", "a monthly price and a setup fee"),
+        ("The birth package is $1,800 [own].", "a package price"),
+        ("The birth package is $1,800 [own]. It covers two prenatal visits and the birth, once your date is booked.", "a price and a booked date"),
+        ("The package is $1,800 [own], paid when you have booked your date.", "a price paid on booking"),
+        ("The setup fee is $2,000 [own], and the monthly price is reduced to $1,200 for clients who prepay the year.", "a reduced price"),
+        ("We cut the price to $1,200 for members who sign for a year [own].", "a price cut for a longer term"),
+        ("The birth package is $1,800 [own]. A deposit of $500 is paid when your date is booked, and the balance is cleared by the birth.", "a deposit and a balance"),
+    ]:
+        n = variant(fh, [("## What doubles it?", sentence + "\n\n## What doubles it?")], cwd, "price.md")
+        ok, out, _ = run([PY, AC, "check", n, "--site", "https://example.com"], cwd)
+        d = pj(out)
+        check(f"ac a price the member charges is not a results claim ({label})", ok and d["gates"]["typical_result"] and d["gates"]["claims_supported"], out[:400])
+    for sentence, label in [
+        ("The Clean Books Program is $1,450 a month, with a one-time setup fee of $2,000.", "a monthly price and a setup fee"),
+        ("The birth package is $1,800.", "a package price"),
+    ]:
+        n = variant(fh, [("## What doubles it?", sentence + "\n\n## What doubles it?")], cwd, "price-bare.md")
+        ok, out, code = run([PY, AC, "check", n, "--site", "https://example.com"], cwd, ok_codes=(1,))
+        f = pj(out).get("fails", {})
+        check(f"ac an unmarked price fails claims_supported only, and is told to end with [own] ({label})",
+              code == 1 and "typical_result" not in f and "end it with [own]" in f.get("claims_supported", ""), out[:400])
+    n = variant(fh, [("## What doubles it?", "A new panel costs about 3,100 dollars in parts, 40 feet of cable included.\n\n## What doubles it?")], cwd, "number-bare.md")
+    ok, out, code = run([PY, AC, "check", n, "--site", "https://example.com"], cwd, ok_codes=(1,))
+    check("ac an unmarked number that is not a price gets no [own] price hint", code == 1 and "end it with [own]" not in pj(out)["fails"].get("claims_supported", "x"), out[:400])
+    for sentence, label in [
+        ("The clean-up is $1,800 and cut late fees for our clients [own].", "a price and what clients got"),
+        ("The clean-up package is $1,800 and saved one owner $400 a month [own].", "a price and a saving"),
+        ("The fees recovered are $12,000 [own].", "money recovered"),
+        ("Their fee was cut to $200 after the review [own].", "a client's own fee cut"),
+        ("We booked 12 jobs at a price of $900 each [own].", "jobs booked at a price"),
+        ("The package price is $1,800 [own]. Our late fees are cut by half.", "a price and an outcome in the next sentence"),
+    ]:
+        n = variant(fh, [("## What doubles it?", sentence + "\n\n## What doubles it?")], cwd, "price-claim.md")
+        ok, out, code = run([PY, AC, "check", n, "--site", "https://example.com"], cwd, ok_codes=(1,))
+        check(f"ac a results claim beside a price still fails typical_result ({label})", code == 1 and "typical_result" in pj(out).get("fails", {}), out[:400])
     # results claims with no number and no marker: what clients GOT fails; what the service does, or a hypothetical, passes
     invented = [
         ("Our clients doubled their revenue after a clean-up and every customer saved thousands.", "the owner's example"),
@@ -735,6 +773,18 @@ def publish_tests(tmp):
     ok, out, _ = run([PY, PB, "verify", f"{base}/answers/missing"], cwd, env=env, ok_codes=(1,))
     check("pb verify fails a page that is not live", not pj(out)["checks"]["live_200"], out[:200])
     check("pb verify names Google's route as the member's click, not an API", "Request indexing" in pj(out)["google"] and "no legitimate API" in pj(out)["google"])
+    # record: a draft is never marked published, in the page or in the question map
+    dpage = cwd / "search/answers/draft-page.md"
+    dtext = (FX / "good-first-hand.md").read_text().replace("status: ready\n", "status: draft\n")
+    dpage.write_text(dtext)
+    qbefore = (cwd / "search/questions.json").read_text()
+    ok, out, code = run([PY, PB, "record", "search/answers/draft-page.md", "--url", f"{base}/answers/bookkeeping-clean-up-cost", "--questions", "search/questions.json"], cwd, ok_codes=(2,))
+    check("pb record refuses a page whose status is still draft and changes nothing", code == 2 and "draft" in out and "nothing was recorded" in out
+          and dpage.read_text() == dtext and (cwd / "search/questions.json").read_text() == qbefore, out[:300])
+    dpage.unlink()
+    ctext = page.read_text()
+    ok, out, code = run([PY, AC, "check", "search/answers/bookkeeping-clean-up-cost.md", "--site", "https://example.com", "--questions", "search/questions.json"], cwd, ok_codes=(0, 1))
+    check("ac check never writes to the page or the question map", page.read_text() == ctext and (cwd / "search/questions.json").read_text() == qbefore, out[:300])
     # record
     ok, out, _ = run([PY, PB, "record", "search/answers/bookkeeping-clean-up-cost.md", "--url", f"{base}/answers/bookkeeping-clean-up-cost", "--questions", "search/questions.json"], cwd)
     t = page.read_text()
