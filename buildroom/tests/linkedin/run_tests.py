@@ -767,6 +767,43 @@ def main():
         _sp.run([sys.executable, str(SK / "scripts/li_pipeline.py"), "add", str(pipe), "--name", "Dana Ruiz", "--url", "https://www.linkedin.com/in/danaruiz", "--signal", "sig:fit", "--fit", "A"], capture_output=True, text=True)
         _sp.run([sys.executable, str(SK / "scripts/li_pipeline.py"), "forget", str(pipe), "1"], capture_output=True, text=True)
         check("today: someone who asked not to be contacted cannot appear on the page", "asked not to be contacted" in tb([IT()], "--pipeline", pipe)[1])
+        # ---- today's post on the daily page ------------------------------------------------------------
+        (_t / "renders").mkdir()
+        (_t / "renders/post.png").write_bytes(b"\x89PNG\r\n")
+        BODY = ("Production is not profit.\n\nFor nine years I ran the office of a three-chair dental practice. Every month we celebrated the production number, and nobody could tell me what we kept. "
+                "The books were done at night by whoever had the energy, and the number that mattered was never on the page.\n\nWhat is your overhead, as a share of what you collect? Not a guess. The number. "
+                "If you cannot say it, you are making hiring decisions on how busy the practice feels.\n\nWhat number do you look at first when the month ends?")
+        PO = lambda **k: {"do": "post", "name": "Today's post", "url": "https://www.linkedin.com/feed/", "based_on": "Her own rule from nine years as an office manager", "own_numbers": True,  # noqa: E731
+                          "text": BODY, "image": "renders/post.png", "alt": "A card reading: Production is not profit.", **k}
+        code, out = tb([PO(), IT()])
+        page = th.read_text() if th.exists() else ""
+        check("post: today's post is the first card, with the words, the picture, the alt text and how to publish it", code == 0 and "Today's post</b>" in page and page.index("Today's post</b>") < page.index("Dana Ruiz"), out)
+        check("post: copy buttons for the post and the alt text, a link to save the picture, and it is marked a draft", all(x in page for x in ("Copy the post", "Copy the alt text", "Save the image", 'src="renders/post.png"', "This is a draft", "one post and 1 person")))
+        check("post: it says what the post is built on, and the member publishes it", "Built on: Her own rule" in page and "Open LinkedIn, press Start a post" in page)
+        pr = lambda **k: tb([PO(**k)])[1]  # noqa: E731
+        check("post: a post with no basis in the member's own material is refused", "say what it is built on" in pr(based_on=""))
+        check("post: a figure needs its source, unless every figure is the member's own", "carries a figure with no source" in pr(own_numbers=False, text=BODY + " A study found 71% of practices do not know it.")
+              and tb([PO(own_numbers=False, text=BODY + " A study found 71% of practices do not know it.", source={"title": "ADA survey 2026", "url": "https://example.org/survey"})])[0] == 0)
+        check("post: a source needs its title and full link", "needs its title and its full https link" in pr(source={"title": "A study", "url": "example.org"}))
+        check("post: engagement bait, machine-sounding filler and a promised result are refused", "engagement bait" in pr(text=BODY + " Comment YES and I will send it.")
+              and "reads as machine-written" in pr(text="In today's fast-paced world, " + BODY) and "promises a result" in pr(text=BODY + " I can cut your overhead."))
+        check("post: too short, a missing picture and a picture with no alt text are refused", "characters" in pr(text="Short post.") and "image file is not there" in pr(image="renders/none.png") and "needs alt text" in pr(alt=""))
+        check("post: one post a day", "more than one post in a day" in tb([PO(), PO()])[1])
+        tb([PO(ai_image=True)])
+        check("post: an AI-made picture is said to be one, and the label is to be left on", "This image was made with AI" in th.read_text() and "do not remove the label" in th.read_text())
+        check("post: a post with no picture is fine", tb([{k: v for k, v in PO().items() if k not in ("image", "alt")}])[0] == 0)
+        pjq = lambda *a: json.loads(_sp.run([sys.executable, str(SK / "scripts/li_pipeline.py"), *map(str, a)], capture_output=True, text=True).stdout or "{}")  # noqa: E731
+        p2 = _t / "p2.json"
+        pjq("settings", p2)
+        check("cadence: three posts a week by default, on Tuesday to Thursday", pjq("today", p2, "--date", "2026-11-24")["post_today"] is True and pjq("today", p2, "--date", "2026-11-23")["post_today"] is False)
+        pjq("settings", p2, "--posts-per-week", "7")
+        check("cadence: the member can choose seven, and a posted day is not asked for again", pjq("today", p2, "--date", "2026-11-22")["post_today"] is True)
+    dref = (SK / "references/daily-post.md").read_text()
+    check("daily post: research is the hook, the member's own material is the post", "Research finds the hook. It never supplies the substance" in dref and "A figure needs its source or it is the member's own." in dref
+          and "Three is the default, and say why." in dref and "a thin post is worse than no post" in dref)
+    check("daily post: an AI picture is optional, labelled, and never of a real person", "An AI-made picture is optional" in dref and "never a picture of a real person" in dref and "never remove the label" in dref
+          and "No stock photos." in dref and "Nothing here posts or schedules." in dref and "\u2014" not in dref and "\u2013" not in dref)
+    check("skill: today's post is a mode, and the image toolkit is carried", "write today's LinkedIn post" in (SK / "SKILL.md").read_text().split("---")[1] and "**Today's post**" in (SK / "SKILL.md").read_text() and (SK / "scripts/gen.py").is_file() and (SK / "scripts/ledger.py").is_file())
     tsrc = (SK / "scripts/li_today.py").read_text()
     check("today: standard library only, never online", not re.search(r"^\s*(import|from)\s+(requests|urllib|socket|http|subprocess|selenium|playwright)", tsrc, re.M))
     lsrc = LP.read_text()

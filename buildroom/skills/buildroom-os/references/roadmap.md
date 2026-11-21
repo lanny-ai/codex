@@ -168,7 +168,7 @@ When routing, give the member the exact words to start the session:
 - Training Docs → "Help me train my new hire"
 - Ops Dashboard → "What numbers should I be watching every week?"
 - Lead Gen Machine → "Help me get more leads" (the skill picks the module from §14)
-- LinkedIn Engine → "Build my LinkedIn engine" · "Fix my LinkedIn profile" · "Write my LinkedIn posts" · "Plan my LinkedIn week" · "Who should I message on LinkedIn today" · "Find me leads on LinkedIn" · "Write my LinkedIn opening lines" · "What do I say next to this person" · "How is my LinkedIn doing"
+- LinkedIn Engine → "Build my LinkedIn engine" · "Fix my LinkedIn profile" · "Write my LinkedIn posts" · "Plan my LinkedIn week" · "Who should I message on LinkedIn today" · "Write today's LinkedIn post" · "Find me leads on LinkedIn" · "Write my LinkedIn opening lines" · "What do I say next to this person" · "How is my LinkedIn doing"
 - Proof Engine → "Capture this win" · "Ask for a testimonial" · "Build my proof bank" · "What proof can I use"
 - Search & Answer Engine → "Get found on Google" · "Fix my Google Business Profile" · "Get more Google reviews" · "Answer this question on my website" · "Publish this page" · "Am I showing up in ChatGPT" · "Search week"
 - AI Momentum Labs Book Builder → "Write my book" · "Plan my book" · "Write the next chapter" · "Edit my book" · "Review my book" · "Have readers test my book" · "Is my book ready" · "How is my book coming along"
