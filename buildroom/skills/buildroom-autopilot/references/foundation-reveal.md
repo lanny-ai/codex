@@ -75,6 +75,7 @@ Do not summarise the page in the chat, do not tell them it is good, and do not a
 ## After the review
 
 - Apply each change in the member's words. Change that line's `basis` to `confirmed`. Where a comment fits no single line, change the lines it most plainly speaks to and say which you changed.
+- A promise that is the member's own core result, word for word, keeps whatever number it holds ("closed by the 10th"). Give `--business-file` so the checker can see that. Any other drafted promise carries no number and no timeframe.
 - The source prints beside every line, confirmed ones included, so "you told me in your review" and "from your Business File" do not look the same.
 - In a part marked "Looks right", change every `drafted` line to `reviewed`. Leave `files` lines as they are. Nothing becomes `confirmed` because it was glanced at.
 - A change that says what not to say goes to `autopilot.py decide --key never_claim` or `--key retired` as well.

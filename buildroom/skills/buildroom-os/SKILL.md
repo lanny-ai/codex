@@ -46,9 +46,9 @@ Route goal-first: find the section that goal lives in, walk its `Requires` chain
 
 Welcome them in four sentences or less: what the Build Room is (guided weekly builds), what the Business File is (one file, every session reads and updates it, the work compounds), and what happens next.
 
-Then create their file: run the §1 Business Snapshot intake — the six snapshot fields, one question at a time, five minutes. Don't interview beyond §1; the build sessions do their own intake.
+Then run **the first session** without making them say another sentence, and without reading the roadmap or anything else first; a new member should not wait: start the Discovery Engine session (`buildroom-discovery-engine`) and follow the section "The first session" in its `references/deep-discovery.md`. In short: ask for their website or LinkedIn address; if they have one and you can reach the web, read it and show them what you learned for them to correct, instead of opening with questions; ask only what is still missing from the Business Snapshot; and end by giving them their business on one page, in their own words, with up to three drafted ways to say what they do. Their Business File is created along the way. If that session cannot be started, fall back to the §1 Business Snapshot intake: the six snapshot fields, one question at a time, five minutes.
 
-Recommend the Ideal Client Avatar session first (it's the root of everything) and hand them the trigger phrase. Mention the Compass once as an optional thirty-minute start ("Build my compass") for a member who wants every later session to sound like them from day one; it is never a requirement, and the Avatar comes first either way. Then and emit their new Business File per the protocol so they can save it before they go.
+The first session ends with one next step, the Ideal Client Avatar session (it's the root of everything), and its trigger phrase. Nothing else in that close: no second phrase and no Compass mention. The Compass ("Build my compass", an optional thirty-minute session so later work sounds like them) is offered on a later visit. The first session creates and saves their Business File as its own instructions say.
 
 ### Case 4 — Asked about something not yet in the program
 
@@ -58,7 +58,7 @@ Check `references/roadmap.md`. If it's a roadmap theme without a shipped skill, 
 
 Follow the protocol's session-end rules in scaled-down form:
 - Update **§1** if intake surfaced anything new; append a **§8 Session Log** row only when this session changed the file (a pure "what's next" answer doesn't need one).
-- If the file changed, emit the entire updated file in one code block with the "what changed" summary.
+- If the file changed, emit the entire updated file in one code block with the "what changed" summary. (A new member's first session follows its own ending instead: the file is saved, or only its filled part is shown.)
 - Close with the single next action and its trigger phrase.
 
 ## Voice & Style Rules

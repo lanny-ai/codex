@@ -79,26 +79,27 @@
   <div class="card">
     <p>Three rules, that's it:</p>
     <ul class="rules">
-      <li><strong>Keep the file in your Build Room folder.</strong> You never paste it. Claude reads it there and skips every question it already answers.</li>
+      <li><strong>Keep the file in one folder for your business.</strong> In Cowork, Claude Code or Codex, open the app in that folder and it reads the file there. In a regular Claude chat, attach the file before you ask for anything. Either way, it skips every question the file already answers.</li>
       <li><strong>It updates itself.</strong> Every session saves its changes to the file, keeps a backup, and tells you what changed. Nothing to copy.</li>
       <li><strong>It's yours.</strong> Edit anything by hand, anytime. Your edits always win.</li>
     </ul>
   </div>
 
-  <h2><span class="num">1</span>Install the Skills</h2>
+  <h2><span class="num">1</span>Connect Build Room OS</h2>
   <div class="card">
-    <p>In Claude Code or Codex:</p>
+    <p>Build Room OS connects to Claude or Codex through one personal link. You add it once. Every step is written out on the Start Here page: <a href="https://guide.aimomentumlabs.com/start" style="color:#fbbf24;">guide.aimomentumlabs.com/start</a></p>
     <ol>
-      <li>Unzip <code style="color:#fbbf24;">BuildRoom_OS.zip</code>. Keep the folder; your Business File lives in it.</li>
-      <li>Open a terminal in the folder and run <code style="color:#fbbf24;">claude</code> or <code style="color:#fbbf24;">codex</code>.</li>
-      <li>That's the whole install. The skills load on their own and trigger when you say the words.</li>
+      <li><strong>Get your personal link.</strong> Open the join page from the Start Here page. Enter your name, your Build Room email and the room code from your host.</li>
+      <li><strong>Add it to Claude or Codex.</strong> In Claude, open Customize (or Settings), then Connectors, then Add custom connector. Name it Build Room OS, paste your link and choose No sign in. Claude needs a paid plan to add a connector.</li>
+      <li><strong>Check it works.</strong> Start a new chat, turn Build Room OS on in the tools menu, and ask: <span class="say">What Build Room sessions do I have?</span> A list of sessions means you are connected.</li>
     </ol>
+    <p style="margin-top:10px;">Your link is yours alone, and it goes into Claude or Codex, not into your web browser. Used the zip folder before? You do not need to do anything: the first time you use Build Room OS in that folder, Claude or Codex offers to move the old copies into a backup folder. Say yes. Your Business File and your work are not touched.</p>
   </div>
 
   <h2><span class="num">2</span>Start With the Navigator</h2>
   <div class="card">
-    <p>In that terminal, say:</p>
-    <p style="margin:12px 0;"><span class="say">I'm new to the Build Room — set me up</span></p>
+    <p>In a new chat, say:</p>
+    <p style="margin:12px 0;"><span class="say">I'm new here. Help me get started.</span></p>
     <p>The navigator welcomes you, creates your Business File with a five-minute snapshot of your business, and tells you exactly which session to run first. Any time you're unsure what to do next, just ask: <span class="say">What should I work on next?</span></p>
     <p style="margin-top:10px;">Prefer to see it? Open <code style="color:#fbbf24;">tools/Business_File_Viewer.html</code> from the folder, paste your file, and it shows every section's status, your progress, and the one session to run next — no session needed.</p>
   </div>
@@ -128,6 +129,7 @@
       <tr><td>Search &amp; Answer Engine <em>(found without ads)</em></td><td>Your Google Business Profile scored and fixed, one honest answer page a week on your own site through a gate, a review ask sent the same way to everyone, five free listings, and a monthly check of whether Google's AI, ChatGPT and the others name you</td><td><span class="say">Get found on Google</span></td></tr>
       <tr><td>Event Launcher <em>(launches)</em></td><td>A live challenge, bootcamp, workshop or webinar that sells: launch math, emails, calendar file, run-of-show, the close, a launch gate, follow-up and a debrief saved to your vault</td><td><span class="say">Plan my launch</span></td></tr>
       <tr><td>Webinar Builder <em>(the webinar itself)</em></td><td>A live 60-minute webinar in your own voice: the talk minute by minute, slides you can read from across the room, the moderator's sheet, the registration page words, a check before you go live, and a scorecard after every rehearsal and run</td><td><span class="say">Build my webinar</span></td></tr>
+      <tr><td>Brand Kit <em>(your logo, colors, typefaces)</em></td><td>Takes in the brand you have, or builds one with you: three directions on your own words, a logo as a vector file, a brand sheet. Everything you publish then matches.</td></tr>
       <tr><td>Website Design Studio <em>(your look)</em></td><td>Screenshots you like, read back in plain words; three very different versions of your landing page side by side; sliders to fine-tune the one you pick; your colours, fonts and sizes locked so everything after it matches</td><td><span class="say">Make my website look like me</span></td></tr>
       <tr><td>AI Momentum Labs Book Builder <em>(your book)</em></td><td>Your own non-fiction book in your voice: an outline you approve, chapters from your own stories and method, an edit you sign off on, a fact check and test readers before it is called ready. Twelve chapters unless you want a different shape</td><td><span class="say">Write my book</span></td></tr>
       <tr><td>Speaking Engine <em>(speaking gigs)</em></td><td>Get booked to speak where your buyers already gather: a speaking profile drafted from your Business File, one to three talks a host can book, your bio and one-page speaker sheet, real places to speak checked for bad deals, a pitch for each, follow-ups, and a scorecard from your own numbers</td><td><span class="say">Get me speaking gigs</span></td></tr>
@@ -142,7 +144,8 @@
       <tr><td>Finish It <em>(elective)</em></td><td>An unfinished project audited, cut to the smallest shippable version, built and tested by a crew, shipped with a checklist; say it in the project's folder</td><td><span class="say">Finish it</span></td></tr>
       <tr><td>Build It <em>(elective)</em></td><td>A new app or tool from an idea: a brainstorm, one goal you approve, then a crew that builds, tests, reviews and documents it</td><td><span class="say">Build me an app</span></td></tr>
       <tr><td>Continuity System <em>(elective)</em></td><td>From community member Jenn: any long project kept resumable across new threads and between Claude and Codex; your Business File is only read</td><td><span class="say">Set up the continuity system for this project</span></td></tr>
-      <tr><td>Discovery Engine <em>(anytime)</em></td><td>Deep research first, confirm, ask only the gaps, then the Genie's pitches, persona, fears, and master summary</td><td><span class="say">Run discovery on this business</span></td></tr>
+      <tr><td>Discovery Engine <em>(anytime)</em></td><td>Deep research first, confirm, ask only the gaps, then the Genie's pitches, persona, fears, and master summary. For your own business, it reads only the files you agree to, shows what it found with a source for each fact, and asks at most ten questions. Little written down? A short interview, easy questions first, hands back your business on one page in your own words</td><td><span class="say">Run discovery on this business</span><br><span class="say" style="margin-top:6px;">Research my business first</span><br><span class="say" style="margin-top:6px;">Interview me about my business</span></td></tr>
+      <tr><td>Autopilot <em>(your first build, drafted)</em></td><td>Your ideal client, offer and positioning drafted and shown on one review page, every line tagged as yours, from your files, or drafted for you. After your go-ahead: drafts of your offer page, funnel, opt-in page, sales script, follow-up and one lead gen module, each one checked, and a Your Build page that links to each draft and lists what still needs you. Everything is a draft; nothing is published, sent or paid for. Best after "Research my business first"; it needs Cowork, Claude Code or Codex</td><td><span class="say">Run autopilot</span></td></tr>
       <tr><td>Ad Studio <em>(advertising)</em></td><td>Three genuinely different ad concepts from your file, copy one ad at a time, finished statics in three sizes built around your real face and proof, reviewed, and a kit ready to upload with a test plan</td><td><span class="say">Make me ads</span></td></tr>
       <tr><td>Funnel Scorecard <em>(funnel)</em></td><td>Every failure point measured, the top three leaks with fixes you approve one at a time, and an optional weekly routine that re-runs it</td><td><span class="say">Where is my funnel leaking?</span></td></tr>
       <tr><td>Compass <em>(anytime)</em></td><td>A nineteen-question interview that ends in your Compass Statement; §17 lets every other session read your voice, spark zone, and drain zone</td><td><span class="say">Build my compass</span></td></tr>
@@ -155,7 +158,9 @@
   <h2><span class="num">4</span>Where to Keep Your File</h2>
   <div class="card">
     <ul>
-      <li>Save <strong>BUILDROOM_BUSINESS_FILE.md</strong> (your first session creates it) stays in your Build Room folder. Don't move it: sessions look for it there. Back up the whole folder if you like.</li>
+      <li><strong>BUILDROOM_BUSINESS_FILE.md</strong> (your first session creates it) lives on your computer. Build Room OS never stores it, so keeping it safe is your job. Make one folder for your business and keep the file there.</li>
+      <li>In Cowork, Claude Code or Codex, always open the app in that folder. The file is read there and saved back there.</li>
+      <li>In a regular Claude chat, attach the file at the start. At the end, save the updated file Claude gives you over the older copy.</li>
       <li>It's a plain text file. Open it with any notes app. Read it — it's the clearest picture of your business you'll own.</li>
       <li>One file per business. Running two businesses? Two files.</li>
     </ul>

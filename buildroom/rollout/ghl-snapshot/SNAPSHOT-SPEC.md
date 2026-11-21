@@ -284,6 +284,8 @@ A workflow step that would send an email whose body is empty must not send. Put 
 4. Writes the values. It creates nothing else and publishes nothing.
 5. Reports what was filled, what was left empty and which page section to remove for each empty optional value, and what the member has to do by hand: connect a domain, set calendar hours, turn the workflows on, run a test with their own email.
 
+The values file is prepared on the member's computer by the Autopilot skill (`scripts/ghl_values.py`, described in its `references/ghl-values.md`): it checks every value against these rules and writes `custom_values.json`, `custom_values.csv` and a review sheet for the member. That step connects to nothing. Steps 1 and 4 above, reading the version from an account and writing the values into it, are not built yet.
+
 ## What is not in the snapshot
 
 - Text messages

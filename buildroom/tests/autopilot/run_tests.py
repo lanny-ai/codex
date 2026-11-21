@@ -265,7 +265,15 @@ def main():
     rv = lambda v: {"v": v, "basis": "reviewed"}  # noqa: E731
     bad(lambda g: g["offer"].update(urgency=rv("We double enrollment for every studio.")), "reads as a guarantee", "an approved draft is still checked for promises")
     bad(lambda g: g["positioning"].update(value_prop=rv("Fuller classes for $9,999.")), "a figure nobody confirmed", "an approved draft is still checked for new figures")
-    (fj.parent / "run.json").write_text(json.dumps({"decisions": [{"key": "retired", "value": "the name Studio Growth Sprint"}]}))
+    cbf = tmp / "BF_core.md"
+    cbf.write_text(tpl.replace("- **Core result I deliver:**", "- **Core result I deliver:** Books closed by the 10th of every month"))
+    g = copy.deepcopy(GOOD)
+    g["offer"]["promise"] = rv("Books closed by the 10th of every month")
+    write(g)
+    check("reveal: a promise that is the member's own core result keeps its number; another drafted promise may not carry one",
+          run(RV, "check", fj, "--business-file", cbf)[0] == 0 and "No numbers and no timeframe" in run(RV, "check", fj)[1])
+    write(GOOD)
+    (fj.parent / "run.json").write_text(json.dumps({"decisions": [{"key": "retired", "value": "“Featured in Ceramics Monthly”, and the name Studio Growth Sprint."}]}))
     bad(lambda g: g["offer"].update(pitch=d("Formerly the Studio Growth Sprint, now 12 weeks.")), "carries a retired line", "a line retired at the start of the run is refused before it reaches the Business File")
     (fj.parent / "run.json").unlink()
     oled = tmp / "old_ledger.json"
@@ -288,6 +296,7 @@ def main():
     ap2 = lambda *a: run(AP, *a[:1], "--dir", R2, *a[1:])  # noqa: E731
     code, out = ap2("plan", "--readiness", "40", "--no-web", "--thin-ok", "I don't know, skip that one.")
     check("plan: words that are not a choice to go ahead do not start a thin run", code == 5 and "not a choice to go ahead" in out and not (R2 / "run.json").exists())
+    check("plan: nor do 'maybe' or 'OK, ask me the questions'", all(ap2("plan", "--readiness", "40", "--no-web", "--thin-ok", w)[0] == 5 for w in ("maybe", "OK, ask me the questions.", "hmm, not sure", "Leave those out.")))
     check("plan: a clear choice does", ap2("plan", "--readiness", "40", "--no-web", "--thin-ok", "No, go ahead anyway.")[0] == 0)
     ap2("decide", "--key", "never_claim", "--value", "Doubling enrollment or revenue.")
     code, out = ap2("decide", "--key", "never_claim", "--value", "Do not say I work with all creative businesses.")
@@ -309,8 +318,14 @@ def main():
     check("done: a step drafted again after the review can be recorded again", code == 0 and json.loads((R2 / "run.json").read_text())["steps"][1]["note"] == "redrafted after the review")
     check("done: --redo does not record a step that never ran", ap2("done", "funnel-map", "--status", "drafted", "--outputs", D2 + "x.md", "--redo")[0] != 0)
     code, out = ap2("approve", "--words", "Go.")
-    check("approve: steps that lean on something the member lacks are put to them once", "ASK ONCE" in out and "Lead Capture: needs a free resource to offer" in out
-          and "Lead Gen Machine: needs where you most want new clients" in out and "Decision Machine" not in out)
+    check("approve: steps that lean on something the member lacks are put to them once", "ASK ONCE" in out and "Lead Capture (lead-capture): needs a free resource to offer" in out and "Funnel Map (funnel-map): needs a free resource" in out
+          and "Lead Gen Machine (leadgen): needs where you most want new clients" in out and "Decision Machine (decision-machine): needs the tools" in out and "Sales Conversations" not in out)
+    code, out = ap2("leave-out", "lead-gen-machine", "--words", "leave it")
+    check("leave-out: an unknown step is called unknown, with the real names", code != 0 and "Unknown step" in out and "leadgen" in out)
+    import importlib.util as _il
+    _sp = _il.spec_from_file_location("ap_mod", AP); _am = _il.module_from_spec(_sp); _sp.loader.exec_module(_am)
+    check("approve: 'I do not have one yet' and 'Not yet, but I want one' both mean none; a real answer does not",
+          all(_am.HAS_NONE.match(x) for x in ("I do not have one yet.", "No, I don't have one", "Not yet, but I want one", "none yet")) and not _am.HAS_NONE.match("A five-page pricing guide"))
     check("leave-out: needs the member's words, and only drops a waiting run step", ap2("leave-out", "lead-capture")[0] != 0 and ap2("leave-out", "signature-offer", "--words", "skip it")[0] != 0)
     check("leave-out: records the member's choice", ap2("leave-out", "lead-capture", "--words", "Leave that one out")[0] == 0)
     out = ap2("report")[1]
@@ -328,7 +343,7 @@ def main():
     (H / "autopilot/drafts").mkdir(parents=True)
     (H / "BUILDROOM_BUSINESS_FILE.md").write_text(tpl.replace("**Business:** [business name]", "**Business:** Harbor <Coaching>"))
     for n in ("01_ICA", "02_Offer", "03_Pos", "04_Page"):
-        (H / "autopilot/drafts" / f"{n}.md").write_text("x")
+        (H / "autopilot/drafts" / f"{n}.md").write_text("Draft by Autopilot on 2026-11-21. Nothing here is published. Check it before you use it.\n\nx")
     HA = H / "autopilot"
     hd = lambda slug, *a: run(AP, "done", "--dir", HA, slug, *a)  # noqa: E731
     run(AP, "plan", "--dir", HA, "--readiness", "74", "--no-web", "--skip", "leadgen")
@@ -346,7 +361,7 @@ def main():
     hh = hp.read_text()
     check("handover: one self-contained page, named for the business from the Business File", code == 0 and hh.startswith("<!doctype html>") and "<title>Your Build · Harbor &lt;Coaching&gt;</title>" in hh
           and not re.search(r'(src|href)="https?:', hh) and "@import" not in hh and "url(" not in hh)
-    check("handover: counts drafted pieces, open items and waiting sessions", "<b>4</b><span>pieces drafted for you, 1 of them only in part" in hh and "<span>different things they still need from you" in hh
+    check("handover: counts drafted pieces, open items and waiting sessions", "<b>3</b><span>pieces drafted for you, and 1 more only in part" in hh and "<span>different things they still need from you" in hh
           and f"<b>{sum(1 for t in am.TOOLS if t[3] == 'needs_you')}</b><span>sessions waiting" in hh)
     check("handover: leads with the answers that unlock more than one draft", "Answer these first" in hh and "A booking link" in hh.split("Answer these first")[1].split("</div>")[0]
           and "Two real client" not in hh.split("Answer these first")[1].split("</div>")[0])
@@ -368,6 +383,86 @@ def main():
     check("handover: every drafted tool has a plain line saying what it is for", all(t[0] in mod(HV, "handover").FOR for t in am.TOOLS if t[3] in ("foundation", "auto")))
     check("handover: output must be an .html file, and a missing run is refused", run(HV, "build", "--dir", HA, tmp / "x.txt")[0] != 0 and run(HV, "build", "--dir", tmp / "none", tmp / "x.html")[0] != 0)
     hsrc = HV.read_text()
+    # ---- the draft check: the last line of defence before the handover ---------------------------
+    DC = SK / "scripts/drafts.py"
+    C = tmp / "dc"
+    (C / "autopilot/drafts").mkdir(parents=True)
+    (C / "discovery").mkdir()
+    CA = C / "autopilot"
+    (C / "BUILDROOM_BUSINESS_FILE.md").write_text(tpl.replace("- **Current price / price range:**", "- **Current price / price range:** $4,800")
+        .replace("each one in quotation marks, separated by semicolons):", "each one in quotation marks, separated by semicolons): “Featured in Ceramics Monthly”"))
+    (C / "discovery/ledger.json").write_text(json.dumps({"findings": [
+        {"field": "x.proof", "value": "22 to 41 students", "quote": "We went from 22 to 41 students in a term", "permission": "no", "source": {"kind": "file", "ref": "wins.md"}, "confidence": "likely"},
+        {"field": "x.proof", "value": "Waitlist of 30%", "quote": "I have a waitlist for the first time, about 30% over", "permission": "yes", "source": {"kind": "file", "ref": "wins.md"}, "confidence": "likely"},
+        {"field": "1.price", "value": "$3,000", "source": {"kind": "file", "ref": "Old/p.md"}, "confidence": "inferred", "stale": True}]}))
+    run(AP, "plan", "--dir", CA, "--readiness", "80", "--no-web")
+    for k, v in (("guarantee", "none"), ("never_claim", "Doubling enrollment or revenue"), ("retired", "the name Studio Growth Sprint")):
+        run(AP, "decide", "--dir", CA, "--key", k, "--value", v)
+    HEAD = "Draft by Autopilot on 2026-11-21. Nothing here is published. Check it before you use it.\n\n"
+    def drafts(page, notes="x"):
+        (CA / "drafts/04_Offer_Page_Copy.md").write_text(page)
+        (CA / "drafts/01_Ideal_Client_Avatar.md").write_text(HEAD + notes)
+        j = json.loads((CA / "run.json").read_text())
+        for st in j["steps"]:
+            if st["slug"] == "offer-page-copy":
+                st.update(status="drafted", outputs=[D + "04_Offer_Page_Copy.md"])
+            if st["slug"] == "ideal-client-avatar":
+                st.update(status="drafted", outputs=[D + "01_Ideal_Client_Avatar.md"])
+        (CA / "run.json").write_text(json.dumps(j))
+        return run(DC, "check", "--dir", CA)
+    code, out = drafts(HEAD + "Classes that fill. The program is $4,800.\n\n“I have a waitlist for the first time, about 30% over”\n\nThere is no guarantee, and I do not promise to double anything.\n\n## Guarantee\n\n[needs you: a result you have permission to use, with its $ figure]")
+    check("drafts: an honest draft passes, with the member's price, a permitted quote and a plain 'no guarantee'", code == 0 and "0 to fix" in out, out)
+    code, out = drafts(HEAD + "Formerly the Studio Growth Sprint.\nAs featured in Ceramics Monthly!")
+    check("drafts: a line retired in the Business File or at the start of the run is refused", code == 1 and out.count("uses a line the member retired") == 2, out)
+    code, out = drafts(HEAD + "Most studios add $12,000 a year, a 40% lift.\nIt used to be $3,000.")
+    check("drafts: a figure nobody confirmed is refused, and so is an old price", code == 1 and "$12,000" in out and "40%" in out and "$3,000" in out, out)
+    code, out = drafts(HEAD + "Results are guaranteed.\nOr your money back.\nWe double your enrollment.")
+    check("drafts: an offered guarantee the member does not have, and a promise to double, are refused", code == 1 and out.count("offers a guarantee or refund, and the member has none") == 2 and "reads as a promise of an outcome" in out, out)
+    code, out = drafts(HEAD + "“We went from 22 to 41 students in a term”", "Client words: “We went from 22 to 41 students in a term”")
+    check("drafts: a client's words without permission are refused in public copy and flagged in the member's notes", code == 1 and out.count("FIX") == 1 and "04_Offer_Page_Copy.md: uses a client's words without permission" in out
+          and "LOOK  drafts/01_Ideal_Client_Avatar.md: quotes 1 line(s) from clients or prospects" in out, out)
+    code, out = drafts(HEAD + "x", "“We went from 22 to 41 students in a term” (not for public quoting)")
+    check("drafts: marked not for public quoting in the member's notes, it is left alone", code == 0 and "LOOK" not in out, out)
+    code, out = drafts(HEAD + "Enrollment that keeps growing, term after term.\nMore revenue from the classes you already run, and fuller enrollment.")
+    check("drafts: a sentence near what the member refuses to claim is listed to be read, not refused", code == 0 and out.count("LOOK") == 1 and "Doubling enrollment or revenue" in out, out)
+    code, out = drafts(HEAD + "If you are not happy, I will refund you in full.\nI have helped over 50 studios.\n“He was the reason our classes filled,” said one owner.\nI dropped the money-back guarantee years ago.")
+    check("drafts: a refund offer is caught even when the sentence holds a 'not'; an invented count and an invented quote are refused; a dropped guarantee is not an offer",
+          code == 1 and out.count("FIX") == 3 and "offers a guarantee or refund" in out and "50 studio" in out and "no real source" in out and "dropped" not in out.split("FIX")[1], out)
+    code, out = drafts(HEAD + "One Ohio studio took its class from 22 to 41 students.\nDouble-check your class calendar before you post.\nThe program used to be $3,000.")
+    check("drafts: a retold result without permission and an old price are refused; 'double-check' is not a promise",
+          code == 1 and "retells a client's result" in out and "$3,000" in out and "Double-check" not in out.replace("retells", ""), out)
+    run(AP, "decide", "--dir", CA, "--key", "never_claim", "--value", "Do not say I work with all creative businesses")
+    code, out = drafts(HEAD + "We love creative work of every kind.")
+    check("drafts: a never-claim rule is matched on its distinctive word, not on 'business' or 'serve'", code == 0 and out.count("LOOK") == 1, out)
+    code, out = drafts(HEAD + "We are doubling down on enrollment and revenue for every studio.")
+    check("drafts: public copy that says outright what the member refuses to claim is refused", code == 1 and ("says what the member refuses to claim" in out or "promise of an outcome" in out), out)
+    code, out = drafts(HEAD + "Most studios cut overhead by 12 percent.\nI have a waitlist now, about 30 percent over.")
+    check("drafts: a percentage written in words is a figure: an invented one is refused, a known one passes", code == 1 and "12 percent" in out and "30 percent" not in out, out)
+    run(AP, "decide", "--dir", CA, "--key", "never_claim", "--value", "Any tax savings figure")
+    code, out = drafts(HEAD + "Owners save thousands on their tax bill.")
+    check("drafts: a short word in a never-claim rule counts", "read this against what the member refuses to claim" in out or "says what the member refuses to claim" in out, out)
+    code, out = drafts(HEAD + "Classes that fill.", "Client words: “i'm so tired of posting and praying”")
+    code, out = drafts(HEAD + "Most studio owners see fuller classes within a term.\nOwners who do this are more likely to stay open.")
+    check("drafts: a general claim about what clients get is listed to be read", code == 0 and out.count("a general claim about what clients get") == 2, out)
+    code, out = drafts("Classes that fill.")
+    check("drafts: a draft that does not say it is a draft is refused", code == 1 and "must say it is a draft" in out)
+    run(AP, "decide", "--dir", CA, "--key", "guarantee", "--value", "If your books are not closed by the 10th, that month is free.")
+    code, out = drafts(HEAD + "Closed by the 10th, guaranteed.")
+    check("drafts: with a guarantee, offering it needs the member's exact wording in the draft", code == 1 and "exact wording is nowhere in the draft" in out, out)
+    code, out = drafts(HEAD + "Closed by the 10th, guaranteed. If your books are not closed by the 10th, that month is free.")
+    check("drafts: and passes when the wording is there", code == 0, out)
+    drafts(HEAD + "We double your enrollment.")
+    code, out = run(HV, "build", "--dir", CA, CA / "Your_Build.html")
+    check("handover: will not build while a draft holds something to fix", code != 0 and "must be fixed before the handover" in out and not (CA / "Your_Build.html").exists(), out)
+    drafts(HEAD + "Classes that fill.")
+    check("handover: builds once the drafts pass", run(HV, "build", "--dir", CA, CA / "Your_Build.html")[0] == 0)
+    hb = (CA / "Your_Build.html").read_text()
+    check("handover: the sessions most members reach for come first, the rest behind one click", hb.index("Proof Engine") < hb.index("<details") < hb.index("Hiring Ad") and "more, for when you need them" in hb)
+    dsrc = DC.read_text()
+    check("drafts: standard library only, no network, writes nothing", not any(x in dsrc for x in ("requests", "urllib", "socket", "http.client", "subprocess", "write_text", "open(")))
+    check("skill: the drafts are checked before the handover, and the rule is never deleted to pass", "drafts.py check --dir autopilot" in (SK / "SKILL.md").read_text() and "Never get past it by deleting the rule." in (SK / "SKILL.md").read_text()
+          and "last line of defence" in (SK / "references/autopilot-method.md").read_text())
+
     check("handover: standard library only, no network", not any(x in hsrc for x in ("requests", "urllib", "socket", "http.client", "subprocess")))
 
     # ---- the skill's instructions ------------------------------------------------------------------
@@ -384,7 +479,7 @@ def main():
     check("skill: imagined client words never become quotes", "never **Sourced language**" in me and "never inside quotation marks" in me)
     check("skill: the member's rules are carried into every session", "Give those to every session and every subagent, word for word." in me and "autopilot.py decide" in sk)
     check("skill: the questions asked are the ones that unblock the most", all(x in sk for x in ("A typical client result", "How someone books a call or buys", "The tools they use", "Ask this even when a file mentions one"))
-          and "Ten at most" in sk and "What a client actually receives" in sk and "the next 90 days" in sk and "Record what is already known too." in sk)
+          and "Eleven at most" in sk and "What a client actually receives" in sk and "the next 90 days" in sk and "Record what is already known too." in sk)
     check("skill: the member is not asked to choose steps by name", "Do not ask the member to choose steps by name" in sk)
     check("skill: one stop, and only the member's own go-ahead passes it", "Never record a go-ahead they did not give." in sk and "Silence, or your own judgement that it is good, is not." in me
           and "means show them the page again" in me)
@@ -427,8 +522,8 @@ def main():
           not any("LinkedIn and search work" in rd(p) for p in ("connector/guide.html", "connector/start.html", "rollout/MEMBER-README.md", "rollout/releases/README.md", "README.md",
                                                                 "skills/buildroom-os/references/roadmap.md")))
     check("wired: the roadmap names it and its phrases", "buildroom-autopilot" in rd("skills/buildroom-os/references/roadmap.md") and '"Run autopilot"' in rd("skills/buildroom-os/references/roadmap.md"))
-    check("wired: the protocol counts forty-two sessions", "42 standalone sessions" in proto)
-    check("wired: there are forty-two skills", len(on_disk) == 42, len(on_disk))
+    check("wired: the protocol counts forty-three sessions", "43 standalone sessions" in proto)
+    check("wired: there are forty-three skills", len(on_disk) == 43, len(on_disk))
     check("wired: the member README and the repo README list it", "buildroom-autopilot" in rd("rollout/MEMBER-README.md") and "buildroom-autopilot" in rd("README.md"))
 
     print(f"\n{sum(RESULTS)}/{len(RESULTS)} checks passed")

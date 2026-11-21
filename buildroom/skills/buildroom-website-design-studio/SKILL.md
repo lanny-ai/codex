@@ -40,6 +40,7 @@ Read these before member-facing work, in this order:
 
 - **No approved copy:** recommend **Offer Page Copy** or **Lead Capture** first, because the directions are judged on the real words. If the member wants to go ahead, write a short honest draft of the headline, sub and three sections from §2 and §3, and label it a draft in `design.json` (`copy`). Never invent proof or numbers.
 - **No Obsidian vault:** offer **Second Brain** first ("say 'set up my second brain'"). If they decline, use a `Design/` folder beside the Business File.
+- **A brand kit in §22** (`Design/System/tokens.json` has a `brand` block, written by the **Brand Kit** session): the member's logo, colours and typefaces are settled. Start every direction from them (use their logo files, their palette and their two typefaces; vary layout, imagery, density and shape instead), and the lock keeps the `brand` block. If the member has no brand kit and no logo, offer **Brand Kit** first ("say: set up my brand kit").
 - **§18 Brand kit already locked:** honour it. Website Design Studio extends it and changes a locked colour or font only when the member says so.
 - **§2 missing:** follow the protocol's two-path fallback, and mark §22 `provisional`.
 

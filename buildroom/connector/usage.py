@@ -88,6 +88,10 @@ def summarize(records, members, skills, now=None):
         idle = (now - p["last_start"]).days
         return "active" if idle <= ACTIVE_DAYS else "quiet" if idle <= QUIET_DAYS else "gone_quiet"
 
+    week = {}
+    for at, r in recs:
+        if r.get("outcome") == "ok" and r.get("tool") == START and (now - at).days < 7:
+            week[r["member"]] = week.get(r["member"], 0) + 1
     rows = []
     for email in sorted(set(known) | set(per)):
         m, p = known.get(email, {}), per.get(email)
@@ -97,12 +101,12 @@ def summarize(records, members, skills, now=None):
                      "first_seen": p["first"].isoformat() if p else None, "last_seen": p["last"].isoformat() if p else None,
                      "last_session": p["last_start"].isoformat() if p and p["last_start"] else None,
                      "days_since_session": (now - p["last_start"]).days if p and p["last_start"] else None,
-                     "sessions": p["starts"] if p else 0, "tools_used": len(p["skills"]) if p else 0, "top_tool": top,
+                     "sessions": p["starts"] if p else 0, "sessions_7": week.get(email, 0), "tools_used": len(p["skills"]) if p else 0, "top_tool": top,
                      "active_days_30": len([d for d in p["days"] if (now.date() - d).days < 30]) if p else 0})
     order = {"connected_not_started": 0, "gone_quiet": 1, "quiet": 2, "not_connected": 3, "active": 4, "stopped": 5}
     rows.sort(key=lambda r: (order[r["state"]], -(r["days_since_session"] or 0), r["email"]))
 
-    tools = {s["skill"]: {"skill": s["skill"], "starts": 0, "members": set(), "last": None, "starts_30": 0} for s in skills}
+    tools = {s["skill"]: {"skill": s["skill"], "starts": 0, "members": set(), "last": None, "starts_30": 0, "starts_7": 0} for s in skills}
     for at, r in recs:
         if r.get("outcome") == "ok" and r.get("tool") == START and r.get("skill") in tools:
             t = tools[r["skill"]]
@@ -111,7 +115,9 @@ def summarize(records, members, skills, now=None):
             t["last"] = at
             if (now - at).days < 30:
                 t["starts_30"] += 1
-    tool_rows = sorted(({"skill": t["skill"], "starts": t["starts"], "starts_30": t["starts_30"], "members": len(t["members"]),
+            if (now - at).days < 7:
+                t["starts_7"] += 1
+    tool_rows = sorted(({"skill": t["skill"], "starts": t["starts"], "starts_30": t["starts_30"], "starts_7": t["starts_7"], "members": len(t["members"]),
                          "last": t["last"].isoformat() if t["last"] else None} for t in tools.values()), key=lambda t: (-t["starts"], t["skill"]))
 
     days = [(now.date() - timedelta(days=i)) for i in range(29, -1, -1)]
@@ -129,3 +135,62 @@ def summarize(records, members, skills, now=None):
             "counts": counts, "members": rows, "tools": tool_rows, "refused_30": refused,
             "daily": [{"date": d.isoformat(), "members": len(by_day[d]["members"]), "sessions": by_day[d]["sessions"]} for d in days],
             "thresholds": {"active_days": ACTIVE_DAYS, "quiet_days": QUIET_DAYS}}
+
+
+NOTES = {
+    "connected_not_started": "You are connected to Build Room OS, which is the hard part. The first thing to say to Claude is: I'm new here. Help me get started. "
+                             "It takes about ten minutes. Want to do it together on a quick call?",
+    "gone_quiet": "I noticed it has been a few weeks since your last Build Room session. What got in the way? Reply with one line and I will point you to the one session worth doing next.",
+    "quiet": "It has been a little while since your last session. If you are not sure what to do next, say this to Claude: What should I work on next?",
+    "not_connected": "Your Build Room OS link is ready and has not been used yet. Setup takes about five minutes, step by step, here: https://guide.aimomentumlabs.com/start",
+}
+
+
+def digest(summary, pending=0):
+    """The week in plain text, for the host. Names and email addresses only: nothing a member typed is in the log."""
+    def days_ago(iso):
+        d = _when(iso) if iso else None
+        return (_when(summary["now"]) - d).days if d else None
+
+    def who(r):
+        return (r["name"] + " " if r["name"] else "") + f"<{r['email']}>"
+
+    rows = summary["members"]
+    c = summary["counts"]
+    live = [r for r in rows if r["state"] != "stopped"]
+    this_week = [r for r in live if r["sessions_7"]]
+    first_timers = [r for r in live if r["sessions"] and r["sessions"] == r["sessions_7"]]
+    new = [r for r in live if r["first_seen"] and days_ago(r["first_seen"]) is not None and days_ago(r["first_seen"]) < 7]
+    out = [f"Build Room OS: your week, as of {summary['now'][:10]}", ""]
+    if not summary["tracking_since"]:
+        out += ["No activity has been recorded yet. Counting starts with the first session a member runs after the dashboard went live.", ""]
+    else:
+        tracked = days_ago(summary["tracking_since"])
+        if tracked is not None and tracked < 7:
+            out += [f"Activity has only been counted for {tracked + 1} day(s), since {summary['tracking_since'][:10]}, so this is a partial week.", ""]
+    out += ["THE WEEK IN NUMBERS",
+            f"- {len(this_week)} of {len(live)} members ran at least one session ({sum(r['sessions_7'] for r in live)} sessions in all)",
+            f"- {len(new)} connected for the first time",
+            f"- {len(first_timers)} ran their first session ever",
+            f"- {pending} sign-up request(s) waiting for your decision" if pending else "- No sign-up requests waiting",
+            ""]
+    used = [t for t in summary["tools"] if t["starts_7"]]
+    if used:
+        out += ["MOST USED THIS WEEK"] + [f"- {t['skill'].replace('buildroom-', '')}: {t['starts_7']}" for t in sorted(used, key=lambda t: -t["starts_7"])[:5]] + [""]
+    for state, title, detail in (
+            ("connected_not_started", "CONNECTED BUT NEVER RAN A SESSION", lambda r: f"connected {days_ago(r['first_seen'])} day(s) ago"),
+            ("gone_quiet", f"GONE QUIET (no session in over {QUIET_DAYS} days)", lambda r: f"last session {r['days_since_session']} days ago"),
+            ("quiet", f"SLOWING DOWN (no session in over {ACTIVE_DAYS} days)", lambda r: f"last session {r['days_since_session']} days ago"),
+            ("not_connected", "HAVE A LINK, NEVER CONNECTED", lambda r: "no activity recorded")):
+        group = [r for r in rows if r["state"] == state]
+        if not group:
+            continue
+        out += [f"{title}: {len(group)}"] + [f"- {who(r)}, {detail(r)}" for r in group[:25]]
+        if len(group) > 25:
+            out.append(f"- and {len(group) - 25} more, on the dashboard")
+        out += ["A note you could send: " + NOTES[state], ""]
+    if first_timers:
+        out += ["WORTH A CONGRATULATIONS: ran their first session this week"] + [f"- {who(r)}" for r in first_timers[:25]] + [""]
+    out += ["Everything above counts sessions started, not results. Nothing a member typed is recorded.", "Full dashboard: https://guide.aimomentumlabs.com/admin/dashboard"]
+    subject = f"Build Room OS weekly: {len(this_week)} active, {c.get('connected_not_started', 0) + c.get('gone_quiet', 0)} to check in on"
+    return {"subject": subject, "text": "\n".join(out)}

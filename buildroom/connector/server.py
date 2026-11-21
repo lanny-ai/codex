@@ -47,6 +47,8 @@ def key_hash(key):
 # One question, asked in one place: is the person behind this key a current member?
 # Swap the source by writing another class with the same check() and setting BUILDROOM_MEMBER_SOURCE.
 
+EXAMPLE_PAGES = ("review", "build", "onepage", "offer-page", "sales-script", "referrals")
+
 class AllowlistSource:
     """Pilot source: a members.json you control (see members.py). Keys are stored only as sha256."""
 
@@ -401,6 +403,12 @@ def make_handler(app):
             route = self.path.split("?")[0].rstrip("/")
             if route == "/join":
                 return self._page(join.JOIN_PAGE)
+            if route.startswith("/example/") and route[9:] in EXAMPLE_PAGES:
+                # A finished build for a made-up business, so a new member can see what they will get.
+                try:
+                    return self._page((HERE / f"example-{route[9:]}.html").read_text(encoding="utf-8"))
+                except OSError:
+                    return self._send(404, {"error": "not found"})
             if route == "/start":
                 # Step-by-step setup for a new member. The video block shows only once a video has been uploaded.
                 try:
@@ -429,13 +437,15 @@ def make_handler(app):
                     return self._page((HERE / "dashboard.html").read_text(encoding="utf-8"))
                 except OSError:
                     return self._send(404, {"error": "not found"})
-            if route == "/admin/usage":
-                status, obj = app.join.admin("GET", route, self._admin_key(), {})
+            if route in ("/admin/usage", "/admin/digest"):
+                status, obj = app.join.admin("GET", "/admin/usage", self._admin_key(), {})
                 if status != 200:
                     return self._send(status, obj, {"Cache-Control": "no-store"})
                 d = os.environ.get("BUILDROOM_DATA_DIR")
                 out = usage.summarize(usage.read(d), obj["members"], app.content.skills())
                 out["open"], out["pending"] = obj["open"], sum(1 for r in obj["requests"] if r.get("status") == "pending")
+                if route == "/admin/digest":
+                    out = usage.digest(out, out["pending"])
                 return self._send(200, out, {"Cache-Control": "no-store"})
             if self.path.split("?")[0] == "/health":
                 return self._send(200, {"ok": True, "version": SERVER_VERSION})

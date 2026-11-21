@@ -632,6 +632,230 @@ def main():
             ok, out = run(["node", S / "render_linkedin.mjs", "specs/banner.json", "--out", "renders-longtmp"], work, ok_codes=(0, 1, 2),
                           env={**os.environ, "TMPDIR": str(longtmp)})
             check("renderer: works when TMPDIR is a long path", (work / "renders-longtmp/banner.png").exists(), out[-300:])
+            for nm, extra in (("styled", {}), ("plainstyle", {"style": "plain"})):
+                (work / f"specs/{nm}.json").write_text(json.dumps({"id": nm, "layout": "card", "brand": brand, "alt": "A card", **extra,
+                    "copy": {"kicker": "For owners", "headline": "Production is *not* profit.", "sub": "Know your overhead.", "author": "Test Person"}}))
+            ok, out = run(["node", S / "render_linkedin.mjs", "specs/styled.json", "specs/plainstyle.json", "--out", "renders"], work, ok_codes=(0, 1))
+            sr, pr2 = rep("styled"), rep("plainstyle")
+            check("renderer: the default card style passes every check, and marked words count as accent text", sr.get("result") == "PASS"
+                  and any("headline emphasis" in c["check"] for c in sr.get("checks", [])) and (work / "renders/styled.png").stat().st_size > 20000, sr)
+            check("renderer: the plain style is still there, and the marks are dropped, not printed", pr2.get("result") == "PASS"
+                  and not any("headline emphasis" in c["check"] for c in pr2.get("checks", [])), pr2)
+            rsrc = (S / "render_linkedin.mjs").read_text()
+            check("renderer: no decoration is drawn: no glow, gradient, pill, badge or ring", not re.search(r"radial-gradient|linear-gradient|background-clip:text|\\.pill|\\.badge|function decor", rsrc)
+                  and "they are what makes an image look machine-made" in rsrc)
+            # the brand comes from the member's locked kit
+            kd = work / "Design/System"; kd.mkdir(parents=True, exist_ok=True)
+            (work / "Design/Brand/logo").mkdir(parents=True, exist_ok=True)
+            for nm, fill in (("wordmark", "#16211c"), ("wordmark-on-dark", "#ffffff"), ("mark", "#b3261e"), ("mark-on-dark", "#e0483f")):
+                (work / f"Design/Brand/logo/{nm}.svg").write_text(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {"100 100" if "mark" == nm[:4] and "word" not in nm else "400 100"}"><rect width="100%" height="100%" fill="{fill}"/></svg>')
+            (kd / "tokens.json").write_text(json.dumps({"schema": "buildroom-design/1", "name": "Test brand", "version": 1, "radius_px": 2,
+                "color": {"bg": "#ffffff", "surface": "#f4f5f3", "ink": "#16211c", "muted": "#56605b", "accent": "#b3261e", "accent_ink": "#ffffff", "line": "#d5d9d6"},
+                "font": {"head": {"family": "Georgia", "weight": 700}, "body": {"family": "Arial"}},
+                "brand": {"name": "Test Co", "source": "created", "palette": [], "font_files": {"head": [], "body": []},
+                          "reverse": {"bg": "#16211c", "surface": "#232d28", "ink": "#ffffff", "muted": "#b0b6b3", "accent": "#e0483f", "accent_ink": "#16211c", "line": "#3c4641"},
+                          "logo": {"kind": "wordmark", "on_light": "../Brand/logo/wordmark.svg", "on_dark": "../Brand/logo/wordmark-on-dark.svg",
+                                   "mark_on_light": "../Brand/logo/mark.svg", "mark_on_dark": "../Brand/logo/mark-on-dark.svg"}}}))
+            for nm, extra in (("kitcard", {}), ("kitrev", {"ground": "reverse"}), ("kitgone", {"brand": "../Design/System/nope.json"})):
+                (work / f"specs/{nm}.json").write_text(json.dumps({"id": nm, "layout": "card", "brand": "../Design/System/tokens.json", "alt": "A card",
+                    "copy": {"headline": "Production is *not* profit.", "author": "Test Person"}, **extra}))
+            ok, out = run(["node", S / "render_linkedin.mjs", "specs/kitcard.json", "specs/kitrev.json", "--out", "renders"], work, ok_codes=(0, 1))
+            kc, kr = rep("kitcard"), rep("kitrev")
+            fonts_only = lambda r: all("brand fonts loaded" in c["check"] for c in r.get("checks", []) if c["result"] == "FAIL")  # noqa: E731
+            check("renderer: a spec that names the brand kit takes its colours and logo from it", str(kc.get("brand_kit", "")).endswith("tokens.json")
+                  and fonts_only(kc) and not any("no brand kit" in x for x in kc.get("warnings", [])) and (work / "renders/kitcard.png").exists(), kc)
+            check("renderer: the reverse ground uses the kit's reverse colours and passes contrast", fonts_only(kr)
+                  and any(c["check"].startswith("text contrast") and c["result"] == "pass" and c["detail"] > 10 for c in kr.get("checks", [])), kr)
+            check("renderer: a spec with a typed-in brand is told there is no brand kit", any("no brand kit" in x for x in sr.get("warnings", [])), sr.get("warnings"))
+            ok, out = run(["node", S / "render_linkedin.mjs", "specs/kitgone.json", "--out", "renders"], work, ok_codes=(1, 2))
+            check("renderer: a missing brand kit is refused with the reason", "brand kit not found" in out, out[-300:])
+            ks = (SK / "SKILL.md").read_text() + (SK / "references/daily-post.md").read_text()
+            check("skill: every image takes its look from the brand kit, and decoration is ruled out", "Design/System/tokens.json" in ks
+                  and "set up my brand kit" in ks and "machine-made" in ks and "soft glow" not in ks and "in a pill" not in ks)
+
+    # ---- the Prospector: searches, fit, opening lines, the conversation one question at a time ----
+    import subprocess as _sp, tempfile as _tf
+    LP = SK / "scripts/li_prospect.py"
+    lp = lambda *a: (lambda r: (r.returncode, r.stdout + r.stderr))(_sp.run([sys.executable, str(LP), *map(str, a)], capture_output=True, text=True, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}))  # noqa: E731
+    with _tf.TemporaryDirectory() as _t:
+        _t = Path(_t)
+        plan = _t / "plan.json"
+        plan.write_text(json.dumps({"titles": ["Practice owner", "Owner dentist"], "keywords": ["dental"], "exclude": ["student"], "locations": ["Colorado"], "problem_words": ["dental overhead"]}))
+        code, out = lp("searches", plan)
+        check("prospector: the searches are written for the member to run, own network first", code == 0 and out.index("YOUR OWN NETWORK FIRST") < out.index("LINKEDIN SEARCH")
+              and '("Practice owner" OR "Owner dentist") AND dental NOT student' in out and "Nothing here searches for you." in out and '"dental overhead"' in out, out[:400])
+        (_t / "bad.json").write_text(json.dumps({"titles": []}))
+        check("prospector: a plan with no titles or no narrowing word is refused", lp("searches", _t / "bad.json")[0] == 1)
+        conn = _t / "Connections.csv"
+        conn.write_text("Notes:\n\nFirst Name,Last Name,URL,Email Address,Company,Position,Connected On\nDana,Ruiz,https://www.linkedin.com/in/danaruiz,,Ruiz Dental,Practice Owner,01 Mar 2024\n"
+                        "Sam,Lee,https://www.linkedin.com/in/samlee,,State U,Dental student,02 Mar 2024\nKit,Poe,https://www.linkedin.com/in/kitpoe,,Acme,Plumber,03 Mar 2024\n")
+        code, out = lp("network", plan, conn)
+        check("prospector: the member's own connections who match are listed first, exclusions left out, nothing saved", code == 0 and "Dana Ruiz" in out and "Sam Lee" not in out and "Kit Poe" not in out
+              and "Nothing is saved from this list." in out and len(list(_t.iterdir())) == 3)
+        HOOK = "Posted on Nov 18 about hiring a second hygienist"
+        good = "Hi Dana, saw your post about hiring a second hygienist. Is that to open more chair time, or to take pressure off the one you have?"
+        check("opener: an honest line about what was noticed, with one question, passes", lp("opener", "--kind", "DM", "--hook", HOOK, "--text", good)[0] == 0)
+        code, out = lp("opener", "--kind", "DM", "--hook", HOOK, "--text", "Hi Dana, I love your profile! I help dentists save 30% on overhead. Book a call: example.com")
+        check("opener: a pitch, a link, flattery, an invented number and no question are all refused", code == 1 and all(x in out for x in ("pitches", "carries a link", "opens like every other message", "30%", "0 questions", "does not mention what the member noticed")), out)
+        check("opener: a connection note over 200 characters is refused on a free account and allowed on Premium",
+              lp("opener", "--kind", "C2", "--hook", HOOK, "--text", "Dana, your post on hiring a second hygienist stuck with me. " + "x" * 160)[0] == 1
+              and lp("opener", "--kind", "C2", "--hook", HOOK, "--premium", "--text", "Dana, your post on hiring a second hygienist stuck with me. " + "x" * 160)[0] == 0)
+        check("opener: with nothing noticed there is no opener, only a blank request", "send a blank request" in lp("opener", "--kind", "C2", "--text", "Hi Dana, would love to connect?")[1])
+        P = lambda **k: {"name": "Dana Ruiz", "url": "https://www.linkedin.com/in/danaruiz", "role": "Owner", "company": "Ruiz Dental", "fit": "A", "why": ["Owner of a dental practice"],  # noqa: E731
+                         "connected": True, "hook": {"kind": "post", "note": HOOK, "link": "https://www.linkedin.com/posts/x"}, "opener": {"kind": "DM", "text": good}, **k}
+        pf = _t / "prospects.json"
+        def pc(ps, *extra):
+            pf.write_text(json.dumps({"prospects": ps}))
+            return lp("check", pf, *extra)
+        check("check: a prospect with a visible reason to fit and an honest opener passes", pc([P()])[0] == 0)
+        check("check: a fit that rests on nothing the profile shows is refused", "does not rest on their role, company or what you noticed" in pc([P(why=["Seems like a great person to know"])])[1])
+        check("check: a first message to someone not connected is refused", "can only go to someone already connected" in pc([P(connected=False)])[1]
+              and pc([P(connected=False, opener={"kind": "DM", "text": good, "after_accept": True})])[0] == 0)
+        check("check: nothing noticed means a blank request and no opener", "nothing to personalise" in pc([P(hook={"kind": "none"})])[1] and pc([P(hook={"kind": "none"}, opener=None)])[0] == 0)
+        check("check: a post hook needs its link, and copied profile text is refused as a hook", "needs the link" in pc([P(hook={"kind": "post", "note": HOOK})])[1]
+              and "not copied profile text" in pc([P(hook={"kind": "about", "note": "hygienist " + "x" * 220})])[1])
+        check("check: more than twenty at a time is refused", "at most 20 at a time" in pc([P(url=f"https://www.linkedin.com/in/p{i}") for i in range(21)])[1])
+        pc([P()])
+        code, out = lp("handoff", pf)
+        check("handoff: prints the pipeline line for each person, and sends nothing", code == 0 and "li_pipeline.py add --name \"Dana Ruiz\"" in out and "--signal sig:posted-problem --fit A --connected" in out and "Nothing is sent" in out)
+        code, out = lp("next", "--stage", "problem")
+        check("next: each stage says what the message is for and forbids naming the problem for them", code == 0 and "Do not name the problem for them" in out and "One question." in out and "move to: cost" in out)
+        check("next: an invitation before two real exchanges is held back", "WAIT" in lp("next", "--stage", "invite", "--exchanges", "1")[1] and "WAIT" not in lp("next", "--stage", "invite", "--exchanges", "2")[1])
+        check("next: two follow-ups then stop, and a no is final", "then stop" in out and "never message them again" in out)
+        check("say: one honest question passes", lp("say", "--stage", "situation", "--text", "Makes sense. How are you handling the books at the moment?")[0] == 0)
+        code, out = lp("say", "--stage", "problem", "--text", "You need a proper bookkeeper. I help practices like yours and it is only $1,450. Want to book a call? Does Tuesday work?")
+        check("say: a pitch, a price, two questions and telling them their problem are refused before the invitation", code == 1 and all(x in out for x in ("2 questions", "pitches", "price or a figure", "tells them what their problem is")), out)
+        check("say: if they asked what the member does, saying so is allowed", lp("say", "--stage", "situation", "--they-asked", "--text", "I work with dental practices on their monthly books. How are you handling yours at the moment?")[0] == 0)
+        inv = "It sounds like month end keeps slipping. That is the kind of thing I work on. Would a short call to map your options be useful? If not, no problem at all."
+        check("say: the invitation needs two exchanges, an easy no, and no link", lp("say", "--stage", "invite", "--exchanges", "2", "--text", inv)[0] == 0
+              and "after 1 real exchange" in lp("say", "--stage", "invite", "--exchanges", "1", "--text", inv)[1]
+              and "no easy way to say no" in lp("say", "--stage", "invite", "--exchanges", "3", "--text", "It sounds like month end keeps slipping. Would a short call be useful?")[1])
+        # ---- from the trial run ----------------------------------------------------------------------
+        H2 = "commented that he has no idea what his overhead actually is"
+        op2 = lambda t: lp("opener", "--kind", "DM", "--hook", H2, "--text", t)[1]  # noqa: E731
+        check("opener: a promise is refused with or without a number", "promises a result" in op2("Hi Marcus, I can cut your overhead by ten percent. Is that worth a look?")
+              and "promises a result" in op2("Marcus, we get overhead under control fast for practices. Is that of interest?"))
+        check("opener: a soft pitch is still a pitch", "pitches" in op2("Marcus, saw your overhead comment. Open to a quick chat?"))
+        check("opener: a problem they did not state is not assumed", "assumes a problem they did not state" in op2("Marcus, I saw your overhead comment and that you are struggling with messy books. What is going on?"))
+        check("say: ordinary words like 'calendar' and 'limited' are not a pitch", lp("say", "--stage", "situation", "--text", "Lease signed and opening in March on the calendar, with limited help. Who is carrying most of it at the moment?")[0] == 0)
+        bfn = _t / "BF.md"
+        bfn.write_text("- **Never claim or promise:** Any tax savings figure, and anything that sounds like tax advice\n- **Retired lines** (x): “Featured in Dental Monthly”\n")
+        check("say: what the member refuses to claim is refused when the Business File is given", "refuses to say" in lp("say", "--stage", "situation", "--business-file", bfn, "--text", "Most owners find tax savings once the books are clean. How are yours looked after today?")[1])
+        code, out = lp("next", "--stage", "booked")
+        check("next: after a yes there is a booked stage where the link and the real price are allowed", code == 0 and "They said yes." in out and "link and the price are allowed now" in out
+              and lp("say", "--stage", "booked", "--text", "Glad it would help. It is $1,450 a month plus a one-time $2,000 setup. Would Tuesday at 10 or Thursday at 2 suit you?")[0] == 0
+              and "promises a result" in lp("say", "--stage", "booked", "--text", "Great, we can cut your overhead. Tuesday at 10?")[1])
+        pc([P(), P(name="Derek Shaw", url="https://www.linkedin.com/in/derekshaw", role="Associate Dentist", company="Aspen Smiles", fit="C", why=["Associate dentist at a large group"], hook={"kind": "none"}, opener=None)])
+        code, out = lp("handoff", pf)
+        check("handoff: a poor fit is left out and said so; the pipeline setup is named", "Left out, a poor fit (C): Derek Shaw" in out and "--name \"Derek Shaw\"" not in out and "li_pipeline.py settings" in out)
+        plan.write_text(json.dumps({"titles": ["Owner"], "keywords": ["dental"], "partners": ["cpa"]}))
+        conn.write_text("First Name,Last Name,URL,Email Address,Company,Position,Connected On\nGreg,Hall,https://www.linkedin.com/in/greghall,,Hall Plumbing,Owner,01 May 2021\n"
+                        "Priya,Nair,https://www.linkedin.com/in/priyanair,,Nair Family Dental,Owner Dentist,12 Jan 2023\nTom,Becker,https://www.linkedin.com/in/tombecker,,Becker CPA Group,Partner,03 Mar 2022\n")
+        code, out = lp("network", plan, conn)
+        check("network: a bare 'Owner' does not match a plumber, and people who could refer are listed apart", "Priya Nair" in out and "Greg Hall" not in out and "could refer you" in out and "Tom Becker" in out.split("match")[0], out)
+        plan.write_text(json.dumps({"titles": ["Practice owner"], "keywords": ["dental"], "problem_words": ["what I actually took home at the end of the year"]}))
+        check("searches: a whole sentence as a search phrase is refused", "too long to search for" in lp("searches", plan)[1])
+
+        # ---- comment first, the reply playbook, the pre-call brief, the daily page -------------------
+        POST = "She is opening a second location in Fort Collins in March"
+        cgood = "Opening a second location changes the books more than most people expect. The part that surprises owners is seeing each location on its own. Are you planning to track them separately from day one?"
+        check("comment: a specific idea about the post, with no pitch, passes", lp("comment", "--post", POST, "--text", cgood)[0] == 0)
+        code, out = lp("comment", "--post", POST, "--text", "Great post! My clients saved 30% doing this. DM me and I will show you how.")
+        check("comment: praise, a pitch, a client result and missing the post are refused", code == 1 and all(x in out for x in ("opens with praise", "pitches or asks them to get in touch", "claims a client result", "does not pick up anything the post says")), out)
+        kinds = {"Not interested, please don't message me again.": "stop", "Yes that would help. What do you charge?": "price", "What is this about? Are you selling something?": "what_do_you_do",
+                 "Can you send me some info?": "send_info", "We already have a bookkeeper.": "have_someone", "Not right now, maybe next quarter.": "not_now",
+                 "Sorry, do I know you?": "who_are_you", "You should talk to my office manager.": "referred_on"}
+        got = {t: lp("reply", "--text", t)[1] for t in kinds}
+        check("reply: each kind of reply is recognised", all(f"KIND   {k}" in got[t] for t, k in kinds.items()), {t: got[t].splitlines()[0] for t in kinds})
+        check("reply: a no is final, and the price is answered straight", "li_pipeline.py forget" in got["Not interested, please don't message me again."] and "Never ask why" in got["Not interested, please don't message me again."]
+              and "Never dodge it" in got["Yes that would help. What do you charge?"] and "never quote a number the member has not confirmed" in got["Yes that would help. What do you charge?"])
+        check("reply: a real answer is read first, not skipped past", "KIND   an answer" in lp("reply", "--text", "Honestly the books. My office manager does them at night.")[1])
+        check("say: a price is allowed only when they asked for it", lp("say", "--stage", "invite", "--exchanges", "3", "--they-asked", "--text", "It is $1,450 a month. Would a short call to see if it fits be useful? If not, no problem at all.")[0] == 0
+              and "price or a figure" in lp("say", "--stage", "want", "--text", "It is $1,450 a month. Does that work?")[1])
+        cv = _t / "conv.json"
+        cv.write_text(json.dumps({"name": "Priya Nair", "role": "Owner Dentist", "company": "Nair Family Dental", "hook": "Opening a second location", "call": "2026-12-02 10:00", "messages": [
+            {"from": "me", "stage": "open", "text": "Is the bigger job the build-out or the team?"}, {"from": "them", "text": "Lease is signed, opening in March. It's a lot."},
+            {"from": "me", "stage": "problem", "text": "What is the part you would change?"}, {"from": "them", "text": "Honestly the books. My office manager does them at night."},
+            {"from": "me", "stage": "invite", "text": "Would a short call be useful? If not, no problem."}, {"from": "them", "text": "Yes, that would help. What do you charge?"}]}))
+        code, out = lp("brief", cv)
+        check("brief: their own words, word for word, under what they were asked about", code == 0 and "# Before your call with Priya Nair" in out and "> “Honestly the books. My office manager does them at night.”" in out
+              and out.index("## What is not working") < out.index("## What they said about a call"))
+        check("brief: what they asked, what is not covered yet, and that it is private", "What do you charge?" in out.split("## What they asked you")[1] and "## Not covered yet" in out and "What it is costing them" in out.split("## Not covered yet")[1]
+              and "not for a post or a page" in out and "do not assume" in out)
+        cv.write_text(json.dumps({"name": "X", "messages": [{"from": "me", "stage": "open", "text": "Hi?"}]}))
+        check("brief: nothing is written until they have said something", lp("brief", cv)[0] == 2)
+        LT = SK / "scripts/li_today.py"
+        lt = lambda *a: (lambda r: (r.returncode, r.stdout + r.stderr))(_sp.run([sys.executable, str(LT), *map(str, a)], capture_output=True, text=True, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}))  # noqa: E731
+        IT = lambda **k: {"name": "Dana Ruiz", "url": "https://www.linkedin.com/in/danaruiz", "role": "Owner", "company": "Ruiz Dental", "do": "message", "stage": "open", "why": HOOK, "text": good, **k}  # noqa: E731
+        tj, th = _t / "today.json", _t / "Today.html"
+        def tb(items, *extra):
+            tj.write_text(json.dumps({"date": "2026-11-24", "items": items}))
+            return lt("build", tj, th, *extra)
+        code, out = tb([IT(), IT(name="Hannah <Cole>", url="https://www.linkedin.com/in/hannahcole", do="request", text="", why="")])
+        page = th.read_text() if th.exists() else ""
+        check("today: one self-contained page, a card per person, with a button to open and the words to copy", code == 0 and page.startswith("<!doctype html>") and page.count('class="card"') == 2
+              and 'href="https://www.linkedin.com/in/danaruiz"' in page and "Copy the words" in page and "Hannah &lt;Cole&gt;" in page and "@import" not in page and "<script src" not in page, out)
+        check("today: says the member does every step, and promises nothing", "You do every step yourself" in page and "It sends nothing and opens nothing by itself" in page and "nothing on it promises replies, calls or clients" in page
+              and "\u2014" not in page and "\u2013" not in page)
+        th.unlink()
+        code, out = tb([IT(text="Hi Dana, I help dentists like you. Book a call: example.com")])
+        check("today: the page will not build while a line would be refused", code == 1 and "pitches" in out and not th.exists(), out)
+        check("today: more than twenty requests in a day is refused", "connection requests in one day" in tb([IT(name=f"P{i}", url=f"https://www.linkedin.com/in/p{i}", do="request", text="", why="") for i in range(21)])[1])
+        check("today: 'just following up' is refused as a follow-up", "adds nothing" in tb([IT(do="follow-up", text="Just following up on my last message, any thoughts?")])[1])
+        pipe = _t / "pipeline.json"
+        _sp.run([sys.executable, str(SK / "scripts/li_pipeline.py"), "settings", str(pipe)], capture_output=True, text=True)
+        _sp.run([sys.executable, str(SK / "scripts/li_pipeline.py"), "add", str(pipe), "--name", "Dana Ruiz", "--url", "https://www.linkedin.com/in/danaruiz", "--signal", "sig:fit", "--fit", "A"], capture_output=True, text=True)
+        _sp.run([sys.executable, str(SK / "scripts/li_pipeline.py"), "forget", str(pipe), "1"], capture_output=True, text=True)
+        check("today: someone who asked not to be contacted cannot appear on the page", "asked not to be contacted" in tb([IT()], "--pipeline", pipe)[1])
+        # ---- today's post on the daily page ------------------------------------------------------------
+        (_t / "renders").mkdir()
+        (_t / "renders/post.png").write_bytes(b"\x89PNG\r\n")
+        BODY = ("Production is not profit.\n\nFor nine years I ran the office of a three-chair dental practice. Every month we celebrated the production number, and nobody could tell me what we kept. "
+                "The books were done at night by whoever had the energy, and the number that mattered was never on the page.\n\nWhat is your overhead, as a share of what you collect? Not a guess. The number. "
+                "If you cannot say it, you are making hiring decisions on how busy the practice feels.\n\nWhat number do you look at first when the month ends?")
+        PO = lambda **k: {"do": "post", "name": "Today's post", "url": "https://www.linkedin.com/feed/", "based_on": "Her own rule from nine years as an office manager", "own_numbers": True,  # noqa: E731
+                          "text": BODY, "image": "renders/post.png", "alt": "A card reading: Production is not profit.", **k}
+        code, out = tb([PO(), IT()])
+        page = th.read_text() if th.exists() else ""
+        check("post: today's post is the first card, with the words, the picture, the alt text and how to publish it", code == 0 and "Today's post</b>" in page and page.index("Today's post</b>") < page.index("Dana Ruiz"), out)
+        check("post: copy buttons for the post and the alt text, a link to save the picture, and it is marked a draft", all(x in page for x in ("Copy the post", "Copy the alt text", "Save the image", 'src="renders/post.png"', "This is a draft", "one post and 1 person")))
+        check("post: it says what the post is built on, and the member publishes it", "Built on: Her own rule" in page and "Open LinkedIn, press Start a post" in page)
+        pr = lambda **k: tb([PO(**k)])[1]  # noqa: E731
+        check("post: a post with no basis in the member's own material is refused", "say what it is built on" in pr(based_on=""))
+        check("post: a figure needs its source, unless every figure is the member's own", "carries a figure with no source" in pr(own_numbers=False, text=BODY + " A study found 71% of practices do not know it.")
+              and tb([PO(own_numbers=False, text=BODY + " A study found 71% of practices do not know it.", source={"title": "ADA survey 2026", "url": "https://example.org/survey"})])[0] == 0)
+        check("post: a source needs its title and full link", "needs its title and its full https link" in pr(source={"title": "A study", "url": "example.org"}))
+        check("post: engagement bait, machine-sounding filler and a promised result are refused", "engagement bait" in pr(text=BODY + " Comment YES and I will send it.")
+              and "reads as machine-written" in pr(text="In today's fast-paced world, " + BODY) and "promises a result" in pr(text=BODY + " I can cut your overhead."))
+        check("post: too short, a missing picture and a picture with no alt text are refused", "characters" in pr(text="Short post.") and "image file is not there" in pr(image="renders/none.png") and "needs alt text" in pr(alt=""))
+        check("post: one post a day", "more than one post in a day" in tb([PO(), PO()])[1])
+        tb([PO(ai_image=True)])
+        check("post: an AI-made picture is said to be one, and the label is to be left on", "This image was made with AI" in th.read_text() and "do not remove the label" in th.read_text())
+        check("post: a post with no picture is fine", tb([{k: v for k, v in PO().items() if k not in ("image", "alt")}])[0] == 0)
+        pjq = lambda *a: json.loads(_sp.run([sys.executable, str(SK / "scripts/li_pipeline.py"), *map(str, a)], capture_output=True, text=True).stdout or "{}")  # noqa: E731
+        p2 = _t / "p2.json"
+        pjq("settings", p2)
+        check("cadence: three posts a week by default, on Tuesday to Thursday", pjq("today", p2, "--date", "2026-11-24")["post_today"] is True and pjq("today", p2, "--date", "2026-11-23")["post_today"] is False)
+        pjq("settings", p2, "--posts-per-week", "7")
+        check("cadence: the member can choose seven, and a posted day is not asked for again", pjq("today", p2, "--date", "2026-11-22")["post_today"] is True)
+    dref = (SK / "references/daily-post.md").read_text()
+    check("daily post: research is the hook, the member's own material is the post", "Research finds the hook. It never supplies the substance" in dref and "A figure needs its source or it is the member's own." in dref
+          and "Three is the default, and say why." in dref and "a thin post is worse than no post" in dref)
+    check("daily post: an AI picture is optional, labelled, and never of a real person", "An AI-made picture is optional" in dref and "never a picture of a real person" in dref and "never remove the label" in dref
+          and "No stock photos." in dref and "Nothing here posts or schedules." in dref and "\u2014" not in dref and "\u2013" not in dref)
+    check("skill: today's post is a mode, and the image toolkit is carried", "write today's LinkedIn post" in (SK / "SKILL.md").read_text().split("---")[1] and "**Today's post**" in (SK / "SKILL.md").read_text() and (SK / "scripts/gen.py").is_file() and (SK / "scripts/ledger.py").is_file())
+    tsrc = (SK / "scripts/li_today.py").read_text()
+    check("today: standard library only, never online", not re.search(r"^\s*(import|from)\s+(requests|urllib|socket|http|subprocess|selenium|playwright)", tsrc, re.M))
+    lsrc = LP.read_text()
+    check("prospector: standard library only, never online, writes nothing", not re.search(r"^\s*(import|from)\s+(requests|urllib|socket|http|subprocess|selenium|playwright)", lsrc, re.M) and "write_text" not in lsrc and "open(" not in lsrc)
+    pref = (SK / "references/prospector.md").read_text()
+    lsk = (SK / "SKILL.md").read_text()
+    check("prospector: it never searches, reads or sends on LinkedIn, and says why", "It does not search LinkedIn, read search results, or read profiles through a browser" in pref and "no \"at human speed\" exception" in pref
+          and "This includes reading." in (SK / "references/account-safety.md").read_text())
+    check("prospector: the opener is about them, from one real thing, and never a pitch", "It says nothing about what the member sells." in pref and "Never invent something to personalise." in pref)
+    check("prospector: the conversation is one question at a time and promises nothing", "**One question.**" in pref and "Never name the problem for them." in pref and "nothing here promises replies, calls or clients" in pref
+          and "\u2014" not in pref and "\u2013" not in pref and "NEPQ" not in pref and "NEPQ" not in lsrc)
+    check("skill: the Prospector is a mode with its own phrases", "find me leads on LinkedIn" in lsk.split("---")[1] and "**Prospector**" in lsk and "sig:fit" in lsk)
 
     caches = [str(x) for x in SK.rglob("__pycache__")]
     check("no __pycache__ written into the skill folder", not caches, caches)

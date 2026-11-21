@@ -1,6 +1,6 @@
 # Build Room Business File — Specification
 
-**Version 1.11 · 2026-11-15** (1.10 · 2026-11-15; 1.9 · 2026-11-14; 1.8 · 2026-11-13; 1.7 · 2026-11-11; 1.6 · 2026-10-28; 1.5 · 2026-10-17; 1.4 · 2026-10-16; 1.3 · 2026-10-14; 1.2 · 2026-10-14; 1.1 · 2026-09-30; 1.0 · 2026-08-26)
+**Version 1.13 · 2026-11-21** (1.12 · 2026-11-21; 1.11 · 2026-11-15; 1.10 · 2026-11-15; 1.9 · 2026-11-14; 1.8 · 2026-11-13; 1.7 · 2026-11-11; 1.6 · 2026-10-28; 1.5 · 2026-10-17; 1.4 · 2026-10-16; 1.3 · 2026-10-14; 1.2 · 2026-10-14; 1.1 · 2026-09-30; 1.0 · 2026-08-26)
 
 ## Why this exists
 
@@ -24,7 +24,7 @@ The Business File moves that discipline into the skills. It is **one markdown do
 | `shared/business-file-protocol.md` | The behavioral contract every skill embeds (read/write/conflict/size rules). |
 | `skills/*/references/business-file-{template,protocol}.md` | Per-skill embedded copies (skills are standalone installers; `build-skills.sh` syncs them from the canonical sources). |
 
-## Section registry (v1.11)
+## Section registry (v1.13)
 
 | § | Section | Written by | Requires |
 |---|---|---|---|
@@ -48,7 +48,7 @@ The Business File moves that discipline into the skills. It is **one markdown do
 | 19 | Video | Video Director | §1, §2; best with §3, §4, §17 |
 | 20 | Launches & Events | Event Launcher (the Webinar line: Webinar Builder) | §1, §2, §3; best with §4, §6, §16, §17 |
 | 21 | Search & Answer Presence | Search & Answer Engine | §1, §2; best with §3, §4, §14, §18 |
-| 22 | Design System | Website Design Studio | §1, §2; best with §3, §4, §5 or §7, §18 |
+| 22 | Design System | Brand Kit · Website Design Studio | §1; best with §2, §3, §4, §5 or §7, §18 |
 | 23 | Book | AI Momentum Labs Book Builder | §1, §2; best with §3, §4, §17, §18 |
 | 24 | Speaking | Speaking Engine | §1, §2; best with §3, §4, §6, §17, §18, §22 |
 | 25 | Company Blueprint | Company Blueprint | §1, §3; best with §9, §10, §11, §12, §17 |
@@ -78,4 +78,8 @@ Every new weekly skill MUST:
 
 Version 1.11 also adds two fields to §4, *Market sophistication* and *Belief to move*, written by Positioning & Messaging and read by the Copy Engine and Ad Studio. Older files simply lack them; skills that read them fall back to §2's awareness stage and ask.
 
-The file carries `File version: 1.11` in its header (the spec version above). Additive changes (new sections, new fields) bump the minor version and require no migration. Skills treat unknown sections as opaque and preserve them byte-for-byte on rewrite — this is what lets a member's file move safely between skill generations.
+Version 1.12 adds four fields to §1: *How someone books or buys*, *Background and credentials*, *A typical client result* and *Never claim or promise*. Deep Discovery and Autopilot write them; every session reads *Never claim or promise* the way it reads *Retired lines*. Older files simply lack them, and a session adds a field the first time it has something to put there.
+
+Version 1.13 adds one field to §22, *Brand kit* (whether the brand is the member's own or was made here, the logo files, the brand sheet and the lock date), written by the **Brand Kit** session, which now shares §22 with the Website Design Studio: Brand Kit locks the logo, colours and typefaces; the Website Design Studio builds pages on them and keeps the `brand` block when it locks again. Both write the same `Design/System/tokens.json`. Older files simply lack the field.
+
+The file carries `File version: 1.13` in its header (the spec version above). Additive changes (new sections, new fields) bump the minor version and require no migration. Skills treat unknown sections as opaque and preserve them byte-for-byte on rewrite — this is what lets a member's file move safely between skill generations.

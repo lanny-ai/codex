@@ -52,7 +52,7 @@ Whatever the builder, the answer page needs only: a custom address, an H1 and H2
 3. **Bing and Copilot**: `publish.py indexnow <url>`, once the IndexNow key file is on the site root (`publish.py indexnow-key` makes it; Wix and WordPress with Rank Math can host it; Squarespace cannot, so skip IndexNow there and submit the URL in Bing Webmaster Tools by hand). ChatGPT crawls on its own and leans partly on Bing's index, so this helps there too.
 4. **Perplexity, Claude, Meta**: their own crawlers find a page that is linked and allowed; nothing to submit.
 5. Link the new page from its hub or service page and from one older answer; make sure the home page links to every service page.
-6. `publish.py record <page> --url … --questions search/questions.json`: the page and its question marked published with the address. Expect Bing within days, ChatGPT or Perplexity within one to two weeks, Google when it gets there.
+6. `publish.py record <page> --url … --questions search/questions.json`: the page and its question marked published with the address. A page still marked `draft` is refused. Expect Bing within days, ChatGPT or Perplexity within one to two weeks, Google when it gets there.
 
 ## 4. Free tools, and their limits in 2026
 

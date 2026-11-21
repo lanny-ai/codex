@@ -475,10 +475,10 @@ def wiring_tests():
     check("skill: the starter ideas carry no percentages", "%" not in measures.split("## Starter ideas")[1])
     tpl = rd("templates/BUILDROOM_BUSINESS_FILE.md")
     check("template: §25 sits after §24 and before the session log", tpl.find("## 24. Speaking") < tpl.find("## 25. Company Blueprint") < tpl.find("## 8. Session Log"))
-    check("template: version 1.11", "**File version:** 1.11" in tpl)
+    check("template: version 1.11 or later", re.search(r"\*\*File version:\*\* 1\.1[1-9]", tpl) is not None)
     check("template: the skill's copy matches", rd("skills/buildroom-company-blueprint/references/business-file-template.md") == tpl)
     spec = rd("BUSINESS-FILE-SPEC.md")
-    check("spec: §25 is registered at version 1.11", "| 25 | Company Blueprint | Company Blueprint |" in spec and "**Version 1.11" in spec)
+    check("spec: §25 is registered at version 1.11", "| 25 | Company Blueprint | Company Blueprint |" in spec and re.search(r"\*\*Version 1\.1[1-9]", spec) is not None)
     check("viewer: §25 is in the section map", '25:{t:"Company Blueprint"' in rd("rollout/Business_File_Viewer.html"))
     road = rd("skills/buildroom-os/references/roadmap.md")
     check("roadmap: a section and trigger phrases", "### Systems — Company Blueprint" in road and '- Company Blueprint → "Build my company blueprint"' in road)
@@ -486,13 +486,13 @@ def wiring_tests():
     cl, sh = rd("rollout/universal/CLAUDE.md"), rd("rollout/universal/START-HERE.md")
     check("CLAUDE.md: the skill, the range and the rule", "`buildroom-company-blueprint` (§25" in cl and "§1–§25" in cl
           and "- **Company blueprint:**" in cl and "Forty-two skills" in cl)
-    check("START-HERE: forty-two skills, twenty-five sections", "forty-two skills" in sh and "twenty-five sections" in sh)
+    check("START-HERE: forty-three skills, twenty-five sections", "forty-three skills" in sh and "twenty-five sections" in sh)
     for doc in ("README.md", "rollout/MEMBER-README.md"):
         check(f"{doc}: lists the skill", "`buildroom-company-blueprint`" in rd(doc))
     check("Quick Start: the phrase is there", "Build my company blueprint" in rd("rollout/BuildRoom_OS_Quick_Start.html"))
-    check("protocol: forty-two sessions", "42 standalone sessions" in rd("shared/business-file-protocol.md"))
+    check("protocol: forty-three sessions", "43 standalone sessions" in rd("shared/business-file-protocol.md"))
     skills = [p for p in (ROOT / "skills").iterdir() if (p / "SKILL.md").exists()]
-    check("there are forty-two skills", len(skills) == 42, len(skills))
+    check("there are forty-three skills", len(skills) == 43, len(skills))
     check("no __pycache__ written into the skill folder", not list(SK.rglob("__pycache__")))
 
 

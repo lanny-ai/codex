@@ -43,6 +43,7 @@ TOOLS = [
     ("ops-dashboard", "Weekly Ops Dashboard", "What numbers should I be watching every week?", "needs_you", "it needs your real numbers"),
     ("ad-studio", "Ad Studio", "Make me ads", "needs_you", "it spends money on your accounts"),
     ("video-director", "Video Director", "Make me a video", "needs_you", "it uses your face and footage, and paid generation"),
+    ("brand-kit", "Brand Kit", "Set up my brand kit", "needs_you", "it starts from the logo and colors you already use, or from your own answers if you have none, so nothing you publish looks machine-made"),
     ("website-design-studio", "Website Design Studio", "Make my website look like me", "needs_you", "it starts from screenshots that you choose"),
     ("company-blueprint", "Company Blueprint", "Build my company blueprint", "needs_you", "it maps who does what in your business, which only you know"),
     ("sop-creator", "SOP Creator", "Help me document my processes", "needs_you", "it documents how you actually do the work"),
@@ -82,6 +83,8 @@ SCOPE = {
     "decision-machine": "The follow-up after a call and for a no-show only. The welcome sequence belongs to Funnel Map; do not write a second one. No tags built, no CRM build.",
     "leadgen": "One module only: the one that matches where the member most wants clients from. Record this step as partial and name the module.",
 }
+# The sessions most members reach for first after a run.
+NEXT_UP = ("brand-kit", "proof-engine", "offer-deep-dive", "compass", "linkedin", "search-answer-engine", "funnel-scorecard")
 STATUSES = ("drafted", "partial", "blocked", "skipped")
 DONE_OK = ("drafted", "partial")
 # The three a run cannot go on without. Audience Insight is helpful, not required.
@@ -93,11 +96,14 @@ DRAFTS = "autopilot/drafts/"
 # What a step leans on. When the member has said there is none, or was never asked, the step would come back
 # mostly blank, so the member is offered the choice to leave it out before the straight run starts.
 LEANS_ON = {
+    "funnel-map": ("free_resource", "a free resource to offer (without one there is only the path as it stands to map)"),
     "lead-capture": ("free_resource", "a free resource to offer"),
     "decision-machine": ("tools", "the tools you use for email and follow-up"),
     "leadgen": ("preferred_source", "where you most want new clients to come from"),
 }
 NONE = re.compile(r"\s*((none|no|nothing|n/?a|not yet)( yet| really)?[\s.!]*$|i don'?t (know|have)\b|don'?t (know|have)\b|skip\b)", re.I)
+# "I do not have one yet", "No, I don't have one", "Not yet, but I want one": the member has none, however they put it.
+HAS_NONE = re.compile(r"\s*(none|no|nothing|not yet|nope)\b|.{0,25}\b(do not|don'?t|haven'?t|have not) (have|got)\b", re.I)
 # Decisions that add up instead of replacing: a second answer never erases the first.
 ADDS = ("never_claim", "retired")
 DECISIONS = {
@@ -196,10 +202,13 @@ def cmd_plan(a):
     thin_ok = (a.thin_ok or "").strip()
     if (r == "none" or int(r) < READY_AT) and len(thin_ok) < 2:
         why = "There is no discovery ledger, so nobody knows how much is known." if r == "none" else f"Readiness is {r} out of 100, below {READY_AT}."
-        die(why + " A run now would be mostly blanks and guesses. Tell the member, and offer: answer the questions Discovery still has "
-            "(only if `discover.py ready` names some), run the one session it names by hand, or go ahead anyway. If they choose to go ahead, "
+        die(why + " A run now would be mostly blanks and guesses. Tell the member, and offer: "
+            + ("a short interview first (\"Interview me about my business\", about ten minutes), \"Research my business first\" if they have files worth reading, "
+               if r == "none" else "answer the questions Discovery still has (only if `discover.py ready` names some), run the one session it names by hand, ")
+            + "or go ahead anyway. If they choose to go ahead, "
             "record their words with --thin-ok. Words that are not a clear choice to go ahead (\"I don't know\", \"skip that\") are not one.", 5)
-    if thin_ok and NONE.match(thin_ok):
+    if thin_ok and (NONE.match(thin_ok) or not re.search(r"\b(yes|yep|yeah|go|ahead|anyway|run it|proceed|do it|start|continue)\b", thin_ok, re.I)
+                    or re.search(r"\b(ask me|not sure|maybe|what does)\b", thin_ok, re.I)):
         die(f"“{thin_ok}” is not a choice to go ahead. Do not start a run on it.", 5)
     steps = []
     for slug, _n, _p, mode, _w in TOOLS:
@@ -259,7 +268,7 @@ def thin_steps(run):
     out = []
     for s in pending(run, "auto"):
         need = LEANS_ON.get(s["slug"])
-        if need and (need[0] not in dec or NONE.match(dec[need[0]])):
+        if need and (need[0] not in dec or NONE.match(dec[need[0]]) or HAS_NONE.match(dec[need[0]])):
             out.append((s["slug"], need[1]))
     return out
 
@@ -323,7 +332,7 @@ def cmd_done(a):
         if not todo:
             die(f"--redo replaces the record of a step already finished. {a.slug} has not been finished.")
     if not todo:
-        die("Nothing is waiting. If the foundation is drafted, the member has to review it first.")
+        die("Nothing is waiting. If the foundation is drafted, the member has to review it first. To record a step again after redrafting it, add --redo.")
     if todo[0]["slug"] != a.slug:
         die(f"Out of order. The step to finish now is {todo[0]['slug']}, not {a.slug}.")
     outs = [str(o).replace("\\", "/") for o in (a.outputs or [])]
@@ -356,7 +365,7 @@ def cmd_approve(a):
     if thin:
         print("\nASK ONCE, before going on. These steps lean on something the member does not have yet and would come back mostly blank:")
         for slug, need in thin:
-            print(f"  - {TOOL[slug][1]}: needs {need}")
+            print(f"  - {TOOL[slug][1]} ({slug}): needs {need}")
         print("Ask the member whether to run them anyway or leave them out. To leave one out: "
               f"autopilot.py leave-out --dir {a.dir} SLUG --words \"what they said\". This is the last question of the run.")
 
@@ -364,6 +373,8 @@ def cmd_approve(a):
 def cmd_leave_out(a):
     run = load(a.dir)
     s = next((s for s in pending(run, "auto") if s["slug"] == a.slug), None)
+    if a.slug not in TOOL:
+        die(f"Unknown step “{a.slug}”. The steps still waiting are: " + ", ".join(x["slug"] for x in pending(run, "auto")) + ".")
     if not s:
         die(f"{a.slug} is not a step still waiting in the straight run. The ideal client, the offer and the positioning cannot be left out.")
     words = (a.words or "").strip()
@@ -427,8 +438,11 @@ def cmd_report(a):
         out += ["## Left out", ""] + [f"- **{TOOL[s['slug']][1]}:** {s.get('note', '')}. To run it yourself later, say “{TOOL[s['slug']][2]}”." for s in by["skipped"]] + [""]
     if by["pending"]:
         out += ["## Not reached yet", ""] + [f"- {TOOL[s['slug']][1]}" for s in by["pending"]] + ["", "Say “Run autopilot” to carry on from here.", ""]
-    out += ["## Needs you, so it was not run", "", "These depend on something only you have. Each one is a session you start with one sentence. Not all of them will fit your business; pick what does.", ""]
-    out += [f"- **{n}:** {why}. Say “{phrase}”." for _s, n, phrase, mode, why in TOOLS if mode == "needs_you"]
+    needs = [t for t in TOOLS if t[3] == "needs_you"]
+    out += ["## Needs you, so it was not run", "", "These depend on something only you have. Each one is a session you start with one sentence. Most members reach for these first:", ""]
+    out += [f"- **{t[1]}:** {t[4]}. Say “{t[2]}”." for t in needs if t[0] in NEXT_UP]
+    out += ["", "The rest, for when you need them. Not all of them will fit your business; pick what does.", ""]
+    out += [f"- **{t[1]}:** {t[4]}. Say “{t[2]}”." for t in needs if t[0] not in NEXT_UP]
     print("\n".join(out))
 
 

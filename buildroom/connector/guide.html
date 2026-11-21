@@ -68,6 +68,9 @@ main>section.wrap{padding-top:56px;padding-bottom:8px}
 .step p{margin:0;color:var(--ink2);font-size:16px}
 .step a{color:#b4530a;font-weight:700}
 .cta{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-top:18px;padding:22px 24px;border-radius:var(--radius);text-decoration:none;color:#fff;background:radial-gradient(520px 260px at 100% 0,rgba(249,115,22,.4),transparent 65%),var(--navy);box-shadow:var(--shadow)}
+a.step{text-decoration:none;color:inherit;display:block;transition:transform .15s,box-shadow .15s}a.step:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+a.step .more{display:inline-block;margin-top:10px;font:700 16px/1 var(--sans);color:var(--orange)}
+.exlinks{margin-top:16px}.exlinks a{color:inherit;font-weight:700}
 .cta b{display:block;font:800 21px/1.25 var(--display)}
 .cta small{display:block;font-size:16px;color:#cdd4ea;margin-top:5px}
 .cta .go{flex:none;font:700 16px/1 var(--sans);color:#1a1206;padding:14px 20px;border-radius:999px;background:linear-gradient(180deg,var(--gold1),var(--gold2) 55%,var(--orange))}
@@ -197,14 +200,14 @@ footer a{color:var(--gold2)}
     </div>
     <div class="lede" id="top">
       <div class="eyebrow">Quick Start Guide</div>
-      <h1><span id="n1">42</span> tools. One connection.<br><em>Say what you want built.</em></h1>
+      <h1><span id="n1">43</span> tools. One connection.<br><em>Say what you want built.</em></h1>
       <p>Build Room OS connects Claude to every Build Room tool through one personal link. Each tool reads the same file about your business, so every session starts from what the last one finished. This page always shows what is in it today.</p>
     </div>
     <div class="stats">
-      <div class="stat"><b id="n2">42</b><span>guided tools, each a full working session</span></div>
+      <div class="stat"><b id="n2">43</b><span>guided tools, each a full working session</span></div>
       <div class="stat"><b>1</b><span>personal link, added to Claude once</span></div>
       <div class="stat"><b>25</b><span>sections in the Business File that remembers your business</span></div>
-      <div class="stat"><b id="upd">Nov 19</b><span>last updated, 2026</span></div>
+      <div class="stat"><b id="upd">Nov 21</b><span>last updated, 2026</span></div>
     </div>
   </div>
   <div class="edge"></div>
@@ -229,6 +232,17 @@ footer a{color:var(--gold2)}
     <span class="go">Start here</span>
   </a>
   <div class="note"><b>Two things that save trouble.</b> Your link goes into Claude, not your web browser, and it is yours alone. And if you already have a filled-in Business File, attach it to the chat or open Claude in its folder, so the tools start from what you have already built.</div>
+</section>
+
+<section class="wrap screen" id="example">
+  <h2 class="h2">See what you get</h2>
+  <p class="sub">A finished example, start to end, for a made-up bookkeeping business. Every page below is what Build Room OS produced from her files and her answers. Nothing was tidied up afterwards, so you will see the blanks it left where it did not know something.</p>
+  <div class="steps ex">
+    <a class="step" href="/example/onepage"><span class="n">1</span><h3>Her business on one page</h3><p>What she gets in her first fifteen minutes: her own words, and three ways to say what she does.</p><span class="more">Open the page</span></a>
+    <a class="step" href="/example/review"><span class="n">2</span><h3>The review page</h3><p>Her ideal client, offer and positioning. Every line is tagged as hers, from her files, or drafted for her. Nothing goes further until she says go.</p><span class="more">Open the page</span></a>
+    <a class="step" href="/example/build"><span class="n">3</span><h3>Her build</h3><p>What Autopilot drafted, what was only partly drafted, and the few answers that would improve the most.</p><span class="more">Open the page</span></a>
+  </div>
+  <p class="sub exlinks">Three of the drafts: <a href="/example/offer-page">the offer page</a>, <a href="/example/sales-script">the sales call script</a> and <a href="/example/referrals">the referral plan</a>. Each is a draft for the owner to check. An example shows the work, not a result: what you get depends on what you bring.</p>
 </section>
 
 <div class="bar screen">
@@ -286,7 +300,7 @@ const TOOLS = [
  ["start","lead-capture","Lead Capture","Help me build my opt-in page","Builds a landing page, a free resource worth asking for, and its delivery.","Turns visitors into people you can follow up with."],
 
  ["clients","leadgen","Lead Gen Machine","Help me get more leads","Works your warm network, outreach, referrals and content, one module per session.","A steady way to start conversations, without buying a list."],
- ["clients","linkedin","LinkedIn Engine","Build my LinkedIn engine","A profile that converts, three posts a week in your words, and a short daily routine.","Clients from LinkedIn in about twenty minutes a day."],
+ ["clients","linkedin","LinkedIn Engine","Build my LinkedIn engine","A profile that converts, three posts a week in your words, and a short daily routine. Say \"Write today's LinkedIn post\" for a researched post with its image, ready to copy from one daily page. Say \"Find me leads on LinkedIn\" and it writes the searches for your ideal client, an opening line for each person you pick, and the next question to ask when they reply.","Clients from LinkedIn in about twenty minutes a day. You run every search and send every message yourself, so your account stays safe."],
  ["clients","search-answer-engine","Search & Answer Engine","Get found on Google","Fixes your Google Business Profile and publishes one honest answer page a week.","People searching for what you do can find you, without ads."],
  ["clients","ad-studio","Ad Studio","Make me ads","Three genuinely different ad concepts from your file, with copy and finished images.","Ads built on your real offer and proof, checked before they ship."],
  ["clients","video-director","Video Director","Make me a video","Plans and edits ad, content, sales and testimonial videos around your real face and footage.","Video that looks like you, with a script, shot list and captions done for you."],
@@ -304,6 +318,8 @@ const TOOLS = [
  ["convert","offer-deep-dive","Offer Deep Dive","Make my offer a no-brainer","Strengthens the value stack, guarantee, urgency and the numbers behind your offer.","Removes the reasons people say “let me think about it.”"],
  ["convert","audience-insight","Audience Insight","Find the words my clients actually use","Finds real customer language, with sources, and writes it into your file.","Copy that sounds like your client talking, not like marketing."],
  ["convert","funnel-scorecard","Funnel Scorecard","Where is my funnel leaking?","Measures every step and names the top three leaks, with fixes you approve.","You fix the step that is costing you the most, first."],
+ ["start","brand-kit","Brand Kit","Set up my brand kit","Takes in the logo, colors and fonts you already have, or builds a brand with you if you have none, and locks it so everything matches.","Your posts, pages and slides look like your business, not like something a machine made.",1,
+   ["Here is my brand kit","Here is my logo","I don't have a brand","Make me a logo","Show me my brand sheet"]],
  ["convert","website-design-studio","Website Design Studio","Make my website look like me","Learns your taste from screenshots you like, then shows three very different versions of your page side by side.","A look that is yours, instead of the look every AI page has.",1,
    ["Design my landing page","My pages look like AI made them","Set up my taste vault","Tweak my page","Is my page ready to go live?","Change my brand colors"]],
 
@@ -316,7 +332,7 @@ const TOOLS = [
  ["run","boardroom","C-Suite Boardroom","Convene the board","Four executives argue your decision from your file, and a chairperson forces the call.","A hard decision made in one sitting, with what would change it written down."],
 
  ["think","compass","Compass","Build my compass","A guided interview that ends in a statement of what you want and how you sound.","Every other tool reads it, so your work stays true to you."],
- ["think","discovery-engine","Discovery Engine","Research my business first","Reads the files you choose, your website and your market, shows you what it found with a source for each fact, then asks only what is missing.","Every later session starts from your real facts instead of a blank page. It also works on a client or a prospect.",0,
+ ["think","discovery-engine","Discovery Engine","Research my business first","Reads the files you choose, your website and your market, shows you what it found with a source for each fact, then asks only what is missing. Nothing written down? Say \"Interview me about my business\" for a short interview instead.","Every later session starts from your real facts instead of a blank page. It also works on a client or a prospect.",0,
    ["Read my files and tell me what you found","Run discovery on this business","Research this client before I talk to them","Prep me for this call"]],
  ["think","brainstorm","Brainstorm Session","Let’s brainstorm","Frames the question, gathers ideas and votes them on a board.","Good ideas get heard and the best one gets chosen."],
  ["think","brainstorm-capture","Brainstorm Capture","Capture what we decided","Turns a brainstorm into decisions, first procedures, build briefs and plan items.","Ideas become next steps before they are forgotten."],

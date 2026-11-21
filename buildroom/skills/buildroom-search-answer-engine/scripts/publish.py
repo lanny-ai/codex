@@ -649,6 +649,9 @@ def cmd_record(a):
     fm, _ = parse_front_matter(text)
     if fm is None:
         die("no front matter")
+    if fm.get("status") not in ("ready", "published", "needs-update"):   # a draft is never marked published
+        die(f"the page's status is '{fm.get('status')}', so nothing was recorded; a page is recorded after answer_check.py check says READY, "
+            "its status is set to ready and it is live")
     today = date.today().isoformat()
     text = re.sub(r"^status:.*$", "status: published", text, count=1, flags=re.M)
     if re.search(r"^url:.*$", text, flags=re.M):

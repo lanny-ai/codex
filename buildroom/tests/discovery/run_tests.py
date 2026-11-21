@@ -3,6 +3,7 @@
 
 Usage:  python3 buildroom/tests/discovery/run_tests.py
 """
+import re
 import json, os, subprocess, sys, tempfile
 from pathlib import Path
 
@@ -191,8 +192,107 @@ def main():
     check("inventory: a trade word in an offer file is not private; plainly private names are",
           not dm.looks_private("Clients/payroll cleanup offer.md") and not dm.looks_private("Offers/Diagnosis call script.md")
           and all(dm.looks_private(n) for n in ("Finance/2025 taxes.md", "Notes/therapy notes.md", "Notes/private.md", "Clients/Whitcombe P&L 2025.pdf", "Admin/payroll.xlsx", "Personal/journal.md")))
+    QREF = (SCRIPT.parent.parent / "references/deep-discovery.md").read_text()
+    QSK = (SCRIPT.parent.parent / "SKILL.md").read_text()
+    write(thin, skipped=["2.pains", "2.profile"])
+    c, out = run("ready", led)
+    check("ready: the extra round leads with what an owner knows and drops a section whose basics were skipped", "What do you charge" in out and "hesitate to buy" not in out and "look like after working with you" not in out
+          and "record \"extra_round\": true" in out, out)
+    write(thin, skipped=["2.pains", "2.profile"], extra_round=True)
+    c, out = run("ready", led)
+    check("ready: after the one extra round it offers no more questions", c == 2 and "The one extra round of questions has been asked. Do not offer more questions." in out and "What do you charge" not in out, out)
+    write(thin + [F(30, "1.booking", "Book a 20-minute fit call", "web", "https://example.com/", "likely")])
+    out = run("gaps", led)[1]
+    check("gaps: an easy fact found only on a public page is put to the member in one line", "your page says “Book a 20-minute fit call”" in out and "Is that right today?" in out, out)
+    # ---- the first session: your business on one page ------------------------------------------
+    OP = SCRIPT.parent / "onepage.py"
+    op = lambda *a: (lambda p: (p.returncode, p.stdout + p.stderr))(subprocess.run([sys.executable, str(OP), *map(str, a)], capture_output=True, text=True))  # noqa: E731
+    mine = [F(1, "1.what_i_do", "Monthly bookkeeping for dental practices", "member", "said in session", "confirmed"), F(2, "1.who_i_serve", "Owner-dentists <with> one or two locations", "member", "said in session", "confirmed"),
+            F(3, "1.core_result", "Books closed by the 10th of every month", "member", "said in session", "confirmed"), F(4, "x.credentials", "Eleven years keeping books", "member", "said in session", "confirmed"),
+            F(5, "1.price", "$9,999", "web", "https://example.com/", "likely"), F(6, "2.pains", "fear of audits", "hypothesis", "reasoned", "inferred"),
+            F(7, "3.deliverables", "A one-page numbers summary", "member", "said in session", "confirmed")]
+    write(mine)
+    wf = led.parent / "words.json"
+    W = {"sentence": "I keep the books for owner-dentists, closed by the 10th of every month.", "paragraph": "Monthly bookkeeping for dental practices, and nothing else.", "bio": "I have kept books for eleven years."}
+    wf.write_text(json.dumps(W))
+    page = led.parent / "one.html"
+    code, out = op("build", led, page, "--words", wf, "--next", "Help me describe my best customer")
+    ph = page.read_text() if page.exists() else ""
+    check("onepage: one self-contained page in the member's own words", code == 0 and ph.startswith("<!doctype html>") and "in your own words." in ph and "Owner-dentists &lt;with&gt; one or two locations" in ph
+          and not re.search(r'(src|href)="https?:', ph) and "@import" not in ph and "url(" not in ph, out)
+    check("onepage: what a page or a guess said is never shown as theirs", "$9,999" not in ph and "fear of audits" not in ph)
+    check("onepage: the three ways to say it are marked as drafted, each with a copy button", ph.count("Drafted for you") == 3 and ph.count('data-copy="w-') == 3 and "They are drafts" in ph)
+    check("onepage: plain labels, what is open, one next step, and no promise", "What a client receives" in ph and "What comes next" in ph and "Help me describe my best customer" in ph and "What they get" in ph
+          and "out of 100" not in ph and "Still open" not in ph and "The next session works out who your best client is" in ph and "\u2014" not in ph and "\u2013" not in ph)
+    def wbad(change, expect):
+        wf.write_text(json.dumps({**W, **change}))
+        c, o = op("check", led, "--words", wf)
+        return c == 1 and expect in o
+    check("onepage: a draft may not add a number, a promise or a quotation", wbad({"sentence": "I have helped 200 practices."}, "a number the member did not give")
+          and wbad({"paragraph": "Clean books, guaranteed."}, "reads as a guarantee") and wbad({"paragraph": "“Best decision we made,” they say."}, "no quotation marks"))
+    check("onepage: a draft may not add a number in words, a credential, or a reworded money-back offer", wbad({"sentence": "I keep books, with twenty years behind me."}, "a number or amount the member did not give")
+          and wbad({"paragraph": "I am fully certified, insured and the most trusted bookkeeper in town."}, "makes a claim the member did not make")
+          and wbad({"paragraph": "Clean books in two weeks or you pay nothing."}, "reads as a guarantee"))
+    wf.write_text(json.dumps({"sentence": "I keep the books for owner-dentists and their veterinarian neighbours."}))
+    check("onepage: words the member never used are listed to be justified, and a clean check says it is not proof", "these words are in nothing the member said: neighbours, veterinarian" in op("check", led, "--words", wf)[1]
+          and "A clean check is not proof" in op("check", led, "--words", wf)[1])
+    wf.write_text(json.dumps({"sentence": "I keep books. If the books are late I give back every penny, I promise."}))
+    check("onepage: a money-back offer in other words is still refused", "reads as a guarantee" in op("check", led, "--words", wf)[1])
+    write(mine + [F(42, "x.story", "Started after her rescue, Juniper, bit a neighbor's spaniel", "web", "https://example.com/about", "likely")])
+    wf.write_text(json.dumps({"paragraph": "Monthly bookkeeping for dental practices. It began when my rescue Juniper bit a neighbor."}))
+    check("onepage: something read on their site that they did not confirm is refused in a draft", "they did not confirm" in op("check", led, "--words", wf)[1])
+    write(mine, owner="Renee Alvarado")
+    wf.write_text(json.dumps({"bio": "I am Renee Alvarado. Eleven years keeping books."}))
+    check("onepage: the member's own name is theirs", "alvarado" not in op("check", led, "--words", wf)[1])
+    write(mine + [dict(F(40, "3.guarantee", "Results in two weeks or your money back", "web", "https://example.com/", "likely"), retired=True)])
+    wf.write_text(json.dumps({"sentence": "Monthly bookkeeping. Results in two weeks or your money back."}))
+    check("onepage: a line retired in this session is barred before any Business File exists", "carries a retired line" in op("check", led, "--words", wf)[1])
+    write(mine + [dict(F(41, "3.guarantee", "none, I dropped it", "member", "said in session", "confirmed"), absent=True)])
+    wf.write_text(json.dumps({k: v for k, v in W.items() if k != "bio"}))
+    bc, bo = op("build", led, page, "--words", wf, "--next", "Help me build my ideal client avatar", "--why", "This session works out who your best customer is.")
+    p2 = page.read_text() + bo
+    check("onepage: two drafts are called two, a 'none' shows as None, and the next step says what it does", "Two ways to say what you do" in p2 and "A short bio comes later" in p2 and "<p>None</p>" in p2
+          and "This session works out who your best customer is." in p2)
+    write(mine)
+    check("onepage: a draft may repeat the member's own numbers", (wf.write_text(json.dumps(W)), op("check", led, "--words", wf)[0])[1] == 0)
+    write([f for f in mine if f["field"] != "x.credentials"])
+    check("onepage: no bio without the member's background or story", "nothing to write a bio from" in op("check", led, "--words", wf)[1])
+    write([F(5, "1.what_i_do", "Bookkeeping", "web", "https://example.com/", "likely")])
+    check("onepage: no page until something is the member's own word", op("build", led, page)[0] != 0)
+    osk = (SCRIPT.parent.parent.parent / "buildroom-os/SKILL.md").read_text()
+    check("skill: a new member's first session reads their site first and ends with the page", "## The first session: a new member's first fifteen minutes" in QREF and "Here is what I learned about your business" in QREF
+          and "Never guess what a page does not say." in QREF and "Then ask once about the lines they did not mention" in QREF and "A new member is not asked about a Business File." in QREF
+          and "A member with nothing online is not asked about tools." in QREF and "Do not emit the empty template." in QREF and "No Compass, no second phrase" in QREF and "onepage.py build" in QREF
+          and "follow the section \"The first session\"" in osk and "onepage.py" in QSK)
+    osrc = OP.read_text()
+    check("onepage: standard library only, no network", not any(x in osrc for x in ("requests", "urllib", "socket", "http.client", "subprocess")))
+
+    # ---- Quick Start: the short interview for a member with little written down -----------------
+    write(thin + [none], skipped=["2.dream"])
+    c, out = run("interview", led)
+    qlines = [l for l in out.splitlines() if re.match(r"\s+\d+\. ", l)]
+    check("interview: three short blocks, easy facts first, with a count and a time", c == 0 and out.index("Your offer") < out.index("Your client") < out.index("You and your business")
+          and f"{len(qlines)} short questions" in out and "minutes" in out and "What do you charge" in qlines[2] + qlines[3], out)
+    check("interview: leaves out what is known, skipped or answered, and never asks for quotes, voice or proof",
+          not any(q in out for q in ("what do you do for your clients", "look like after working with you", "exact words do your clients", "sounds most like you", "one real result a client got")))
+    check("interview: the promise is put as the core result to confirm", "roughly your core result, “a calmer birth”" in out)
+    check("interview: answers are recorded as given", "Do not improve an answer" in out and "\"none\" is a real answer" in out)
+    write(thin + [none, F(20, "3.deliverables", "two prenatal visits", "member", "said in session", "confirmed"), F(21, "3.deliverables", "on call from 38 weeks", "member", "said in session", "confirmed"),
+                  F(22, "1.price", "$9,999", "file", "Old/p.md", "likely"), dict(F(23, "4.alternative", "go without", "member", "said in session", "confirmed"), guess_ok=True),
+                  F(24, "2.pains", "fear of being ignored", "hypothesis", "reasoned", "inferred")])
+    c, out = run("onepage", led)
+    check("onepage: only the member's own words, as given", c == 0 and "two prenatal visits" in out and "on call from 38 weeks" in out and "$9,999" not in out and "fear of being ignored" not in out
+          and "Nothing was added and nothing was polished." in out, out)
+    check("onepage: a guess they okayed is marked as my wording, and what is open is listed, not filled", "go without (my wording; you said it looks right)" in out and "## Still open" in out and "Pains" in out.split("## Still open")[1])
+    full_ans = [F(100 + i, k, "answer " + k, "member", "said in session", "confirmed") for i, k in enumerate(k for _t, ks in dm.INTERVIEW for k in ks)]
+    write(full_ans)
+    check("interview: a member who answers it all is ready, with nothing left to ask", run("ready", led)[0] == 0 and "Nothing left to ask" in run("interview", led)[1])
+    check("skill: the short interview is offered when there is little to read", "## Quick Start: when there is little to read" in QREF and "Interview me about my business" in QREF and "interview me about my business" in QSK.split("---")[1]
+          and len(QSK.split("---")[1]) < 700 and "One pass only" in QREF and "Do not improve an answer." in QREF)
     check("retired: entries split on semicolons, notes in brackets ignored, an unquoted entry counts whole",
           dm.parse_retired(' “Featured in Ceramics Monthly” (you said "Do not use it"); the name Studio Growth Sprint; none') == ["Featured in Ceramics Monthly", "Studio Growth Sprint"])
+    check("retired: a name given outside the quotation marks in the same entry is retired too",
+          dm.parse_retired('"Featured in Ceramics Monthly", and the name Studio Growth Sprint.') == ["Featured in Ceramics Monthly", "Studio Growth Sprint"])
     write([dict(f, source={"kind": "hypothesis", "ref": "reasoned"}, confidence="inferred") for f in full])
     c, out = run("ready", led)
     check("ready: guesses alone never reach ready", c == 2 and int(out.split("Readiness: ")[1].split()[0]) < 70, out)
