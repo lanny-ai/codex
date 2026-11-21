@@ -182,8 +182,11 @@ h1 em{font-style:normal;background:linear-gradient(180deg,var(--gold1),var(--gol
 .bar .wrap{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}.meter{flex:1;min-width:140px;height:8px;border-radius:999px;background:var(--line);overflow:hidden}.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--orange),var(--gold2));transition:width .2s}
 .card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px 22px;margin:18px 0;box-shadow:0 8px 22px rgba(11,16,32,.06)}
 .card.done{opacity:.55}.card.post{border-top:6px solid var(--gold2)}.card.post .words{max-height:420px;overflow:auto}
-.pic{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;margin-top:16px}.pic img{width:180px;max-width:100%;border-radius:12px;border:1px solid var(--line)}.pic>div{flex:1;min-width:220px}.top{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
-.who b{font:800 21px/1.2 var(--display)}.who span{display:block;color:var(--mute);font-size:16px}
+.pic{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;margin-top:16px}.pic img{width:280px;box-shadow:0 14px 30px rgba(11,16,32,.18);max-width:100%;border-radius:12px;border:1px solid var(--line)}.pic>div{flex:1;min-width:220px}.top{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.who{display:flex;gap:14px;align-items:center}.who b{font:800 21px/1.2 var(--display);display:block}.who span{display:block;color:var(--mute);font-size:16px}
+.who span.av{flex:none;width:48px;height:48px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:800 17px/1 var(--display);color:#1a1206;background:linear-gradient(160deg,var(--gold1),var(--gold2) 55%,var(--orange));box-shadow:0 6px 14px rgba(249,115,22,.28)}
+.card{transition:transform .15s,box-shadow .15s}.card:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(11,16,32,.10)}.card.done:hover{transform:none}
+.card.post{background:linear-gradient(180deg,#fffaf0,#fff 140px)}.card.done .words{text-decoration:line-through;text-decoration-color:rgba(11,16,32,.25)}
 .do{font:700 13px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-top:14px}
 .why{color:var(--ink2);font-size:16.5px;margin:6px 0 0}.words{font:500 19px/1.5 var(--serif);background:#fbf7ee;border-left:5px solid var(--gold2);border-radius:0 12px 12px 0;padding:12px 16px;margin:12px 0 0;white-space:pre-wrap}
 .how{color:var(--mute);font-size:15.5px;margin:10px 0 0}.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
@@ -227,7 +230,7 @@ def build(d, base=Path("."), out_dir=Path(".")):
                        + f'<p class="how"><b>Alt text</b> (paste it when LinkedIn asks): <span id="alt{i}">{E(str(it.get("alt", "")))}</span></p>'
                        + f'<button class="btn" type="button" data-copy="alt{i}">Copy the alt text</button></div></div>')
             fc = str(it.get("first_comment", "")).strip()
-            o.append(f'<div class="card post" id="c{i}"><div class="top"><div class="who"><b>Today\'s post</b><span>{len(str(it["text"]).strip())} characters</span></div>'
+            o.append(f'<div class="card post" id="c{i}"><div class="top"><div class="who"><span class="av" aria-hidden="true">&#9998;</span><div><b>Today\'s post</b><span>{len(str(it["text"]).strip())} characters</span></div></div>'
                      '<label class="tick"><input type="checkbox" aria-label="Done: today\'s post"> Done</label></div>'
                      f'<div class="do">{E(title)}</div><p class="why">Built on: {E(str(it.get("based_on", "")))}</p>'
                      + (f'<p class="why">Timely because: {E(str(src.get("title", "")))}. <a href="{E(str(src.get("url", "")), quote=True)}" target="_blank" rel="noopener noreferrer">Check the source</a> before you post.</p>' if src else "")
@@ -239,7 +242,8 @@ def build(d, base=Path("."), out_dir=Path(".")):
             continue
         sub = " · ".join(x for x in (str(it.get("role", "")).strip(), str(it.get("company", "")).strip()) if x)
         text = str(it.get("text", "")).strip()
-        o.append(f'<div class="card" id="c{i}"><div class="top"><div class="who"><b>{E(str(it["name"]))}</b>' + (f'<span>{E(sub)}</span>' if sub else "") + '</div>'
+        ini = "".join(w[0] for w in re.sub(r"[^\w ]", " ", str(it["name"])).split()[:2]).upper()
+        o.append(f'<div class="card" id="c{i}"><div class="top"><div class="who"><span class="av" aria-hidden="true">{E(ini)}</span><div><b>{E(str(it["name"]))}</b>' + (f'<span>{E(sub)}</span>' if sub else "") + '</div></div>'
                  f'<label class="tick"><input type="checkbox" aria-label="Done: {E(str(it["name"]))}"> Done</label></div>'
                  f'<div class="do">{E(title)}</div>' + (f'<p class="why">{E(str(it["why"]))}</p>' if it.get("why") else "")
                  + (f'<p class="words" id="w{i}">{E(text)}</p>' if text else "") + f'<p class="how">{E(how)}</p><div class="row">'

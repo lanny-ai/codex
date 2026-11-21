@@ -33,6 +33,10 @@
  *  "brand": {"name": "Ruiz Advisory", "display_font": "Fraunces", "body_font": "Source Sans 3",
  *            "font_files": {"display": [{"src": "../brand/fonts/Fraunces-700.ttf", "weight": 700}], "body": [...]},
  *            "bg": "#0f1424", "fg": "#f4f6fa", "accent": "#f97316", "muted": "#a9b2c6", "logo": "../brand/logo.png"},
+ *  "style": "plain",                        (optional; leave out for the default look: brand-colour glows, a kicker pill,
+ *                                             a heavier headline and a footer with the brand's initials. "plain" is the
+ *                                             flat look. Either way every word comes from the spec.)
+ *  A card headline or a carousel title may mark the words that carry it with asterisks: "Production is *not* profit."
  *  "photo": "../brand/headshot.jpg",         (card and featured only, optional; a real photo, never generated)
  *  "copy": {"promise": "...", "proof": "...", "cta": "...",        (banner)
  *           "kicker": "...", "headline": "...", "sub": "...",      (card; featured: kicker + a 3–5 word headline)
@@ -98,6 +102,23 @@ async function launch(pw) {
 }
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// A headline may mark the words that carry it: "Production is *not* profit." In the default style those words take the
+// accent as a gradient; in the plain style the marks are simply dropped. Nothing else in a spec is markup.
+const plainStyle = spec => spec.style === 'plain';
+const rich = (spec, s) => plainStyle(spec) ? esc(String(s ?? '').replace(/\*/g, '')) : esc(s).replace(/\*([^*]+)\*/g, '<span class="hl">$1</span>');
+const initials = name => (String(name || '').replace(/[^\p{L}\p{N} ]/gu, ' ').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('') || '').toUpperCase();
+// Background decoration for the default style: two soft glows in the brand's own colours, a faint dot grid, rings and an
+// edge strip. It is drawn behind the text and carries no words, so every text check still reads the flat brand colours.
+function decor(spec, W, H, strong) {
+  if (plainStyle(spec)) return '';
+  const b = spec.brand || {}, bg = b.bg || '#0f1424', fg = b.fg || onColor(bg), accent = b.accent || '#f97316';
+  const a1 = strong ? 46 : 30, ring = Math.round(W * .62);
+  return `<div style="position:absolute;inset:0;background:radial-gradient(${Math.round(W * .95)}px ${Math.round(H * .58)}px at 94% -8%,color-mix(in srgb,${accent} ${a1}%,transparent),transparent 62%),radial-gradient(${Math.round(W * .85)}px ${Math.round(H * .5)}px at -10% 110%,color-mix(in srgb,${accent} 16%,transparent),transparent 60%)"></div>
+  <div style="position:absolute;inset:0;background-image:radial-gradient(circle,color-mix(in srgb,${fg} 16%,transparent) 1.6px,transparent 2.2px);background-size:38px 38px;-webkit-mask-image:linear-gradient(200deg,#000 0%,transparent 46%);mask-image:linear-gradient(200deg,#000 0%,transparent 46%)"></div>
+  ${strong ? `<div style="position:absolute;right:${-Math.round(ring * .34)}px;top:${-Math.round(ring * .34)}px;width:${ring}px;height:${ring}px;border-radius:50%;border:3px solid color-mix(in srgb,${accent} 42%,transparent)"></div>
+  <div style="position:absolute;right:${-Math.round(ring * .12)}px;top:${-Math.round(ring * .12)}px;width:${Math.round(ring * .56)}px;height:${Math.round(ring * .56)}px;border-radius:50%;border:2px solid color-mix(in srgb,${fg} 16%,transparent)"></div>` : ''}
+  <div style="position:absolute;left:0;right:0;bottom:0;height:${Math.round(H * .011)}px;background:linear-gradient(90deg,${accent},color-mix(in srgb,${accent} 45%,#ffffff))"></div>`;
+}
 const fileUrl = (base, p) => p ? pathToFileURL(path.resolve(base, p)).href : '';
 function lum(hex) {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return null;
@@ -119,6 +140,7 @@ function accentTextUses(spec, layout) {
   const c = spec.copy || {}, uses = [];
   if (layout === 'banner' && c.cta) uses.push('CTA');
   if ((layout === 'card' || layout === 'featured') && c.kicker) uses.push('kicker');
+  if (!plainStyle(spec) && [c.headline, ...(spec.slides || []).map(s => s.title)].some(t => /\*[^*]+\*/.test(String(t || '')))) uses.push('headline emphasis');
   if (layout === 'carousel') {
     const slides = spec.slides || [], nums = pointNumerals(slides);
     if (slides.some(s => s.kind === 'hook' && (s.swipe ?? c.swipe ?? 'Swipe'))) uses.push('swipe hint');
@@ -154,6 +176,10 @@ html,body{width:${W}px;height:${H}px;overflow:hidden;background:${bg}}
 .f{position:absolute;inset:0;background:${bg};color:${fg};font-family:${bf}}
 .d{font-family:${df};font-weight:700;letter-spacing:-.01em;line-height:1.08;text-wrap:balance}
 .acc{color:${accent}} .mut{color:${muted}}
+.hl{background:linear-gradient(180deg,${onColor(bg) === '#111111' ? `${accent},color-mix(in srgb,${accent} 72%,#000000)` : `color-mix(in srgb,${accent} 58%,#ffffff),${accent}`});-webkit-background-clip:text;background-clip:text;color:transparent}
+.pill{display:inline-block;align-self:flex-start;border:2.5px solid color-mix(in srgb,${accent} 70%,transparent);border-radius:999px;padding:.38em 1em;background:color-mix(in srgb,${accent} 12%,transparent)}
+.rule{height:10px;border-radius:999px;background:linear-gradient(90deg,${accent},color-mix(in srgb,${accent} 40%,#ffffff))}
+.badge{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(160deg,color-mix(in srgb,${accent} 55%,#ffffff),${accent});color:${onColor(accent)};font-family:${df};font-weight:800}
 .bar{position:absolute;background:${accent}}
 .draft{position:absolute;left:0;right:0;top:0;height:${Math.round(H * .06)}px;background:#dc2626;color:#fff;font:700 ${Math.max(16, Math.round(H * .025))}px/${Math.round(H * .06)}px ${bf};text-align:center;letter-spacing:.08em;z-index:9}
 [data-fit]{overflow-wrap:break-word}
@@ -184,14 +210,28 @@ function cardHtml(spec, base, layout) {
   const sub = c.sub && (!featured || spec.show_sub === true)
     ? `<div class="mut" data-t="sub" data-fit="${featured ? '50,44' : `42,${min}`}" style="margin-top:28px;line-height:1.3">${esc(c.sub)}</div>` : '';
   const author = c.author ? `<div class="mut" data-t="author" data-fit="${min},${min}" style="margin-top:24px;font-weight:600">${esc(c.author)}</div>` : '';
-  return page(spec, base, W, H, `
+  if (plainStyle(spec)) return page(spec, base, W, H, `
   <div class="bar" style="left:${pad}px;top:${pad}px;width:${Math.round(W * .1)}px;height:8px"></div>
   <div data-box style="position:absolute;left:${pad}px;right:${pad}px;top:${pad + 40}px;bottom:${spec.photo ? Math.round(H * (layout === 'card' ? .3 : .12)) + pad : Math.round(pad * .7)}px;display:flex;flex-direction:column">
     <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
     ${c.kicker ? `<div class="acc" data-t="kicker" data-fit="${featured ? `36,${min}` : `40,${min}`}" style="font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:24px">${esc(c.kicker)}</div>` : ''}
-    <div class="d" data-t="headline" data-fit="${big}">${esc(c.headline)}</div>
+    <div class="d" data-t="headline" data-fit="${big}">${rich(spec, c.headline)}</div>
     ${sub}
     </div>${author}
+  </div>${photo}`);
+  // The default style: the headline carries the card. Kicker in a pill, a short rule under the headline, and a footer
+  // with the byline and the brand's initials.
+  const ini = initials(b.name || c.author), fsz = Math.max(min, Math.round(W * .03));
+  const foot = (c.author || ini) ? `<div style="display:flex;align-items:center;justify-content:space-between;gap:24px;padding-top:${Math.round(pad * .35)}px;border-top:2px solid color-mix(in srgb,${b.fg || onColor(b.bg || '#0f1424')} 18%,transparent)">
+      ${c.author ? `<div data-t="author" data-fit="${fsz},${min}" style="font-weight:700">${esc(c.author)}</div>` : '<span></span>'}
+      ${ini && !spec.photo ? `<span class="badge" style="width:${Math.round(W * .07)}px;height:${Math.round(W * .07)}px;font-size:${Math.round(W * .028)}px;flex:none">${esc(ini)}</span>` : ''}</div>` : '';
+  return page(spec, base, W, H, `${decor(spec, W, H, true)}
+  <div data-box style="position:absolute;left:${pad}px;right:${pad}px;top:${Math.round(pad * 1.1)}px;bottom:${spec.photo ? Math.round(H * (layout === 'card' ? .3 : .12)) + pad : Math.round(pad * .9)}px;display:flex;flex-direction:column">
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+    ${c.kicker ? `<div class="acc pill" data-t="kicker" data-fit="${featured ? `32,${min}` : `36,${min}`}" style="font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:${featured ? 22 : 36}px">${esc(c.kicker)}</div>` : ''}
+    <div class="d" data-t="headline" data-fit="${featured ? '100,60' : '136,52'}" style="font-weight:800;letter-spacing:-.025em;line-height:1.02">${rich(spec, c.headline)}</div>
+    ${sub ? `<div class="rule" style="width:${Math.round(W * .12)}px;margin-top:${featured ? 24 : 40}px"></div>${sub}` : ''}
+    </div>${featured ? author : foot}
   </div>${photo}`);
 }
 
@@ -202,19 +242,19 @@ function slideHtml(spec, base, s, i, n, numeral) {
     // the swipe hint is spec copy (any language); the arrow is drawn, so no glyph can fall back to a system font
     const swipe = s.swipe ?? c.swipe ?? 'Swipe';
     const arrow = '<svg viewBox="0 0 56 32" aria-hidden="true"><path d="M2 16h48M36 3l15 13-15 13" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    body = `<div class="d" data-t="s${i}.title" data-fit="124,64">${esc(s.title)}</div>${s.sub ? `<div class="mut" data-t="s${i}.sub" data-fit="54,40" style="margin-top:40px;line-height:1.3">${esc(s.sub)}</div>` : ''}${swipe ? `<div class="acc swipe" data-t="s${i}.swipe" style="margin-top:64px;font-size:42px;font-weight:700"><span>${esc(swipe)}</span>${arrow}</div>` : ''}`;
+    body = `<div class="d" data-t="s${i}.title" data-fit="124,64">${rich(spec, s.title)}</div>${s.sub ? `<div class="mut" data-t="s${i}.sub" data-fit="54,40" style="margin-top:40px;line-height:1.3">${esc(s.sub)}</div>` : ''}${swipe ? `<div class="acc swipe" data-t="s${i}.swipe" style="margin-top:64px;font-size:42px;font-weight:700"><span>${esc(swipe)}</span>${arrow}</div>` : ''}`;
   } else if (s.kind === 'point') {
     const num = numeral ?? '';
-    body = `${num !== '' ? `<div class="acc d" style="font-size:120px;line-height:1;margin-bottom:28px">${esc(num)}</div>` : ''}<div class="d" data-t="s${i}.title" data-fit="84,52">${esc(s.title)}</div>${s.body ? `<div data-t="s${i}.body" data-fit="52,40" style="margin-top:32px;line-height:1.4">${esc(s.body)}</div>` : ''}`;
+    body = `${num !== '' ? `<div class="acc d" style="font-size:120px;line-height:1;margin-bottom:28px">${esc(num)}</div>` : ''}<div class="d" data-t="s${i}.title" data-fit="84,52">${rich(spec, s.title)}</div>${s.body ? `<div data-t="s${i}.body" data-fit="52,40" style="margin-top:32px;line-height:1.4">${esc(s.body)}</div>` : ''}`;
   } else if (s.kind === 'list') {
     body = `<div class="d" data-t="s${i}.title" data-fit="76,50" style="margin-bottom:48px">${esc(s.title)}</div>${(s.items || []).map((it, k) => `<div data-t="s${i}.item${k}" data-fit="54,40" style="display:flex;gap:26px;margin-bottom:32px;line-height:1.25"><span class="acc" style="font-weight:800">${k + 1}</span><span>${esc(it)}</span></div>`).join('')}`;
   } else if (s.kind === 'quote') {
     body = `<div class="acc d" style="font-size:150px;line-height:.6;margin-bottom:10px">“</div><div class="d" data-t="s${i}.quote" data-fit="76,50" style="font-weight:600">${esc(s.quote)}</div><div class="mut" data-t="s${i}.who" style="margin-top:40px;font-size:40px">${esc(s.who)}</div>`;
   } else {
-    body = `<div class="d" data-t="s${i}.title" data-fit="96,56">${esc(s.title)}</div>${s.sub ? `<div class="acc" data-t="s${i}.sub" data-fit="54,40" style="margin-top:40px;font-weight:700;line-height:1.3">${esc(s.sub)}</div>` : ''}`;
+    body = `<div class="d" data-t="s${i}.title" data-fit="96,56">${rich(spec, s.title)}</div>${s.sub ? `<div class="acc" data-t="s${i}.sub" data-fit="54,40" style="margin-top:40px;font-weight:700;line-height:1.3">${esc(s.sub)}</div>` : ''}`;
   }
-  return page(spec, base, W, H, `
-  <div class="bar" style="left:${pad}px;top:${pad}px;width:96px;height:8px"></div>
+  return page(spec, base, W, H, `${decor(spec, W, H, s.kind === 'hook' || s.kind === 'cta')}
+  <div class="${plainStyle(spec) ? 'bar' : 'rule'}" style="position:absolute;left:${pad}px;top:${pad}px;width:96px;height:${plainStyle(spec) ? 8 : 10}px"></div>
   <div data-box style="position:absolute;left:${pad}px;right:${pad}px;top:${pad + 60}px;bottom:${pad + 80}px;display:flex;flex-direction:column;justify-content:${s.kind === 'point' || s.kind === 'list' ? 'flex-start' : 'center'}">${body}</div>
   <div class="mut" style="position:absolute;left:${pad}px;right:${pad}px;bottom:${Math.round(pad * .75)}px;display:flex;justify-content:space-between;font-size:32px;font-weight:600">
     <span data-t="author">${esc(c.author || (spec.brand || {}).name || '')}</span><span>${i} / ${n}</span></div>`);

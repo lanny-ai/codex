@@ -33,7 +33,7 @@ Follow `content-system.md` §6 and run the post gate in §8. In short:
 
 ## 3. The picture
 
-- **The default is a rendered card or carousel** in the member's own brand (`render_linkedin.mjs`, layouts `card` and `carousel`). The words on it come from the post. It costs nothing and it looks like them.
+- **The default is a rendered card or carousel** in the member's own brand (`render_linkedin.mjs`, layouts `card` and `carousel`). The words on it come from the post. It costs nothing and it looks like them. The card is built to stop a scroll: the brand's colours as a soft glow, the kicker in a pill, a heavy headline, and a footer with their name and initials. Mark the one to three words that carry the headline with asterisks (`"Production is *not* profit."`) and they take the accent colour. Keep the headline short enough to read in one glance: ten words is plenty. `"style": "plain"` gives the flat version for a member who prefers it.
 - **A real photo** of the member or their work is better still when they have one. Ask.
 - **An AI-made picture is optional,** only when the member asks for one and already has an image-generation account: write the prompt, show them the price, and run it through `scripts/gen.py` with its spend ledger (`provider-signup.md` covers the account). Mark the post `"ai_image": true`. Rules for these: never a picture of a real person, a client, or the member themselves; never something presented as a real photo of real work; never a logo or brand that is not theirs. LinkedIn labels AI images and readers can flag them; say so, and never remove the label.
 - **No stock photos.**

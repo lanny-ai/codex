@@ -632,6 +632,17 @@ def main():
             ok, out = run(["node", S / "render_linkedin.mjs", "specs/banner.json", "--out", "renders-longtmp"], work, ok_codes=(0, 1, 2),
                           env={**os.environ, "TMPDIR": str(longtmp)})
             check("renderer: works when TMPDIR is a long path", (work / "renders-longtmp/banner.png").exists(), out[-300:])
+            for nm, extra in (("styled", {}), ("plainstyle", {"style": "plain"})):
+                (work / f"specs/{nm}.json").write_text(json.dumps({"id": nm, "layout": "card", "brand": brand, "alt": "A card", **extra,
+                    "copy": {"kicker": "For owners", "headline": "Production is *not* profit.", "sub": "Know your overhead.", "author": "Test Person"}}))
+            ok, out = run(["node", S / "render_linkedin.mjs", "specs/styled.json", "specs/plainstyle.json", "--out", "renders"], work, ok_codes=(0, 1))
+            sr, pr2 = rep("styled"), rep("plainstyle")
+            check("renderer: the default card style passes every check, and marked words count as accent text", sr.get("result") == "PASS"
+                  and any("headline emphasis" in c["check"] for c in sr.get("checks", [])) and (work / "renders/styled.png").stat().st_size > 20000, sr)
+            check("renderer: the plain style is still there, and the marks are dropped, not printed", pr2.get("result") == "PASS"
+                  and not any("headline emphasis" in c["check"] for c in pr2.get("checks", [])), pr2)
+            rsrc = (S / "render_linkedin.mjs").read_text()
+            check("renderer: decoration carries no words and uses only the brand's own colours", "It is drawn behind the text and carries no words" in rsrc and "color-mix(in srgb,${accent}" in rsrc)
 
     # ---- the Prospector: searches, fit, opening lines, the conversation one question at a time ----
     import subprocess as _sp, tempfile as _tf
