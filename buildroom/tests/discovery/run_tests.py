@@ -27,6 +27,8 @@ def F(i, field, value, kind, ref, conf, **kw):
     if "date" in kw:
         f["source"]["date"] = kw.pop("date")
     f.update(kw)
+    if field == "x.proof" and not f.get("absent"):
+        f.setdefault("permission", "unknown")
     return f
 
 
@@ -36,7 +38,9 @@ def main():
 
     def write(findings, scope=True, **top):
         d = {"subject": "Harbor Coaching", "date": "2026-11-19", "findings": findings, **top}
-        if scope:
+        if isinstance(scope, dict):
+            d["scope"] = scope
+        elif scope:
             d["scope"] = {"read": ["Vault: Offers"], "excluded": ["Personal"], "agreed": "2026-11-19: 'leave out Personal'"}
         led.write_text(json.dumps(d))
 
@@ -119,7 +123,9 @@ def main():
     check("gaps: the cap can be lowered", len([l for l in out.splitlines() if l[:1].isdigit()]) == 3)
     write([F(1, "2.profile", "Clinic owners with one site", "hypothesis", "reasoned from the home page", "inferred")])
     c, out = run("gaps", led)
-    check("gaps: a half-known field quotes the guess and says it is one", "my best guess is “Clinic owners with one site”" in out and "my guess, from" in out)
+    check("gaps: confirming the session's own guess comes last, after real gaps", "my best guess" not in out and "Best client, in one line" in out.split("Left for the build sessions")[1])
+    c, out = run("gaps", led, "--cap", "40")
+    check("gaps: a half-known field quotes the guess and says it is one", "my best guess is “Clinic owners with one site”" in out and "my guess, reasoned from the home page" in out)
 
     # ---- readiness: a guide, with a floor ------------------------------------------------------
     c, out = run("ready", led)
@@ -144,6 +150,104 @@ def main():
     w = full + [F(90, "1.price", "$1", "file", "a.md", "likely"), F(91, "1.price", "$2", "web", "https://example.com", "likely")]
     check("ready: weights sum is stable and core fields exist", all(k in dm.FIELD for k in dm.CORE) and sum(f[3] for f in dm.FIELDS) > 0 and len(w) > 0)
 
+    # ---- lessons from the trial runs ---------------------------------------------------------
+    # two sources that word it differently agree when they make the same claim
+    write([F(1, "1.what_i_do", "Monthly bookkeeping and a numbers review for dental practices", "business_file", "§1", "confirmed", claim="bookkeeping for dental practices"),
+           F(2, "1.what_i_do", "Bookkeeping for independent dental practices.", "web", "https://example.com/", "likely", claim="bookkeeping for dental practices"),
+           F(3, "1.what_i_do", "Done-for-you monthly bookkeeping for a dental practice", "file", "Offers/program.md", "confirmed", claim="bookkeeping for dental practices")])
+    c, out = run("check", led)
+    check("claims: different wording with the same claim is agreement, and can be confirmed", c == 0 and "No disagreements" in run("conflicts", led)[1], out)
+    write([F(1, "1.who_i_serve", "Pottery studio owners", "web", "https://example.com/", "likely", claim="pottery studios only"),
+           F(2, "1.who_i_serve", "Any creative business", "file", "Notes/bio.md", "likely", claim="all creative businesses")])
+    check("claims: different claims are a disagreement", "Who I serve" in run("conflicts", led)[1])
+    write([F(1, "1.who_i_serve", "Owners of one clinic", "business_file", "§1", "confirmed")])
+    check("business file: its lines are the member's own word and may be confirmed alone", run("check", led)[0] == 0)
+    write([F(1, "1.price", "$4,500", "file", "Offers/a.md §2", "confirmed"), F(2, "1.price", "$4,500", "file", "Offers/a.md, page 3", "confirmed")])
+    check("independence: two parts of one file are still one source", run("check", led)[0] == 1)
+    # out-of-date sources
+    write([F(1, "3.guarantee", "Double your enrollment or your money back", "file", "Old/Proposal 2024.md", "likely", stale=True)])
+    c, out = run("check", led)
+    check("stale: an out-of-date source cannot be 'likely'", c == 1 and "out-of-date source can only be 'inferred'" in out)
+    old = [F(1, "3.guarantee", "Double your enrollment or your money back", "file", "Old/Proposal 2024.md", "inferred", stale=True, date="2024-05-01"),
+           F(2, "1.price", "$3,000", "file", "Old/Proposal 2024.md", "inferred", stale=True, date="2024-05-01"),
+           F(3, "1.price", "$4,800", "web", "https://example.com/", "likely")]
+    write(old)
+    c, out = run("gaps", led)
+    first = [l for l in out.splitlines() if l[:1].isdigit()][0]
+    check("stale: an old guarantee with nothing newer is asked about first, as a question", "Guarantee: an older source says “Double your enrollment or your money back”" in first and "Is that still true today?" in first, first)
+    check("stale: an old price against a current one is not a disagreement to settle", "No disagreements" in run("conflicts", led)[1] or "Current price" in run("conflicts", led)[1])
+    c, pg = run("page", led)
+    check("stale: the page sets old material apart and never lists it as a finding", "## Older material I am not relying on" in pg and "- **Guarantee:** Double" not in pg and "2024-05-01" in pg)
+    # retired lines
+    bfile = tmp / "BF.md"
+    bfile.write_text((ROOT / "templates/BUILDROOM_BUSINESS_FILE.md").read_text().replace(
+        "- **Retired lines** (never used again in any output, by any session — e.g. a credibility story, a claim, an old offer):",
+        "- **Retired lines** (never used again in any output, by any session — e.g. a credibility story, a claim, an old offer): \"Featured in Ceramics Monthly\" (withdrawn); “Studio Growth Sprint”"))
+    write([F(1, "x.credentials", "Ran a studio for eight years. Featured in Ceramics Monthly.", "file", "Notes/bio.md", "likely")])
+    check("retired: nothing is flagged without the Business File", run("check", led)[0] == 0)
+    c, out = run("check", led, "--business-file", bfile)
+    check("retired: with the Business File, a finding that carries a retired line is caught", c == 1 and "contains a retired line (“Featured in Ceramics Monthly”)" in out, out)
+    write([F(1, "x.credentials", "Ran a studio for eight years. Featured in Ceramics Monthly.", "file", "Notes/bio.md", "likely", retired=True),
+           F(2, "1.what_i_do", "Coaching for studio owners", "business_file", "§1", "confirmed")])
+    c, pg = run("page", led)
+    check("retired: marked retired it passes, is never shown as a finding, and the page says where it still lives",
+          run("check", led, "--business-file", bfile)[0] == 0 and "## Retired lines still in your files" in pg and "your file Notes/bio.md" in pg and "**Background and credentials:**" not in pg)
+    check("retired: the template's own example text is not mistaken for a retired line", run("check", led, "--business-file", ROOT / "templates/BUILDROOM_BUSINESS_FILE.md")[0] == 0)
+    # absent, skipped, files current
+    write([F(1, "x.proof", "none yet", "member", "said in session", "confirmed", absent=True), F(2, "3.guarantee", "None", "member", "said in session", "confirmed", absent=True)])
+    cr = dm.credit(dm.load(led))
+    check("absent: 'no proof' earns nothing, 'no guarantee' is a real answer", "x.proof" not in cr and cr.get("3.guarantee") == 1.0, cr)
+    write([F(1, "x.proof", "none", "file", "a.md", "likely", absent=True)])
+    check("absent: only the member can say there is none", "only the member can say there is none" in run("check", led)[1])
+    write([F(1, "x.proof", "Doubled", "file", "a.md", "likely", quote="We doubled")] )
+    led.write_text(led.read_text().replace('"permission": "unknown"', '"permission": "maybe"'))
+    check("proof: must say whether it may be used", "proof needs \"permission\"" in run("check", led)[1])
+    write([F(1, "1.what_i_do", "x", "business_file", "§1", "confirmed")], skipped=["1.tools", "3.promise"])
+    c, out = run("gaps", led)
+    c2, out2 = run("ready", led)
+    check("skipped: a skipped question is not asked again, here or in the readiness advice", "Which tools do you use" not in out and "promise a client" not in out
+          and "Skipped by the member, not asked again (2)" in out and "promise a client" not in out2 and "Already skipped by the member" in out2, out2)
+    write([], skipped=["nope"])
+    check("skipped: an unknown field is refused", "skipped: unknown field" in run("check", led)[1])
+    likely = [F(i, f[0], "known", "file", "Offers/program.md", "likely", quote="q") for i, f in enumerate(dm.FIELDS)]
+    write(likely)
+    before = dm.score(dm.load(led))[0]
+    write(likely, files_current="2026-11-21: 'yes, all current'")
+    after = dm.score(dm.load(led))[0]
+    check("files current: once the member says their files are current, their own file findings count in full", before == 70 and after == 100, (before, after))
+    write([dict(f, source={"kind": "web", "ref": "https://example.com/"}) for f in likely], files_current="2026-11-21: yes")
+    check("files current: it never lifts a web page", dm.score(dm.load(led))[0] == 70)
+    check("ready: a not-ready verdict tells the member what to do instead of a long run", "A few minutes of answers now is worth more than a long run" in out2.replace("a few", "A few") and "Autopilot" in out2)
+    # inventory
+    v2 = tmp / "vault2"
+    for rel in ("Clients/Banker avatar.md", "Clients/Will Parker testimonial.md", "Offers/Health coaching program.md", "Offers/Positioning statement.md", "Offers/Token of thanks bonus.md",
+                "Personal/journal.md", "Finance/2025 tax return notes.md", "Finance/bank statement May.pdf", "private/ideas.md", "discovery/What_I_Found.md", "autopilot/drafts/01.md",
+                "backups/old.md", "BUILDROOM_BUSINESS_FILE.md", "Old/BUILDROOM_BUSINESS_FILE.md", "_MEMBER_ANSWERS.md", "notes.md", "Offers/keep.md"):
+        (v2 / rel).parent.mkdir(parents=True, exist_ok=True)
+        (v2 / rel).write_text("x")
+    c, out = run("inventory", v2)
+    top, held = out.split("Looks private")[0], out.split("Looks private")[1]
+    check("inventory: ordinary business file names are not mistaken for private ones",
+          all(n in top for n in ("Banker avatar.md", "Will Parker testimonial.md", "Health coaching program.md", "Positioning statement.md", "Token of thanks bonus.md")))
+    check("inventory: a Personal or private folder, a journal, a tax return and a bank statement are held back",
+          all(n in held for n in ("Personal/journal.md", "tax return notes.md", "bank statement May.pdf", "private/ideas.md")) and "journal.md" not in top)
+    check("inventory: Build Room's own output is never offered as research", not any(n in out for n in ("What_I_Found.md", "autopilot/drafts", "backups/old.md", "_MEMBER_ANSWERS")))
+    check("inventory: the Business File is listed apart, and two of them are flagged", "Your Business File (read as your own word, not as research)" in out and "There is more than one." in out
+          and "BUILDROOM_BUSINESS_FILE.md" not in top.split("Your Business File")[0])
+    c, out = run("inventory", v2, "--exclude", "notes.md", "Offers/keep.md", "Clients")
+    check("inventory: a single file can be left out, and the output confirms it", "Left out, as you asked (3)" in out and "notes.md" not in out.split("Left out")[0] and "Banker" not in out.split("Left out")[0])
+    check("inventory: says when nothing matched what was asked", "Nothing here matched what you asked to leave out: zzz" in run("inventory", v2, "--exclude", "zzz")[1])
+    # the page
+    write([F(1, "x.proof", "Found $38,000 in miscoded lab fees", "file", "Clients/t.md", "likely", quote="We found $38,000 in lab fees", who="an office manager", permission="no"),
+           F(2, "x.proof", "Knew overhead in three months", "file", "Clients/t.md", "likely", quote="I knew my overhead was 71 percent", who="a named client", permission="yes"),
+           F(3, "1.lead_sources", "Instagram", "business_file", "§1", "confirmed"), F(4, "1.lead_sources", "Instagram", "business_file", "§1", "confirmed"),
+           F(5, "1.price", "$4,800", "web", "https://example.com/", "confirmed", claim="4800"), F(6, "1.price", "4800 dollars", "file", "Offers/a.md", "confirmed", claim="4800")],
+          scope={"read": ["Vault"], "excluded": [], "opened": 9, "agreed": "2026-11-21: ok"})
+    c, pg = run("page", led)
+    check("page: proof shows who said it and whether it may be used", "said by an office manager · NOT to be used publicly" in pg and "permission to use: yes" in pg)
+    check("page: a repeated line prints once, and a confirmed line names its other sources", pg.count("- Instagram") == 1 and "also: your file Offers/a.md" in pg)
+    check("page: says how many files were opened", "(9 files opened)" in pg)
+
     # ---- the page -------------------------------------------------------------------------------
     write(clash + [F(8, "x.voice", "sample", "file", "Posts/a.md", "likely", quote="Here is the thing nobody tells you."),
                    F(9, "2.pains", "no time", "hypothesis", "the sales page", "inferred")])
@@ -165,15 +269,27 @@ def main():
     ref = (SK / "references/deep-discovery.md").read_text()
     check("skill: Deep Discovery is in the foundation list and the flow", "references/deep-discovery.md" in sk and "### Own business — Deep Discovery" in sk)
     check("skill: scope is agreed before anything is opened", "opens nothing" in sk and "Scope first. Nothing is opened before the member has seen the list and agreed." in ref)
-    check("skill: the page is shown before any question", "before asking anything" in sk and "Show the page before asking a single question." in ref)
+    check("skill: the page is shown before any question", "before asking anything" in sk and "Show the page before asking a single question about the business." in ref)
     check("skill: ten questions at most, skippable", "at most ten" in sk and "Do not go past ten." in ref and "may skip any question" in ref)
     check("skill: disagreements go to the member", "Choose between two sources that disagree. The member decides." in sk and "You never pick. The member does." in ref)
     check("skill: found proof is not permission", "Finding a client result is not permission to use it." in ref and "The Proof Engine session owns consent." in sk)
     check("skill: readiness is a guide and never a promise", "not a prediction of results" in ref and "does not measure the business or predict results" in sk)
     check("skill: only confirmed findings enter the Business File; §2 to §4 stay provisional",
-          "do not enter the file as fact" in ref and ref.count("`provisional`") >= 4)
+          "Nothing inferred enters the Business File as fact." in ref and ref.count("`provisional`") >= 4)
     check("skill: voice samples and proof are saved outside the Business File", "Voice_Samples.md" in ref and "Proof_Found.md" in ref and "never in the file" in sk)
     check("skill: no drive access is forced", "Never ask for a password or a share link" in ref)
+    check("skill: agreement is judged on meaning, with each source's own words kept", "say what it claims in `claim`" in sk and "Keep `value` in the source's words." in ref and "When in doubt, give them different claims" in ref)
+    check("skill: the Business File is the member's own word", "| `business_file` | already in their Business File." in ref)
+    check("skill: old material is set apart and asked about; retired lines are flagged", "Old material is recorded as old, never relied on" in ref and "Retired lines are never used, and the member is told where they still live." in ref
+          and "Rely on out-of-date material, or use a retired line." in sk)
+    check("skill: hearsay is neither proof nor a client's words", "Hearsay is not proof and is not a client's words." in ref and "is not proof. Leave it out." in ref)
+    check("skill: the member's own files count once they say those are current, never before", "Are any of them out of date?" in ref and "`files_current`" in ref and "**only after** they said their files are current" in ref)
+    check("skill: saying nothing is wrong never confirms a guess", "that is not a confirmation of your guesses" in ref)
+    check("skill: not ready means say so, recommend answering, and never recommend Autopilot", "Do not recommend Autopilot to a member who is not ready." in ref and "do not recommend Autopilot" in sk
+          and "Recommend Autopilot to a member whose file is not ready." in sk)
+    check("skill: no brief and no rating after research alone", "produces no Discovery Brief and asks for no 1 to 5 rating" in sk)
+    check("skill: a session's own drafts are never evidence", "A draft a Build Room session wrote is never evidence about the business." in ref)
+    check("skill: an empty section is not marked provisional", "Do not mark an empty section `provisional`." in ref)
     check("skill: client and prospect runs keep the original pipeline", "A client or a prospect still runs the original pipeline" in ref and "Client or prospect." in sk)
     check("skill: the description still fits the listing limit and names the new phrases", "research my business first" in sk.split("---")[1] and len(sk.split("---")[1]) < 700)
     check("reference: no long dashes in the method guide", "—" not in ref and "–" not in ref)
