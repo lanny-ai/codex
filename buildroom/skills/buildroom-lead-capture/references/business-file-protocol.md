@@ -11,7 +11,7 @@ A blank copy of the file lives at `references/business-file-template.md`.
 1. **Read before asking.** At session start, ask the member for their Business File. Every input question the file already answers is skipped — confirmed, not re-asked.
 2. **Write before ending.** At session end, hand back the complete updated file. A session that ends without updating the file is unfinished.
 3. **The member's edits always win.** The file is theirs. Never overwrite hand-edited content without asking; never "correct" their file silently.
-4. **Never invent facts into the file.** Only member-confirmed content goes in. Drafts and inferences stay in session deliverables until the member approves them. Content already in the file is carried over exactly: quotes, prices and numbers character for character (a style rule never edits a quote, and a rewrite of the file is checked against the old copy for anything changed that the session did not mean to change).
+4. **Never invent facts into the file.** Only member-confirmed content goes in. Drafts and inferences stay in session deliverables until the member approves them. Content already in the file is carried over exactly: quotes, prices and numbers character for character (a style rule never edits a quote, and a rewrite of the file is checked against the old copy for anything changed that the session did not mean to change). The one exception is an Autopilot run, which may write a foundation the member has reviewed into §2 to §4 with every line that is not the member's own word tagged (`[file: path]`, `[reviewed draft]`, `[draft]`) and the section left `provisional`. A tagged line is a starting point for the session that owns the section, never a fact.
 5. **Retired lines stay retired.** Anything listed under §1 *Retired lines* is never used again, by any session, in any output (copy, scripts, ads, pages, videos, examples), even if it still appears elsewhere in the file. That includes paraphrases and claims built on a retired line: the same story without its noun is still the same story. When a session finds one elsewhere in the file, it flags it to the member rather than using it. When the member says a line should not be used any more, add it there and confirm.
 
 ---
@@ -53,7 +53,7 @@ Before closing, always:
 2. **Add any missing section or field.** An older file may lack a section this skill writes (a file from before §18 or §19, say), or a field the template has since added to an existing section. Insert it from the current template, in its registered place (§8 Session Log stays last; a new field goes where the template puts it within its section), with its heading or label, status line and fields, and fill only what this session confirmed. Never write a section's content into another section because its heading is missing.
 3. **Set the status line** on each touched section: `complete` or `provisional`, today's date, this skill's name.
 4. **Append one Session Log row**: date, session name, outputs produced, status, the member's 1–5 rating (ask for it — one question: "Quick gut check: 1–5, how usable is what we built today?"), and any note worth keeping.
-5. **Emit the ENTIRE updated file** in a single fenced code block — not a diff, not just the changed sections — so the member can replace their saved copy in one paste. Precede it with a 2–4 bullet "What changed in your Business File" summary.
+5. **Emit the ENTIRE updated file** in a single fenced code block — not a diff, not just the changed sections — so the member can replace their saved copy in one paste. Precede it with a 2–4 bullet "What changed in your Business File" summary. Where you can write files (Cowork, Claude Code, Codex), update the file in place instead and tell the member what changed; do not also print the whole file into the chat.
 6. Remind them: "Save this over your old copy. Bring it to every Build Room session."
 
 ## Never lose what is there
@@ -65,7 +65,7 @@ Before closing, always:
 
 ## Size discipline
 
-The file must stay light enough to paste into any session. Target **under ~2,500 words**. If a section is bloating, distill harder and push detail into the linked full document. Never paste an entire deliverable into the file.
+The file must stay light enough to paste into any session. Target **under ~2,500 words of the member's own content**, not counting the template's headings and empty fields. If a section is bloating, distill harder and push detail into the linked full document. Never paste an entire deliverable into the file.
 
 ## Conflict rules
 

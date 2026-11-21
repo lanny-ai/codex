@@ -133,8 +133,10 @@ def say(phrase):
 
 def build(run, folder, page_dir, business):
     steps = run.get("steps", [])
-    by = {st: [s for s in steps if s.get("status") == st] for st in ("drafted", "blocked", "skipped", "pending")}
-    gaps = sum(len(s.get("gaps") or []) for s in by["drafted"])
+    by = {st: [s for s in steps if s.get("status") == st] for st in ("drafted", "partial", "blocked", "skipped", "pending")}
+    made = [s for s in steps if s.get("status") in ("drafted", "partial")]
+    gaps = sum(len(s.get("gaps") or []) for s in made)
+    top = [e for e in keeper.rollup(run) if len(e["in"]) > 1][:5]
     needs = [t for t in keeper.TOOLS if t[3] == "needs_you"]
     approved = run.get("approved")
     title = f"Your Build · {business}" if business else "Your Build"
@@ -144,7 +146,7 @@ def build(run, folder, page_dir, business):
         else "The run is not finished. Here is what is drafted so far. Say “Run autopilot” to carry on."
     o.append(f'<header class="cover"><div class="wrap"><div class="eyebrow">Build Room OS · Your Build</div>'
              f'<h1>{lead}<em>your first build, drafted.</em></h1><p>{E(done_line)} Started {E(str(run.get("started", "")))}.</p>'
-             f'<div class="stats"><div class="stat a"><b>{len(by["drafted"])}</b><span>pieces drafted for you</span></div>'
+             f'<div class="stats"><div class="stat a"><b>{len(made)}</b><span>pieces drafted for you' + (f', {len(by["partial"])} of them only in part' if by["partial"] else "") + '</span></div>'
              f'<div class="stat b"><b>{gaps}</b><span>things in them that still need you</span></div>'
              f'<div class="stat c"><b>{len(needs)}</b><span>sessions waiting for you to start</span></div></div></div></header><div class="edge"></div><main class="wrap">')
 
@@ -152,22 +154,27 @@ def build(run, folder, page_dir, business):
              '<div class="first"><div class="card"><span class="n">1</span><h3>Read the drafts</h3><p class="why">Open each one below and fix anything that does not sound like you. Lines marked [draft] were written for you.</p></div>'
              '<div class="card"><span class="n">2</span><h3>Fill what needs you</h3><p class="why">Each draft lists what is still missing. Tick them off here as you go. Your ticks are remembered on this computer.</p></div>'
              '<div class="card"><span class="n">3</span><h3>Publish what you have checked</h3><p class="why">Only you can put a page live or send an email. Do it one piece at a time.</p></div></div>')
+    if top:
+        o.append('<div class="card hero" style="margin-top:18px"><h3>Answer these first</h3><p>They are asked for in more than one draft, so each answer improves several at once.</p><ul style="margin-top:12px;list-style:disc;padding-left:22px">'
+                 + "".join(f'<li style="margin:6px 0">{E(e["text"])} <span style="color:#aab3cf">({E(", ".join(e["in"]))})</span></li>' for e in top) + '</ul></div>')
     if gaps:
         o.append('<div class="card" style="margin-top:18px"><span id="left"></span><div class="bar"><i id="fill" style="width:0"></i></div></div>')
     o.append('</section>')
 
     reveal = folder / "autopilot" / "Foundation_Reveal.html"
-    if approved or reveal.is_file() or any(x["slug"] in keeper.MUST for x in by["drafted"]):
+    if approved or reveal.is_file() or any(x["slug"] in keeper.MUST for x in made):
         link = f' <a href="{E(os.path.relpath(reveal.resolve(), page_dir.resolve()).replace(os.sep, "/"), quote=True)}">Open your foundation page</a>.' if reveal.is_file() else ""
-        when = f"You approved it on {E(str(approved.get('date', '')))}." if approved else "It has not been approved yet, so nothing after it has run."
+        when = f"You approved it on {E(str(approved.get('date', '')))}: “{E(str(approved.get('words', '')))}”" if approved else "It has not been approved yet, so nothing after it has run."
         o.append(f'<section><div class="card hero"><h3>Your foundation: who you serve, what you sell, where you stand</h3><p>{when}{link}</p></div></section>')
 
-    if by["drafted"]:
+    if made:
         o.append('<section><div class="num">Drafted for you</div><h2>Your drafts</h2><p class="sub">In the order they were built. Each one reads what came before it.</p><div class="grid">')
         n = 0
-        for s in by["drafted"]:
+        for s in made:
             slug = s["slug"]
-            o.append(f'<div class="card"><h3>{E(TOOL[slug][1])}</h3><p class="for">{E(FOR.get(slug, ""))}</p>')
+            part = s.get("status") == "partial"
+            o.append(f'<div class="card"><h3>{E(TOOL[slug][1])}' + (' <span style="font-weight:600;color:var(--amber);font-size:16px">· Partly drafted</span>' if part else "")
+                     + f'</h3><p class="for">{E(FOR.get(slug, ""))}</p>')
             if s.get("outputs"):
                 o.append('<div class="k">Saved as</div><ul class="files">' + "".join(file_item(x, folder, page_dir) for x in s["outputs"]) + '</ul>')
             if s.get("gaps"):
@@ -177,7 +184,7 @@ def build(run, folder, page_dir, business):
                     o.append(f'<li><label><input type="checkbox" id="g{n}"><span>{E(str(g))}</span></label></li>')
                 o.append('</ul>')
             if s.get("note"):
-                o.append(f'<div class="k">Note</div><p class="why">{E(str(s["note"]))}</p>')
+                o.append(f'<div class="k">{"What was and was not drafted" if part else "Note"}</div><p class="why">{E(str(s["note"]))}</p>')
             o.append('</div>')
         o.append('</div></section>')
 
@@ -192,7 +199,7 @@ def build(run, folder, page_dir, business):
                          + (say(TOOL[slug][2]) if with_phrase else "") + '</div>')
         o.append('</section>')
 
-    o.append('<section><div class="num">Yours to start</div><h2>Sessions that need you</h2><p class="sub">These depend on something only you have, so Autopilot left them alone. Each starts with one sentence. Press it to copy, then paste it into Claude or Codex.</p><div class="grid">')
+    o.append('<section><div class="num">Yours to start</div><h2>Sessions that need you</h2><p class="sub">These depend on something only you have, so Autopilot left them alone. Not all of them will fit your business; pick what does. Each starts with one sentence. Press it to copy, then paste it into Claude or Codex.</p><div class="grid">')
     for _slug, name, phrase, _mode, why in needs:
         o.append(f'<div class="card"><h3>{E(name)}</h3><p class="why">Not run because {E(why)}.</p>{say(phrase)}</div>')
     o.append('</div></section>')
