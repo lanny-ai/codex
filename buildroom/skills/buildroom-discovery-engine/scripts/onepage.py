@@ -26,8 +26,8 @@ _spec.loader.exec_module(dz)
 E = html.escape
 
 FIGURE = re.compile(r"[$€£]\s?\d[\d,.]*|\d[\d,.]*\s?(?:%|percent\b|per cent\b)|\b\d+(?:\.\d+)?x\b|\b\d[\d,]*\b", re.I)
-PROMISE = re.compile(r"\b(guarantee[ds]?|money[- ]back|refund(s|ed)?|or (you|they) pay nothing|or it'?s free|or your money|risk[- ]free|doubl(e|ed|es|ing)(?![- ]?(check|book|click|sided))|tripl(e|ed|es|ing))\b", re.I)
-NUMBER_WORD = re.compile(r"\b(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundreds?|thousands?|"
+PROMISE = re.compile(r"\b(guarantee[ds]?|money[- ]back|refund(s|ed)?|or (you|they) pay nothing|or it'?s free|or your money|risk[- ]free|pay nothing|(do not|don'?t|won'?t) pay|giv(e|es|ing) (you )?back|(fee|money|payment) (is |will be )?returned|every penny|i promise|we promise|doubl(e|ed|es|ing)(?![- ]?(check|book|click|sided))|tripl(e|ed|es|ing))\b", re.I)
+NUMBER_WORD = re.compile(r"\b(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|fortnight|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundreds?|thousands?|"
                          r"millions?|dozens?|decades?|several|countless|many years)\b", re.I)
 # Words that claim something about the member. A draft may use one only if the member used it.
 CLAIM_WORD = re.compile(r"\b(certified|licen[cs]ed|insured|bonded|accredited|award[- ]?winning|awards?|trusted|best|leading|top|expert|experts|premier|number one|#1|"
@@ -66,7 +66,7 @@ like want wants people person someone anyone everyone thing things time times mo
 def unfamiliar(d, words):
     """Words in a draft that appear in nothing the member said. Not a refusal: a list for the session to justify, one by one."""
     stem = lambda w: re.sub(r"(ings?|ed|es|s|e|ly)$", "", w) if len(w) > 5 else w  # noqa: E731
-    theirs = {stem(w) for w in re.findall(r"[a-z]{5,}", (said(d) + " " + str(d.get("subject", ""))).lower())}
+    theirs = {stem(w) for w in re.findall(r"[a-z]{5,}", (said(d) + " " + str(d.get("subject", "")) + " " + str(d.get("owner", ""))).lower())}
     out = {}
     for k, v in (words or {}).items():
         new = sorted({w for w in re.findall(r"[a-z]{5,}", str(v).lower()) if w not in COMMON and stem(w) not in theirs})
@@ -109,6 +109,17 @@ def word_problems(d, words, retired=()):
         for line in retired:
             if dz.norm(line) and dz.norm(line) in dz.norm(v):
                 out.append(f"{k}: carries a retired line (“{line}”)")
+    # Something read on their site that they never confirmed is not theirs, however true it looks.
+    stem = lambda w: re.sub(r"(ings?|ed|es|s|e|ly)$", "", w) if len(w) > 5 else w  # noqa: E731
+    mine = {stem(w) for w in re.findall(r"[a-z]{5,}", (said(d) + " " + str(d.get("subject", "")) + " " + str(d.get("owner", ""))).lower())}
+    for f in d["findings"]:
+        if not (isinstance(f, dict) and dz.kind(f) in ("web", "file")) or f.get("retired"):
+            continue
+        marks = {stem(w) for w in re.findall(r"[a-z]{5,}", str(f.get("value", "")).lower()) if w not in COMMON} - mine
+        for k, v in words.items():
+            hit = sorted(marks & {stem(w) for w in re.findall(r"[a-z]{5,}", str(v).lower())})
+            if k in LIMITS and len(hit) >= 2:
+                out.append(f"{k}: uses something read on their site or in a file that they did not confirm ({', '.join(hit)}). Ask them, or leave it out")
     if "bio" in words and not (own(d, "x.credentials") or own(d, "x.story")):
         out.append("bio: the member has not given their background or their story, so there is nothing to write a bio from")
     if words and not all(own(d, k) for k in HEAD):
@@ -202,10 +213,11 @@ def build(d, words=None, next_phrase="", why=""):
             o.append(f'<section><h2>{E({"Your offer": "What you sell", "Your client": "Who you sell to"}.get(title, title))}</h2><div class="grid">{"".join(cards)}</div></section>')
     # Not a list of homework and not a grade: the few things the next session works out, leaving out anything they chose to skip.
     skipped = set(d.get("skipped") or [])
-    coming = [label(k) for k in ("2.profile", "2.pains", "2.dream", "2.objections") if k not in shown and k not in skipped][:4]
+    YOU = {"2.profile": "who your best client is", "2.pains": "what they struggle with", "2.dream": "what they want", "2.objections": "why they hesitate"}
+    coming = [YOU[k] for k in YOU if k not in shown and k not in skipped]
     answered = len(shown)
-    o.append('<section><h2>What comes next</h2><div class="open">' + f'You have told us {answered} things about your business so far. That is enough to start. '
-             + (f'The next session works out: {E(", ".join(c[0].lower() + c[1:] for c in coming))}.' if len(coming) >= 2 else 'Later sessions fill in the rest, one piece at a time.') + '</div></section>')
+    o.append('<section><h2>What comes next</h2><div class="open">' + f'You have told me {answered} things about your business so far. That is enough to start. '
+             + (f'The next session works out {E(", ".join(coming[:-1]) + " and " + coming[-1])}.' if len(coming) >= 2 else 'Later sessions fill in the rest, one piece at a time.') + '</div></section>')
     if next_phrase:
         o.append(f'<section><div class="next"><h2>What to do next</h2><p>One step. Start a new conversation with Claude and say this:</p><div class="phrase"><span id="nx">{E(next_phrase)}</span>'
                  '<button class="copy noprint" type="button" data-copy="nx">Copy</button></div>' + (f'<p style="margin-top:14px">{E(why)}</p>' if why else "") + '</div></section>')

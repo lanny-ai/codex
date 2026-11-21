@@ -223,7 +223,7 @@ def main():
     check("onepage: what a page or a guess said is never shown as theirs", "$9,999" not in ph and "fear of audits" not in ph)
     check("onepage: the three ways to say it are marked as drafted, each with a copy button", ph.count("Drafted for you") == 3 and ph.count('data-copy="w-') == 3 and "They are drafts" in ph)
     check("onepage: plain labels, what is open, one next step, and no promise", "What a client receives" in ph and "What comes next" in ph and "Help me describe my best customer" in ph and "What they get" in ph
-          and "out of 100" not in ph and "Still open" not in ph and "The next session works out:" in ph and "\u2014" not in ph and "\u2013" not in ph)
+          and "out of 100" not in ph and "Still open" not in ph and "The next session works out who your best client is" in ph and "\u2014" not in ph and "\u2013" not in ph)
     def wbad(change, expect):
         wf.write_text(json.dumps({**W, **change}))
         c, o = op("check", led, "--words", wf)
@@ -236,6 +236,14 @@ def main():
     wf.write_text(json.dumps({"sentence": "I keep the books for owner-dentists and their veterinarian neighbours."}))
     check("onepage: words the member never used are listed to be justified, and a clean check says it is not proof", "these words are in nothing the member said: neighbours, veterinarian" in op("check", led, "--words", wf)[1]
           and "A clean check is not proof" in op("check", led, "--words", wf)[1])
+    wf.write_text(json.dumps({"sentence": "I keep books. If the books are late I give back every penny, I promise."}))
+    check("onepage: a money-back offer in other words is still refused", "reads as a guarantee" in op("check", led, "--words", wf)[1])
+    write(mine + [F(42, "x.story", "Started after her rescue, Juniper, bit a neighbor's spaniel", "web", "https://example.com/about", "likely")])
+    wf.write_text(json.dumps({"paragraph": "Monthly bookkeeping for dental practices. It began when my rescue Juniper bit a neighbor."}))
+    check("onepage: something read on their site that they did not confirm is refused in a draft", "they did not confirm" in op("check", led, "--words", wf)[1])
+    write(mine, owner="Renee Alvarado")
+    wf.write_text(json.dumps({"bio": "I am Renee Alvarado. Eleven years keeping books."}))
+    check("onepage: the member's own name is theirs", "alvarado" not in op("check", led, "--words", wf)[1])
     write(mine + [dict(F(40, "3.guarantee", "Results in two weeks or your money back", "web", "https://example.com/", "likely"), retired=True)])
     wf.write_text(json.dumps({"sentence": "Monthly bookkeeping. Results in two weeks or your money back."}))
     check("onepage: a line retired in this session is barred before any Business File exists", "carries a retired line" in op("check", led, "--words", wf)[1])
