@@ -8,7 +8,7 @@ One page, on the member's own website, that answers one question a real customer
 
 Three kinds:
 
-- **Service page** (`kind: service`): one page per service, the best-supported page type for local search and AI answers. The H1 is the service name; the H2s answer what it is, who it is for, what it costs (a real price or range, or how pricing works, with `[own]`), what happens first; an "Our rule" section carries the member's own view. Outside sources optional. The first page written when none exists.
+- **Service page** (`kind: service`): one page per service, the best-supported page type for local search and AI answers. The H1 is the service name; the H2s answer what it is, who it is for, what it costs (a real price or range, or how pricing works, with `[own]`; a statement of the member's own price is a price, not a results claim, so it needs no typical-result statement beside it), what happens first; an "Our rule" section carries the member's own view. Outside sources optional. The first page written when none exists.
 - **Evidence page** (`kind: evidence`): a question whose answer rests on outside facts (what a rule says, how a thing works, what the options are). Needs **three or more unique outside sources**, read and cited.
 - **First-hand page** (`kind: first-hand`): a question whose answer is the member's own counted experience (what it costs here, how long it takes, what usually goes wrong, what is typical). Needs a **"How we know" section** (what was counted, over what period, how many jobs or clients, what was not counted), the member's numbers marked `[own]`, and **at least one outside source** for context.
 
