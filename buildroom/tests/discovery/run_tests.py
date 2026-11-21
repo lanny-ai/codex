@@ -204,6 +204,44 @@ def main():
     write(thin + [F(30, "1.booking", "Book a 20-minute fit call", "web", "https://example.com/", "likely")])
     out = run("gaps", led)[1]
     check("gaps: an easy fact found only on a public page is put to the member in one line", "your page says “Book a 20-minute fit call”" in out and "Is that right today?" in out, out)
+    # ---- the first session: your business on one page ------------------------------------------
+    OP = SCRIPT.parent / "onepage.py"
+    op = lambda *a: (lambda p: (p.returncode, p.stdout + p.stderr))(subprocess.run([sys.executable, str(OP), *map(str, a)], capture_output=True, text=True))  # noqa: E731
+    mine = [F(1, "1.what_i_do", "Monthly bookkeeping for dental practices", "member", "said in session", "confirmed"), F(2, "1.who_i_serve", "Owner-dentists <with> one or two locations", "member", "said in session", "confirmed"),
+            F(3, "1.core_result", "Books closed by the 10th of every month", "member", "said in session", "confirmed"), F(4, "x.credentials", "Eleven years keeping books", "member", "said in session", "confirmed"),
+            F(5, "1.price", "$9,999", "web", "https://example.com/", "likely"), F(6, "2.pains", "fear of audits", "hypothesis", "reasoned", "inferred"),
+            F(7, "3.deliverables", "A one-page numbers summary", "member", "said in session", "confirmed")]
+    write(mine)
+    wf = led.parent / "words.json"
+    W = {"sentence": "I keep the books for owner-dentists, closed by the 10th of every month.", "paragraph": "Monthly bookkeeping for dental practices, and nothing else.", "bio": "I have kept books for eleven years."}
+    wf.write_text(json.dumps(W))
+    page = led.parent / "one.html"
+    code, out = op("build", led, page, "--words", wf, "--next", "Help me build my ideal client avatar")
+    ph = page.read_text() if page.exists() else ""
+    check("onepage: one self-contained page in the member's own words", code == 0 and ph.startswith("<!doctype html>") and "in your own words." in ph and "Owner-dentists &lt;with&gt; one or two locations" in ph
+          and not re.search(r'(src|href)="https?:', ph) and "@import" not in ph and "url(" not in ph, out)
+    check("onepage: what a page or a guess said is never shown as theirs", "$9,999" not in ph and "fear of audits" not in ph)
+    check("onepage: the three ways to say it are marked as drafted, each with a copy button", ph.count("Drafted for you") == 3 and ph.count('data-copy="w-') == 3 and "They are drafts" in ph)
+    check("onepage: plain labels, what is open, one next step, and no promise", "What a client receives" in ph and "Still open" in ph and "Help me build my ideal client avatar" in ph
+          and "It is not a score for your business, and it promises nothing." in ph and "\u2014" not in ph and "\u2013" not in ph)
+    def wbad(change, expect):
+        wf.write_text(json.dumps({**W, **change}))
+        c, o = op("check", led, "--words", wf)
+        return c == 1 and expect in o
+    check("onepage: a draft may not add a number, a promise or a quotation", wbad({"sentence": "I have helped 200 practices."}, "a number the member did not give")
+          and wbad({"paragraph": "Clean books, guaranteed."}, "reads as a guarantee") and wbad({"paragraph": "“Best decision we made,” they say."}, "no quotation marks"))
+    check("onepage: a draft may repeat the member's own numbers", (wf.write_text(json.dumps(W)), op("check", led, "--words", wf)[0])[1] == 0)
+    write([f for f in mine if f["field"] != "x.credentials"])
+    check("onepage: no bio without the member's background or story", "nothing to write a bio from" in op("check", led, "--words", wf)[1])
+    write([F(5, "1.what_i_do", "Bookkeeping", "web", "https://example.com/", "likely")])
+    check("onepage: no page until something is the member's own word", op("build", led, page)[0] != 0)
+    osk = (SCRIPT.parent.parent.parent / "buildroom-os/SKILL.md").read_text()
+    check("skill: a new member's first session reads their site first and ends with the page", "## The first session: a new member's first fifteen minutes" in QREF and "Here is what I learned about your business" in QREF
+          and "Never guess what a page does not say." in QREF and "A line they do not mention stays a `web` finding." in QREF and "onepage.py build" in QREF
+          and "follow the section \"The first session\"" in osk and "onepage.py" in QSK)
+    osrc = OP.read_text()
+    check("onepage: standard library only, no network", not any(x in osrc for x in ("requests", "urllib", "socket", "http.client", "subprocess")))
+
     # ---- Quick Start: the short interview for a member with little written down -----------------
     write(thin + [none], skipped=["2.dream"])
     c, out = run("interview", led)

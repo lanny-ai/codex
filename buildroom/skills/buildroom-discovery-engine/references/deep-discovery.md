@@ -189,6 +189,26 @@ Recommend the first when there are questions to ask, otherwise the second. Do no
 
 If Autopilot starts straight after this in the same conversation, it does not put the same choice to the member again.
 
+## The first session: a new member's first fifteen minutes
+
+This is what runs when a brand-new member says **"I'm new here. Help me get started."** The navigator welcomes them and hands over to this section. The aim is that they leave with something they can use today, and that the first thing they see is their own business understood, not a form.
+
+1. **Ask one thing.** "Do you have a website or a LinkedIn page for the business? Paste the address, or say you have nothing online." Nothing else yet.
+2. **If they give an address and you can reach the web,** read that page and up to three more on the same site (about, services or pricing, contact). Read nothing else and nobody else's site. Record what you find as `web` findings in `discovery/ledger.json`, in the page's own words, with the scope `{"read": ["<the address>"], "agreed": "<date>: they gave the address"}`.
+   Then show them, in the chat, **"Here is what I learned about your business"**: eight lines at most, the plainest facts first (what you do, who it is for, the result, what you sell, the price if it is shown, how someone books), each with the page it came from. End with: "Tell me what is wrong or out of date. If it is right, say so."
+   - A line they correct becomes a `member` finding in their words.
+   - A line they say is right becomes a `member` finding: it is their own site and they have just confirmed it.
+   - A line they do not mention stays a `web` finding. It is not theirs yet and does not go into the Business File.
+   - Never guess what a page does not say. A site with no price has no price.
+3. **If they have nothing online, or you cannot reach the web,** say so in one line and skip to step 4. Do not ask them to paste their site.
+4. **Ask only what is still missing** from the Business Snapshot: what they do, who they serve, the core result, the price, how people find them, their tools. One at a time. Then two more, because the page and the three drafts need them: what a client actually receives, and their background ("What training, experience or track record should a client know about?"). Any of them can be skipped. Stop there. This is a first session, not the interview.
+5. **Write three ways to say what they do,** from their own words only, as `discovery/first_words.json`: one sentence, one paragraph, and a short bio. Use their nouns and their phrasing. Add no number, no result, no credential and no claim they did not give. No bio unless they gave their background or their story. These are drafts and the page says so.
+6. **Build the page:** `onepage.py check discovery/ledger.json --words discovery/first_words.json`, fix what it lists, then `onepage.py build discovery/ledger.json Your_Business_On_One_Page.html --words discovery/first_words.json --next "Help me build my ideal client avatar"`. Tell them to open it. In a chat with no folder, show the same content in the chat instead: their words under plain headings, then the three drafts marked as drafts.
+7. **Create the Business File** per the protocol with §1 filled from what is now theirs, and one §8 row. Tell them where it is saved.
+8. **Close with one next step,** not a menu: the Ideal Client Avatar session, with its sentence. If they have files worth reading, mention "Research my business first" in one line. If they want to keep answering now, "Interview me about my business" carries on where this stopped.
+
+Keep it to about fifteen minutes. The page is the payoff: get to it.
+
 ## Quick Start: when there is little to read
 
 Some members have nothing written down: no notes, no website, no saved emails. Research has nothing to find, and ten ranked questions put the hardest ones first. For them, run the short interview instead. It is also what a member gets when they say **"Interview me about my business"**.

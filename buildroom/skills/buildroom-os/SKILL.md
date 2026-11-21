@@ -46,7 +46,7 @@ Route goal-first: find the section that goal lives in, walk its `Requires` chain
 
 Welcome them in four sentences or less: what the Build Room is (guided weekly builds), what the Business File is (one file, every session reads and updates it, the work compounds), and what happens next.
 
-Then create their file: run the §1 Business Snapshot intake — the six snapshot fields, one question at a time, five minutes. Don't interview beyond §1; the build sessions do their own intake.
+Then run **the first session** without making them say another sentence: start the Discovery Engine session (`buildroom-discovery-engine`) and follow the section "The first session" in its `references/deep-discovery.md`. In short: ask for their website or LinkedIn address; if they have one and you can reach the web, read it and show them what you learned for them to correct, instead of opening with questions; ask only what is still missing from the Business Snapshot; and end by giving them their business on one page, in their own words, with three drafted ways to say what they do. Their Business File is created along the way. If that session cannot be started, fall back to the §1 Business Snapshot intake: the six snapshot fields, one question at a time, five minutes.
 
 Recommend the Ideal Client Avatar session first (it's the root of everything) and hand them the trigger phrase. Mention the Compass once as an optional thirty-minute start ("Build my compass") for a member who wants every later session to sound like them from day one; it is never a requirement, and the Avatar comes first either way. Then and emit their new Business File per the protocol so they can save it before they go.
 

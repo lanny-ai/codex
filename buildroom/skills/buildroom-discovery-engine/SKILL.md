@@ -49,6 +49,8 @@ When the subject is the member's own business, Phases 1 to 4 are replaced by `re
 5. **Ask the gaps** from `discover.py gaps`: at most ten, one at a time. Record a skip in `skipped`; it is not asked again, and neither is a question answered with "none". A guess the member only says yes to is recorded with `guess_ok`: their approval of your wording, not their words.
 6. **Say how ready the file is** with `discover.py ready`, as a guide and not a measurement. When it says not ready, say so plainly, recommend answering the named questions, and do not recommend Autopilot.
 
+**A brand-new member** (handed over by the navigator after "I'm new here. Help me get started.") gets **the first session** in `deep-discovery.md`: ask for their website, show what you learned from it for them to correct, ask only what is missing, and end with `scripts/onepage.py`: their business on one page in their own words, with three drafted ways to say what they do.
+
 **Little written down?** When the member says "Interview me about my business", or there is almost nothing to read, run the Quick Start in `deep-discovery.md` instead of steps 2 to 5: `discover.py interview` prints a short interview in three blocks, easy facts first; record each answer in their words; `discover.py onepage` gives them their business on one page, in their own words; then `ready`.
 
 Deep Discovery ends with the page, the ledger, the two lists and the Business File update. It produces no Discovery Brief and asks for no 1 to 5 rating. If the member also wants the ten Genie outputs, go on to Phase 5 and fill the 36-question answer sheet from the ledger.
