@@ -4,6 +4,7 @@
 Usage:  python3 buildroom/tests/autopilot/run_tests.py
 """
 import copy, importlib.util, json, re, subprocess, sys, tempfile
+from html import escape as html_escape
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -182,6 +183,52 @@ def main():
     check("reveal: standard library only, no network", not any(x in rsrc for x in ("requests", "urllib", "socket", "http.client", "subprocess")))
     ref = (SK / "references/foundation-reveal.md").read_text()
     check("reveal: every field the page knows is documented", all(f"`{k}`" in ref for _p, _t, fs in rm.PARTS for k, _l, _k in fs))
+
+    # ---- Your Build: the handover page ---------------------------------------------------------
+    HV = SK / "scripts/handover.py"
+    H = tmp / "member"
+    (H / "docs").mkdir(parents=True)
+    (H / "BUILDROOM_BUSINESS_FILE.md").write_text(tpl.replace("**Business:** [business name]", "**Business:** Harbor <Coaching>"))
+    for n in ("ICA", "Offer", "Pos", "Page"):
+        (H / "docs" / f"{n}.md").write_text("x")
+    HA = H / "autopilot"
+    hd = lambda slug, *a: run(AP, "done", "--dir", HA, slug, *a)  # noqa: E731
+    run(AP, "plan", "--dir", HA, "--no-web", "--skip", "leadgen")
+    hd("ideal-client-avatar", "--status", "drafted", "--outputs", "docs/ICA.md", "--gaps", "Two real client <quotes>")
+    hd("signature-offer", "--status", "drafted", "--outputs", "docs/Offer.md")
+    hd("positioning-messaging", "--status", "drafted", "--outputs", "docs/Pos.md")
+    hp = HA / "Your_Build.html"
+    code, out = run(HV, "build", "--dir", HA, hp)
+    h0 = hp.read_text()
+    check("handover: builds before the review too, and says the foundation is not approved", code == 0 and "It has not been approved yet, so nothing after it has run." in h0 and "The run is not finished." in h0)
+    run(AP, "approve", "--dir", HA, "--words", "go")
+    hd("offer-deep-dive", "--status", "blocked", "--note", "No competitor prices found")
+    hd("offer-page-copy", "--status", "drafted", "--outputs", "docs/Page.md", "docs/Gone.md", "../../outside.md", "--gaps", "A photo of you", "Two testimonials", "--note", "Uses your guarantee wording exactly.")
+    (tmp / "outside.md").write_text("not theirs to link")
+    code, out = run(HV, "build", "--dir", HA, hp)
+    hh = hp.read_text()
+    check("handover: one self-contained page, named for the business from the Business File", code == 0 and hh.startswith("<!doctype html>") and "<title>Your Build · Harbor &lt;Coaching&gt;</title>" in hh
+          and not re.search(r'(src|href)="https?:', hh) and "@import" not in hh and "url(" not in hh)
+    check("handover: counts drafted pieces, open items and waiting sessions", "<b>4</b><span>pieces drafted for you" in hh and "<b>3</b><span>things in them that still need you" in hh
+          and f"<b>{sum(1 for t in am.TOOLS if t[3] == 'needs_you')}</b><span>sessions waiting" in hh)
+    check("handover: each drafted document that exists is a link, relative to the page", 'href="../docs/ICA.md"' in hh and 'href="../docs/Page.md"' in hh)
+    check("handover: a missing file is named, not linked; a file outside the member's folder is never linked", "docs/Gone.md <span" in hh and 'href="../docs/Gone.md"' not in hh
+          and "outside.md</a>" not in hh and "not found where it was saved" in hh)
+    check("handover: what still needs the member is a checklist, escaped", hh.count('type="checkbox"') == 3 and "Two real client &lt;quotes&gt;" in hh and "<quotes>" not in hh)
+    check("handover: says what could not be drafted and gives the sentence to run it", "No competitor prices found" in hh and "Could not be drafted" in hh and 'data-say="Make my offer a no-brainer"' in hh)
+    check("handover: lists what was left out and what was not reached", "Left out" in hh and "left out at the member&#x27;s request" in hh and "Not reached yet" in hh and "The run stopped before this step." in hh)
+    check("handover: every session that needs the member, with its reason and a copy button",
+          all(f"Not run because {html_escape(t[4])}." in hh and f'data-say="{html_escape(t[2])}"' in hh for t in am.TOOLS if t[3] == "needs_you"))
+    check("handover: links to the foundation page only when it exists", "Open your foundation page" not in hh)
+    (HA / "Foundation_Reveal.html").write_text("<html></html>")
+    run(HV, "build", "--dir", HA, hp)
+    check("handover: and does link it once it is there", 'href="Foundation_Reveal.html">Open your foundation page' in hp.read_text())
+    check("handover: says nothing was published and promises no results", "Nothing was published, sent or paid for." in hh and "nothing on it promises results" in hh)
+    check("handover: prints cleanly, works on a phone, no long dashes", "@media print" in hh and "@media (max-width:760px)" in hh and "\u2014" not in hh and "\u2013" not in hh)
+    check("handover: every drafted tool has a plain line saying what it is for", all(t[0] in mod(HV, "handover").FOR for t in am.TOOLS if t[3] in ("foundation", "auto")))
+    check("handover: output must be an .html file, and a missing run is refused", run(HV, "build", "--dir", HA, tmp / "x.txt")[0] != 0 and run(HV, "build", "--dir", tmp / "none", tmp / "x.html")[0] != 0)
+    hsrc = HV.read_text()
+    check("handover: standard library only, no network", not any(x in hsrc for x in ("requests", "urllib", "socket", "http.client", "subprocess")))
 
     # ---- the skill's instructions ------------------------------------------------------------------
     sk = (SK / "SKILL.md").read_text()
