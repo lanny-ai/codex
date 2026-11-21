@@ -136,7 +136,9 @@ The protocol says only member-confirmed content goes into the file. An Autopilot
 
 ## The handover
 
-Two things, both made by script from `run.json`:
+First the drafts are checked. `drafts.py check --dir autopilot` reads every draft against the member's retired lines, their guarantee, the figures that are actually known, the client words they have permission to use, and what they refuse to claim. It is the last line of defence, not the first: a session still writes carefully. A `FIX` is corrected in the draft. A `LOOK` is a sentence near something the member refuses to claim; read it and reword it if it comes close. The Your Build page will not build while a `FIX` remains.
+
+Then two things, both made by script from `run.json`:
 
 - `autopilot.py report`: what was drafted and where it is saved, what was only partly drafted, what could not be drafted and why, what the member told you at the start, and every "needs you" tool with the sentence that starts it. It opens with **What to do first**: the gaps that come up in more than one draft, which are the few answers that improve the most.
 - `handover.py build`: the same, as the **Your Build** page, with a link to each document and a checklist the member can tick.

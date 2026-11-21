@@ -328,7 +328,7 @@ def main():
     (H / "autopilot/drafts").mkdir(parents=True)
     (H / "BUILDROOM_BUSINESS_FILE.md").write_text(tpl.replace("**Business:** [business name]", "**Business:** Harbor <Coaching>"))
     for n in ("01_ICA", "02_Offer", "03_Pos", "04_Page"):
-        (H / "autopilot/drafts" / f"{n}.md").write_text("x")
+        (H / "autopilot/drafts" / f"{n}.md").write_text("Draft by Autopilot on 2026-11-21. Nothing here is published. Check it before you use it.\n\nx")
     HA = H / "autopilot"
     hd = lambda slug, *a: run(AP, "done", "--dir", HA, slug, *a)  # noqa: E731
     run(AP, "plan", "--dir", HA, "--readiness", "74", "--no-web", "--skip", "leadgen")
@@ -368,6 +368,67 @@ def main():
     check("handover: every drafted tool has a plain line saying what it is for", all(t[0] in mod(HV, "handover").FOR for t in am.TOOLS if t[3] in ("foundation", "auto")))
     check("handover: output must be an .html file, and a missing run is refused", run(HV, "build", "--dir", HA, tmp / "x.txt")[0] != 0 and run(HV, "build", "--dir", tmp / "none", tmp / "x.html")[0] != 0)
     hsrc = HV.read_text()
+    # ---- the draft check: the last line of defence before the handover ---------------------------
+    DC = SK / "scripts/drafts.py"
+    C = tmp / "dc"
+    (C / "autopilot/drafts").mkdir(parents=True)
+    (C / "discovery").mkdir()
+    CA = C / "autopilot"
+    (C / "BUILDROOM_BUSINESS_FILE.md").write_text(tpl.replace("- **Current price / price range:**", "- **Current price / price range:** $4,800")
+        .replace("each one in quotation marks, separated by semicolons):", "each one in quotation marks, separated by semicolons): “Featured in Ceramics Monthly”"))
+    (C / "discovery/ledger.json").write_text(json.dumps({"findings": [
+        {"field": "x.proof", "value": "22 to 41 students", "quote": "We went from 22 to 41 students in a term", "permission": "no", "source": {"kind": "file", "ref": "wins.md"}, "confidence": "likely"},
+        {"field": "x.proof", "value": "Waitlist of 30%", "quote": "I have a waitlist for the first time, about 30% over", "permission": "yes", "source": {"kind": "file", "ref": "wins.md"}, "confidence": "likely"},
+        {"field": "1.price", "value": "$3,000", "source": {"kind": "file", "ref": "Old/p.md"}, "confidence": "inferred", "stale": True}]}))
+    run(AP, "plan", "--dir", CA, "--readiness", "80", "--no-web")
+    for k, v in (("guarantee", "none"), ("never_claim", "Doubling enrollment or revenue"), ("retired", "the name Studio Growth Sprint")):
+        run(AP, "decide", "--dir", CA, "--key", k, "--value", v)
+    HEAD = "Draft by Autopilot on 2026-11-21. Nothing here is published. Check it before you use it.\n\n"
+    def drafts(page, notes="x"):
+        (CA / "drafts/04_Offer_Page_Copy.md").write_text(page)
+        (CA / "drafts/01_Ideal_Client_Avatar.md").write_text(HEAD + notes)
+        j = json.loads((CA / "run.json").read_text())
+        for st in j["steps"]:
+            if st["slug"] == "offer-page-copy":
+                st.update(status="drafted", outputs=[D + "04_Offer_Page_Copy.md"])
+            if st["slug"] == "ideal-client-avatar":
+                st.update(status="drafted", outputs=[D + "01_Ideal_Client_Avatar.md"])
+        (CA / "run.json").write_text(json.dumps(j))
+        return run(DC, "check", "--dir", CA)
+    code, out = drafts(HEAD + "Classes that fill. The program is $4,800.\n\n“I have a waitlist for the first time, about 30% over”\n\nThere is no guarantee, and I do not promise to double anything.\n\n## Guarantee\n\n[needs you: a result you have permission to use, with its $ figure]")
+    check("drafts: an honest draft passes, with the member's price, a permitted quote and a plain 'no guarantee'", code == 0 and "0 to fix" in out, out)
+    code, out = drafts(HEAD + "Formerly the Studio Growth Sprint.\nAs featured in Ceramics Monthly!")
+    check("drafts: a line retired in the Business File or at the start of the run is refused", code == 1 and out.count("uses a line the member retired") == 2, out)
+    code, out = drafts(HEAD + "Most studios add $12,000 a year, a 40% lift.\nIt used to be $3,000.")
+    check("drafts: a figure nobody confirmed is refused, and so is an old price", code == 1 and "$12,000" in out and "40%" in out and "$3,000" in out, out)
+    code, out = drafts(HEAD + "Results are guaranteed.\nOr your money back.\nWe double your enrollment.")
+    check("drafts: an offered guarantee the member does not have, and a promise to double, are refused", code == 1 and out.count("offers a guarantee or refund, and the member has none") == 2 and "reads as a promise of an outcome" in out, out)
+    code, out = drafts(HEAD + "“We went from 22 to 41 students in a term”", "Client words: “We went from 22 to 41 students in a term”")
+    check("drafts: a client's words without permission are refused in public copy and flagged in the member's notes", code == 1 and out.count("FIX") == 1 and "04_Offer_Page_Copy.md: uses a client's words without permission" in out
+          and "LOOK  drafts/01_Ideal_Client_Avatar.md: quotes a client without permission" in out, out)
+    code, out = drafts(HEAD + "x", "“We went from 22 to 41 students in a term” (not for public quoting)")
+    check("drafts: marked not for public quoting in the member's notes, it is left alone", code == 0 and "LOOK" not in out, out)
+    code, out = drafts(HEAD + "Enrollment that keeps growing, term after term.\nMore revenue from the classes you already run, and fuller enrollment.")
+    check("drafts: a sentence near what the member refuses to claim is listed to be read, not refused", code == 0 and out.count("LOOK") == 1 and "Doubling enrollment or revenue" in out, out)
+    code, out = drafts("Classes that fill.")
+    check("drafts: a draft that does not say it is a draft is refused", code == 1 and "must say it is a draft" in out)
+    run(AP, "decide", "--dir", CA, "--key", "guarantee", "--value", "If your books are not closed by the 10th, that month is free.")
+    code, out = drafts(HEAD + "Closed by the 10th, guaranteed.")
+    check("drafts: with a guarantee, offering it needs the member's exact wording in the draft", code == 1 and "exact wording is nowhere in the draft" in out, out)
+    code, out = drafts(HEAD + "Closed by the 10th, guaranteed. If your books are not closed by the 10th, that month is free.")
+    check("drafts: and passes when the wording is there", code == 0, out)
+    drafts(HEAD + "We double your enrollment.")
+    code, out = run(HV, "build", "--dir", CA, CA / "Your_Build.html")
+    check("handover: will not build while a draft holds something to fix", code != 0 and "must be fixed before the handover" in out and not (CA / "Your_Build.html").exists(), out)
+    drafts(HEAD + "Classes that fill.")
+    check("handover: builds once the drafts pass", run(HV, "build", "--dir", CA, CA / "Your_Build.html")[0] == 0)
+    hb = (CA / "Your_Build.html").read_text()
+    check("handover: the sessions most members reach for come first, the rest behind one click", hb.index("Proof Engine") < hb.index("<details") < hb.index("Hiring Ad") and "more, for when you need them" in hb)
+    dsrc = DC.read_text()
+    check("drafts: standard library only, no network, writes nothing", not any(x in dsrc for x in ("requests", "urllib", "socket", "http.client", "subprocess", "write_text", "open(")))
+    check("skill: the drafts are checked before the handover, and the rule is never deleted to pass", "drafts.py check --dir autopilot" in (SK / "SKILL.md").read_text() and "Never get past it by deleting the rule." in (SK / "SKILL.md").read_text()
+          and "last line of defence" in (SK / "references/autopilot-method.md").read_text())
+
     check("handover: standard library only, no network", not any(x in hsrc for x in ("requests", "urllib", "socket", "http.client", "subprocess")))
 
     # ---- the skill's instructions ------------------------------------------------------------------

@@ -7,7 +7,10 @@ It reads autopilot/run.json (written by autopilot.py) and lists what was drafted
 what each draft still needs from the member, what could not be drafted, and the sessions that need the member,
 each with the sentence that starts it. One self-contained file. It works offline and prints cleanly.
 
-Standard library only. It reads run.json and writes one HTML file. Nothing else.
+It will not build while a draft holds something that must not be there (a retired line, a figure nobody confirmed,
+a guarantee the member does not have, a client's words used without permission). drafts.py does that check.
+
+Standard library only. It reads run.json and the drafts, and writes one HTML file. Nothing else.
 """
 import argparse, html, importlib.util, json, os, re, sys
 from pathlib import Path
@@ -17,6 +20,12 @@ _spec = importlib.util.spec_from_file_location("autopilot_keeper", HERE / "autop
 keeper = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(keeper)
 TOOL = keeper.TOOL
+_spec = importlib.util.spec_from_file_location("autopilot_drafts", HERE / "drafts.py")
+drafts = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(drafts)
+
+# The sessions most members reach for first after a run. The rest sit behind one click, so the page is not a wall.
+NEXT_UP = ("proof-engine", "offer-deep-dive", "compass", "linkedin", "search-answer-engine", "funnel-scorecard")
 
 # What each drafted piece is for, in a line the member would say.
 FOR = {
@@ -87,11 +96,13 @@ ul{margin:0;padding:0;list-style:none}
 footer{padding:34px 0 46px;color:var(--mute);font-size:15px}
 .btn{appearance:none;border:0;cursor:pointer;font:700 16px/1 var(--sans);padding:14px 20px;border-radius:999px;color:#fff;background:var(--navy)}
 @media (max-width:760px){body{font-size:17px}.wrap{padding:0 16px}.grid,.stats,.first{grid-template-columns:1fr}.card{padding:22px 18px}.cover{padding:44px 0 40px}}
+.more{margin-top:18px}.more summary{cursor:pointer;font:600 17px/1.3 var(--sans);color:var(--navy);padding:12px 0}.more .grid{margin-top:8px}
 @media print{body{background:#fff;font-size:11pt}.cover,.hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}.noprint,.say small{display:none}.card{break-inside:avoid;box-shadow:none}section{padding-top:22px}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 """
 
 JS = """
+window.addEventListener("beforeprint",function(){document.querySelectorAll("details").forEach(function(d){d.open=true})});
 const KEY='br-your-build-'+document.title;
 let saved={};try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
 const boxes=[...document.querySelectorAll('.todo input')];
@@ -201,9 +212,13 @@ def build(run, folder, page_dir, business):
         o.append('</section>')
 
     o.append('<section><div class="num">Yours to start</div><h2>Sessions that need you</h2><p class="sub">These depend on something only you have, so Autopilot left them alone. Not all of them will fit your business; pick what does. Each starts with one sentence. Press it to copy, then paste it into Claude or Codex.</p><div class="grid">')
-    for _slug, name, phrase, _mode, why in needs:
-        o.append(f'<div class="card"><h3>{E(name)}</h3><p class="why">Not run because {E(why)}.</p>{say(phrase)}</div>')
-    o.append('</div></section>')
+    card = lambda t: f'<div class="card"><h3>{E(t[1])}</h3><p class="why">Not run because {E(t[4])}.</p>{say(t[2])}</div>'  # noqa: E731
+    first = [t for t in needs if t[0] in NEXT_UP]
+    rest = [t for t in needs if t[0] not in NEXT_UP]
+    o.append("".join(card(t) for t in first) + '</div>')
+    if rest:
+        o.append(f'<details class="more"><summary>{len(rest)} more, for when you need them</summary><div class="grid">' + "".join(card(t) for t in rest) + '</div></details>')
+    o.append('</section>')
 
     o.append('<section class="noprint"><button class="btn" id="print" type="button">Print or save as PDF</button></section>')
     o.append(f'</main><footer class="wrap">Build Room OS, from AI Momentum Labs. This page lists drafts on your own computer. Nothing here was published, sent or paid for, '
@@ -226,11 +241,18 @@ def main():
     out = Path(a.out)
     if out.suffix.lower() != ".html":
         sys.exit("The output file must end in .html")
+    fixes, looks, _n = drafts.problems(a.dir)
+    if fixes:
+        for x in fixes:
+            print("FIX  " + x, file=sys.stderr)
+        sys.exit(f"{len(fixes)} thing(s) in the drafts must be fixed before the handover. Fix them in the drafts, then build again. (drafts.py check lists them.)")
     folder = Path(a.dir).resolve().parent
     business = (a.business or business_name(folder)).strip()
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(build(run, folder, out.parent, business), encoding="utf-8")
     print(f"Wrote {out}. Open it in a browser.")
+    for x in looks:
+        print("LOOK  " + x)
 
 
 if __name__ == "__main__":

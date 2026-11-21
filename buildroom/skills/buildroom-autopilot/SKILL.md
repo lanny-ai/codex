@@ -22,7 +22,8 @@ Read these before any member-facing work:
 Three helpers, all standard library only:
 - **`scripts/autopilot.py`** keeps the plan, the member's decisions, the order, the review gate and the final report.
 - **`scripts/reveal.py`** checks the foundation and builds the review page.
-- **`scripts/handover.py`** builds the Your Build page at the end.
+- **`scripts/drafts.py`** reads every finished draft and refuses what must not be in it.
+- **`scripts/handover.py`** builds the Your Build page at the end. It will not build until the drafts pass.
 
 ## Prerequisites
 
@@ -90,10 +91,11 @@ If the run is cut short, the state is already saved. Tell the member how far it 
 
 ### Phase 5: The handover
 
-1. `autopilot.py report`, saved as `autopilot/Autopilot_Report.md`.
-2. `handover.py build --dir autopilot autopilot/Your_Build.html`. Tell the member to open it in their browser.
-3. Update the Business File as the method says: one §8 row for the run that names every draft. The sections the Phase 4 sessions own are left as they are.
-4. Close with the three things from the top of the report's "What to do first", in the member's terms. Then the one session to run themselves next: usually **Proof Engine** ("Capture this win") when they have clients, and the questions still open when they do not.
+1. **Check the drafts:** `drafts.py check --dir autopilot`. Fix every `FIX` line in the draft itself: a retired line, a figure nobody confirmed, a guarantee the member does not have, a client's words in public copy without permission. Read every `LOOK` line against what the member refuses to claim and reword any that comes close. Run it again until nothing is left to fix. Never get past it by deleting the rule.
+2. `autopilot.py report`, saved as `autopilot/Autopilot_Report.md`.
+3. `handover.py build --dir autopilot autopilot/Your_Build.html`. It runs the same check and refuses to build while a `FIX` remains. Tell the member to open it in their browser.
+4. Update the Business File as the method says: one §8 row for the run that names every draft. The sections the Phase 4 sessions own are left as they are.
+5. Close with the three things from the top of the report's "What to do first", in the member's terms. Then the one session to run themselves next: usually **Proof Engine** ("Capture this win") when they have clients, and the questions still open when they do not.
 
 ## Voice & Style Rules
 
