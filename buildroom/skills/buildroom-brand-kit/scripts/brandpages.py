@@ -142,6 +142,33 @@ def logo_parts(kit, base):
             "shape": mark.get("shape", "square"), "layout": lg.get("layout", "text"), "radius": (kit.get("shape") or {}).get("radius_px", 4)}
 
 
+def typed_mark_parts(kit, base):
+    """A small typed mark for a member who has a logo but no square version: their letters, their typeface, their colors."""
+    lg = kit["logo"]
+    mark = lg.get("mark") or {}
+    font = kit["fonts"][mark.get("font", "head")]
+    weight = mark.get("weight") or font.get("weight") or 700
+    file = pick_file(font, base, weight)
+    fobj = bl.open_font(file) if file else None
+    letters = cased(mark.get("letters") or kit["name"][:1], mark.get("case", "upper"))
+    mrun = _text_run(fobj, font["family"], letters, 100, float(mark.get("tracking_em", 0)), None, weight, file if not fobj else None)
+    return {"mrun": mrun, "letters": letters, "shape": mark.get("shape", "square"), "radius": (kit.get("shape") or {}).get("radius_px", 4), "outlined": mrun[4]}
+
+
+def trim_of(path):
+    """How much empty margin a PNG logo carries, as CSS inset percentages (top right bottom left), or None when it is tight."""
+    p = Path(path)
+    if p.suffix.lower() != ".png" or not p.is_file():
+        return None
+    box = bl.png_content_box(p.read_bytes())
+    if not box:
+        return None
+    l, t, r, b = box
+    if max(l, t, 1 - r, 1 - b) < 0.04:
+        return None
+    return [round(x * 100, 2) for x in (t, 1 - r, 1 - b, l)]
+
+
 def mark_svg(parts, col, size=100, standalone=True):
     """The small mark: one to three letters, bare or on a square or circle of the accent color."""
     frag, w, top, bottom, _ = parts["mrun"]
@@ -198,20 +225,34 @@ def logo_set(kit, base):
         # is missing, the business name is set in type instead, so the gap is plain to see.
         pick = (lambda light, dark: dark if bl.is_dark(own["bg"]) else light)
         on_light, on_dark, mark_l, mark_d = (lg.get(x) for x in ("on_light", "on_dark", "mark_on_light", "mark_on_dark"))
-        return {"kind": "files", "on_own": pick(on_light, on_dark), "on_reverse": pick(on_dark, on_light),
-                "mark_own": pick(mark_l, mark_d), "mark_reverse": pick(mark_d, mark_l), "outlined": True}
+        out = {"kind": "files", "on_own": pick(on_light, on_dark), "on_reverse": pick(on_dark, on_light),
+               "mark_own": pick(mark_l, mark_d), "mark_reverse": pick(mark_d, mark_l), "outlined": True, "typed_mark": False, "trim": {}}
+        if lg.get("mark") and not (mark_l or mark_d):            # a typed mark the member agreed to, beside their own logo
+            parts = typed_mark_parts(kit, base)
+            out.update(mark_own=mark_svg(parts, own), mark_reverse=mark_svg(parts, rev), typed_mark=True, outlined=parts["outlined"])
+        for key in ("on_own", "on_reverse", "mark_own", "mark_reverse"):
+            v = out.get(key)
+            if v and not v.startswith("<svg"):
+                t = trim_of(Path(base) / v)
+                if t:
+                    out["trim"][key] = t
+        return out
     return {"kind": "none"}
 
 
 def logo_inner(ls, key, base, out_dir, kit, embed=False):
-    """The logo itself: inline vector for a wordmark kit, an image for the member's own file, "" when there is none."""
-    if ls["kind"] == "wordmark":
-        return ls[key]
-    if ls["kind"] == "files" and ls.get(key):
-        p = Path(base) / ls[key]
-        src = bl.data_uri(p) if embed and p.is_file() else bl.rel(p, out_dir)
-        return f'<img src="{esc(src)}" alt="{esc(kit["name"])} logo">'
-    return ""
+    """The logo itself: inline vector for a logo made here, an image for the member's own file, "" when there is none.
+    A PNG with wide empty margins is shown cropped to its picture; the file itself is never changed."""
+    v = ls.get(key)
+    if not v:
+        return ""
+    if v.startswith("<svg"):
+        return v
+    p = Path(base) / v
+    src = bl.data_uri(p) if embed and p.is_file() else bl.rel(p, out_dir)
+    t = (ls.get("trim") or {}).get(key)
+    crop = f' style="object-view-box:inset({t[0]}% {t[1]}% {t[2]}% {t[3]}%)"' if t else ""
+    return f'<img src="{esc(src)}" alt="{esc(kit["name"])} logo"{crop}>'
 
 
 def logo_html(ls, key, base, out_dir, kit, cls="logo", embed=False):
@@ -230,7 +271,7 @@ APP_CSS = """
 .app .logo{display:block;line-height:0}.app .logo svg,.app .logo img{height:100%;width:auto;display:block}
 .app .logo.typed{font-family:var(--fh);font-weight:var(--wh);line-height:1}
 .post{aspect-ratio:4/5;padding:9cqw;display:flex;flex-direction:column}
-.post .logo{height:7.4cqw;font-size:5cqw}
+.post .logo{height:9cqw;font-size:5cqw}
 .post h4{font:var(--wh) 10.4cqw/1.06 var(--fh);letter-spacing:-.015em;margin:auto 0 0;text-wrap:balance}
 .post h4 b{font-weight:inherit;color:var(--accent)}
 .post .by{margin-top:7cqw;padding-top:4cqw;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:3.5cqw;color:var(--muted);gap:4cqw}
@@ -238,7 +279,7 @@ APP_CSS = """
 .site{aspect-ratio:16/10;display:grid;grid-template-columns:1.15fr .85fr}
 .site .l{padding:5cqw 5cqw 5cqw 5.5cqw;display:flex;flex-direction:column;min-width:0}
 .site .nav{display:flex;justify-content:space-between;align-items:center}
-.site .nav .logo{height:3.6cqw;font-size:2.8cqw}
+.site .nav .logo{height:4.6cqw;font-size:2.8cqw}
 .site .nav i{display:flex;gap:2.4cqw}.site .nav i span{width:5cqw;height:.7cqw;background:var(--line);border-radius:9px}
 .site h4{font:var(--wh) 5.6cqw/1.08 var(--fh);letter-spacing:-.015em;margin:auto 0 0;text-wrap:balance}
 .site p{font-size:2.15cqw;line-height:1.5;color:var(--muted);margin:2.2cqw 0 0;max-width:38ch}
@@ -335,7 +376,7 @@ section.dir{padding:48px clamp(16px,4vw,56px) 56px;border-bottom:1px solid #e3e5
 .spec{margin-top:20px;border:1px solid #e3e5e8;padding:22px 24px;background:var(--bg)}
 .spec .big{font:var(--wh) 44px/1.05 var(--fh);letter-spacing:-.015em;color:var(--ink)}
 .spec .bod{font:400 var(--base)/1.55 var(--fb);color:var(--ink);margin-top:14px;max-width:60ch}
-.spec .cap{font-size:13px;color:#5b6168;margin-top:14px}
+.spec .cap{font-size:13px;color:var(--muted);margin-top:14px}
 .apps{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,5fr);gap:16px;align-items:start}
 .apps .wide{grid-column:1/-1}
 .cap2{font-size:13px;color:#6b7178;margin:6px 0 0}
@@ -389,7 +430,7 @@ SHEET_CSS = """
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:var(--base)/1.55 var(--fb)}
 .wrap{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,48px)}
-.cover{min-height:56vh;display:flex;flex-direction:column;justify-content:space-between;padding-top:48px;padding-bottom:40px;border-bottom:1px solid var(--line)}
+.cover{min-height:420px;gap:72px;display:flex;flex-direction:column;justify-content:space-between;padding-top:48px;padding-bottom:40px;border-bottom:1px solid var(--line)}
 .cover .logo{display:block;line-height:0;max-width:min(620px,82%)}.cover .logo svg,.cover .logo img{width:100%;height:auto;max-height:240px}
 .cover .logo.typed{font:var(--wh) clamp(40px,8vw,96px)/1 var(--fh)}
 .cover dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px 32px;margin:0;font-size:15px}
@@ -434,7 +475,7 @@ USE = {"bg": "The page itself.", "surface": "Panels, cards and table stripes.", 
        "accent_ink": "Text on the accent color.", "line": "Borders and dividers."}
 
 
-def sheet_html(kit, base, out_dir, files, version, locked, embed=False):
+def sheet_html(kit, base, out_dir, files, version, locked, embed=False, draft=False):
     ls = logo_set(kit, base)
     own, rev = grounds(kit)
     f, c = kit["fonts"], kit["colors"]
@@ -450,6 +491,13 @@ def sheet_html(kit, base, out_dir, files, version, locked, embed=False):
                   "On screen the wordmark is never narrower than 120 pixels. In print, never narrower than 25 mm. The small mark is never under 24 pixels.",
                   "Use the dark-ground version on dark backgrounds and photographs. Put a plain panel behind the logo on a busy photo.",
                   "Never stretch it, tilt it, recolor it outside this palette, or add a shadow, an outline or a glow."]
+    own_rules = [str(r).strip() for r in (kit.get("logo") or {}).get("rules") or [] if str(r).strip()]
+    if own_rules:                                     # the rules that came with the member's logo come first and win
+        if any("photo" in r.lower() for r in own_rules):
+            logo_rules[2] = "Use the dark-ground version on dark backgrounds."
+        logo_rules = own_rules + logo_rules
+    if ls.get("typed_mark"):
+        logo_rules.append("The small mark is new: your letters in your own typeface and color, made here for profile pictures because no square version of the logo exists. Your logo itself is unchanged.")
     if wordmark and not ls["outlined"]:
         logo_rules.append("These logo files carry live text, so they need the font installed wherever they are opened. A designer can convert them to outlines in a few minutes.")
     gap = ""
@@ -457,19 +505,23 @@ def sheet_html(kit, base, out_dir, files, version, locked, embed=False):
         which = "dark" if (ls.get("on_own") and not bl.is_dark(own["bg"])) or (ls.get("on_reverse") and bl.is_dark(own["bg"])) else "light"
         gap = (f'<p class="cap2">There is no logo file for {which} backgrounds yet. Until there is one, the business name is set in type there, as shown. '
                f'Ask whoever made the logo for a version for {which} backgrounds.</p>')
-        logo_rules[2] = f"Use the logo only on {'light' if which == 'dark' else 'dark'} backgrounds until a version for {which} backgrounds exists. Never place it on a busy photo without a plain panel behind it."
+        logo_rules = [r for r in logo_rules if not r.startswith("Use the dark-ground version")]
+        logo_rules.append(f"Use the logo only on {'light' if which == 'dark' else 'dark'} backgrounds until a version for {which} backgrounds exists.")
     mark_tiles = [f'<div class="tile mk" style="background:{g["bg"]}">{L(key)}</div>' for key, g in (("mark_own", own), ("mark_reverse", rev)) if ls.get(key)]
     marks = (f'<div class="two" style="margin-top:16px">{"".join(mark_tiles)}</div>'
              '<p class="cap2">The small mark, for profile pictures, browser tabs and anywhere the full name will not fit.</p>') if mark_tiles else ""
     if ls["kind"] == "files" and not mark_tiles:
-        logo_rules[1] = "On screen the logo is never narrower than 120 pixels. In print, never narrower than 25 mm. There is no small square mark yet: ask whoever made the logo for one, for profile pictures and browser tabs."
-    rows = "".join(f'<tr><td><span class="chip" style="background:{c[k]}"></span>{bl.LABELS[k]}</td><td>{c[k].upper()}</td><td>{USE[k]}</td></tr>' for k in bl.COLOR_KEYS)
-    pair_name = {("ink", "bg"): "Text on the page", ("muted", "bg"): "Quiet text on the page", ("ink", "surface"): "Text on a panel",
+        logo_rules = [r for r in logo_rules if not r.startswith("On screen the wordmark")]
+        logo_rules.append("On screen the logo is never narrower than 120 pixels. In print, never narrower than 25 mm. There is no small square mark yet: ask whoever made the logo for one, for profile pictures and browser tabs.")
+    own_hex = {bl.norm_hex(p.get("hex")) for p in kit.get("palette") or [] if isinstance(p, dict)}
+    whose = lambda k: ("your brand color" if c[k] in own_hex else "white" if c[k] == "#ffffff" else "black" if c[k] == "#000000" else "a working shade added for this job")
+    rows = "".join(f'<tr><td><span class="chip" style="background:{c[k]}"></span>{bl.LABELS[k]}</td><td>{c[k].upper()}</td><td>{USE[k]}</td><td>{whose(k)}</td></tr>' for k in bl.COLOR_KEYS)
+    pair_name = {("ink", "bg"): "Text on the page", ("muted", "bg"): "Quiet text on the page", ("ink", "surface"): "Text on a panel", ("muted", "surface"): "Quiet text on a panel",
                  ("accent_ink", "accent"): "Text on the accent", ("accent", "bg"): "The accent on the page"}
     pairs = "".join(f'<tr><td><span class="pair" style="background:{c[b]};color:{c[a]}">{pair_name[(a, b)]}</span></td>'
                     f'<td>{bl.contrast(c[a], c[b])}:1</td><td>needs {need}:1</td></tr>' for a, b, need in bl.PAIRS)
     sizes = [(n, base_px * scale ** n) for n in (4, 3, 2, 1)]
-    head = sample.get("headline", kit["name"]).replace("*", "")
+    head = kit["name"]
 
     def fit(text, px):
         out = ""
@@ -501,6 +553,7 @@ def sheet_html(kit, base, out_dir, files, version, locked, embed=False):
 <p style="margin-bottom:0">"Here is our brand kit. Keep the typeface, the colors and the wordmark as they are. Design one simple symbol that sits to the left of the wordmark and also works alone as a profile picture at 24 pixels, in one color. Deliver vector files (SVG and PDF) for a light and a dark ground."</p></div>"""
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{esc(kit['name'])}: brand kit</title>{link}<style>{css}:root{{{css_vars(own, kit)};--base:{base_px}px;--cs:28px}}{SHEET_CSS}{APP_CSS}</style></head><body>
+{'<div style="background:var(--ink);color:var(--bg);padding:10px 16px;text-align:center;font-weight:700">Draft for you to check. Nothing is locked yet.</div>' if draft else ''}
 <header class="cover wrap">{L('on_own')}<div><p class="ttl">Brand kit</p><dl><div><dt>Business</dt><dd>{esc(kit['name'])}</dd></div><div><dt>Version</dt><dd>{version} · {esc(locked)}</dd></div>
 <div><dt>Source</dt><dd>{esc(src)}</dd></div><div><dt>Built for</dt><dd>{'readers aged 50 and over' if kit.get('audience', '50plus') == '50plus' else 'a general audience'}</dd></div></dl></div></header>
 <section class="s"><div class="wrap"><h2>Logo</h2><p class="lead">{'Your name, set in ' + esc(f[(kit['logo'].get('font') or 'head')]['family']) + ' and drawn as vector shapes, so it stays sharp at any size.' if wordmark else 'Your logo, as you supplied it.' if ls['kind'] == 'files' else 'There is no logo file yet. Wherever a logo would go, the business name is set in the heading typeface.'}</p>
@@ -509,7 +562,7 @@ def sheet_html(kit, base, out_dir, files, version, locked, embed=False):
 <h3>Rules</h3><ul class="rules">{''.join(f'<li>{esc(r)}</li>' for r in logo_rules)}</ul>{brief}</div></section>
 <section class="s"><div class="wrap"><h2>Color</h2><p class="lead">A small palette, each color with one job. Every text pairing below has been measured for readability.</p>
 <div class="sws">{swatches(kit)}</div>
-<h3>Where each color goes</h3><div class="scroll"><table><tr><th>Job</th><th>Color</th><th>Use it for</th></tr>{rows}</table></div>
+<h3>Where each color goes</h3><div class="scroll"><table><tr><th>Job</th><th>Color</th><th>Use it for</th><th>Where it comes from</th></tr>{rows}</table></div>
 <h3>Readable pairings</h3><div class="scroll"><table><tr><th>Pairing</th><th>Contrast</th><th>Standard</th></tr>{pairs}</table></div></div></section>
 <section class="s spec"><div class="wrap"><h2>Type</h2><p class="lead">Two typefaces. Headings carry the character, the text face does the reading.</p>
 <div class="dd"><div><div class="big">Aa</div><div class="fam">{esc(f['head']['family'])} · weight {esc(f['head'].get('weight', 700))} · headings · {esc(lic(f['head']))}</div></div>

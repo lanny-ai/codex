@@ -16,7 +16,7 @@ Never ask them to describe their taste in design words, and never ask for a favo
 
 If you can read web pages, look at up to three competitors they name. Note each one's ground, accent and typeface style in a line. The directions must not look like them.
 
-Then write the brief back in four lines and get a yes: who it is for, the three words, what it must not be, where it lives.
+Then write the brief back in four lines and get a yes: who it is for, the three words, what it must not be, where it lives. Save it as `Design/Brand/brief.md`.
 
 ## 2. Where a direction comes from
 
@@ -69,7 +69,7 @@ The logo is the business name, set in the heading typeface and drawn as real vec
          "mark": {"letters": "N", "shape": "square"}}
 ```
 
-- **text** is the real name, or the short form the member actually uses. Never an invented name. A long name ("Harbor & Pine Financial Planning") usually sets the short form large with the rest as the `descriptor`.
+- **text** is the real name, or the short form the member actually uses. Never an invented name. A long name ("Harbor & Pine Financial Planning") usually sets the short form large with the rest as the `descriptor`. The descriptor is the rest of the name and nothing else: `check` refuses a tagline, a year or a claim there.
 - **case:** `as-typed`, `upper` or `lower`. Capitals want a little positive tracking (0.02 to 0.06). Large lowercase and mixed case want zero or slightly negative (-0.02 to 0).
 - **kern:** if two letters sit badly, adjust that pair: `"kern": {"AV": -0.06}` (in em).
 - **layout:** `text` (name alone) or `mark-text` (the small mark to the left).
@@ -92,7 +92,7 @@ Each direction shows the logo on its own ground and reversed, the named colors, 
 Ask for reactions, not verdicts: "Which one would you be proud to hand to a client? Which one is not you? Anything you would take from one and put in another?"
 
 - A clear pick: write `kit.json` from it.
-- A mix: make it, show a two-direction board (the mix and the nearest original), and ask again.
+- A mix: make it, show a two-direction board (the mix and the nearest original) with `brandkit.py board … --mix`, and ask again.
 - None: ask what is wrong with each in their words, go back to the brief, and make three new ones. At most three rounds in total. If nothing lands after three, stop and say that a short session with a designer is the right next step; give them the brief you wrote.
 
 Then go to Phase 3 in the skill: confirm, write the do and do-not lines, lock.

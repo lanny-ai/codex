@@ -11,7 +11,7 @@ VAR_OF = {k: "--c-" + k.replace("_", "-") for k in COLOR_KEYS}
 LABELS = {"bg": "Page background", "surface": "Panels and cards", "ink": "Text", "muted": "Quiet text",
           "accent": "Accent (buttons, links)", "accent_ink": "Text on the accent", "line": "Lines and borders"}
 AA_TEXT, AA_LARGE = 4.5, 3.0
-PAIRS = [("ink", "bg", AA_TEXT), ("muted", "bg", AA_TEXT), ("ink", "surface", AA_TEXT),
+PAIRS = [("ink", "bg", AA_TEXT), ("muted", "bg", AA_TEXT), ("ink", "surface", AA_TEXT), ("muted", "surface", AA_TEXT),
          ("accent_ink", "accent", AA_TEXT), ("accent", "bg", AA_LARGE)]
 MIN_BODY = {"50plus": 18, "general": 16}
 # Fonts that arrive by default when nobody chooses. Fine when the member's own brand uses them; a tell in a new kit.
@@ -134,7 +134,7 @@ def best_on(bg, *candidates):
     return max(["#ffffff", "#111111"], key=lambda c: contrast(c, bg))
 
 
-def propose_roles(colors, dark=False):
+def propose_roles(colors, dark=False, page=None, text=None, accent=None):
     """Seven working roles from the brand's own colors. The brand colors stay exactly as given wherever they
     are used as fills; where one is too light or too dark to carry text, a text-safe shade is proposed beside it
     and listed in `changed`, so the member sees every color that is not literally theirs."""
@@ -146,6 +146,9 @@ def propose_roles(colors, dark=False):
     lightest = max(cols, key=luminance)
     primary = vivid[0] if vivid else darkest
     changed = {}
+    page, text, accent_given = norm_hex(page), norm_hex(text), norm_hex(accent)     # roles the brand guide itself states
+    if page:
+        dark = is_dark(page)
     if dark:
         bg = darkest if luminance(darkest) < 0.08 else mix(darkest, "#000000", 0.55)
         ink = lightest if luminance(lightest) > 0.7 else "#f5f5f2"
@@ -154,12 +157,24 @@ def propose_roles(colors, dark=False):
     else:
         bg = lightest if luminance(lightest) > 0.85 and not is_cream(lightest) or (lightest in cols and luminance(lightest) > 0.85) else "#ffffff"
         ink = darkest if luminance(darkest) < 0.06 else mix(darkest, "#000000", 0.6) if luminance(darkest) < 0.3 else "#15171a"
-        surface = mix(bg, primary, 0.05)
+        if page:
+            bg = page
+        if text and contrast(text, bg) >= AA_TEXT:
+            ink = text
+        surface = mix(bg, ink, 0.045)
         line = mix(bg, ink, 0.16)
     if ink not in cols:
         changed["ink"] = f"a near-{'white' if dark else 'black'} for text" + (f", darkened from {darkest}" if not dark and darkest != ink and luminance(darkest) < 0.3 else "")
     if bg not in cols:
         changed["bg"] = "a plain ground; none of the brand colors is a page background"
+    if dark and page:
+        bg = page
+        surface, line = mix(bg, "#ffffff", 0.07), mix(bg, "#ffffff", 0.2)
+        if text and contrast(text, bg) >= AA_TEXT:
+            ink = text
+    if accent_given:
+        vivid = [accent_given] + [c for c in vivid if c != accent_given]
+        primary = accent_given
     accent_pick = next((c for c in vivid if contrast(c, bg) >= AA_LARGE), None)
     if accent_pick:
         accent = accent_pick
@@ -170,7 +185,7 @@ def propose_roles(colors, dark=False):
         accent = shade_to_contrast(primary, bg, AA_LARGE)
         if accent != primary:
             changed["accent"] = f"{primary} shaded to {accent} so buttons and links show against the page; {primary} stays the brand color for large fills"
-    muted = shade_to_contrast(mix(ink, bg, 0.38), bg, AA_TEXT)
+    muted = shade_to_contrast(shade_to_contrast(mix(ink, bg, 0.38), bg, AA_TEXT), surface, AA_TEXT)
     acc_ink = best_on(accent, ink, bg)
     roles = {"bg": bg, "surface": surface, "ink": ink, "muted": muted, "accent": accent, "accent_ink": acc_ink, "line": line}
     for k in ("surface", "muted", "line"):
@@ -215,6 +230,70 @@ def jpeg_size(data):
             continue
         i += 2 + struct.unpack(">H", data[i + 2:i + 4])[0]
     return None
+
+
+def png_content_box(data, max_pixels=6_000_000):
+    """Where the picture actually is inside a PNG, as (left, top, right, bottom) fractions of its size, or None when it
+    cannot be read. For a transparent PNG that is the opaque part; for an opaque one, whatever differs from the corner."""
+    info = png_info(data)
+    if not info or info["depth"] != 8 or info["ctype"] not in (2, 6) or info["width"] * info["height"] > max_pixels:
+        return None
+    w, h, bpp = info["width"], info["height"], 4 if info["ctype"] == 6 else 3
+    pos, idat = 8, []
+    while pos + 8 <= len(data):
+        ln, typ = struct.unpack(">I4s", data[pos:pos + 8])
+        if typ == b"IHDR" and data[pos + 8 + 12]:
+            return None
+        if typ == b"IDAT":
+            idat.append(data[pos + 8:pos + 8 + ln])
+        pos += 12 + ln
+    try:
+        raw = zlib.decompress(b"".join(idat))
+    except zlib.error:
+        return None
+    stride = w * bpp
+    prev = bytearray(stride)
+    x0, y0, x1, y1 = w, h, -1, -1
+    corner = None
+    p = 0
+    for y in range(h):
+        f = raw[p]
+        line = bytearray(raw[p + 1:p + 1 + stride])
+        p += 1 + stride
+        if f == 1:
+            for i in range(bpp, stride):
+                line[i] = (line[i] + line[i - bpp]) & 255
+        elif f == 2:
+            line = bytearray((a + b) & 255 for a, b in zip(line, prev))
+        elif f == 3:
+            for i in range(stride):
+                line[i] = (line[i] + (((line[i - bpp] if i >= bpp else 0) + prev[i]) >> 1)) & 255
+        elif f == 4:
+            for i in range(stride):
+                a = line[i - bpp] if i >= bpp else 0
+                b = prev[i]
+                c = prev[i - bpp] if i >= bpp else 0
+                pp = a + b - c
+                pa, pb, pc = abs(pp - a), abs(pp - b), abs(pp - c)
+                line[i] = (line[i] + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) & 255
+        prev = line
+        if bpp == 4:
+            alpha = line[3::4]
+            if not any(alpha):
+                continue
+            hit = [i for i, v in enumerate(alpha) if v > 24]
+        else:
+            if corner is None:
+                corner = bytes(line[:3])
+            if line == corner * w:
+                continue
+            hit = [i for i in range(w) if abs(line[3 * i] - corner[0]) + abs(line[3 * i + 1] - corner[1]) + abs(line[3 * i + 2] - corner[2]) > 30]
+        if hit:
+            x0, x1 = min(x0, hit[0]), max(x1, hit[-1])
+            y0, y1 = min(y0, y), max(y1, y)
+    if x1 < 0:
+        return None
+    return (x0 / w, y0 / h, (x1 + 1) / w, (y1 + 1) / h)
 
 
 def png_colors(data, k=6, max_pixels=4_000_000):

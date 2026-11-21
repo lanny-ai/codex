@@ -6,6 +6,8 @@
 Design/
   Brand/
     kit.json              the kit as data (you write this)
+    brief.md              create path only: the brief the member agreed to
+    Preview.html          the brand sheet as a draft, shown before the yes
     directions.json       create path only: the candidate brands
     directions.html       create path only: the board
     Brand Kit.html        the brand sheet (written by lock)
@@ -61,7 +63,7 @@ Paths inside `kit.json` are relative to the kit file.
 | `colors` | the seven working colors: `bg` page, `surface` panels, `ink` text, `muted` quiet text, `accent` buttons and links, `accent_ink` text on the accent, `line` borders |
 | `reverse.accent` | optional: the accent to use on the reverse ground when the main accent is too dark or too faint there |
 | `fonts.*.license` | `google`, `ofl`, `apache`, `bought`, `system` or `unknown` |
-| `logo.kind` | `files` (theirs: `on_light`, `on_dark`, `mark_on_light`, `mark_on_dark`), `wordmark` (set here) or `none` |
+| `logo.kind` | `files` (theirs: `on_light`, `on_dark`, `mark_on_light`, `mark_on_dark`; optional `mark` for a typed small mark made here, and `rules` for the rules that came with the logo), `wordmark` (set here) or `none` |
 | `sample` | the member's own words, shown on the sheet. `headline` and `body` are needed for the "In use" section; asterisks mark the words the accent carries |
 | `confirmed` | each must be `true` before a lock, and only after the member said yes |
 
@@ -83,14 +85,15 @@ Two to four directions. Each needs `name`, `idea` and `from`.
 | Command | What it does |
 |---|---|
 | `brandkit.py read FILE …` | Reports what is in logo, page, stylesheet and font files. Writes nothing. |
-| `brandkit.py roles HEX … [--dark]` | Proposes the seven working colors from the brand's colors, and lists every one that is not literally theirs. |
+| `brandkit.py roles HEX … [--dark] [--page HEX] [--text HEX] [--accent HEX]` | Proposes the seven working colors from the brand's colors, honoring any job the brand guide states, and lists every one that is not literally theirs. |
 | `brandkit.py fonts KIT.json` | Downloads the kit's Google Fonts as .ttf into `fonts/` and names them in the kit. Works on `directions.json` too. The only command that goes online. |
 | `brandkit.py check KIT.json` | FIX lines stop a lock. LOOK lines are for you to read and the member to decide. |
-| `brandkit.py board DIRECTIONS.json OUT.html` | The directions board. `--embed` makes one self-contained file. |
+| `brandkit.py preview KIT.json OUT.html` | The brand sheet as a draft, marked not locked, to show the member before they say yes. Needs no `confirmed`. |
+| `brandkit.py board DIRECTIONS.json OUT.html` | The directions board. `--embed` makes one self-contained file. `--mix` is for a second-round board of a mix beside its nearest original. |
 | `brandkit.py lock KIT.json --out Design/System` | Writes the Design System, the logo files (for a kit made here) and the brand sheet. Keeps the earlier system as `tokens-v<N>.json`. |
-| `brandkit.py section --system Design/System` | Prints the Business File lines for §22 and §18. |
+| `brandkit.py section --system Design/System [--business-file FILE]` | Prints the Business File lines for §22 and §18, with paths relative to the Business File. |
 | `brandkit.py show --system Design/System` | The locked kit in brief. |
-| `node brand_png.mjs Design/Brand/logo` | PNG copies of the logo files (needs Node and Playwright). |
+| `node brand_png.mjs Design/Brand/logo` | PNG copies of the logo files (needs Node and Playwright). It fails loudly if a picture did not draw. |
 
 ## How the other sessions use the kit
 
@@ -105,7 +108,7 @@ Two to four directions. Each needs `name`, `idea` and `from`.
           "sheet": "../Brand/Brand Kit.html"}
 ```
 
-Paths in the `brand` block are relative to `Design/System/`.
+Paths in the `brand` block are relative to `Design/System/`. When a member's logo picture has empty margins, `brand.logo.trim` gives, per file, how much to crop when showing it (top, right, bottom, left, in percent); the file is never edited.
 
 | Session | Uses |
 |---|---|

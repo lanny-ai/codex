@@ -40,7 +40,7 @@ try {
   console.error('Could not start Chromium. Run npx playwright install chromium, or set CHROME_PATH.\n' + e.message);
   process.exit(2);
 }
-const out = [];
+const out = [], failed = [];
 for (const f of svgs) {
   const src = fs.readFileSync(path.join(dir, f), 'utf8');
   const vb = /viewBox="([-\d.\s]+)"/.exec(src);
@@ -49,12 +49,16 @@ for (const f of svgs) {
   const mark = Math.abs(vw - vh) < 0.5;
   const W = mark ? 1024 : width, H = Math.max(1, Math.round(W * vh / vw));
   const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
-  await page.setContent(`<html><body style="margin:0;background:transparent"><img src="${pathToFileURL(path.resolve(dir, f)).href}" style="display:block;width:${W}px;height:${H}px"></body></html>`);
-  await page.waitForLoadState('networkidle');
+  // The SVG is opened as the page itself. (An <img> of a local file inside a blank page is blocked by the browser and
+  // comes out as a broken-image icon.) With no size of its own, the drawing fills the window exactly.
+  const res = await page.goto(pathToFileURL(path.resolve(dir, f)).href);
+  const drawn = await page.evaluate(() => { const el = document.documentElement; return el && el.nodeName.toLowerCase() === 'svg' && el.getBBox().width > 0; });
+  if (!drawn) { console.error('Skipped ' + f + ': it did not load as a drawing' + (res ? '' : ' (no response)')); await page.close(); failed.push(f); continue; }
   const png = path.join(dir, f.replace(/\.svg$/i, '.png'));
   await page.screenshot({ path: png, omitBackground: true });
   await page.close();
   out.push({ file: png, width: W, height: H });
 }
 await browser.close();
-console.log(JSON.stringify({ wrote: out }, null, 2));
+console.log(JSON.stringify({ wrote: out, failed }, null, 2));
+if (failed.length || !out.length) process.exit(1);

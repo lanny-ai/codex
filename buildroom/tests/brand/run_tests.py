@@ -39,7 +39,19 @@ def make_png(path, w, h, rgba, alpha=True):
                            + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b""))
 
 
-def make_ttf(path, chars="NORTHLINEBKPGnorthlinebkpg &", family="Testface"):
+def make_png_padded(path, w, h, box, rgba=(11, 79, 108, 255)):
+    """A transparent PNG whose picture fills only `box` (x0, y0, x1, y1), like a logo in the middle of a big canvas."""
+    x0, y0, x1, y1 = box
+    blank, full = bytes(4) * w, bytes(4) * x0 + bytes(rgba) * (x1 - x0) + bytes(4) * (w - x1)
+    raw = b"".join(b"\x00" + (full if y0 <= y < y1 else blank) for y in range(h))
+
+    def chunk(t, d):
+        return struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xFFFFFFFF)
+    Path(path).write_bytes(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 6, 0, 0, 0))
+                           + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b""))
+
+
+def make_ttf(path, chars="NORTHLINEBKPGnorthlinebkpg &HP", family="Testface"):
     """A real, tiny TrueType font: every letter is a rectangle (a different width each), which is all the outline code needs."""
     chars = sorted(set(chars))
     glyphs = [b""]                                                   # glyph 0: empty .notdef
@@ -278,7 +290,7 @@ def body(rd, work):
     check("logo: the small mark is a square in the accent with the letter in its text colour", 'viewBox="0 0 100 100"' in mk and 'fill="#b3261e"' in mk and 'fill="#ffffff"' in mk and "<rect" in mk)
     sheet = (c / "Brand Kit.html").read_text()
     check("sheet: logo, color, type, the kit in use, rules and files are all there", all(f"<h2>{h}</h2>" in sheet for h in ("Logo", "Color", "Type", "In use", "Photos and rules", "Files")))
-    check("sheet: every colour pairing is shown with its measured contrast", sheet.count("needs 4.5:1") == 4 and "needs 3.0:1" in sheet and "16.56:1" in sheet)
+    check("sheet: every colour pairing is shown with its measured contrast", sheet.count("needs 4.5:1") == 5 and "Quiet text on a panel" in sheet and "needs 3.0:1" in sheet and "16.56:1" in sheet)
     check("sheet: the member's rules and words are on it, in American spelling", "One red thing per page" in sheet and "Nothing that looks like a bank" in sheet
           and "Dana&#x27;s own photos" not in sheet and "Dana's own photos." in sheet and "colour" not in sheet and "licence" not in sheet)
     check("sheet: the logo rules are stated, and a designer's brief is given instead of a generated symbol", "clear space" in sheet and "Never stretch it" in sheet
@@ -297,7 +309,10 @@ def body(rd, work):
     code, out = run("section", "--system", SYS)
     sec = json.loads(out) if code == 0 else {}
     check("section: the §22 lines and the §18 pointer", code == 0 and sec["section_22"][0].startswith("- **Brand kit** (yours or made here") and "made here" in sec["section_22"][0]
-          and "Testface / Arial" in sec["section_22"][1] and sec["section_18_brand_kit"] == "see §22 (Design System v1)", sec)
+          and any("Testface / Arial" in x for x in sec["section_22"]) and sec["section_18_brand_kit"] == "see §22 (Design System v1)", sec)
+    check("section: paths are written as the Business File sees them, and the directions tried are named", "Design/Brand/logo/wordmark.svg" in sec["section_22"][0]
+          and "../Brand" not in " ".join(sec["section_22"]) and "Design/Brand/Brand Kit.html" in sec["section_22"][0]
+          and any(x.startswith("- **Directions tried**") and "Ledger, Workshop" in x and "chosen Ledger" in x for x in sec["section_22"]), sec)
     code, out = run("show", "--system", SYS)
     check("show: the locked kit in brief", code == 0 and json.loads(out)["brand_kit"] is True and json.loads(out)["source"] == "created")
     # a second lock keeps the first, and keeps what the Website Design Studio set
@@ -308,6 +323,7 @@ def body(rd, work):
     t2 = json.loads((SYS / "tokens.json").read_text())
     check("re-lock: the earlier system is kept as a version, and the page settings survive", code == 0 and t2["version"] == 2 and (SYS / "tokens-v1.json").is_file()
           and t2["color"]["accent"] == "#a11d16" and t2["hero"] == "stacked" and t2["refs"] == ["T-001"], out)
+    t3v = t2["version"] + 2          # two more locks follow before the preview test reads the version
     # a mark with no shape, a mark-text layout, and a font that cannot be outlined
     K.write_text(json.dumps(made_kit(logo={"kind": "wordmark", "text": "NORTHLINE", "case": "upper", "layout": "mark-text", "mark": {"letters": "N", "shape": "circle"}})))
     code, out = run("lock", K, "--out", SYS)
@@ -338,6 +354,53 @@ def body(rd, work):
           and "If you want a drawn symbol later" not in us)
     check("intake lock: design-system.md tells other sessions the dark-ground logo is missing", "no dark-ground version" in (u.parent / "System/design-system.md").read_text())
 
+    # ---- found by the trial run: the preview, a typed mark, padded logo pictures, mixes, and the gaps in the checks ----
+    K.write_text(json.dumps(made_kit(confirmed={})))
+    code, out = run("preview", K, c / "Preview.html")
+    pv = (c / "Preview.html").read_text() if code == 0 else ""
+    check("preview: the member can be shown the sheet before saying yes, clearly marked as a draft, and nothing is locked", code == 0 and "Nothing is locked yet" in pv
+          and "<h2>Logo</h2>" in pv and "Nothing is locked" in out and json.loads((SYS / "tokens.json").read_text())["version"] == t3v, out)
+    check("sheet: the color table says which colors are the member's own and which were added", "your brand color" in pv and "a working shade added for this job" in pv)
+    code, out = chk(made_kit(logo={"kind": "wordmark", "text": "Northline", "descriptor": "Trusted since 1998"}))
+    check("check: a logo's second line is the rest of the name, never a tagline, a year or a claim", code == 1 and '"Trusted since 1998" is not part of the business name' in out, out)
+    code, out = chk(made_kit(colors={**COL, "ink": "#12263f", "accent": "#1b3a5c", "muted": "#4a5a6c"}))
+    check("check: an accent too close to the text color is pointed out, because a marked word would not show", "close to the text color" in out, out)
+    code, out = chk(made_kit(colors={**COL, "surface": "#d9dcd9", "muted": "#6b746f"}))
+    check("check: quiet text is measured on panels as well as on the page", code == 1 and "quiet text #6b746f on panels and cards" in out, out)
+    code, out = board([d1, {**d1, "name": "Ledger in green", "idea": "The first one's lettering in the green.", "from": "Your mix.", "colors": d2["colors"]}])
+    code2, out2 = (lambda: (D.write_text(D.read_text()), run("board", D, c / "mix.html", "--mix"))[1])()
+    check("board: a mix that differs from its original on one thing is refused in round one and allowed on a mix board", code == 1 and "same idea twice" in out and code2 == 0, out + out2)
+    rr2 = json.loads(run("roles", "0b4f6c", "f26a4b", "eef2f3", "--page", "eef2f3", "--accent", "f26a4b")[1])
+    rr3 = json.loads(run("roles", "0b4f6c", "f26a4b", "eef2f3", "--page", "ffffff")[1])
+    check("roles: a job the brand guide states for a color is honored, and the panel is a quiet neutral, not a tint of the accent", rr2["colors"]["bg"] == "#eef2f3"
+          and rr3["colors"]["bg"] == "#ffffff" and bl.is_neutral(rr3["colors"]["surface"]) and min(rr3["contrast"].values()) >= 3.0, (rr2, rr3))
+    # the member's own logo in the middle of a big empty canvas
+    make_png_padded(u / "logo/padded.png", 1600, 400, (40, 140, 1016, 260))
+    check("png: the picture inside an empty canvas is measured", bl.png_content_box((u / "logo/padded.png").read_bytes()) == (0.025, 0.35, 0.635, 0.65))
+    shutil.copytree(c / "fonts", u / "fonts")
+    own = made_kit(**{**up, "fonts": {"head": {"family": "Testface", "weight": 700, "files": [{"src": "fonts/Testface-700.ttf", "weight": 700}], "license": "ofl"},
+                                      "body": {"family": "Arial", "license": "system"}}}, direction=None,
+                   logo={"kind": "files", "on_light": "logo/padded.png", "mark": {"letters": "H&P", "shape": "square"}, "rules": ["Always on white. Never on photos."]})
+    UK.write_text(json.dumps(own))
+    code, out = run("check", UK)
+    check("intake: wide empty margins around a logo are reported, and a typed mark is flagged as new for the member's yes", code == 0 and "wide empty margins" in out
+          and "fills 61% of the width" in out and "this small mark is new" in out, out)
+    padded_raw = (u / "logo/padded.png").read_bytes()
+    code, out = run("lock", UK, "--out", u.parent / "System")
+    ut2 = json.loads((u.parent / "System/tokens.json").read_text()) if code == 0 else {"brand": {"logo": {}}}
+    us2 = (u / "Brand Kit.html").read_text() if code == 0 else ""
+    lg2 = ut2["brand"]["logo"]
+    check("intake lock: a padded logo is shown cropped to its lettering, the crop is passed on, and the file is untouched", code == 0 and lg2.get("trim") == {"on_light": [35.0, 36.5, 35.0, 2.5]}
+          and "object-view-box:inset(35.0% 36.5% 35.0% 2.5%)" in us2 and (u / "logo/padded.png").read_bytes() == padded_raw, lg2)
+    check("intake lock: the typed mark is written beside the member's logo, as vector shapes, and labeled as made here", lg2.get("typed_mark") is True
+          and lg2.get("mark_on_light") == "../Brand/logo/typed-mark.svg" and "<path d=" in (u / "logo/typed-mark.svg").read_text() and lg2["on_light"] == "../Brand/logo/padded.png"
+          and "The small mark is new" in us2 and "Your logo itself is unchanged" in us2, lg2)
+    check("intake lock: the rule that came with the member's logo comes first, and the default that contradicts it is dropped", us2.index("Always on white. Never on photos.") < us2.index("Keep clear space")
+          and "busy photo" not in us2 and "The member's own rule: Always on white. Never on photos." in (u.parent / "System/design-system.md").read_text())
+    UK.write_text(json.dumps({**own, "logo": {"kind": "wordmark", "text": "Harbor & Pine"}}))
+    code, out = run("check", UK)
+    check("intake: a member's own logo is never replaced by a typeset name", code == 1 and "has their own logo" in out and "would replace it" in out, out)
+
     # ---- the scripts themselves ----
     src = {n: (S / n).read_text() for n in ("brandkit.py", "brandlib.py", "brandpages.py")}
     std = {"argparse", "base64", "colorsys", "json", "os", "re", "shutil", "struct", "sys", "tempfile", "zlib", "urllib.error", "urllib.parse", "urllib.request",
@@ -353,6 +416,10 @@ def body(rd, work):
     check("scripts: no image model is ever called for a logo", not re.search(r"gen\.py|kie\.ai|openai|replicate|generate_image", "".join(src.values()), re.I))
     png = (S / "brand_png.mjs").read_text()
     check("png export: transparent copies beside the vector files, nothing online", "omitBackground: true" in png and "http" not in png.replace("xmlns", ""))
+    check("png export: the drawing is opened as the page, checked to have drawn, and a failure is not reported as success", "page.goto(pathToFileURL" in png and "setContent" not in png
+          and "getBBox().width > 0" in png and "process.exit(1)" in png)
+    check("fonts: a designer's short name is tried under the family's current name, and the rename is reported", '" 3"' in src["brandkit.py"] and '"renamed"' in src["brandkit.py"])
+    check("linkedin renderer: a padded logo picture is cropped when shown", "object-view-box:inset(" in rd("skills/buildroom-linkedin/scripts/render_linkedin.mjs") and "lg.trim" in rd("skills/buildroom-linkedin/scripts/render_linkedin.mjs"))
 
     # ---- the skill and the wiring ----
     sk = rd("skills/buildroom-brand-kit/SKILL.md")
@@ -370,7 +437,10 @@ def body(rd, work):
           and "never recolor, redraw, trace or regenerate" in refs["intake"] and "**Added by me:**" in refs["intake"])
     check("references: creating starts from the member's world, never from colour psychology or a favourite colour", "\"Blue means trust\" is folklore" in refs["creating"]
           and "never ask for a favorite color" in refs["creating"] and "at most three rounds" in refs["creating"].lower())
-    check("references: the kit file documents every command the script has", all(f"brandkit.py {cmd}" in refs["kit-file"] for cmd in ("read", "roles", "fonts", "check", "board", "lock", "section", "show")))
+    check("references: the kit file documents every command the script has", all(f"brandkit.py {cmd}" in refs["kit-file"] for cmd in ("read", "roles", "fonts", "check", "preview", "board", "lock", "section", "show")))
+    check("skill: the member sees a draft before the yes, their own headline is checked against what they refuse to claim, and their logo is never swapped out",
+          "brandkit.py preview" in sk and "not a description" in sk and "*Never claim or promise*" in sk and "Never replace a member's own logo with a typeset name" in sk
+          and "never replaces it" in refs["intake"] and "--mix" in refs["creating"])
     check("skill text: no em or en dashes, American spelling", "—" not in alltext and "–" not in alltext and not re.search(r"\bcolour|\blicence\b|\bfavourite", alltext))
     check("font pairings: the same vetted list the Website Design Studio uses", rd("skills/buildroom-brand-kit/assets/font-pairs.json") == rd("skills/buildroom-website-design-studio/assets/font-pairs.json"))
     tpl = rd("templates/BUILDROOM_BUSINESS_FILE.md")

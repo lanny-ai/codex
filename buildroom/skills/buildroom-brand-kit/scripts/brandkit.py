@@ -7,6 +7,7 @@ other Build Room session uses the same logo, colors and typefaces.
   brandkit.py roles HEX [HEX ...] [--dark]         seven working colors proposed from the brand's own colors
   brandkit.py fonts KIT.json                       download the kit's Google Fonts into fonts/ beside the kit (goes online)
   brandkit.py check KIT.json                       everything that stops a lock (FIX) and everything worth a look (LOOK)
+  brandkit.py preview KIT.json OUT.html            the brand sheet as a draft, to show the member before they say yes
   brandkit.py board DIRECTIONS.json OUT.html       two to four candidate brands, each shown in use, on one page
   brandkit.py lock  KIT.json --out Design/System   writes the Design System, the logo files and the brand sheet
   brandkit.py section --system Design/System       the Business File lines for section 22 and section 18
@@ -79,6 +80,9 @@ def problems(k, base, for_lock=True, direction=False):
         for fg, bg, r, need, sug in bl.contrast_problems(col):
             fix.append(f"colors: {bl.LABELS[fg].lower()} {col[fg]} on {bl.LABELS[bg].lower()} {col[bg]} is {r}:1 and needs {need}:1. "
                        f"{sug} passes. A brand color that is too faint for text keeps its place as a fill; text takes the darker shade")
+        if bl.contrast(col["accent"], col["ink"]) < 2.5 and not bl.is_neutral(col["ink"]) or col["accent"] == col["ink"]:
+            look.append(f"colors: the accent {col['accent']} is close to the text color {col['ink']}, so a word picked out in the accent barely shows. "
+                        "Leave headline words unmarked for this brand, or use a brand color that stands apart from the text")
         pal = {bl.norm_hex(p.get("hex")) for p in k["palette"] if isinstance(p, dict)}
         if k.get("source") in ("uploaded", "website"):
             if not pal - {None}:
@@ -134,11 +138,27 @@ def problems(k, base, for_lock=True, direction=False):
                 continue
             for line, sev in inspect_logo(p):
                 (fix if sev == "FIX" else look).append(f"logo.{key}: {line}")
+            t = bp.trim_of(p)
+            if t and max(t) >= 15:
+                look.append(f"logo.{key}: the picture has wide empty margins (the logo fills {100 - t[1] - t[3]:.0f}% of the width and {100 - t[0] - t[2]:.0f}% of the height). "
+                            "It is shown cropped to the logo; the file is not changed. Ask for a trimmed file when the member next talks to their designer")
         if named.get("on_light") and not named.get("on_dark"):
             look.append("logo: there is no version for dark backgrounds. Ask the member for a white or reversed logo; until then the logo is used on light grounds only")
         if named.get("on_dark") and not named.get("on_light"):
             look.append("logo: there is no version for light backgrounds. Ask the member for one; until then the logo is used on dark grounds only")
-        if not (named.get("mark_on_light") or named.get("mark_on_dark")):
+        tm = lg.get("mark")
+        if tm and not (named.get("mark_on_light") or named.get("mark_on_dark")):
+            letters = (tm.get("letters") or "").strip()
+            if not letters or len(letters) > 3 or not letters.replace("&", "").isalnum():
+                fix.append("logo.mark: a typed mark needs one to three letters")
+            if tm.get("shape", "square") not in ("none", "square", "circle"):
+                fix.append("logo.mark.shape: none, square or circle")
+            f = k["fonts"].get(tm.get("font", "head"), {})
+            file = bp.pick_file(f, base, tm.get("weight"))
+            if not file or not bl.open_font(file):
+                look.append("logo.mark: the typed mark has no .ttf file to be drawn from, so it will carry live text. Run `brandkit.py fonts`, or name the font file")
+            look.append("logo.mark: this small mark is new, made here beside the member's own logo. Show it to them and get a yes before the lock")
+        elif not (named.get("mark_on_light") or named.get("mark_on_dark")):
             look.append("logo: no small mark (a square version for profile pictures and browser tabs). Ask whether the member has one")
     elif kind == "wordmark":
         text = (lg.get("text") or "").strip()
@@ -146,6 +166,14 @@ def problems(k, base, for_lock=True, direction=False):
             fix.append("logo: a wordmark needs its text")
         elif name and not _same_name(text, name) and not _same_name(text, k.get("person") or ""):
             fix.append(f'logo: the wordmark says "{text}" and the business is "{name}". A logo sets the real name; it never invents one')
+        desc = (lg.get("descriptor") or "").strip()
+        if desc and name and not _same_name(desc, name) and not _same_name(desc, k.get("business") or ""):
+            fix.append(f'logo: the second line "{desc}" is not part of the business name. A logo carries the name only: no tagline, no year, no claim')
+        theirs = [f.name for f in (base / "logo").glob("*") if f.suffix.lower() in (".svg", ".png", ".jpg", ".jpeg", ".webp")
+                  and not re.fullmatch(r"(wordmark|mark|typed-mark)(-on-dark)?\.(svg|png)", f.name)] if (base / "logo").is_dir() else []
+        if k.get("source") in ("uploaded", "website") and theirs and not direction:
+            fix.append("logo: this member has their own logo (" + ", ".join(theirs[:3]) + ") and the kit would replace it with a typeset name. "
+                       "Use kind \"files\" with their files. For a small mark beside their logo, add \"mark\" to the files logo")
         letters = ((lg.get("mark") or {}).get("letters") or "").strip()
         if letters and (len(letters) > 3 or not letters.replace("&", "").isalnum()):
             fix.append("logo.mark: one to three letters")
@@ -300,7 +328,7 @@ def bl_font_name(data):
 
 def cmd_roles(a):
     try:
-        roles, changed = bl.propose_roles(a.colors, a.dark)
+        roles, changed = bl.propose_roles(a.colors, a.dark, a.page, a.text, a.accent)
     except ValueError as e:
         sys.exit(str(e))
     print(json.dumps({"colors": roles, "not_the_brands_own": changed,
@@ -314,7 +342,7 @@ def cmd_fonts(a):
     raw = bl.read_json(path)
     kits = raw["directions"] if isinstance(raw.get("directions"), list) else [raw]
     dest = path.parent / "fonts"
-    got, failed = [], []
+    got, failed, renamed = [], [], []
     for k in kits:
         for role in ("head", "body"):
             f = (k.get("fonts") or {}).get(role)
@@ -328,6 +356,16 @@ def cmd_fonts(a):
                 name = f"{re.sub(r'[^A-Za-z0-9]+', '', f['family'])}-{w}.ttf"
                 if (dest / name).is_file() or _fetch_google(f["family"], w, dest / name):
                     files.append({"src": f"fonts/{name}", "weight": w})
+            if not files:                           # "Source Sans" is "Source Sans 3" today; try the family's current names
+                for alt in (f["family"] + " 3", f["family"] + " 4", f["family"] + " Pro", re.sub(r"\s+(Bold|Regular|Semibold|Medium|Light)$", "", f["family"], flags=re.I)):
+                    if alt == f["family"]:
+                        continue
+                    got_alt = [w for w in weights if _fetch_google(alt, w, dest / f"{re.sub(r'[^A-Za-z0-9]+', '', alt)}-{w}.ttf")]
+                    if got_alt:
+                        renamed.append(f"{f['family']} is on Google Fonts as {alt}")
+                        f["family"] = alt
+                        files = [{"src": f"fonts/{re.sub(r'[^A-Za-z0-9]+', '', alt)}-{w}.ttf", "weight": w} for w in got_alt]
+                        break
             if files:
                 f["files"] = files
                 f.setdefault("license", "google")
@@ -336,7 +374,7 @@ def cmd_fonts(a):
                 failed.append(f["family"])
     if got:
         bl.write_json(path, raw)
-    print(json.dumps({"downloaded_to": str(dest), "fonts": got, "not_found": failed,
+    print(json.dumps({"downloaded_to": str(dest), "fonts": got, "renamed": renamed, "not_found": failed,
                       "note": ("Not on Google Fonts, or Google Fonts could not be reached: ask the member for the font files and name them under fonts.<role>.files."
                                if failed else "Font files are saved beside the kit and named in it. Confirm each family's license tab on fonts.google.com before the kit is locked.")},
                      indent=2, ensure_ascii=False))
@@ -372,6 +410,23 @@ def cmd_check(a):
         print("LOOK  " + x)
     print(f"\n{len(fix)} to fix, {len(look)} to look at." + (" Ready to lock." if not fix else ""))
     sys.exit(1 if fix else 0)
+
+
+def cmd_preview(a):
+    """The brand sheet as a draft, so the member sees their colors, typefaces and logo in use before they say yes."""
+    path = Path(a.kit)
+    k = load_kit(path)
+    fix, look = problems(k, path.parent, for_lock=False)
+    fix = [x for x in fix if not x.startswith("logo: the wordmark needs its font file")] + [x for x in look if x.startswith("logo: the wordmark needs its font file")]
+    if fix:
+        for x in fix:
+            print("FIX  " + x)
+        sys.exit(1)
+    out = Path(a.out)
+    bl.write_atomic(out, bp.sheet_html(k, path.parent, out.parent, [("(the files are listed here once the kit is locked)", "")], "draft", str(date.today()), draft=True))
+    for x in look:
+        print("LOOK  " + x)
+    print(f"Wrote {out}: a draft to show the member. Nothing is locked. Get a plain yes to the colors, the typefaces and the logo, then set confirmed and lock.")
 
 
 # ---------------------------------------------------------------- board
@@ -418,7 +473,7 @@ def cmd_board(a):
     if not fix:
         for i in range(len(kits)):
             for j in range(i + 1, len(kits)):
-                if differ(kits[i], kits[j]) < 2:
+                if differ(kits[i], kits[j]) < (1 if a.mix else 2):
                     fix.append(f"directions {i + 1} and {j + 1} ({kits[i]['name']}, {kits[j]['name']}) are the same idea twice: they differ on fewer than two of "
                                "ground, accent color, heading typeface and logo treatment. Make them really different, or show fewer")
     if fix:
@@ -467,6 +522,23 @@ def cmd_lock(a):
                   ("logo/*.png", "The same logos as pictures, for tools that will not take a vector file (made by brand_png.mjs).")]
     elif ls["kind"] == "files":
         lg = k["logo"]
+        if ls.get("typed_mark"):                      # a small mark made here, beside the member's own logo files
+            light_first = not bl.is_dark(own["bg"])
+            for key, name in (("mark_own", "typed-mark.svg" if light_first else "typed-mark-on-dark.svg"),
+                              ("mark_reverse", "typed-mark-on-dark.svg" if light_first else "typed-mark.svg")):
+                bl.write_atomic(base / "logo" / name, ls[key] + "\n")
+            logo.update(mark_on_light=bl.rel(base / "logo/typed-mark.svg", out), mark_on_dark=bl.rel(base / "logo/typed-mark-on-dark.svg", out), typed_mark=True)
+            files.append(("logo/typed-mark.svg and logo/typed-mark-on-dark.svg", "A small mark made here for profile pictures: your letters in your typeface and color."))
+        trims = {}
+        for key in ("on_light", "on_dark", "mark_on_light", "mark_on_dark"):
+            if lg.get(key):
+                t = bp.trim_of(base / lg[key])
+                if t:
+                    trims[key] = t
+        if trims:
+            logo["trim"] = trims                      # empty margin to crop when the file is shown: top, right, bottom, left, in percent
+        if lg.get("rules"):
+            logo["rules"] = [str(r) for r in lg["rules"]]
         for key in ("on_light", "on_dark", "mark_on_light", "mark_on_dark"):
             if lg.get(key):
                 logo[key] = bl.rel(base / lg[key], out)
@@ -563,6 +635,9 @@ def system_md(t, slides, k):
     else:
         logo = "\n".join(f"- {label}: `{lg[key]}`" for key, label in (("on_light", "On light backgrounds"), ("on_dark", "On dark backgrounds and photographs"),
                                                                     ("mark_on_light", "Small mark, light backgrounds"), ("mark_on_dark", "Small mark, dark backgrounds")) if lg.get(key))
+        logo += "".join(f"\n- The member's own rule: {r}" for r in lg.get("rules") or [])
+        if lg.get("trim"):
+            logo += "\n- The file has empty margins. Crop them when you place it (`brand.logo.trim` in tokens.json gives top, right, bottom, left in percent); never edit the file."
         logo += "\n- Clear space: the height of the logo's capital letter on every side. Never stretch, tilt, recolor or add effects."
         if not lg.get("on_dark"):
             logo += "\n- There is no dark-ground version: use the logo on light grounds only."
@@ -660,21 +735,30 @@ def cmd_section(a):
     b = t.get("brand")
     if not b:
         sys.exit("This Design System has no brand kit yet. Run: brandkit.py lock KIT.json --out " + str(sysdir))
+    root = Path(a.business_file).parent if a.business_file else sysdir.parent.parent     # paths are written as the Business File sees them
+    here = lambda p: bl.rel((sysdir / p), root)
     c, lg = t["color"], b["logo"]
     src = {"uploaded": "the member's own", "website": "read from their website", "created": "made here"}[b["source"]]
-    logos = ", ".join(lg[key] for key in ("on_light", "on_dark", "mark_on_light", "mark_on_dark") if lg.get(key)) or "no logo file: name set in the heading typeface"
+    logos = ", ".join(here(lg[key]) for key in ("on_light", "on_dark", "mark_on_light", "mark_on_dark") if lg.get(key)) or "no logo file: name set in the heading typeface"
     lines = [
-        f"- **Brand kit** (yours or made here · logo files · brand sheet · locked): {src} · {logos} · {b['sheet']} · {t['locked']}",
+        f"- **Brand kit** (yours or made here · logo files · brand sheet · locked): {src} · {logos} · {here(b['sheet'])} · {t['locked']}",
         f"- **Locked system** (palette · fonts · type scale · corners · spacing · motion): {t['name']} v{t['version']} ({t['locked']}) · "
         f"bg {c['bg']} ink {c['ink']} accent {c['accent']} · {t['font']['head']['family']} / {t['font']['body']['family']} · "
         f"{t['type']['base_px']:g}px × {t['type']['scale']:g} · {t['radius_px']:g}px corners · {t['space']['unit_px']:g}px spacing · motion {t['motion']}",
         f"- **Imagery rules** (own photos / generated · provider · consent): {t['imagery']['source']}" + (f" · {t['imagery']['rules']}" if t["imagery"]["rules"] else ""),
         f"- **Do / don't:** {'; '.join(t['dos'][:3]) or '—'} / {'; '.join(t['donts'][:3]) or '—'}",
-        f"- **Files** (design-system.md · tokens.json · tokens.css · slides.json · first page): {sysdir}/",
+        f"- **Files** (design-system.md · tokens.json · tokens.css · slides.json · first page): {bl.rel(sysdir, root)}/",
     ]
+    dj = (sysdir / b["kit"]).parent / "directions.json"
+    if b["source"] == "created" and dj.is_file():
+        try:
+            names = [d.get("name", "?") for d in json.loads(dj.read_text(encoding="utf-8-sig")).get("directions", [])]
+            lines.insert(1, f"- **Directions tried** (names · chosen · why): {', '.join(names)} · chosen {b.get('direction') or '—'}")
+        except ValueError:
+            pass
     print(json.dumps({"ok": True, "section_22": lines, "section_22_status": "provisional until a page has passed the Website Design Studio's go-live check; complete after",
                       "section_18_brand_kit": f"see §22 (Design System v{t['version']})",
-                      "leave_alone": "§22 Taste vault, Directions tried and Used by: change them only if this session changed them"}, indent=2, ensure_ascii=False))
+                      "leave_alone": "§22 Taste vault and Used by, and Directions tried unless it is printed above: change them only if this session changed them"}, indent=2, ensure_ascii=False))
 
 
 def cmd_show(a):
@@ -689,12 +773,16 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("read"); p.add_argument("files", nargs="+"); p.set_defaults(fn=cmd_read)
-    p = sub.add_parser("roles"); p.add_argument("colors", nargs="+"); p.add_argument("--dark", action="store_true"); p.set_defaults(fn=cmd_roles)
+    p = sub.add_parser("roles"); p.add_argument("colors", nargs="+"); p.add_argument("--dark", action="store_true")
+    p.add_argument("--page"); p.add_argument("--text"); p.add_argument("--accent"); p.set_defaults(fn=cmd_roles)
     p = sub.add_parser("fonts"); p.add_argument("kit"); p.set_defaults(fn=cmd_fonts)
     p = sub.add_parser("check"); p.add_argument("kit"); p.set_defaults(fn=cmd_check)
-    p = sub.add_parser("board"); p.add_argument("directions"); p.add_argument("out"); p.add_argument("--embed", action="store_true"); p.set_defaults(fn=cmd_board)
+    p = sub.add_parser("board"); p.add_argument("directions"); p.add_argument("out"); p.add_argument("--embed", action="store_true")
+    p.add_argument("--mix", action="store_true", help="a second-round board: a mix beside the original it is nearest to may differ on one thing only")
+    p.set_defaults(fn=cmd_board)
+    p = sub.add_parser("preview"); p.add_argument("kit"); p.add_argument("out"); p.set_defaults(fn=cmd_preview)
     p = sub.add_parser("lock"); p.add_argument("kit"); p.add_argument("--out", required=True); p.set_defaults(fn=cmd_lock)
-    p = sub.add_parser("section"); p.add_argument("--system", required=True); p.set_defaults(fn=cmd_section)
+    p = sub.add_parser("section"); p.add_argument("--system", required=True); p.add_argument("--business-file"); p.set_defaults(fn=cmd_section)
     p = sub.add_parser("show"); p.add_argument("--system", required=True); p.set_defaults(fn=cmd_show)
     a = ap.parse_args()
     a.fn(a)

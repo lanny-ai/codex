@@ -130,7 +130,13 @@ function resolveBrand(spec, base) {
   const over = (b && typeof b === 'object') ? Object.fromEntries(Object.entries(b).filter(([k]) => k !== 'kit')) : {};
   return { name: br.name || t.name, display_font: (t.font?.head || {}).family, body_font: (t.font?.body || {}).family, head_weight: (t.font?.head || {}).weight,
     font_files: { display: ff('head'), body: ff('body') }, bg: col.bg, fg: col.ink, accent: col.accent, muted: col.muted, line: col.line,
-    radius: t.radius_px, logo: abs(dark ? lg.on_dark : lg.on_light), mark: abs(dark ? lg.mark_on_dark : lg.mark_on_light), from_kit: file, ...over };
+    radius: t.radius_px, logo: abs(dark ? lg.on_dark : lg.on_light), mark: abs(dark ? lg.mark_on_dark : lg.mark_on_light),
+    logo_trim: (lg.trim || {})[dark ? 'on_dark' : 'on_light'], mark_trim: (lg.trim || {})[dark ? 'mark_on_dark' : 'mark_on_light'], from_kit: file, ...over };
+}
+// A member's logo picture may carry empty margins. It is shown cropped to the logo (top, right, bottom, left, in percent);
+// the file itself is never edited.
+function crop(t) {
+  return Array.isArray(t) && t.length === 4 ? `object-view-box:inset(${t.map(v => (+v || 0) + '%').join(' ')});` : '';
 }
 const fileUrl = (base, p) => p ? pathToFileURL(path.resolve(base, p)).href : '';
 function lum(hex) {
@@ -202,7 +208,7 @@ html,body{width:${W}px;height:${H}px;overflow:hidden;background:${bg}}
 
 function bannerHtml(spec, base) {
   const [W, H] = SIZES.banner, c = spec.copy || {}, z = BANNER_TEXT_ZONE, b = spec.brand || {};
-  const logo = b.logo ? `<img src="${fileUrl(base, b.logo)}" style="height:${Math.round(H * .13)}px;margin-bottom:${Math.round(H * .04)}px">` : '';
+  const logo = b.logo ? `<img src="${fileUrl(base, b.logo)}" style="${crop(b.logo_trim)}height:${Math.round(H * .13)}px;margin-bottom:${Math.round(H * .04)}px">` : '';
   return page(spec, base, W, H, `
   <div class="bar" style="left:${Math.round(W * z.left)}px;top:${Math.round(H * .22)}px;width:6px;height:${Math.round(H * .56)}px"></div>
   <div data-box style="position:absolute;left:${Math.round(W * z.left) + 28}px;right:${Math.round(W * (1 - z.right))}px;top:${Math.round(H * z.top)}px;bottom:${Math.round(H * (1 - z.bottom))}px;display:flex;flex-direction:column;justify-content:center">
@@ -234,12 +240,12 @@ function cardHtml(spec, base, layout) {
   // The default: flat and typographic. The logo (or the name set in the heading face) at the top, the headline low on
   // the card, a hairline, and a byline with the small mark. Every color is the brand's own; nothing is decoration.
   const lh = Math.round(W * (featured ? .05 : .064));
-  const head = b.logo ? `<img data-logo src="${fileUrl(base, b.logo)}" alt="" style="height:${lh}px;width:auto;max-width:60%;object-fit:contain;object-position:left;align-self:flex-start;display:block">`
+  const head = b.logo ? `<img data-logo src="${fileUrl(base, b.logo)}" alt="" style="${crop(b.logo_trim)}height:${lh}px;width:auto;max-width:60%;object-fit:contain;object-position:left;align-self:flex-start;display:block">`
     : b.name ? `<div class="d" data-t="brand" data-fit="${Math.round(lh * .72)},${min}" style="letter-spacing:0">${esc(b.name)}</div>` : '';
   const mk = Math.round(W * .075);
   const foot = (c.author || b.mark) && !featured ? `<div style="display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:${Math.round(pad * .55)}px;padding-top:${Math.round(pad * .4)}px;border-top:2px solid ${b.line || `color-mix(in srgb,${b.fg || onColor(b.bg || '#0f1424')} 22%,${b.bg || '#0f1424'})`}">
       ${c.author ? `<div class="mut" data-t="author" data-fit="${Math.max(min, Math.round(W * .03))},${min}" style="font-weight:600">${esc(c.author)}</div>` : '<span></span>'}
-      ${b.mark && !spec.photo ? `<img src="${fileUrl(base, b.mark)}" alt="" style="height:${mk}px;width:${mk}px;object-fit:contain;flex:none">` : ''}</div>` : '';
+      ${b.mark && !spec.photo ? `<img src="${fileUrl(base, b.mark)}" alt="" style="${crop(b.mark_trim)}height:${mk}px;width:${mk}px;object-fit:contain;flex:none">` : ''}</div>` : '';
   const shot = spec.photo ? `<div style="position:absolute;right:${pad}px;bottom:${pad}px;width:${Math.round(W * (layout === 'card' ? .28 : .22))}px;aspect-ratio:1;border-radius:${b.radius ?? 6}px;overflow:hidden"><img src="${fileUrl(base, spec.photo)}" style="width:100%;height:100%;object-fit:cover"></div>` : '';
   return page(spec, base, W, H, `
   <div data-box style="position:absolute;left:${pad}px;right:${pad}px;top:${pad}px;bottom:${spec.photo ? Math.round(H * (layout === 'card' ? .3 : .12)) + pad : Math.round(pad * .9)}px;display:flex;flex-direction:column">
@@ -271,7 +277,7 @@ function slideHtml(spec, base, s, i, n, numeral) {
     body = `<div class="d" data-t="s${i}.title" data-fit="96,56">${rich(spec, s.title)}</div>${s.sub ? `<div class="acc" data-t="s${i}.sub" data-fit="54,40" style="margin-top:40px;font-weight:700;line-height:1.3">${esc(s.sub)}</div>` : ''}`;
   }
   const b = spec.brand || {};
-  const top = b.logo && !plainStyle(spec) ? `<img src="${fileUrl(base, b.logo)}" alt="" style="position:absolute;left:${pad}px;top:${Math.round(pad * .8)}px;height:52px;width:auto;max-width:50%;object-fit:contain;object-position:left">`
+  const top = b.logo && !plainStyle(spec) ? `<img src="${fileUrl(base, b.logo)}" alt="" style="${crop(b.logo_trim)}position:absolute;left:${pad}px;top:${Math.round(pad * .8)}px;height:52px;width:auto;max-width:50%;object-fit:contain;object-position:left">`
     : `<div class="bar" style="left:${pad}px;top:${pad}px;width:96px;height:8px"></div>`;
   return page(spec, base, W, H, `${top}
   <div data-box style="position:absolute;left:${pad}px;right:${pad}px;top:${pad + (b.logo && !plainStyle(spec) ? 124 : 60)}px;bottom:${pad + 80}px;display:flex;flex-direction:column;justify-content:${s.kind === 'point' || s.kind === 'list' ? 'flex-start' : 'center'}">${body}</div>

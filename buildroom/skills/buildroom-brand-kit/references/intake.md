@@ -28,7 +28,7 @@ Run `brandkit.py read <files>` on everything. It writes nothing.
 ## The palette, then the working colors
 
 1. `palette` holds the brand's own colors exactly as given: name, hex, role, and where each came from ("brand guide, page 2", "the logo file", "your website header").
-2. `brandkit.py roles <hex> <hex> …` proposes the seven working colors every page needs (page, panel, text, quiet text, accent, text on the accent, lines). Add `--dark` if their brand lives on a dark ground.
+2. `brandkit.py roles <hex> <hex> …` proposes the seven working colors every page needs (page, panel, text, quiet text, accent, text on the accent, lines). Add `--dark` if their brand lives on a dark ground. If the guide gives a color a job, say so: `--page <hex>` for the background, `--text <hex>` for text, `--accent <hex>` for buttons and links.
 3. It lists everything that is **not literally theirs** under `not_the_brands_own`. Typical cases, and what to say:
    - A near-black for text: "Your navy is the logo color. For long text I am using a darker shade of it so it is easy to read."
    - A brand color too faint for a button on white: "Your yellow stays in the brand for highlights and large areas. Buttons use the navy, because yellow on white is hard to see."
@@ -39,7 +39,7 @@ Run `brandkit.py read <files>` on everything. It writes nothing.
 
 - Named in a guide: use them.
 - Not known: `read` on the logo SVG or the website often names them. Otherwise ask, or describe what you see ("a serif with strong slabs") and offer the closest pairing in `assets/font-pairs.json` as a stand-in, clearly called a stand-in.
-- A Google Font: `brandkit.py fonts Design/Brand/kit.json` downloads the files and sets the license to `google`.
+- A Google Font: `brandkit.py fonts Design/Brand/kit.json` downloads the files and sets the license to `google`. A designer's note often gives a short name ("Source Sans", "Lora Bold"); the command tries the family's current name and reports the rename.
 - A font they bought: ask for the files and set `"license": "bought"`. They confirm the license covers web pages and social images.
 - A font that came with their computer (Georgia, Arial): `"license": "system"`. It needs no files.
 - Never leave the license as `unknown` without telling the member what that means.
@@ -61,7 +61,15 @@ Name each file by the ground it is made for:
 
 Until the missing file arrives, the kit still locks. Wherever the missing version would go, the business name is set in the heading typeface, and the brand sheet says so. You never recolor, redraw, trace or regenerate their logo to fill the gap.
 
-If the member has no small mark and does not want to ask a designer, you may offer a typed mark for profile pictures only (one to three letters in their heading typeface on their brand color). That is a new thing, so show it and get a yes; it is added as a wordmark kit with their own colors and typeface and `"source": "uploaded"` stays.
+If the member has no small mark and does not want to ask a designer, you may offer a typed mark for profile pictures only: one to three letters in their heading typeface on their brand color. It sits beside their logo and never replaces it. Add it to the files logo:
+
+```json
+"logo": {"kind": "files", "on_light": "logo/acme.png", "mark": {"letters": "H&P", "shape": "square"}}
+```
+
+It is a new thing, so the preview shows it, the sheet labels it as made here, and you get a yes. It needs the heading typeface's .ttf file to be drawn as vector shapes (`brandkit.py fonts`). The kit stays `"source": "uploaded"` and `"kind": "files"`; `check` refuses a kit that would swap the member's logo for a typeset name.
+
+**A logo picture with empty margins.** Many logo PNGs sit in the middle of a large blank canvas. `check` measures it and says so. The pages and the LinkedIn images show the logo cropped to its lettering, so it is not tiny; the file itself is never edited. Ask for a trimmed file when the member next speaks to their designer.
 
 ## What to tell the member at the end
 
