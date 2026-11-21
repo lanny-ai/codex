@@ -27,7 +27,7 @@ Three helpers, all standard library only:
 
 ## Prerequisites
 
-- **A Business File with §1 filled in:** what they do, who they serve, the core result. `autopilot.py preflight BUILDROOM_BUSINESS_FILE.md` checks. If it fails, send them to **"Research my business first"** (Deep Discovery) or the onboarding questions, and stop. Do not interview them here.
+- **A Business File with §1 filled in:** what they do, who they serve, the core result. `autopilot.py preflight BUILDROOM_BUSINESS_FILE.md` checks. If it fails, send them to **"Interview me about my business"** (the short interview), **"Research my business first"** (Deep Discovery) or the onboarding questions, and stop. Do not interview them here.
 - **A place with a folder:** Cowork, Claude Code or Codex. A run reads and writes many files and takes a couple of hours. In a regular chat with no folder, say so plainly and offer the single next session instead.
 - **Enough known to be worth it.** See Phase 0.
 
@@ -39,7 +39,7 @@ Three helpers, all standard library only:
 2. If a run already exists (`autopilot/run.json`), do not start over. Run `autopilot.py status`, tell the member where it stopped, and carry on from `next`.
 3. **Find out how much is known.**
    - If `discovery/ledger.json` exists, run the Discovery Engine's `discover.py ready` on it and use its number.
-   - If it says not ready, or there is no ledger at all, tell the member plainly: "A run now would be mostly blanks and guesses, with your own few sentences handed back in different shapes." Give them the choices `ready` supports: answer the questions it names (only when it names some), run the one session it names by hand or "Research my business first", or go ahead anyway. Recommend the first two. `autopilot.py plan` refuses to start below 70, or with no ledger, unless you pass the member's own words with `--thin-ok`. Never supply those words yourself, and never pass words that are not a clear choice to go ahead.
+   - If it says not ready, or there is no ledger at all, tell the member plainly: "A run now would be mostly blanks and guesses, with your own few sentences handed back in different shapes." Give them the choices `ready` supports: answer the questions it names (only when it names some), run the one session it names by hand, or go ahead anyway. With no ledger at all, the choices are "Interview me about my business" (a short interview, about ten minutes, for a member with little written down), "Research my business first" (for one with files worth reading), or go ahead anyway. Recommend the first two. `autopilot.py plan` refuses to start below 70, or with no ledger, unless you pass the member's own words with `--thin-ok`. Never supply those words yourself, and never pass words that are not a clear choice to go ahead.
    - If Deep Discovery put this same choice to the member a moment ago in this conversation, do not ask it again. Act on the answer they gave.
    - If they do not choose to go ahead, there is no run. Write nothing, and tell them the one session to start next.
 4. Tell the member, in a few sentences, what will happen: a few questions, the foundation, one review, then the rest straight through; everything is a draft; nothing is published, sent or paid for; it takes a couple of hours and a large share of their usage allowance, and it saves its place after every step.

@@ -196,8 +196,10 @@ def cmd_plan(a):
     thin_ok = (a.thin_ok or "").strip()
     if (r == "none" or int(r) < READY_AT) and len(thin_ok) < 2:
         why = "There is no discovery ledger, so nobody knows how much is known." if r == "none" else f"Readiness is {r} out of 100, below {READY_AT}."
-        die(why + " A run now would be mostly blanks and guesses. Tell the member, and offer: answer the questions Discovery still has "
-            "(only if `discover.py ready` names some), run the one session it names by hand, or go ahead anyway. If they choose to go ahead, "
+        die(why + " A run now would be mostly blanks and guesses. Tell the member, and offer: "
+            + ("a short interview first (\"Interview me about my business\", about ten minutes), \"Research my business first\" if they have files worth reading, "
+               if r == "none" else "answer the questions Discovery still has (only if `discover.py ready` names some), run the one session it names by hand, ")
+            + "or go ahead anyway. If they choose to go ahead, "
             "record their words with --thin-ok. Words that are not a clear choice to go ahead (\"I don't know\", \"skip that\") are not one.", 5)
     if thin_ok and NONE.match(thin_ok):
         die(f"“{thin_ok}” is not a choice to go ahead. Do not start a run on it.", 5)

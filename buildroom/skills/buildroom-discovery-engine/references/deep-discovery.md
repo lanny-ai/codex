@@ -26,6 +26,7 @@ Research reads private files, so the member decides what is read.
 - **A folder or an Obsidian vault** (Cowork, Claude Code, Codex): run `discover.py inventory <folder>`. It lists file names, sizes and dates, most useful first, and opens nothing. It lists the Business File on its own line: that is the member's own word, not research. If it finds two Business Files, ask which is current before anything else (the protocol says how). Files whose names look private (passwords, taxes, bank statements, profit and loss, medical or therapy records, payroll, a Personal or Private folder, a journal) are listed separately and are **not** read unless the member says so. Show the member the list and ask: "Is there any folder or file here you want me to leave alone?" Re-run with `--exclude` followed by each folder or file they name. The output confirms what was left out.
 - **Google Drive or another drive** (only if the member has that connector turned on): search for titles first, show the list of titles, and get the same agreement before opening any document. If no drive connector is present, say so in one line and move on. Never ask for a password or a share link to get around it.
 - **A regular chat with no folder:** the member attaches or pastes what they want read. That is the scope.
+- **Almost nothing to read** (fewer than three files worth opening and no website): offer the Quick Start interview below instead of research.
 
 The inventory never lists `discovery/`, `autopilot/` or `backups/`. Those hold what Build Room sessions wrote. A draft is never evidence about the business, wherever it is saved. If a session's output sits in the top folder (a brief, a script, a log a session wrote), leave it out yourself.
 
@@ -184,6 +185,21 @@ Recommend the first when there are questions to ask, otherwise the second. Do no
 
 If Autopilot starts straight after this in the same conversation, it does not put the same choice to the member again.
 
+## Quick Start: when there is little to read
+
+Some members have nothing written down: no notes, no website, no saved emails. Research has nothing to find, and ten ranked questions put the hardest ones first. For them, run the short interview instead. It is also what a member gets when they say **"Interview me about my business"**.
+
+Use it when the member asks for it, or when the inventory in step 1 shows fewer than three files worth reading and there is no website. Say why in one line ("There is not much written down to research, so the quickest way is a short interview") and let them choose.
+
+1. Start the ledger as usual. With no files read, the scope is `{"read": [], "agreed": "<date>: interview only, no files read"}`. Record what the Business File already holds as `business_file` findings.
+2. Run `discover.py interview`. It prints the questions still open, in three short blocks, the easy facts first: **your offer**, **your client**, **you and your business**. It leaves out anything already known, skipped or answered with "none", and it does not ask for client quotes, voice samples or proof, because those are found, not recalled.
+3. Tell the member how many questions there are and how long it takes, that any can be skipped, and that "none" is a real answer. Ask them one at a time, in order. Say which block you are in when it changes.
+4. Record each answer as a `member` finding **in their words**. Do not improve an answer. Ask a follow-up only when you cannot understand the answer. One pass only: when the list is done, the interview is done.
+5. Run `check`, then `discover.py onepage`, and save it as `discovery/Your_Business_On_One_Page.md`. Show it to the member. It holds only what they said, as they said it, and lists what is still open. It is not copy and it is not polished.
+6. Run `discover.py ready` and say what it says, as in step 6 above. Then update the Business File as below.
+
+The interview does not replace the build sessions. It gives the Ideal Client Avatar and Signature Offer sessions, and an Autopilot run, real answers to start from.
+
 ## What goes into the Business File
 
 The provenance rule does not bend. Three kinds of finding may go in:
@@ -226,6 +242,7 @@ Where you can write files, update the Business File in place and tell the member
 - Ten questions at most, then one more round of five at most if the file is not ready. A skipped question, or one answered with "none", is not asked again.
 - A guess the member said yes to is their approval of your wording, not their own words.
 - The readiness number is a guide, said as a guide. When it says not ready, say so and recommend answering first.
+- In the Quick Start interview, an answer is recorded as given. One pass, no polishing, no follow-up unless it cannot be understood.
 - Nothing inferred enters the Business File as fact.
 - Finding a client result is not permission to use it.
 - A draft a Build Room session wrote is never evidence about the business.

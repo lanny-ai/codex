@@ -10,6 +10,8 @@ can agree what gets read, then checks, compares and prints what the session wrot
   discover.py gaps LEDGER.json [--cap N] the few questions worth asking, most important first
   discover.py ready LEDGER.json          readiness score: a guide, not a measurement
   discover.py page LEDGER.json           the "What I found" page, as markdown
+  discover.py interview LEDGER.json      Quick Start: the short interview for a member with little written down
+  discover.py onepage LEDGER.json        Quick Start: "Your business on one page", in the member's own words
 
 Standard library only.
 """
@@ -64,6 +66,13 @@ HEARSAY = re.compile(r"\b(someone (told|said)|i heard|heard that|apparently|supp
 NO_CREDIT_WHEN_ABSENT = ("x.proof", "x.voice", "2.language", "x.credentials", "3.typical_result")
 NEEDS_QUOTE = ("2.language", "x.voice", "x.proof")
 READY_AT = 70
+# Quick Start: three short blocks, the easy facts first. Client words, voice and proof are not asked for here;
+# they are found, not recalled.
+INTERVIEW = [
+    ("Your offer", ("1.what_i_do", "1.who_i_serve", "1.core_result", "3.offer_name", "3.deliverables", "3.structure", "1.price", "3.guarantee", "1.booking")),
+    ("Your client", ("2.profile", "2.pains", "2.dream", "2.trigger", "2.objections", "2.negative")),
+    ("You and your business", ("x.credentials", "x.story", "1.lead_sources", "1.tools", "3.promise", "4.alternative", "3.typical_result")),
+]
 
 READABLE = {".md", ".markdown", ".txt", ".docx", ".doc", ".pdf", ".rtf", ".csv", ".html", ".htm", ".pptx", ".vtt", ".srt"}
 SKIP_DIRS = {"node_modules", "__pycache__", "venv",
@@ -520,6 +529,65 @@ def cmd_ready(a):
     sys.exit(0 if ready else 2)
 
 
+def cmd_interview(a):
+    d = load(a.ledger)
+    cr, bf = credit(d), by_field(d)
+    skipped = set(d.get("skipped") or [])
+    core = best(bf["1.core_result"]) if cr.get("1.core_result", 0) >= 1 else None
+    total, out = 0, []
+    for title, keys in INTERVIEW:
+        qs = []
+        for key in keys:
+            if key in skipped or cr.get(key, 0) >= CONF["likely"] or answered_none(bf.get(key, [])):
+                continue
+            if key == "3.promise" and core:
+                qs.append(f"Is your promise to a client roughly your core result, “{core['value']}”? Say yes, or put it in your own words.")
+            else:
+                qs.append(FIELD[key][5])
+        if qs:
+            out += [f"\n{title} ({len(qs)}):"] + [f"  {total + i}. {q}" for i, q in enumerate(qs, 1)]
+            total += len(qs)
+    if not total:
+        print("Nothing left to ask. Run: discover.py onepage, then discover.py ready.")
+        return
+    print(f"Quick Start interview: {total} short questions, about {max(5, round(total * 0.7))} minutes. One at a time, in this order.")
+    print("Tell the member first: any question can be skipped, a short answer is fine, and \"none\" is a real answer.")
+    print("\n".join(out))
+    print("\nRecord each answer as a member finding in their own words. A skip goes in \"skipped\"; \"none\" is recorded with \"absent\": true.")
+    print("Do not improve an answer, and do not ask a follow-up unless the answer cannot be understood.")
+
+
+def cmd_onepage(a):
+    d = load(a.ledger)
+    probs = problems(d)
+    if probs:
+        sys.exit(f"The ledger has {len(probs)} thing(s) to fix first. Run: discover.py check")
+    bf = by_field(d)
+    out = [f"# {d.get('subject') or 'Your business'} on one page", "", "Every line here is in your own words, as you gave it. Nothing was added and nothing was polished.", ""]
+    shown = set()
+    for title, keys in INTERVIEW:
+        lines = []
+        for key in keys:
+            own = [f for f in bf.get(key, []) if kind(f) in OWN and not f.get("stale")]
+            if not own:
+                continue
+            shown.add(key)
+            label = FIELD[key][2]
+            vals = [f["value"] + (" (my wording; you said it looks right)" if f.get("guess_ok") else "") for f in own] if FIELD[key][4] else [best(own)["value"] + (" (my wording; you said it looks right)" if best(own).get("guess_ok") else "")]
+            vals = list(dict.fromkeys(vals))
+            lines += [f"- **{label}:** {vals[0]}"] if len(vals) == 1 else [f"- **{label}:**"] + [f"  - {v}" for v in vals]
+        if lines:
+            out += [f"## {title}", ""] + lines + [""]
+    skipped = set(d.get("skipped") or [])
+    todo = [FIELD[k][2] for _t, keys in INTERVIEW for k in keys if k not in shown]
+    if todo:
+        out += ["## Still open", "", ", ".join(todo) + ".", "", "These are yours to answer when you are ready. Nothing was guessed to fill them.", ""]
+    pct, weak = score(d)
+    out += ["## How ready this is", "", f"{pct} out of 100. A guide to how much is known, not a measurement of your business."
+            + (f" Still needed first: {', '.join(weak)}." if weak else "")]
+    print("\n".join(out))
+
+
 def cmd_page(a):
     d = load(a.ledger)
     bf, conflicted = by_field(d), dict(find_conflicts(d))
@@ -614,7 +682,7 @@ def main():
     p.add_argument("ledger")
     p.add_argument("--business-file")
     p.set_defaults(fn=cmd_check)
-    for name, fn in (("conflicts", cmd_conflicts), ("ready", cmd_ready), ("page", cmd_page)):
+    for name, fn in (("conflicts", cmd_conflicts), ("ready", cmd_ready), ("page", cmd_page), ("interview", cmd_interview), ("onepage", cmd_onepage)):
         p = sub.add_parser(name)
         p.add_argument("ledger")
         p.set_defaults(fn=fn)

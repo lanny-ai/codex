@@ -142,7 +142,7 @@ Capture turns a raw brainstorm (board export, transcript, notes) into outcome re
 | Build It | `buildroom-build-it` | The finishing crew for a new idea: brainstorm, Pursue Goal (GOAL.md), then planner, builder, QA, four reviewers, a five-persona panel seeded from §2, docs and a release judge. |
 | Continuity System | `buildroom-continuity` | From community member Jenn: PROJECT, STATE and DECISIONS in `projects/<name>/continuity/` keep any long project resumable across threads and between Claude and Codex. Reads the Business File, never writes it. |
 | Autopilot | `buildroom-autopilot` | Drafts the foundation (ideal client, offer, positioning) without interviewing the member, stops once for them to review the Foundation Reveal page, then drafts the offer page, funnel, lead capture, sales script, follow-up and one lead gen module straight through, ending with a Your Build page. Needs §1 filled in and a folder (Cowork, Claude Code or Codex). Recommend Deep Discovery first: it refuses to start on a thin file without the member's own choice. Every section it writes is `provisional`. It never publishes, sends or spends, and it lists the sessions that need the member with the phrase that starts each. |
-| Discovery Engine | `buildroom-discovery-engine` | The founder's Magic Business Genie (36 questions + ten prompts) rebuilt per the 2026-10-07 co-design: research first, score and confirm, scripted gaps, then the prompts. Three subjects: own business, client (separate file), prospect (brief). For the member's own business it runs Deep Discovery: agree what may be read, research their files, public footprint and market, keep a sourced ledger, show "What I found," ask at most ten questions, and give a readiness guide. |
+| Discovery Engine | `buildroom-discovery-engine` | The founder's Magic Business Genie (36 questions + ten prompts) rebuilt per the 2026-10-07 co-design: research first, score and confirm, scripted gaps, then the prompts. Three subjects: own business, client (separate file), prospect (brief). For the member's own business it runs Deep Discovery: agree what may be read, research their files, public footprint and market, keep a sourced ledger, show "What I found," ask at most ten questions, and give a readiness guide. For a member with little written down it runs a short interview instead ("Interview me about my business") and hands back their business on one page, in their own words. |
 
 ### Sessions kept as notes, not skills
 | Session | Why not a skill | Where it lives |
@@ -184,7 +184,7 @@ When routing, give the member the exact words to start the session:
 - Audience Insight → "Find the words my clients actually use"
 - Offer Deep Dive → "Make my offer a no-brainer"
 - Copy Engine → "Write me [the piece]"
-- Discovery Engine (anytime) → "Run discovery on this business" · "Research my business first" · "Read my files and tell me what you found"
+- Discovery Engine (anytime) → "Run discovery on this business" · "Research my business first" · "Interview me about my business" · "Read my files and tell me what you found"
 - Agent Forge (elective) → "Make me an agent"
 - Triage (elective) → "Triage my projects"
 - Finish It (elective) → "Finish it"

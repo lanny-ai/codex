@@ -3,6 +3,7 @@
 
 Usage:  python3 buildroom/tests/discovery/run_tests.py
 """
+import re
 import json, os, subprocess, sys, tempfile
 from pathlib import Path
 
@@ -191,6 +192,30 @@ def main():
     check("inventory: a trade word in an offer file is not private; plainly private names are",
           not dm.looks_private("Clients/payroll cleanup offer.md") and not dm.looks_private("Offers/Diagnosis call script.md")
           and all(dm.looks_private(n) for n in ("Finance/2025 taxes.md", "Notes/therapy notes.md", "Notes/private.md", "Clients/Whitcombe P&L 2025.pdf", "Admin/payroll.xlsx", "Personal/journal.md")))
+    QREF = (SCRIPT.parent.parent / "references/deep-discovery.md").read_text()
+    QSK = (SCRIPT.parent.parent / "SKILL.md").read_text()
+    # ---- Quick Start: the short interview for a member with little written down -----------------
+    write(thin + [none], skipped=["2.dream"])
+    c, out = run("interview", led)
+    qlines = [l for l in out.splitlines() if re.match(r"\s+\d+\. ", l)]
+    check("interview: three short blocks, easy facts first, with a count and a time", c == 0 and out.index("Your offer") < out.index("Your client") < out.index("You and your business")
+          and f"{len(qlines)} short questions" in out and "minutes" in out and "What do you charge" in qlines[2] + qlines[3], out)
+    check("interview: leaves out what is known, skipped or answered, and never asks for quotes, voice or proof",
+          not any(q in out for q in ("what do you do for your clients", "look like after working with you", "exact words do your clients", "sounds most like you", "one real result a client got")))
+    check("interview: the promise is put as the core result to confirm", "roughly your core result, “a calmer birth”" in out)
+    check("interview: answers are recorded as given", "Do not improve an answer" in out and "\"none\" is a real answer" in out)
+    write(thin + [none, F(20, "3.deliverables", "two prenatal visits", "member", "said in session", "confirmed"), F(21, "3.deliverables", "on call from 38 weeks", "member", "said in session", "confirmed"),
+                  F(22, "1.price", "$9,999", "file", "Old/p.md", "likely"), dict(F(23, "4.alternative", "go without", "member", "said in session", "confirmed"), guess_ok=True),
+                  F(24, "2.pains", "fear of being ignored", "hypothesis", "reasoned", "inferred")])
+    c, out = run("onepage", led)
+    check("onepage: only the member's own words, as given", c == 0 and "two prenatal visits" in out and "on call from 38 weeks" in out and "$9,999" not in out and "fear of being ignored" not in out
+          and "Nothing was added and nothing was polished." in out, out)
+    check("onepage: a guess they okayed is marked as my wording, and what is open is listed, not filled", "go without (my wording; you said it looks right)" in out and "## Still open" in out and "Pains" in out.split("## Still open")[1])
+    full_ans = [F(100 + i, k, "answer " + k, "member", "said in session", "confirmed") for i, k in enumerate(k for _t, ks in dm.INTERVIEW for k in ks)]
+    write(full_ans)
+    check("interview: a member who answers it all is ready, with nothing left to ask", run("ready", led)[0] == 0 and "Nothing left to ask" in run("interview", led)[1])
+    check("skill: the short interview is offered when there is little to read", "## Quick Start: when there is little to read" in QREF and "Interview me about my business" in QREF and "interview me about my business" in QSK.split("---")[1]
+          and len(QSK.split("---")[1]) < 700 and "One pass only" in QREF and "Do not improve an answer." in QREF)
     check("retired: entries split on semicolons, notes in brackets ignored, an unquoted entry counts whole",
           dm.parse_retired(' “Featured in Ceramics Monthly” (you said "Do not use it"); the name Studio Growth Sprint; none') == ["Featured in Ceramics Monthly", "Studio Growth Sprint"])
     write([dict(f, source={"kind": "hypothesis", "ref": "reasoned"}, confidence="inferred") for f in full])
