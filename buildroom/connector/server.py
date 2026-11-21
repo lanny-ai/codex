@@ -21,6 +21,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import join  # noqa: E402  (sign-up and approvals, same folder)
+import usage  # noqa: E402  (the host dashboard's numbers, same folder)
 SERVER_NAME = "buildroom"
 SERVER_VERSION = "0.1.0-pilot"
 PROTOCOL_VERSIONS = ("2025-06-18", "2025-03-26", "2024-11-05")
@@ -226,6 +227,8 @@ class App:
                "tool": tool, "skill": skill, "outcome": outcome}
         line = json.dumps(rec)
         with self.lock:
+            # A copy on the data volume feeds the host dashboard. It holds the same line and nothing more.
+            usage.append(os.environ.get("BUILDROOM_DATA_DIR"), line)
             if str(self.log_path) == "stdout":
                 print("usage " + line, flush=True)
             else:
@@ -421,6 +424,19 @@ def make_handler(app):
             if route == "/admin/api":
                 status, obj = app.join.admin("GET", route, self._admin_key(), {})
                 return self._send(status, obj, {"Cache-Control": "no-store"})
+            if route == "/admin/dashboard":
+                try:
+                    return self._page((HERE / "dashboard.html").read_text(encoding="utf-8"))
+                except OSError:
+                    return self._send(404, {"error": "not found"})
+            if route == "/admin/usage":
+                status, obj = app.join.admin("GET", route, self._admin_key(), {})
+                if status != 200:
+                    return self._send(status, obj, {"Cache-Control": "no-store"})
+                d = os.environ.get("BUILDROOM_DATA_DIR")
+                out = usage.summarize(usage.read(d), obj["members"], app.content.skills())
+                out["open"], out["pending"] = obj["open"], sum(1 for r in obj["requests"] if r.get("status") == "pending")
+                return self._send(200, out, {"Cache-Control": "no-store"})
             if self.path.split("?")[0] == "/health":
                 return self._send(200, {"ok": True, "version": SERVER_VERSION})
             if self._is_mcp_path():
