@@ -1,6 +1,6 @@
 # Business File Protocol
 
-Every Build Room skill follows this protocol. It is what turns 42 standalone sessions into one compounding system: the member's context persists in a single document — the **Build Room Business File** — that every session reads at the start and updates at the end.
+Every Build Room skill follows this protocol. It is what turns 43 standalone sessions into one compounding system: the member's context persists in a single document — the **Build Room Business File** — that every session reads at the start and updates at the end.
 
 A blank copy of the file lives at `references/business-file-template.md`.
 
@@ -18,11 +18,11 @@ A blank copy of the file lives at `references/business-file-template.md`.
 
 ## Session start — intake
 
-Open every session with (adapt wording to the skill's voice):
+Open every session with (adapt wording to the skill's voice; a brand-new member's first session skips this and creates the file):
 
 > "Do you have your **Build Room Business File**? Paste it or attach it and I'll pick up exactly where your business left off. If you don't have one yet, no problem — I'll create it for you as we go."
 
-**Where you can read files** (Claude Code or Codex on the member's computer): look for `BUILDROOM_BUSINESS_FILE.md` in the working folder first, read it there, and don't ask the member to paste it. If it isn't there, ask once whether they keep it in another folder or in an Obsidian vault before you create anything, and work from that copy: a member must never end up with two Business Files. If you find two, show the member both and ask which is current; the other is moved to `backups/BUILDROOM_BUSINESS_FILE-other-copy-YYYY-MM-DD.md`, never deleted.
+**Where you can read files** (Claude Code or Codex on the member's computer): look for `BUILDROOM_BUSINESS_FILE.md` in the working folder first, read it there, and don't ask the member to paste it. If it isn't there, ask once whether they keep it in another folder or in an Obsidian vault before you create anything, and work from that copy: a member must never end up with two Business Files. A member who has just said they are new, with no file in the folder, is not asked any of this: their first session creates the file. If you find two, list both by path and date, open neither, and ask which is current; the other is moved to `backups/BUILDROOM_BUSINESS_FILE-other-copy-YYYY-MM-DD.md`, never deleted.
 
 **If they provide the file:**
 - Parse the section statuses and content.

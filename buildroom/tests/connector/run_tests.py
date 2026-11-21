@@ -128,7 +128,7 @@ def main():
         for bad in ("../skills", "buildroom-os/../x", "nope", "", None):
             check(f"start_session refuses skill {bad!r}", text(call(url, key, "buildroom_start_session", {"skill": bad})[1])[1])
         t, _ = text(call(url, key, "buildroom_whats_new")[1])
-        check("whats_new: the newest release first", t.startswith("| `BuildRoom_OS_2026-11-19.zip`") and "Autopilot" in t and "Research my business first" in t, t[:60])
+        check("whats_new: the newest release first", t.startswith("| `BuildRoom_OS_2026-11-21.zip`") and "Autopilot" in t and "Interview me about my business" in t and "BuildRoom_OS_2026-11-19.zip" in t, t[:60])
         check("unknown tool: JSON-RPC -32602", call(url, key, "buildroom_delete_everything")[1]["error"]["code"] == -32602)
 
         # ---- transport edge cases ---------------------------------------------------------
@@ -215,7 +215,7 @@ def main():
               rj["build"]["builder"] == "DOCKERFILE" and rj["deploy"]["healthcheckPath"] == "/health" and "buildroom/skills/**" in rj["build"]["watchPatterns"])
         df = (CON / "Dockerfile").read_text()
         check("Dockerfile: copies only the connector, the skills and the release notes; runs as a non-root user",
-              df.count("COPY ") == 3 and "join.py" in df and "guide.html" in df and "start.html" in df and "usage.py" in df and "dashboard.html" in df and "USER connector" in df and "members.json" not in df)
+              df.count("COPY ") == 3 and "join.py" in df and "guide.html" in df and "start.html" in df and "usage.py" in df and "dashboard.html" in df and all(f"example-{n}.html" in df for n in ("review", "build", "onepage", "offer-page", "sales-script", "referrals")) and "USER connector" in df and "members.json" not in df)
         di = (ROOT.parent / ".dockerignore").read_text()
         check(".dockerignore: everything excluded except what the image needs", di.splitlines()[1] == "*" and "!buildroom/skills/**" in di and "!buildroom/connector/guide.html" in di)
 
@@ -254,6 +254,30 @@ def main():
                   not _re.search(r'(src|href)="(https?:)?//', guide) and "@import" not in guide and not _re.search(r"url\(\s*['\"]?(https?:|//|data:)", guide))
             # ---- the Start Here page and its setup video ------------------------------------
             sp = urllib.request.urlopen(b3 + "/start").read().decode()
+            # ---- the finished example ------------------------------------------------------------
+            ex = {}
+            for n in ("review", "build", "onepage", "offer-page", "sales-script", "referrals"):
+                r = urllib.request.urlopen(b3 + "/example/" + n)
+                ex[n] = r.read().decode()
+            check("example: every page is served and says plainly that the business is made up", all("everyone named here are made up" in h and 'href="/guide#example"' in h for h in ex.values()))
+            check("example: self-contained, and its links stay on the site", all(not _re.search(r'(src|href)="https?:', h) and "@import" not in h for h in ex.values())
+                  and all(l.startswith("/example/") or l == "/guide#example" for h in ex.values() for l in _re.findall(r'href="([^"#][^"]*)"', h)), [l for h in ex.values() for l in _re.findall(r'href="([^"#][^"]*)"', h)][:8])
+            check("example: the build page links to the review page and the three drafts", all(f'href="/example/{n}"' in ex["build"] for n in ("review", "offer-page", "sales-script", "referrals")))
+            check("example: the review page tags its lines and the drafts show their blanks", "Drafted, approved by you" in ex["review"] and "From your files" in ex["review"] and "Needs you:" in ex["offer-page"])
+            check("example: the one page shows her words and three drafted ways to say it", "in your own words." in ex["onepage"] and ex["onepage"].count("Drafted for you") == 3)
+            check("example: no key, room code or real address, and no promise of results", not any(_re.search(r"BUILD-\d|br_[A-Za-z0-9]{8}|/mcp/|@gmail|@aimomentum", h) for h in ex.values())
+                  and not any(_re.search(r"guaranteed results|you will (get|make|earn)", h, _re.I) for h in ex.values()))
+            try:
+                urllib.request.urlopen(b3 + "/example/../server.py"); bad = True
+            except urllib.error.HTTPError:
+                bad = False
+            try:
+                urllib.request.urlopen(b3 + "/example/secret"); bad2 = True
+            except urllib.error.HTTPError:
+                bad2 = False
+            check("example: only the listed pages are served", not bad and not bad2)
+            check("guide: shows a finished example before asking for anything", 'id="example"' in guide and "See what you get" in guide and guide.count('href="/example/') == 6
+                  and "An example shows the work, not a result" in guide)
             check("guide: has a clear call to action to the Start Here page", guide.count('href="/start"') >= 2 and "Brand new?" in guide)
             check("start: served, with the first sentence and all three ways to connect",
                   "I'm new here. Help me get started." in sp and "Add custom connector" in sp
@@ -319,6 +343,15 @@ def main():
             check("dashboard: tools ranked by sessions, unused tools listed with none", su["tools"][0]["skill"] == "buildroom-os" and tl["buildroom-os"]["starts"] == 5
                   and tl["buildroom-os"]["starts_30"] == 4 and tl["buildroom-autopilot"]["members"] == 1 and tl["buildroom-compass"]["starts"] == 0 and tl["buildroom-compass"]["last"] is None)
             check("dashboard: thirty days of activity, and it says when counting began", len(su["daily"]) == 30 and su["daily"][-2]["members"] == 3 and su["tracking_since"].startswith("2026-10-12"))
+            dg = _u.digest(su, 2)
+            dt = dg["text"]
+            check("digest: the week in numbers, counting only sessions started", "2 of 6 members ran at least one session (4 sessions in all)" in dt and "2 sign-up request(s) waiting" in dt, dt[:500])
+            check("digest: each group to check in on is named, with a note to send", "CONNECTED BUT NEVER RAN A SESSION: 1" in dt and "C <c@x.com>, connected 3 day(s) ago" in dt
+                  and "GONE QUIET (no session in over 21 days): 1" in dt and "G <g@x.com>, last session 40 days ago" in dt and "HAVE A LINK, NEVER CONNECTED: 1" in dt and dt.count("A note you could send:") == 4)
+            check("digest: first sessions are called out, stopped members are not chased", "WORTH A CONGRATULATIONS" in dt and "<h@x.com>" in dt.split("WORTH A CONGRATULATIONS")[1] and "s@x.com" not in dt.split("WORTH A CONGRATULATIONS")[0])
+            check("digest: the subject line carries the two numbers that matter", dg["subject"] == "Build Room OS weekly: 2 active, 2 to check in on")
+            check("digest: says what it counts, promises nothing, no long dashes", "counts sessions started, not results" in dt and "\u2014" not in dt and "\u2013" not in dt)
+            check("digest: with nothing recorded it says so", "No activity has been recorded yet" in _u.digest(_u.summarize([], mem, sk, now))["text"])
             check("dashboard: no activity at all is handled", _u.summarize([], mem, sk, now)["tracking_since"] is None and _u.summarize([], [], [], now)["members"] == [])
             (data / "usage.jsonl").write_text("not json\n" + json.dumps(recs[0]) + "\n{\"at\": 1}\n")
             check("dashboard: damaged lines in the stored log are skipped", len(_u.read(str(data))) == 1 and _u.read(None) == [])
@@ -371,6 +404,15 @@ def main():
                 except urllib.error.HTTPError as e:
                     return e.code, None
             check("dashboard: the numbers need the admin key", ucode()[0] == 401 and ucode("wrong")[0] == 401)
+            def dcode(k=None):
+                rq = urllib.request.Request(b3 + "/admin/digest", headers={"Authorization": "Bearer " + k} if k else {})
+                try:
+                    r = urllib.request.urlopen(rq)
+                    return r.status, json.loads(r.read())
+                except urllib.error.HTTPError as e:
+                    return e.code, None
+            check("digest: needs the admin key, and comes back as a subject and plain text", dcode()[0] == 401 and dcode(admin_key)[0] == 200
+                  and set(dcode(admin_key)[1]) == {"subject", "text"} and "THE WEEK IN NUMBERS" in dcode(admin_key)[1]["text"])
             dkey = post(b3 + "/admin/api", {"email": "dash@example.com", "decision": "link"}, admin_key)[1].get("key")
             call(b3 + "/mcp", dkey, "buildroom_status")
             call(b3 + "/mcp", dkey, "buildroom_start_session", {"skill": "buildroom-os"})
@@ -385,6 +427,7 @@ def main():
                   and "dash@example.com" not in dh and "noindex" in dh and not _re.search(r'(src|href)="(https?:)?//', dh))
             check("dashboard: says what is and is not recorded", "Nothing a member types and nothing from their Business File is ever stored here." in dh)
             check("dashboard: linked from the approvals page", 'href="/admin/dashboard"' in urllib.request.urlopen(b3 + "/admin").read().decode())
+            check("dashboard: the week in words is one press away", 'id="dg"' in dh and "/admin/digest" in dh)
             check("dashboard: no long dashes", "\u2014" not in dh and "\u2013" not in dh)
             check("admin: approve", adm("POST", {"email": "new@example.com", "decision": "approve"})[1].get("ok"))
             s, r, _ = jn({"name": "New Person", "email": "new@example.com", "code": "ROOM-1111"})

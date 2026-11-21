@@ -7,7 +7,10 @@ It reads autopilot/run.json (written by autopilot.py) and lists what was drafted
 what each draft still needs from the member, what could not be drafted, and the sessions that need the member,
 each with the sentence that starts it. One self-contained file. It works offline and prints cleanly.
 
-Standard library only. It reads run.json and writes one HTML file. Nothing else.
+It will not build while a draft holds something that must not be there (a retired line, a figure nobody confirmed,
+a guarantee the member does not have, a client's words used without permission). drafts.py does that check.
+
+Standard library only. It reads run.json and the drafts, and writes one HTML file. Nothing else.
 """
 import argparse, html, importlib.util, json, os, re, sys
 from pathlib import Path
@@ -17,6 +20,12 @@ _spec = importlib.util.spec_from_file_location("autopilot_keeper", HERE / "autop
 keeper = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(keeper)
 TOOL = keeper.TOOL
+_spec = importlib.util.spec_from_file_location("autopilot_drafts", HERE / "drafts.py")
+drafts = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(drafts)
+
+# The sessions most members reach for first after a run. The rest sit behind one click, so the page is not a wall.
+NEXT_UP = keeper.NEXT_UP
 
 # What each drafted piece is for, in a line the member would say.
 FOR = {
@@ -26,7 +35,7 @@ FOR = {
     "positioning-messaging": "Where you stand, and why someone picks you.",
     "offer-deep-dive": "Your offer pressure-tested: value, guarantee and the numbers behind it.",
     "offer-page-copy": "The page that does the selling when you are not in the room.",
-    "funnel-map": "The path from stranger to client, with the emails written.",
+    "funnel-map": "The path from stranger to client, and the emails where there is something to send.",
     "lead-capture": "The opt-in page, the free resource and its delivery.",
     "sales-script": "What to ask on the call, and what to say when they hesitate.",
     "decision-machine": "The follow-up for every yes and every no.",
@@ -87,11 +96,13 @@ ul{margin:0;padding:0;list-style:none}
 footer{padding:34px 0 46px;color:var(--mute);font-size:15px}
 .btn{appearance:none;border:0;cursor:pointer;font:700 16px/1 var(--sans);padding:14px 20px;border-radius:999px;color:#fff;background:var(--navy)}
 @media (max-width:760px){body{font-size:17px}.wrap{padding:0 16px}.grid,.stats,.first{grid-template-columns:1fr}.card{padding:22px 18px}.cover{padding:44px 0 40px}}
+.more{margin-top:18px}.more summary{cursor:pointer;font:600 17px/1.3 var(--sans);color:var(--navy);padding:12px 0}.more .grid{margin-top:8px}
 @media print{body{background:#fff;font-size:11pt}.cover,.hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}.noprint,.say small{display:none}.card{break-inside:avoid;box-shadow:none}section{padding-top:22px}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 """
 
 JS = """
+window.addEventListener("beforeprint",function(){document.querySelectorAll("details").forEach(function(d){d.open=true})});
 const KEY='br-your-build-'+document.title;
 let saved={};try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
 const boxes=[...document.querySelectorAll('.todo input')];
@@ -137,6 +148,8 @@ def build(run, folder, page_dir, business):
     made = [s for s in steps if s.get("status") in ("drafted", "partial")]
     gaps = len(keeper.rollup(run))  # each thing counted once, however many drafts ask for it
     mostly_partial = len(by["partial"]) > len(by["drafted"])
+    r0 = str(run.get("readiness"))
+    thin = bool(run.get("thin_ok")) or r0 == "none" or (r0.isdigit() and int(r0) < keeper.READY_AT)
     top = [e for e in keeper.rollup(run) if len(e["in"]) > 1][:5]
     needs = [t for t in keeper.TOOLS if t[3] == "needs_you"]
     approved = run.get("approved")
@@ -146,11 +159,22 @@ def build(run, folder, page_dir, business):
     done_line = "Here is everything that was drafted, where it is saved, and what still needs you." if not by["pending"] \
         else "The run is not finished. Here is what is drafted so far. Say “Run autopilot” to carry on."
     o.append(f'<header class="cover"><div class="wrap"><div class="eyebrow">Build Room OS · Your Build</div>'
-             f'<h1>{lead}<em>{"your first build, started." if mostly_partial else "your first build, drafted."}</em></h1><p>{E(done_line)} Started {E(str(run.get("started", "")))}.</p>'
-             f'<div class="stats"><div class="stat a"><b>{len(made)}</b><span>pieces drafted for you' + (f', {len(by["partial"])} of them only in part' if by["partial"] else "") + '</span></div>'
+             f'<h1>{lead}<em>{"your first build, started." if thin else "your first build, drafted."}</em></h1><p>{E(done_line)} Started {E(str(run.get("started", "")))}.</p>'
+             f'<div class="stats"><div class="stat a"><b>{len(by["drafted"])}</b><span>pieces drafted for you' + (f', and {len(by["partial"])} more only in part' if by["partial"] else "") + '</span></div>'
              f'<div class="stat b"><b>{gaps}</b><span>different things they still need from you</span></div>'
              f'<div class="stat c"><b>{len(needs)}</b><span>sessions waiting for you to start</span></div></div></div></header><div class="edge"></div><main class="wrap">')
 
+    r = run.get("readiness")
+    if thin:
+        o.append('<section><div class="card warn"><h3>Read this first</h3><p>'
+                 + (f'When this run started, your file was at {E(str(r))} out of 100 for how much is known, below the 70 a run needs to be worth it. ' if str(r).isdigit() and int(r) < keeper.READY_AT
+                    else 'No research or interview was done before this run. ' if r == "none" else "")
+                 + (f'You chose to go ahead: {E(keeper.said(run["thin_ok"]))} ' if run.get("thin_ok") else "")
+                 + 'So most of what is here is your own few sentences in different shapes, with the gaps marked. The most useful next step is not to polish these drafts. '
+                   'It is to answer what is still open, or to run the Ideal Client Avatar session yourself.</p>' + say(TOOL["ideal-client-avatar"][2]) + '</div></section>')
+    elif mostly_partial:
+        o.append('<section><div class="card warn"><h3>Read this first</h3><p>More than half of these pieces are only partly drafted, because something they needed was not known. '
+                 'That is on purpose: a marked blank is better than a guess. The short list under “Answer these first” is the quickest way to finish the most of them.</p></div></section>')
     o.append('<section><div class="num">Start here</div><h2>What to do first</h2><p class="sub">Everything on this page is a draft. Nothing was published, sent or paid for. It becomes real when you have checked it.</p>'
              '<div class="first"><div class="card"><span class="n">1</span><h3>Read the drafts</h3><p class="why">Open each one below and fix anything that does not sound like you. Every one was written for you to check; each ends with a short list of what in it is yours and what is not.</p></div>'
              '<div class="card"><span class="n">2</span><h3>Fill what needs you</h3><p class="why">Each draft lists what is still missing. Tick them off here as you go. Your ticks are remembered on this computer.</p></div>'
@@ -175,7 +199,7 @@ def build(run, folder, page_dir, business):
             slug = s["slug"]
             part = s.get("status") == "partial"
             o.append(f'<div class="card"><h3>{E(TOOL[slug][1])}' + (' <span style="font-weight:600;color:var(--amber);font-size:16px">· Partly drafted</span>' if part else "")
-                     + f'</h3><p class="for">{E(FOR.get(slug, ""))}</p>')
+                     + '</h3>' + ("" if part else f'<p class="for">{E(FOR.get(slug, ""))}</p>'))
             if s.get("outputs"):
                 o.append('<div class="k">Saved as</div><ul class="files">' + "".join(file_item(x, folder, page_dir) for x in s["outputs"]) + '</ul>')
             if s.get("gaps"):
@@ -201,9 +225,13 @@ def build(run, folder, page_dir, business):
         o.append('</section>')
 
     o.append('<section><div class="num">Yours to start</div><h2>Sessions that need you</h2><p class="sub">These depend on something only you have, so Autopilot left them alone. Not all of them will fit your business; pick what does. Each starts with one sentence. Press it to copy, then paste it into Claude or Codex.</p><div class="grid">')
-    for _slug, name, phrase, _mode, why in needs:
-        o.append(f'<div class="card"><h3>{E(name)}</h3><p class="why">Not run because {E(why)}.</p>{say(phrase)}</div>')
-    o.append('</div></section>')
+    card = lambda t: f'<div class="card"><h3>{E(t[1])}</h3><p class="why">Not run because {E(t[4])}.</p>{say(t[2])}</div>'  # noqa: E731
+    first = [t for t in needs if t[0] in NEXT_UP]
+    rest = [t for t in needs if t[0] not in NEXT_UP]
+    o.append("".join(card(t) for t in first) + '</div>')
+    if rest:
+        o.append(f'<details class="more"><summary>{len(rest)} more, for when you need them</summary><div class="grid">' + "".join(card(t) for t in rest) + '</div></details>')
+    o.append('</section>')
 
     o.append('<section class="noprint"><button class="btn" id="print" type="button">Print or save as PDF</button></section>')
     o.append(f'</main><footer class="wrap">Build Room OS, from AI Momentum Labs. This page lists drafts on your own computer. Nothing here was published, sent or paid for, '
@@ -226,11 +254,18 @@ def main():
     out = Path(a.out)
     if out.suffix.lower() != ".html":
         sys.exit("The output file must end in .html")
+    fixes, looks, _n = drafts.problems(a.dir)
+    if fixes:
+        for x in fixes:
+            print("FIX  " + x, file=sys.stderr)
+        sys.exit(f"{len(fixes)} thing(s) in the drafts must be fixed before the handover. Fix them in the drafts, then build again. (drafts.py check lists them.)")
     folder = Path(a.dir).resolve().parent
     business = (a.business or business_name(folder)).strip()
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(build(run, folder, out.parent, business), encoding="utf-8")
     print(f"Wrote {out}. Open it in a browser.")
+    for x in looks:
+        print("LOOK  " + x)
 
 
 if __name__ == "__main__":

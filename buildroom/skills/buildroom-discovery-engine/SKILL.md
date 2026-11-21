@@ -1,7 +1,7 @@
 ---
 name: buildroom-discovery-engine
 description: |
-  Researches a business first, asks only the gaps, then runs the Magic Business Genie outputs; for the member's business, a client or a prospect. Use for "run discovery on this business," "research my business first," "read my files and tell me what you found," "research this client before I talk to them," "prep me for this call," or "run the genie."
+  Researches a business first, asks only the gaps, then runs the Magic Business Genie outputs; for the member's business, a client or a prospect. Use for "run discovery on this business," "research my business first," "read my files and tell me what you found," "interview me about my business," "research this client before I talk to them," "prep me for this call," or "run the genie."
 ---
 
 # Build Room — Discovery Engine
@@ -23,7 +23,7 @@ Read these reference files, in order, before any member-facing work:
 
 ## Prerequisites
 
-**For the member's own business:** requires §1 (Business Snapshot), even a thin one. If §1 is empty, run the Build Room OS onboarding first; it takes five minutes.
+**For the member's own business:** requires §1 (Business Snapshot), even a thin one. If §1 is empty, the member is new: run the first session in `deep-discovery.md`, which creates it. A new member's first session needs only that section, the protocol and the template, not the references listed above.
 
 **For a client or prospect:** requires nothing from the member's file beyond knowing who the member is. Requires a subject that passes Phase 0.
 
@@ -48,6 +48,10 @@ When the subject is the member's own business, Phases 1 to 4 are replaced by `re
 4. **Show "What I found"** (`discover.py page`, saved as `discovery/What_I_Found.md`) before asking anything about the business. Ask one thing with it: are any of the lines from their own files out of date? Corrections become member findings; "my files are current", or their naming the ones that are not, is recorded in `files_current`.
 5. **Ask the gaps** from `discover.py gaps`: at most ten, one at a time. Record a skip in `skipped`; it is not asked again, and neither is a question answered with "none". A guess the member only says yes to is recorded with `guess_ok`: their approval of your wording, not their words.
 6. **Say how ready the file is** with `discover.py ready`, as a guide and not a measurement. When it says not ready, say so plainly, recommend answering the named questions, and do not recommend Autopilot.
+
+**A brand-new member** (handed over by the navigator after "I'm new here. Help me get started.") gets **the first session** in `deep-discovery.md`: ask for their website, show what you learned from it for them to correct, ask only what is missing, and end with `scripts/onepage.py`: their business on one page in their own words, with three drafted ways to say what they do.
+
+**Little written down?** When the member says "Interview me about my business", or there is almost nothing to read, run the Quick Start in `deep-discovery.md` instead of steps 2 to 5: `discover.py interview` prints a short interview in three blocks, easy facts first; record each answer in their words; `discover.py onepage` gives them their business on one page, in their own words; then `ready`.
 
 Deep Discovery ends with the page, the ledger, the two lists and the Business File update. It produces no Discovery Brief and asks for no 1 to 5 rating. If the member also wants the ten Genie outputs, go on to Phase 5 and fill the 36-question answer sheet from the ledger.
 

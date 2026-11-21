@@ -11,6 +11,7 @@ Usage
   --file P. Only settings (or init) creates the file; every other command refuses when it is missing.
 
   li_pipeline.py settings [P] [--premium yes|no] [--notes-limit N] [--pillars "Cash flow" "Pricing" ...] [--basis "..."]
+                          [--posts-per-week 3|5|7]   how often the member posts (default 3); today says whether it is a posting day
                           creates the pipeline on first use and prints the lawful basis it records (edit with --basis)
   li_pipeline.py init     [P] [same options as settings]
   li_pipeline.py add    [P] --name "Dana Ruiz" --url https://www.linkedin.com/in/danaruiz --role "COO" --company "Ruiz & Co"
@@ -19,7 +20,8 @@ Usage
                           sig:posted-problem sig:inbound-connect sig:dm-inbound sig:event sig:referral sig:launch
                           sig:known (a past client, colleague or someone who already knows the member: the member
                           says how in --note) · sig:reacted (reacted to the member's post: a weaker signal; the
-                          today list suggests a comment or a profile visit before a DM)
+                          today list suggests a comment or a profile visit before a DM) · sig:fit (found by
+                          li_prospect.py: matches the ideal client, no signal yet; comment or a blank request first)
                           --connected: already 1st-degree, so the record starts at stage connected
                           The URL is reduced to linkedin.com/in/<slug> (decoded, lower case, no sub-domain, query,
                           fragment or extra path) for duplicates, suppression and import-connections. A member-ID
@@ -85,7 +87,7 @@ STAGES = ["signal", "warming", "connected", "conversation", "qualified", "call-o
           "call-held", "proposal", "won", "lost", "nurture"]
 SIGNALS = ["sig:commented-my-post", "sig:commented-peer-post", "sig:viewed-profile", "sig:new-role",
            "sig:posted-problem", "sig:inbound-connect", "sig:dm-inbound", "sig:event", "sig:referral", "sig:launch",
-           "sig:known", "sig:reacted"]
+           "sig:known", "sig:reacted", "sig:fit"]
 # signals where the person is often 1st-degree already: the DM warning asks rather than asserts
 LIKELY_CONNECTED = {"sig:commented-my-post", "sig:dm-inbound", "sig:known", "sig:reacted"}
 TEMPLATES = {"C1": "connection request (blank)", "C2": "connection request with note", "C3": "welcome after accepting",
@@ -93,6 +95,9 @@ TEMPLATES = {"C1": "connection request (blank)", "C2": "connection request with 
              "D4": "first DM: profile viewer", "D5": "call ask", "D6": "deepening question",
              "F1": "follow-up 1 (add value)", "F2": "follow-up 2 (permission to close)", "V1": "voice note",
              "R1": "reactivation: someone who already knows you"}
+# The member chooses 3, 5 or 7 posts a week. Three is the default and what most can sustain from their own material.
+POST_DAYS = {3: (1, 2, 3), 5: (0, 1, 2, 3, 4), 7: (0, 1, 2, 3, 4, 5, 6)}
+POST_DAY_NAMES = {3: "Tuesday, Wednesday, Thursday", 5: "Monday to Friday", 7: "every day"}
 FIRST_DM = {"D1", "D2", "D3", "D4", "C3", "R1"}
 INVITES = {"C1", "C2"}
 DIRECT = {"C3", "D1", "D2", "D3", "D4", "R1", "D5", "D6", "F1", "F2", "V1"}   # messages that need a connection (or InMail)
@@ -308,6 +313,8 @@ def cmd_add(data, a):
     warn = url_warnings(a.url)
     if a.signal == "sig:reacted":
         out["suggest"] = REACTED_HINT
+    if a.signal == "sig:fit":
+        out["suggest"] = FIT_HINT
     if a.signal == "sig:known" and not a.note:
         warn.append("sig:known: add --note saying how they know you (past client, colleague, met at ...)")
     if warn:
@@ -317,6 +324,8 @@ def cmd_add(data, a):
     return out
 
 
+FIT_HINT = ("they match your ideal client and have shown no signal yet: follow them and comment on a post first, or send a "
+            "blank request (C1). A first message comes only after they accept, and it opens with what you noticed about them")
 REACTED_HINT = ("a reaction is a weak signal: comment on one of their posts or visit their profile first, "
                 "and send the first DM when they engage again (a blank request C1 is fine now)")
 
@@ -535,11 +544,16 @@ def cmd_today(data, a):
     on = today(a)
     d = due_list(data, on, retention=True)
     waiting = [{"id": p["id"], "name": p["name"], "signal": p["signal"], "since": p["signal_date"],
-                **({"suggest": REACTED_HINT} if p["signal"] == "sig:reacted" else {})}
+                **({"suggest": REACTED_HINT} if p["signal"] == "sig:reacted" else {"suggest": FIT_HINT} if p["signal"] == "sig:fit" else {})}
                for p in data["people"] if p["stage"] in ("signal", "connected") and not p["touches"]]
     listed = {w["id"] for w in waiting}
     c_today = sum(c["n"] for c in data["comments"] if c["date"] == on.isoformat())
-    return {"date": on.isoformat(),
+    n = data["settings"].get("posts_per_week", 3)
+    posted = any(p.get("date") == on.isoformat() for p in data.get("posts", []))
+    is_day = on.weekday() in POST_DAYS[n]
+    post = ("posted today" if posted else f"a posting day ({n} posts a week): research, draft and render today's post, then put it on the daily page"
+            if is_day else f"not a posting day ({n} posts a week: {POST_DAY_NAMES[n]})")
+    return {"date": on.isoformat(), "0_post": post, "post_today": is_day and not posted,
             "1_comment": f"{c_today} substantive comments logged today; aim for 5–10 on your watch list (tiers A and B)",
             "2_reply": "reply to comments on your own recent posts; open a second exchange with the ones that fit",
             "3_signals_waiting": waiting, "4_follow_ups_due": [x for x in d["due"] if x["id"] not in listed],
@@ -768,6 +782,8 @@ def cmd_settings(data, a):
         s["notes_limit"] = a.notes_limit
     if a.pillars:
         s["pillars"] = [" ".join(x.split()) for x in a.pillars if x.strip()]
+    if getattr(a, "posts_per_week", None):
+        s["posts_per_week"] = a.posts_per_week
     if a.basis:
         data["basis"] = a.basis.strip()
     if getattr(a, "_created", False):
@@ -819,6 +835,7 @@ def main(argv=None):
     for name in ("settings", "init"):
         s = mk(name); s.add_argument("--premium", choices=["yes", "no"]); s.add_argument("--notes-limit", type=int)
         s.add_argument("--pillars", nargs="+"); s.add_argument("--basis")
+        s.add_argument("--posts-per-week", type=int, choices=(3, 5, 7), dest="posts_per_week")
     a = ap.parse_args(argv)
     if a.file and a.path and Path(a.file) != Path(a.path):
         refuse(f"two pipeline files given ({a.path} and --file {a.file}); pass one")

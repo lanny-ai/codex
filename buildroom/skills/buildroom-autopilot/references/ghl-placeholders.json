@@ -1,0 +1,1178 @@
+{
+ "version": "1.0",
+ "date": "2026-11-19",
+ "prefix": "br_",
+ "merge_tag": "{{ custom_values.KEY }}",
+ "placeholders": [
+  {
+   "key": "br_business_name",
+   "group": "Brand",
+   "label": "Business name",
+   "source": "Business File header",
+   "required": true,
+   "fact": true,
+   "type": "text",
+   "max": 80
+  },
+  {
+   "key": "br_owner_name",
+   "group": "Brand",
+   "label": "Owner's full name",
+   "source": "Business File header",
+   "required": true,
+   "fact": true,
+   "type": "text",
+   "max": 80
+  },
+  {
+   "key": "br_owner_first_name",
+   "group": "Brand",
+   "label": "Owner's first name, for email sign-offs",
+   "source": "Business File header",
+   "required": true,
+   "fact": true,
+   "type": "text",
+   "max": 40
+  },
+  {
+   "key": "br_signoff",
+   "group": "Brand",
+   "label": "Email sign-off line",
+   "source": "\u00a717 communication style, or drafted",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_optin_headline",
+   "group": "Opt-in page",
+   "label": "Headline",
+   "source": "Lead Capture session (\u00a77)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_optin_subheadline",
+   "group": "Opt-in page",
+   "label": "Subheadline",
+   "source": "Lead Capture session (\u00a77)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_optin_hook",
+   "group": "Opt-in page",
+   "label": "Opening hook, two or three sentences",
+   "source": "Lead Capture session (\u00a77)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 500
+  },
+  {
+   "key": "br_optin_bullet_1",
+   "group": "Opt-in page",
+   "label": "What you get, bullet 1",
+   "source": "Lead Capture session (\u00a77)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 160
+  },
+  {
+   "key": "br_optin_bullet_2",
+   "group": "Opt-in page",
+   "label": "What you get, bullet 2",
+   "source": "Lead Capture session (\u00a77)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 160
+  },
+  {
+   "key": "br_optin_bullet_3",
+   "group": "Opt-in page",
+   "label": "What you get, bullet 3",
+   "source": "Lead Capture session (\u00a77)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 160
+  },
+  {
+   "key": "br_optin_bullet_4",
+   "group": "Opt-in page",
+   "label": "What you get, bullet 4",
+   "source": "Lead Capture session (\u00a77)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 160
+  },
+  {
+   "key": "br_optin_bullet_5",
+   "group": "Opt-in page",
+   "label": "What you get, bullet 5",
+   "source": "Lead Capture session (\u00a77)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 160
+  },
+  {
+   "key": "br_optin_for_1",
+   "group": "Opt-in page",
+   "label": "Who this is for, line 1",
+   "source": "Lead Capture session (\u00a77)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 160
+  },
+  {
+   "key": "br_optin_for_2",
+   "group": "Opt-in page",
+   "label": "Who this is for, line 2",
+   "source": "Lead Capture session (\u00a77)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 160
+  },
+  {
+   "key": "br_optin_for_3",
+   "group": "Opt-in page",
+   "label": "Who this is for, line 3",
+   "source": "Lead Capture session (\u00a77)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 160
+  },
+  {
+   "key": "br_optin_notfor_1",
+   "group": "Opt-in page",
+   "label": "Who this is not for, line 1",
+   "source": "Lead Capture session (\u00a77)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 160
+  },
+  {
+   "key": "br_optin_notfor_2",
+   "group": "Opt-in page",
+   "label": "Who this is not for, line 2",
+   "source": "Lead Capture session (\u00a77)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 160
+  },
+  {
+   "key": "br_optin_form_note",
+   "group": "Opt-in page",
+   "label": "Line above the form",
+   "source": "Lead Capture session (\u00a77)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 160
+  },
+  {
+   "key": "br_optin_button",
+   "group": "Opt-in page",
+   "label": "Button text",
+   "source": "Lead Capture session (\u00a77)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 40
+  },
+  {
+   "key": "br_optin_proof",
+   "group": "Opt-in page",
+   "label": "Proof line: a real number or a real testimonial",
+   "source": "Lead Capture session (\u00a77)",
+   "required": false,
+   "fact": true,
+   "type": "text",
+   "max": 300
+  },
+  {
+   "key": "br_optin_trust",
+   "group": "Opt-in page",
+   "label": "Trust line under the button",
+   "source": "Lead Capture session (\u00a77)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 160
+  },
+  {
+   "key": "br_magnet_name",
+   "group": "Opt-in page",
+   "label": "Name of the free resource",
+   "source": "Lead Capture session (\u00a77)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 100
+  },
+  {
+   "key": "br_magnet_url",
+   "group": "Opt-in page",
+   "label": "Link to the free resource",
+   "source": "the member",
+   "required": true,
+   "fact": true,
+   "type": "url"
+  },
+  {
+   "key": "br_thanks_headline",
+   "group": "Thank-you page",
+   "label": "Confirmation headline",
+   "source": "Lead Capture session (\u00a77)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_thanks_next_1",
+   "group": "Thank-you page",
+   "label": "What happens next, step 1",
+   "source": "Lead Capture session (\u00a77)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_thanks_next_2",
+   "group": "Thank-you page",
+   "label": "What happens next, step 2",
+   "source": "Lead Capture session (\u00a77)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_thanks_next_3",
+   "group": "Thank-you page",
+   "label": "What happens next, step 3",
+   "source": "Lead Capture session (\u00a77)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_thanks_offer",
+   "group": "Thank-you page",
+   "label": "The next step offered",
+   "source": "Lead Capture session (\u00a77)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 300
+  },
+  {
+   "key": "br_thanks_button",
+   "group": "Thank-you page",
+   "label": "Next step button text",
+   "source": "Lead Capture session (\u00a77)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 40
+  },
+  {
+   "key": "br_thanks_proof",
+   "group": "Thank-you page",
+   "label": "One real testimonial or result",
+   "source": "Lead Capture session (\u00a77)",
+   "required": false,
+   "fact": true,
+   "type": "text",
+   "max": 300
+  },
+  {
+   "key": "br_offer_headline",
+   "group": "Offer page",
+   "label": "Headline",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 140
+  },
+  {
+   "key": "br_offer_subheadline",
+   "group": "Offer page",
+   "label": "Subheadline",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 220
+  },
+  {
+   "key": "br_offer_opening",
+   "group": "Offer page",
+   "label": "Opening section",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": true,
+   "fact": false,
+   "type": "long",
+   "max": 2000
+  },
+  {
+   "key": "br_offer_problem",
+   "group": "Offer page",
+   "label": "The problem",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": true,
+   "fact": false,
+   "type": "long",
+   "max": 2500
+  },
+  {
+   "key": "br_offer_agitation",
+   "group": "Offer page",
+   "label": "What it costs to leave it",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": false,
+   "fact": false,
+   "type": "long",
+   "max": 2500
+  },
+  {
+   "key": "br_offer_solution",
+   "group": "Offer page",
+   "label": "The way out",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": true,
+   "fact": false,
+   "type": "long",
+   "max": 2500
+  },
+  {
+   "key": "br_offer_name",
+   "group": "Offer page",
+   "label": "Offer name",
+   "source": "Signature Offer (\u00a73)",
+   "required": true,
+   "fact": true,
+   "type": "text",
+   "max": 100
+  },
+  {
+   "key": "br_offer_promise",
+   "group": "Offer page",
+   "label": "The promise, one sentence",
+   "source": "Signature Offer (\u00a73)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 260
+  },
+  {
+   "key": "br_offer_structure",
+   "group": "Offer page",
+   "label": "How it runs: length and format",
+   "source": "Signature Offer (\u00a73)",
+   "required": false,
+   "fact": true,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_offer_phase_1",
+   "group": "Offer page",
+   "label": "Phase and its outcome 1",
+   "source": "Signature Offer (\u00a73)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 240
+  },
+  {
+   "key": "br_offer_phase_2",
+   "group": "Offer page",
+   "label": "Phase and its outcome 2",
+   "source": "Signature Offer (\u00a73)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 240
+  },
+  {
+   "key": "br_offer_phase_3",
+   "group": "Offer page",
+   "label": "Phase and its outcome 3",
+   "source": "Signature Offer (\u00a73)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 240
+  },
+  {
+   "key": "br_offer_phase_4",
+   "group": "Offer page",
+   "label": "Phase and its outcome 4",
+   "source": "Signature Offer (\u00a73)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 240
+  },
+  {
+   "key": "br_offer_deliverable_1",
+   "group": "Offer page",
+   "label": "Deliverable 1",
+   "source": "Signature Offer (\u00a73)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_offer_deliverable_2",
+   "group": "Offer page",
+   "label": "Deliverable 2",
+   "source": "Signature Offer (\u00a73)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_offer_deliverable_3",
+   "group": "Offer page",
+   "label": "Deliverable 3",
+   "source": "Signature Offer (\u00a73)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_offer_deliverable_4",
+   "group": "Offer page",
+   "label": "Deliverable 4",
+   "source": "Signature Offer (\u00a73)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_offer_deliverable_5",
+   "group": "Offer page",
+   "label": "Deliverable 5",
+   "source": "Signature Offer (\u00a73)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_offer_deliverable_6",
+   "group": "Offer page",
+   "label": "Deliverable 6",
+   "source": "Signature Offer (\u00a73)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_offer_value",
+   "group": "Offer page",
+   "label": "Value of everything included",
+   "source": "Signature Offer (\u00a73)",
+   "required": false,
+   "fact": true,
+   "type": "text",
+   "max": 40
+  },
+  {
+   "key": "br_offer_price",
+   "group": "Offer page",
+   "label": "Investment",
+   "source": "Signature Offer (\u00a73)",
+   "required": true,
+   "fact": true,
+   "type": "text",
+   "max": 60
+  },
+  {
+   "key": "br_offer_price_terms",
+   "group": "Offer page",
+   "label": "Payment terms, if any",
+   "source": "Signature Offer (\u00a73)",
+   "required": false,
+   "fact": true,
+   "type": "text",
+   "max": 160
+  },
+  {
+   "key": "br_offer_guarantee",
+   "group": "Offer page",
+   "label": "Guarantee, exact wording",
+   "source": "Signature Offer (\u00a73)",
+   "required": false,
+   "fact": true,
+   "type": "long",
+   "max": 800
+  },
+  {
+   "key": "br_offer_proof_1",
+   "group": "Offer page",
+   "label": "Real testimonial or result 1",
+   "source": "Offer Page Copy session (\u00a75), from \u00a73 and the Proof Engine",
+   "required": false,
+   "fact": true,
+   "type": "long",
+   "max": 600
+  },
+  {
+   "key": "br_offer_proof_2",
+   "group": "Offer page",
+   "label": "Real testimonial or result 2",
+   "source": "Offer Page Copy session (\u00a75), from \u00a73 and the Proof Engine",
+   "required": false,
+   "fact": true,
+   "type": "long",
+   "max": 600
+  },
+  {
+   "key": "br_offer_proof_3",
+   "group": "Offer page",
+   "label": "Real testimonial or result 3",
+   "source": "Offer Page Copy session (\u00a75), from \u00a73 and the Proof Engine",
+   "required": false,
+   "fact": true,
+   "type": "long",
+   "max": 600
+  },
+  {
+   "key": "br_offer_faq_q1",
+   "group": "Offer page",
+   "label": "Question 1",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_offer_faq_a1",
+   "group": "Offer page",
+   "label": "Answer 1",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": false,
+   "fact": false,
+   "type": "long",
+   "max": 800
+  },
+  {
+   "key": "br_offer_faq_q2",
+   "group": "Offer page",
+   "label": "Question 2",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_offer_faq_a2",
+   "group": "Offer page",
+   "label": "Answer 2",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": false,
+   "fact": false,
+   "type": "long",
+   "max": 800
+  },
+  {
+   "key": "br_offer_faq_q3",
+   "group": "Offer page",
+   "label": "Question 3",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_offer_faq_a3",
+   "group": "Offer page",
+   "label": "Answer 3",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": false,
+   "fact": false,
+   "type": "long",
+   "max": 800
+  },
+  {
+   "key": "br_offer_faq_q4",
+   "group": "Offer page",
+   "label": "Question 4",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_offer_faq_a4",
+   "group": "Offer page",
+   "label": "Answer 4",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": false,
+   "fact": false,
+   "type": "long",
+   "max": 800
+  },
+  {
+   "key": "br_offer_faq_q5",
+   "group": "Offer page",
+   "label": "Question 5",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_offer_faq_a5",
+   "group": "Offer page",
+   "label": "Answer 5",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": false,
+   "fact": false,
+   "type": "long",
+   "max": 800
+  },
+  {
+   "key": "br_offer_cta_headline",
+   "group": "Offer page",
+   "label": "Closing headline",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 140
+  },
+  {
+   "key": "br_offer_button",
+   "group": "Offer page",
+   "label": "Button text",
+   "source": "Offer Page Copy session (\u00a75)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 40
+  },
+  {
+   "key": "br_offer_urgency",
+   "group": "Offer page",
+   "label": "Why now: a real deadline or limit",
+   "source": "Signature Offer (\u00a73)",
+   "required": false,
+   "fact": true,
+   "type": "text",
+   "max": 240
+  },
+  {
+   "key": "br_book_headline",
+   "group": "Booking page",
+   "label": "Headline",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_book_subheadline",
+   "group": "Booking page",
+   "label": "Subheadline",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 220
+  },
+  {
+   "key": "br_book_expect_1",
+   "group": "Booking page",
+   "label": "What to expect on the call 1",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_book_expect_2",
+   "group": "Booking page",
+   "label": "What to expect on the call 2",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_book_expect_3",
+   "group": "Booking page",
+   "label": "What to expect on the call 3",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_call_name",
+   "group": "Booking page",
+   "label": "What the call is called",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 60
+  },
+  {
+   "key": "br_call_length",
+   "group": "Booking page",
+   "label": "Length of the call",
+   "source": "the member",
+   "required": true,
+   "fact": true,
+   "type": "text",
+   "max": 30
+  },
+  {
+   "key": "br_booked_headline",
+   "group": "Booked page",
+   "label": "Confirmation headline",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_booked_prep_1",
+   "group": "Booked page",
+   "label": "How to prepare 1",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_booked_prep_2",
+   "group": "Booked page",
+   "label": "How to prepare 2",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_booked_prep_3",
+   "group": "Booked page",
+   "label": "How to prepare 3",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 200
+  },
+  {
+   "key": "br_em_delivery_subject",
+   "group": "Email: delivery",
+   "label": "Delivery email: subject",
+   "source": "Lead Capture session (\u00a77)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_em_delivery_preview",
+   "group": "Email: delivery",
+   "label": "Delivery email: preview text",
+   "source": "Lead Capture session (\u00a77)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 140
+  },
+  {
+   "key": "br_em_delivery_body",
+   "group": "Email: delivery",
+   "label": "Delivery email: body",
+   "source": "Lead Capture session (\u00a77)",
+   "required": true,
+   "fact": false,
+   "type": "email",
+   "max": 6000
+  },
+  {
+   "key": "br_em_nurture_1_subject",
+   "group": "Emails: nurture",
+   "label": "Nurture email 1: subject",
+   "source": "Funnel Map session (\u00a76)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_em_nurture_1_preview",
+   "group": "Emails: nurture",
+   "label": "Nurture email 1: preview text",
+   "source": "Funnel Map session (\u00a76)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 140
+  },
+  {
+   "key": "br_em_nurture_1_body",
+   "group": "Emails: nurture",
+   "label": "Nurture email 1: body",
+   "source": "Funnel Map session (\u00a76)",
+   "required": true,
+   "fact": false,
+   "type": "email",
+   "max": 6000
+  },
+  {
+   "key": "br_em_nurture_2_subject",
+   "group": "Emails: nurture",
+   "label": "Nurture email 2: subject",
+   "source": "Funnel Map session (\u00a76)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_em_nurture_2_preview",
+   "group": "Emails: nurture",
+   "label": "Nurture email 2: preview text",
+   "source": "Funnel Map session (\u00a76)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 140
+  },
+  {
+   "key": "br_em_nurture_2_body",
+   "group": "Emails: nurture",
+   "label": "Nurture email 2: body",
+   "source": "Funnel Map session (\u00a76)",
+   "required": true,
+   "fact": false,
+   "type": "email",
+   "max": 6000
+  },
+  {
+   "key": "br_em_nurture_3_subject",
+   "group": "Emails: nurture",
+   "label": "Nurture email 3: subject",
+   "source": "Funnel Map session (\u00a76)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_em_nurture_3_preview",
+   "group": "Emails: nurture",
+   "label": "Nurture email 3: preview text",
+   "source": "Funnel Map session (\u00a76)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 140
+  },
+  {
+   "key": "br_em_nurture_3_body",
+   "group": "Emails: nurture",
+   "label": "Nurture email 3: body",
+   "source": "Funnel Map session (\u00a76)",
+   "required": true,
+   "fact": false,
+   "type": "email",
+   "max": 6000
+  },
+  {
+   "key": "br_em_nurture_4_subject",
+   "group": "Emails: nurture",
+   "label": "Nurture email 4: subject",
+   "source": "Funnel Map session (\u00a76)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_em_nurture_4_preview",
+   "group": "Emails: nurture",
+   "label": "Nurture email 4: preview text",
+   "source": "Funnel Map session (\u00a76)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 140
+  },
+  {
+   "key": "br_em_nurture_4_body",
+   "group": "Emails: nurture",
+   "label": "Nurture email 4: body",
+   "source": "Funnel Map session (\u00a76)",
+   "required": false,
+   "fact": false,
+   "type": "email",
+   "max": 6000
+  },
+  {
+   "key": "br_em_nurture_5_subject",
+   "group": "Emails: nurture",
+   "label": "Nurture email 5: subject",
+   "source": "Funnel Map session (\u00a76)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_em_nurture_5_preview",
+   "group": "Emails: nurture",
+   "label": "Nurture email 5: preview text",
+   "source": "Funnel Map session (\u00a76)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 140
+  },
+  {
+   "key": "br_em_nurture_5_body",
+   "group": "Emails: nurture",
+   "label": "Nurture email 5: body",
+   "source": "Funnel Map session (\u00a76)",
+   "required": false,
+   "fact": false,
+   "type": "email",
+   "max": 6000
+  },
+  {
+   "key": "br_em_booked_subject",
+   "group": "Emails: booking",
+   "label": "Booking confirmation: subject",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_em_booked_body",
+   "group": "Emails: booking",
+   "label": "Booking confirmation: body",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": true,
+   "fact": false,
+   "type": "email",
+   "max": 6000
+  },
+  {
+   "key": "br_em_remind_day_subject",
+   "group": "Emails: booking",
+   "label": "Reminder, the day before: subject",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_em_remind_day_body",
+   "group": "Emails: booking",
+   "label": "Reminder, the day before: body",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": true,
+   "fact": false,
+   "type": "email",
+   "max": 6000
+  },
+  {
+   "key": "br_em_remind_hour_subject",
+   "group": "Emails: booking",
+   "label": "Reminder, one hour before: subject",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_em_remind_hour_body",
+   "group": "Emails: booking",
+   "label": "Reminder, one hour before: body",
+   "source": "Sales Conversations session (\u00a715)",
+   "required": false,
+   "fact": false,
+   "type": "email",
+   "max": 6000
+  },
+  {
+   "key": "br_em_noshow_1_subject",
+   "group": "Emails: no-show",
+   "label": "No-show email 1: subject",
+   "source": "Decision Machine session (\u00a716)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_em_noshow_1_body",
+   "group": "Emails: no-show",
+   "label": "No-show email 1: body",
+   "source": "Decision Machine session (\u00a716)",
+   "required": true,
+   "fact": false,
+   "type": "email",
+   "max": 6000
+  },
+  {
+   "key": "br_em_noshow_2_subject",
+   "group": "Emails: no-show",
+   "label": "No-show email 2: subject",
+   "source": "Decision Machine session (\u00a716)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_em_noshow_2_body",
+   "group": "Emails: no-show",
+   "label": "No-show email 2: body",
+   "source": "Decision Machine session (\u00a716)",
+   "required": false,
+   "fact": false,
+   "type": "email",
+   "max": 6000
+  },
+  {
+   "key": "br_em_followup_1_subject",
+   "group": "Emails: follow-up",
+   "label": "Follow-up after the call, email 1: subject",
+   "source": "Decision Machine session (\u00a716)",
+   "required": true,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_em_followup_1_preview",
+   "group": "Emails: follow-up",
+   "label": "Follow-up after the call, email 1: preview text",
+   "source": "Decision Machine session (\u00a716)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 140
+  },
+  {
+   "key": "br_em_followup_1_body",
+   "group": "Emails: follow-up",
+   "label": "Follow-up after the call, email 1: body",
+   "source": "Decision Machine session (\u00a716)",
+   "required": true,
+   "fact": false,
+   "type": "email",
+   "max": 6000
+  },
+  {
+   "key": "br_em_followup_2_subject",
+   "group": "Emails: follow-up",
+   "label": "Follow-up after the call, email 2: subject",
+   "source": "Decision Machine session (\u00a716)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_em_followup_2_preview",
+   "group": "Emails: follow-up",
+   "label": "Follow-up after the call, email 2: preview text",
+   "source": "Decision Machine session (\u00a716)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 140
+  },
+  {
+   "key": "br_em_followup_2_body",
+   "group": "Emails: follow-up",
+   "label": "Follow-up after the call, email 2: body",
+   "source": "Decision Machine session (\u00a716)",
+   "required": false,
+   "fact": false,
+   "type": "email",
+   "max": 6000
+  },
+  {
+   "key": "br_em_followup_3_subject",
+   "group": "Emails: follow-up",
+   "label": "Follow-up after the call, email 3: subject",
+   "source": "Decision Machine session (\u00a716)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 120
+  },
+  {
+   "key": "br_em_followup_3_preview",
+   "group": "Emails: follow-up",
+   "label": "Follow-up after the call, email 3: preview text",
+   "source": "Decision Machine session (\u00a716)",
+   "required": false,
+   "fact": false,
+   "type": "text",
+   "max": 140
+  },
+  {
+   "key": "br_em_followup_3_body",
+   "group": "Emails: follow-up",
+   "label": "Follow-up after the call, email 3: body",
+   "source": "Decision Machine session (\u00a716)",
+   "required": false,
+   "fact": false,
+   "type": "email",
+   "max": 6000
+  }
+ ],
+ "version_key": "br_snapshot_version"
+}

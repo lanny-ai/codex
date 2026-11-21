@@ -1,0 +1,254 @@
+{
+  "schema": "buildroom-font-pairs/1",
+  "checked": "2026-11-13",
+  "licence": "Google Fonts families, SIL Open Font License or Apache 2.0 per Google's FAQ. Confirm the licence tab on fonts.google.com/specimen/<Name> before locking; self-host the files with their OFL.txt.",
+  "pairs": [
+    {
+      "name": "Sturdy & Clear",
+      "head": {
+        "family": "Young Serif",
+        "fallback": "Georgia, 'Times New Roman', serif",
+        "weights": [
+          400
+        ]
+      },
+      "body": {
+        "family": "Atkinson Hyperlegible Next",
+        "fallback": "system-ui, -apple-system, 'Segoe UI', Arial, sans-serif",
+        "weights": [
+          400,
+          700
+        ]
+      },
+      "note": "Warm, sturdy serif over a face built for low-vision reading. The default for a 55+ audience.",
+      "preview_css": "https://fonts.googleapis.com/css2?family=Young+Serif:wght@400&family=Atkinson+Hyperlegible+Next:wght@400;700&display=swap",
+      "slides_fonts": {
+        "head": "Georgia",
+        "body": "Verdana"
+      }
+    },
+    {
+      "name": "Trusted Advisor",
+      "head": {
+        "family": "Libre Franklin",
+        "fallback": "system-ui, -apple-system, 'Segoe UI', Arial, sans-serif",
+        "weights": [
+          700,
+          800
+        ]
+      },
+      "body": {
+        "family": "Lora",
+        "fallback": "Georgia, 'Times New Roman', serif",
+        "weights": [
+          400,
+          600
+        ]
+      },
+      "note": "Confident headline over a soft, bookish serif. Advisors and authors.",
+      "preview_css": "https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@700;800&family=Lora:wght@400;600&display=swap",
+      "slides_fonts": {
+        "head": "Arial",
+        "body": "Georgia"
+      }
+    },
+    {
+      "name": "Dependable",
+      "head": {
+        "family": "Bitter",
+        "fallback": "Georgia, 'Times New Roman', serif",
+        "weights": [
+          600,
+          700
+        ]
+      },
+      "body": {
+        "family": "Source Sans 3",
+        "fallback": "system-ui, -apple-system, 'Segoe UI', Arial, sans-serif",
+        "weights": [
+          400,
+          600
+        ]
+      },
+      "note": "Friendly slab, practical and steady. Trades turned consultants.",
+      "preview_css": "https://fonts.googleapis.com/css2?family=Bitter:wght@600;700&family=Source+Sans+3:wght@400;600&display=swap",
+      "slides_fonts": {
+        "head": "Georgia",
+        "body": "Arial"
+      }
+    },
+    {
+      "name": "Wide & Modern",
+      "head": {
+        "family": "Archivo",
+        "fallback": "system-ui, -apple-system, 'Segoe UI', Arial, sans-serif",
+        "weights": [
+          700,
+          800
+        ]
+      },
+      "body": {
+        "family": "Literata",
+        "fallback": "Georgia, 'Times New Roman', serif",
+        "weights": [
+          400,
+          600
+        ]
+      },
+      "note": "Wide, assertive headline over a very readable text serif. Modern without looking techy.",
+      "preview_css": "https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Literata:wght@400;600&display=swap",
+      "slides_fonts": {
+        "head": "Arial",
+        "body": "Georgia"
+      }
+    },
+    {
+      "name": "Editorial",
+      "head": {
+        "family": "Epilogue",
+        "fallback": "system-ui, -apple-system, 'Segoe UI', Arial, sans-serif",
+        "weights": [
+          700
+        ]
+      },
+      "body": {
+        "family": "Newsreader",
+        "fallback": "Georgia, 'Times New Roman', serif",
+        "weights": [
+          400,
+          600
+        ]
+      },
+      "note": "Magazine feel without the cream-and-italic clich\u00e9.",
+      "preview_css": "https://fonts.googleapis.com/css2?family=Epilogue:wght@700&family=Newsreader:wght@400;600&display=swap",
+      "slides_fonts": {
+        "head": "Arial",
+        "body": "Georgia"
+      }
+    },
+    {
+      "name": "Approachable",
+      "head": {
+        "family": "Zilla Slab",
+        "fallback": "Georgia, 'Times New Roman', serif",
+        "weights": [
+          600,
+          700
+        ]
+      },
+      "body": {
+        "family": "Karla",
+        "fallback": "system-ui, -apple-system, 'Segoe UI', Arial, sans-serif",
+        "weights": [
+          400,
+          600
+        ]
+      },
+      "note": "Bold slab with personality over a humane sans. Coaching brands.",
+      "preview_css": "https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Karla:wght@400;600&display=swap",
+      "slides_fonts": {
+        "head": "Georgia",
+        "body": "Verdana"
+      }
+    },
+    {
+      "name": "Story-led",
+      "head": {
+        "family": "Alegreya",
+        "fallback": "Georgia, 'Times New Roman', serif",
+        "weights": [
+          700
+        ]
+      },
+      "body": {
+        "family": "Alegreya Sans",
+        "fallback": "system-ui, -apple-system, 'Segoe UI', Arial, sans-serif",
+        "weights": [
+          400,
+          500
+        ]
+      },
+      "note": "Matched family with calligraphic warmth. Wellness and story-led practices.",
+      "preview_css": "https://fonts.googleapis.com/css2?family=Alegreya:wght@700&family=Alegreya+Sans:wght@400;500&display=swap",
+      "slides_fonts": {
+        "head": "Georgia",
+        "body": "Arial"
+      }
+    },
+    {
+      "name": "Energetic",
+      "head": {
+        "family": "Bricolage Grotesque",
+        "fallback": "system-ui, -apple-system, 'Segoe UI', Arial, sans-serif",
+        "weights": [
+          700,
+          800
+        ]
+      },
+      "body": {
+        "family": "Hanken Grotesk",
+        "fallback": "system-ui, -apple-system, 'Segoe UI', Arial, sans-serif",
+        "weights": [
+          400,
+          600
+        ]
+      },
+      "note": "Characterful headline over a clean workhorse. Use with restraint.",
+      "preview_css": "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Hanken+Grotesk:wght@400;600&display=swap",
+      "slides_fonts": {
+        "head": "Arial",
+        "body": "Arial"
+      }
+    },
+    {
+      "name": "Sober Authority",
+      "head": {
+        "family": "Merriweather",
+        "fallback": "Georgia, 'Times New Roman', serif",
+        "weights": [
+          700,
+          900
+        ]
+      },
+      "body": {
+        "family": "Fira Sans",
+        "fallback": "system-ui, -apple-system, 'Segoe UI', Arial, sans-serif",
+        "weights": [
+          400,
+          500
+        ]
+      },
+      "note": "Serious serif headlines over a humanist sans. Finance and legal.",
+      "preview_css": "https://fonts.googleapis.com/css2?family=Merriweather:wght@700;900&family=Fira+Sans:wght@400;500&display=swap",
+      "slides_fonts": {
+        "head": "Georgia",
+        "body": "Calibri"
+      }
+    },
+    {
+      "name": "Quiet Luxury",
+      "head": {
+        "family": "Instrument Sans",
+        "fallback": "system-ui, -apple-system, 'Segoe UI', Arial, sans-serif",
+        "weights": [
+          600,
+          700
+        ]
+      },
+      "body": {
+        "family": "Crimson Pro",
+        "fallback": "Georgia, 'Times New Roman', serif",
+        "weights": [
+          400,
+          600
+        ]
+      },
+      "note": "Crisp sans headlines over a classic text serif.",
+      "preview_css": "https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@600;700&family=Crimson+Pro:wght@400;600&display=swap",
+      "slides_fonts": {
+        "head": "Arial",
+        "body": "Georgia"
+      }
+    }
+  ]
+}

@@ -19,14 +19,15 @@ Read these before any member-facing work:
 3. **`references/business-file-protocol.md`**: the Business File contract. It applies to every session you run, with the one exception the method states.
 4. **`references/business-file-template.md`**: the blank file.
 
-Three helpers, all standard library only:
+The helpers, all standard library only:
 - **`scripts/autopilot.py`** keeps the plan, the member's decisions, the order, the review gate and the final report.
 - **`scripts/reveal.py`** checks the foundation and builds the review page.
-- **`scripts/handover.py`** builds the Your Build page at the end.
+- **`scripts/drafts.py`** reads every finished draft and refuses what must not be in it.
+- **`scripts/handover.py`** builds the Your Build page at the end. It will not build until the drafts pass.
 
 ## Prerequisites
 
-- **A Business File with §1 filled in:** what they do, who they serve, the core result. `autopilot.py preflight BUILDROOM_BUSINESS_FILE.md` checks. If it fails, send them to **"Research my business first"** (Deep Discovery) or the onboarding questions, and stop. Do not interview them here.
+- **A Business File with §1 filled in:** what they do, who they serve, the core result. `autopilot.py preflight BUILDROOM_BUSINESS_FILE.md` checks. If it fails, send them to **"Interview me about my business"** (the short interview), **"Research my business first"** (Deep Discovery) or the onboarding questions, and stop. Do not interview them here.
 - **A place with a folder:** Cowork, Claude Code or Codex. A run reads and writes many files and takes a couple of hours. In a regular chat with no folder, say so plainly and offer the single next session instead.
 - **Enough known to be worth it.** See Phase 0.
 
@@ -38,26 +39,27 @@ Three helpers, all standard library only:
 2. If a run already exists (`autopilot/run.json`), do not start over. Run `autopilot.py status`, tell the member where it stopped, and carry on from `next`.
 3. **Find out how much is known.**
    - If `discovery/ledger.json` exists, run the Discovery Engine's `discover.py ready` on it and use its number.
-   - If it says not ready, or there is no ledger at all, tell the member plainly: "A run now would be mostly blanks and guesses, with your own few sentences handed back in different shapes." Give them the choices `ready` supports: answer the questions it names (only when it names some), run the one session it names by hand or "Research my business first", or go ahead anyway. Recommend the first two. `autopilot.py plan` refuses to start below 70, or with no ledger, unless you pass the member's own words with `--thin-ok`. Never supply those words yourself, and never pass words that are not a clear choice to go ahead.
+   - If it says not ready, or there is no ledger at all, tell the member plainly: "A run now would be mostly blanks and guesses, with your own few sentences handed back in different shapes." Give them the choices `ready` supports: answer the questions it names (only when it names some), run the one session it names by hand, or go ahead anyway. With no ledger at all, the choices are "Interview me about my business" (a short interview, about ten minutes, for a member with little written down), "Research my business first" (for one with files worth reading), or go ahead anyway. Recommend the first two. `autopilot.py plan` refuses to start below 70, or with no ledger, unless you pass the member's own words with `--thin-ok`. Never supply those words yourself, and never pass words that are not a clear choice to go ahead.
    - If Deep Discovery put this same choice to the member a moment ago in this conversation, do not ask it again. Act on the answer they gave.
    - If they do not choose to go ahead, there is no run. Write nothing, and tell them the one session to start next.
 4. Tell the member, in a few sentences, what will happen: a few questions, the foundation, one review, then the rest straight through; everything is a draft; nothing is published, sent or paid for; it takes a couple of hours and a large share of their usage allowance, and it saves its place after every step.
-5. Make the plan: `autopilot.py plan --dir autopilot --readiness <number or none>`, with `--no-web` when there is no web access. Show it. Do not ask the member to choose steps by name; only leave one out (`--skip`) if they ask.
+5. Make the plan: `autopilot.py plan --dir autopilot --readiness <number or none>`, with `--no-web` when there is no web access. Show it. On a thin file the member chose to run anyway, say now, before any drafting, that all three foundation pieces will most likely come back only partly drafted. Do not ask the member to choose steps by name; only leave one out (`--skip`) if they ask.
 
 ### Phase 1: The questions only they can answer
 
-This is the last chance to ask before the run, so ask what unblocks the most. One at a time, **only** the ones the Business File and the ledger do not already answer as the member's own word. A question the member skipped in Deep Discovery (the ledger's `skipped` list), or answered there with "none", is not asked again. Ten at most, in this order:
+This is the last chance to ask before the run, so ask what unblocks the most. One at a time, **only** the ones the Business File and the ledger do not already answer as the member's own word. A question the member skipped in Deep Discovery (the ledger's `skipped` list), or answered there with "none", is not asked again. Eleven at most, in this order:
 
-1. The price they charge today.
-2. Whether they offer a guarantee, and its exact wording if so. Ask this even when a file mentions one, unless the member has confirmed it.
+1. The price they charge today. Always confirm it here, even when their files agree on it. Other facts found in their current files are not asked again.
+2. Whether they offer a guarantee, and its exact wording if so. Ask this even when a file mentions one, unless the member has confirmed it: a wrong word in a guarantee costs money. Record only the wording itself, not the "yes" in front of it.
 3. What a client actually receives.
 4. A typical client result: their honest middle case. "I don't have one yet" is a fine answer.
 5. Anything they refuse to claim or promise.
 6. Any line, story or old offer that must never be used.
 7. How someone books a call or buys, with the link if there is one.
 8. The tools they use for email, their CRM, their website and booking.
-9. Where they most want new clients to come from, and the one result they want in the next 90 days.
-10. Whether they have a free resource to offer, and what it is.
+9. Where they most want new clients to come from.
+10. The one result they want in the next 90 days.
+11. Whether they have a free resource to offer, and what it is.
 
 Record each answer as they give it: `autopilot.py decide --dir autopilot --key <key> --value "<their words>"`. Keys: `price`, `guarantee`, `deliverables`, `typical_result`, `never_claim`, `retired`, `booking`, `tools`, `preferred_source`, `goal_90`, `free_resource`, `credentials`. A skipped question is recorded as nothing.
 
@@ -90,10 +92,15 @@ If the run is cut short, the state is already saved. Tell the member how far it 
 
 ### Phase 5: The handover
 
-1. `autopilot.py report`, saved as `autopilot/Autopilot_Report.md`.
-2. `handover.py build --dir autopilot autopilot/Your_Build.html`. Tell the member to open it in their browser.
-3. Update the Business File as the method says: one §8 row for the run that names every draft. The sections the Phase 4 sessions own are left as they are.
-4. Close with the three things from the top of the report's "What to do first", in the member's terms. Then the one session to run themselves next: usually **Proof Engine** ("Capture this win") when they have clients, and the questions still open when they do not.
+1. **Check the drafts:** `drafts.py check --dir autopilot`. Fix every `FIX` line in the draft itself: a retired line, a figure nobody confirmed, a guarantee the member does not have, a client's words in public copy without permission. Read every `LOOK` line against what the member refuses to claim and reword any that comes close. Run it again until nothing is left to fix. Never get past it by deleting the rule.
+2. `autopilot.py report`, saved as `autopilot/Autopilot_Report.md`.
+3. `handover.py build --dir autopilot autopilot/Your_Build.html`. It runs the same check and refuses to build while a `FIX` remains. Tell the member to open it in their browser.
+4. Update the Business File as the method says: one §8 row for the run that names every draft. The sections the Phase 4 sessions own are left as they are.
+5. Close with the three things from the top of the report's "What to do first", in the member's terms. Then the one session to run themselves next: **Ideal Client Avatar** by hand when most of the foundation came back partial; otherwise usually **Proof Engine** ("Capture this win") when they have clients, and the questions still open when they do not.
+
+### Optional: GoHighLevel values
+
+Only when the member asks ("Prepare my GoHighLevel values"), and only after the handover. Follow `references/ghl-values.md`: `scripts/ghl_values.py` lists the snapshot's custom values, checks the ones you fill from the approved drafts, and writes a review sheet and a values file. A fact is never drafted, an unknown is left out, and nothing is sent to GoHighLevel.
 
 ## Voice & Style Rules
 

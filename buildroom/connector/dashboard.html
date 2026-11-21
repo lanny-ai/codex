@@ -72,6 +72,9 @@ td small{display:block;color:var(--mute);font-size:13.5px;word-break:break-all}
     <div class="note" id="since"></div>
     <div class="tiles" id="tiles"></div>
 
+    <div class="card"><h2>This week, in words</h2><p class="sub">The same numbers as a short note you can read or paste anywhere: who started, who went quiet, and a line you could send each group.</p>
+      <div class="row"><button id="dg" type="button">Show this week's digest</button><button id="dgc" type="button" hidden>Copy</button></div>
+      <pre id="dgt" hidden style="white-space:pre-wrap;font:inherit;margin:14px 0 0;padding:14px;border-radius:12px;background:rgba(127,127,127,.12)"></pre></div>
     <div class="card"><h2>Check in on these people</h2><p class="sub">Connected but never started a session, or started and then went quiet. Longest wait first.</p><ul class="nudge" id="nudge"></ul></div>
 
     <div class="card"><h2>Activity, last 30 days</h2><p class="sub">Members who used Build Room OS each day.</p>
@@ -98,6 +101,18 @@ const toolName = s => String(s || "").replace(/^buildroom-/, "").split("-").map(
 const day = iso => iso ? new Date(iso).toLocaleDateString("en-US", {month:"short", day:"numeric"}) : "";
 const ago = n => n === null || n === undefined ? "" : n === 0 ? "today" : n === 1 ? "yesterday" : n + " days ago";
 
+document.getElementById("dg").addEventListener("click", async function () {
+  var t = document.getElementById("dgt"), c = document.getElementById("dgc");
+  try {
+    var r = await fetch("/admin/digest", {headers: {Authorization: "Bearer " + KEY}}), j = await r.json();
+    t.textContent = r.ok ? j.subject + "\n\n" + j.text : "Could not load the digest.";
+  } catch (e) { t.textContent = "Could not load the digest."; }
+  t.hidden = false; c.hidden = false;
+});
+document.getElementById("dgc").addEventListener("click", function () {
+  var b = this;
+  navigator.clipboard.writeText(document.getElementById("dgt").textContent).then(function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy"; }, 1500); });
+});
 async function load() {
   let r, j;
   try { r = await fetch("/admin/usage", {headers: {Authorization: "Bearer " + KEY}}); j = await r.json(); }

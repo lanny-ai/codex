@@ -30,9 +30,17 @@
  *  "title": "Five cash checks for family firms",   (carousel: the document title LinkedIn asks for; warned if missing)
  *  "alt": "Card: 'Check cash weekly' in white on navy",  (alt text for the image, or the whole slide set; card,
  *                                                         featured and carousel warn when there is none)
- *  "brand": {"name": "Ruiz Advisory", "display_font": "Fraunces", "body_font": "Source Sans 3",
+ *  "brand": "../Design/System/tokens.json",   (the member's locked brand kit: logo, colors and typefaces all come from it.
+ *                                             This is the normal case. {"kit": "<path>", ...} takes the kit and overrides a field.)
+ *  "ground": "reverse",                      (optional, with a kit: the kit's reverse ground, text color as the background)
+ *  "brand": {"name": "Ruiz Advisory", "display_font": "Fraunces", "body_font": "Source Sans 3",      (no kit yet: spell it out)
  *            "font_files": {"display": [{"src": "../brand/fonts/Fraunces-700.ttf", "weight": 700}], "body": [...]},
- *            "bg": "#0f1424", "fg": "#f4f6fa", "accent": "#f97316", "muted": "#a9b2c6", "logo": "../brand/logo.png"},
+ *            "bg": "#0f1424", "fg": "#f4f6fa", "accent": "#f97316", "muted": "#a9b2c6", "logo": "../brand/logo.png", "mark": "../brand/mark.png"},
+ *  The look is flat and typographic on purpose: the logo, one headline, a hairline and a byline, in the brand's own colors.
+ *  No glows, gradients, pills or shapes are drawn: they are what makes an image look machine-made.
+ *  "style": "plain" keeps the earlier bar-and-headline layout with no logo row.
+ *  A card headline or a carousel title may mark the words that carry it with asterisks: "Production is *not* profit."
+ *  Those words take the accent color, flat.
  *  "photo": "../brand/headshot.jpg",         (card and featured only, optional; a real photo, never generated)
  *  "copy": {"promise": "...", "proof": "...", "cta": "...",        (banner)
  *           "kicker": "...", "headline": "...", "sub": "...",      (card; featured: kicker + a 3–5 word headline)
@@ -98,6 +106,38 @@ async function launch(pw) {
 }
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// A headline may mark the words that carry it: "Production is *not* profit." Those words take the accent color, flat;
+// in the plain style the marks are simply dropped. Nothing else in a spec is markup.
+const plainStyle = spec => spec.style === 'plain';
+const rich = (spec, s) => plainStyle(spec) ? esc(String(s ?? '').replace(/\*/g, '')) : esc(s).replace(/\*([^*]+)\*/g, '<span class="hl">$1</span>');
+const SYSTEM_FONTS = new Set(['arial', 'helvetica', 'helvetica neue', 'georgia', 'verdana', 'times new roman', 'calibri', 'tahoma', 'trebuchet ms', 'courier new', 'garamond', 'palatino', 'century gothic', 'segoe ui']);
+
+// The brand comes from the member's locked kit (Design/System/tokens.json, written by the Brand Kit session) whenever
+// the spec names one: "brand": "<path>" or "brand": {"kit": "<path>", ...overrides}. The logo version is chosen by the
+// ground the image sits on. A spec with no kit spells its brand out as before.
+function resolveBrand(spec, base) {
+  const b = spec.brand;
+  const kit = typeof b === 'string' ? b : (b && typeof b === 'object' ? b.kit : null);
+  if (!kit) return (b && typeof b === 'object') ? b : {};
+  const file = path.resolve(base, kit);
+  if (!fs.existsSync(file)) throw new Error(`brand kit not found: ${file} (the spec's "brand" is a path relative to the spec file; run the Brand Kit session to make one)`);
+  const t = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const dir = path.dirname(file), br = t.brand || {}, lg = br.logo || {};
+  const col = spec.ground === 'reverse' && br.reverse ? br.reverse : (t.color || {});
+  const dark = (lum(col.bg) ?? 1) < 0.18;
+  const abs = p => p ? path.resolve(dir, p) : undefined;
+  const ff = r => { const v = ((br.font_files || {})[r] || []).map(f => ({ src: abs(f.src), weight: f.weight })); return v.length ? v : undefined; };
+  const over = (b && typeof b === 'object') ? Object.fromEntries(Object.entries(b).filter(([k]) => k !== 'kit')) : {};
+  return { name: br.name || t.name, display_font: (t.font?.head || {}).family, body_font: (t.font?.body || {}).family, head_weight: (t.font?.head || {}).weight,
+    font_files: { display: ff('head'), body: ff('body') }, bg: col.bg, fg: col.ink, accent: col.accent, muted: col.muted, line: col.line,
+    radius: t.radius_px, logo: abs(dark ? lg.on_dark : lg.on_light), mark: abs(dark ? lg.mark_on_dark : lg.mark_on_light),
+    logo_trim: (lg.trim || {})[dark ? 'on_dark' : 'on_light'], mark_trim: (lg.trim || {})[dark ? 'mark_on_dark' : 'mark_on_light'], from_kit: file, ...over };
+}
+// A member's logo picture may carry empty margins. It is shown cropped to the logo (top, right, bottom, left, in percent);
+// the file itself is never edited.
+function crop(t) {
+  return Array.isArray(t) && t.length === 4 ? `object-view-box:inset(${t.map(v => (+v || 0) + '%').join(' ')});` : '';
+}
 const fileUrl = (base, p) => p ? pathToFileURL(path.resolve(base, p)).href : '';
 function lum(hex) {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return null;
@@ -119,6 +159,7 @@ function accentTextUses(spec, layout) {
   const c = spec.copy || {}, uses = [];
   if (layout === 'banner' && c.cta) uses.push('CTA');
   if ((layout === 'card' || layout === 'featured') && c.kicker) uses.push('kicker');
+  if (!plainStyle(spec) && [c.headline, ...(spec.slides || []).map(s => s.title)].some(t => /\*[^*]+\*/.test(String(t || '')))) uses.push('headline emphasis');
   if (layout === 'carousel') {
     const slides = spec.slides || [], nums = pointNumerals(slides);
     if (slides.some(s => s.kind === 'hook' && (s.swipe ?? c.swipe ?? 'Swipe'))) uses.push('swipe hint');
@@ -138,7 +179,7 @@ function fontCss(brand, base) {
   const faces = (fam, v) => (Array.isArray(v) ? v : v ? [{ src: v }] : [])
     .map(f => `@font-face{font-family:"${fam}";src:url("${fileUrl(base, f.src)}");font-weight:${f.weight || '100 900'};font-display:block}`).join('');
   const css = faces(brand.display_font, local.display) + faces(brand.body_font, local.body);
-  const remote = [[brand.display_font, local.display], [brand.body_font, local.body]].filter(([f, l]) => f && !l).map(([f]) => f);
+  const remote = [[brand.display_font, local.display], [brand.body_font, local.body]].filter(([f, l]) => f && !l && !SYSTEM_FONTS.has(String(f).toLowerCase())).map(([f]) => f);
   const link = remote.length ? `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?${[...new Set(remote)].map(f => 'family=' + encodeURIComponent(f).replace(/%20/g, '+') + ':wght@400;600;700;800').join('&')}&display=block">` : '';
   return { css, link };
 }
@@ -146,14 +187,17 @@ function fontCss(brand, base) {
 function page(spec, base, W, H, inner) {
   const b = spec.brand || {};
   const bg = b.bg || '#0f1424', fg = b.fg || onColor(bg), accent = b.accent || '#f97316', muted = b.muted || fg;
+  const line = b.line || `color-mix(in srgb,${fg} 22%,${bg})`;
   const { css, link } = fontCss(b, base);
   const df = `"${b.display_font || 'Georgia'}", Georgia, serif`, bf = `"${b.body_font || 'Helvetica'}", Helvetica, Arial, sans-serif`;
   return `<!doctype html><html><head><meta charset="utf-8">${link}<style>${css}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:${W}px;height:${H}px;overflow:hidden;background:${bg}}
 .f{position:absolute;inset:0;background:${bg};color:${fg};font-family:${bf}}
-.d{font-family:${df};font-weight:700;letter-spacing:-.01em;line-height:1.08;text-wrap:balance}
+.d{font-family:${df};font-weight:${b.head_weight || 700};letter-spacing:-.01em;line-height:1.08;text-wrap:balance}
 .acc{color:${accent}} .mut{color:${muted}}
+.hl{color:${accent}}
+.rule{height:2px;background:${line}}
 .bar{position:absolute;background:${accent}}
 .draft{position:absolute;left:0;right:0;top:0;height:${Math.round(H * .06)}px;background:#dc2626;color:#fff;font:700 ${Math.max(16, Math.round(H * .025))}px/${Math.round(H * .06)}px ${bf};text-align:center;letter-spacing:.08em;z-index:9}
 [data-fit]{overflow-wrap:break-word}
@@ -164,7 +208,7 @@ html,body{width:${W}px;height:${H}px;overflow:hidden;background:${bg}}
 
 function bannerHtml(spec, base) {
   const [W, H] = SIZES.banner, c = spec.copy || {}, z = BANNER_TEXT_ZONE, b = spec.brand || {};
-  const logo = b.logo ? `<img src="${fileUrl(base, b.logo)}" style="height:${Math.round(H * .13)}px;margin-bottom:${Math.round(H * .04)}px">` : '';
+  const logo = b.logo ? `<img src="${fileUrl(base, b.logo)}" style="${crop(b.logo_trim)}height:${Math.round(H * .13)}px;margin-bottom:${Math.round(H * .04)}px">` : '';
   return page(spec, base, W, H, `
   <div class="bar" style="left:${Math.round(W * z.left)}px;top:${Math.round(H * .22)}px;width:6px;height:${Math.round(H * .56)}px"></div>
   <div data-box style="position:absolute;left:${Math.round(W * z.left) + 28}px;right:${Math.round(W * (1 - z.right))}px;top:${Math.round(H * z.top)}px;bottom:${Math.round(H * (1 - z.bottom))}px;display:flex;flex-direction:column;justify-content:center">
@@ -184,15 +228,34 @@ function cardHtml(spec, base, layout) {
   const sub = c.sub && (!featured || spec.show_sub === true)
     ? `<div class="mut" data-t="sub" data-fit="${featured ? '50,44' : `42,${min}`}" style="margin-top:28px;line-height:1.3">${esc(c.sub)}</div>` : '';
   const author = c.author ? `<div class="mut" data-t="author" data-fit="${min},${min}" style="margin-top:24px;font-weight:600">${esc(c.author)}</div>` : '';
-  return page(spec, base, W, H, `
+  if (plainStyle(spec)) return page(spec, base, W, H, `
   <div class="bar" style="left:${pad}px;top:${pad}px;width:${Math.round(W * .1)}px;height:8px"></div>
   <div data-box style="position:absolute;left:${pad}px;right:${pad}px;top:${pad + 40}px;bottom:${spec.photo ? Math.round(H * (layout === 'card' ? .3 : .12)) + pad : Math.round(pad * .7)}px;display:flex;flex-direction:column">
     <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
     ${c.kicker ? `<div class="acc" data-t="kicker" data-fit="${featured ? `36,${min}` : `40,${min}`}" style="font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:24px">${esc(c.kicker)}</div>` : ''}
-    <div class="d" data-t="headline" data-fit="${big}">${esc(c.headline)}</div>
+    <div class="d" data-t="headline" data-fit="${big}">${rich(spec, c.headline)}</div>
     ${sub}
     </div>${author}
   </div>${photo}`);
+  // The default: flat and typographic. The logo (or the name set in the heading face) at the top, the headline low on
+  // the card, a hairline, and a byline with the small mark. Every color is the brand's own; nothing is decoration.
+  const lh = Math.round(W * (featured ? .05 : .064));
+  const head = b.logo ? `<img data-logo src="${fileUrl(base, b.logo)}" alt="" style="${crop(b.logo_trim)}height:${lh}px;width:auto;max-width:60%;object-fit:contain;object-position:left;align-self:flex-start;display:block">`
+    : b.name ? `<div class="d" data-t="brand" data-fit="${Math.round(lh * .72)},${min}" style="letter-spacing:0">${esc(b.name)}</div>` : '';
+  const mk = Math.round(W * .075);
+  const foot = (c.author || b.mark) && !featured ? `<div style="display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:${Math.round(pad * .55)}px;padding-top:${Math.round(pad * .4)}px;border-top:2px solid ${b.line || `color-mix(in srgb,${b.fg || onColor(b.bg || '#0f1424')} 22%,${b.bg || '#0f1424'})`}">
+      ${c.author ? `<div class="mut" data-t="author" data-fit="${Math.max(min, Math.round(W * .03))},${min}" style="font-weight:600">${esc(c.author)}</div>` : '<span></span>'}
+      ${b.mark && !spec.photo ? `<img src="${fileUrl(base, b.mark)}" alt="" style="${crop(b.mark_trim)}height:${mk}px;width:${mk}px;object-fit:contain;flex:none">` : ''}</div>` : '';
+  const shot = spec.photo ? `<div style="position:absolute;right:${pad}px;bottom:${pad}px;width:${Math.round(W * (layout === 'card' ? .28 : .22))}px;aspect-ratio:1;border-radius:${b.radius ?? 6}px;overflow:hidden"><img src="${fileUrl(base, spec.photo)}" style="width:100%;height:100%;object-fit:cover"></div>` : '';
+  return page(spec, base, W, H, `
+  <div data-box style="position:absolute;left:${pad}px;right:${pad}px;top:${pad}px;bottom:${spec.photo ? Math.round(H * (layout === 'card' ? .3 : .12)) + pad : Math.round(pad * .9)}px;display:flex;flex-direction:column">
+    ${head}
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:${featured ? 'center' : 'flex-end'}">
+    ${c.kicker ? `<div class="acc" data-t="kicker" data-fit="${featured ? `34,${min}` : `40,${min}`}" style="font-weight:700;margin-bottom:${featured ? 14 : 24}px">${esc(c.kicker)}</div>` : ''}
+    <div class="d" data-t="headline" data-fit="${featured ? '96,60' : '128,52'}" style="letter-spacing:-.015em;line-height:1.05">${rich(spec, c.headline)}</div>
+    ${sub}
+    </div>${featured ? author : foot}
+  </div>${shot}`);
 }
 
 function slideHtml(spec, base, s, i, n, numeral) {
@@ -202,20 +265,22 @@ function slideHtml(spec, base, s, i, n, numeral) {
     // the swipe hint is spec copy (any language); the arrow is drawn, so no glyph can fall back to a system font
     const swipe = s.swipe ?? c.swipe ?? 'Swipe';
     const arrow = '<svg viewBox="0 0 56 32" aria-hidden="true"><path d="M2 16h48M36 3l15 13-15 13" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    body = `<div class="d" data-t="s${i}.title" data-fit="124,64">${esc(s.title)}</div>${s.sub ? `<div class="mut" data-t="s${i}.sub" data-fit="54,40" style="margin-top:40px;line-height:1.3">${esc(s.sub)}</div>` : ''}${swipe ? `<div class="acc swipe" data-t="s${i}.swipe" style="margin-top:64px;font-size:42px;font-weight:700"><span>${esc(swipe)}</span>${arrow}</div>` : ''}`;
+    body = `<div class="d" data-t="s${i}.title" data-fit="124,64">${rich(spec, s.title)}</div>${s.sub ? `<div class="mut" data-t="s${i}.sub" data-fit="54,40" style="margin-top:40px;line-height:1.3">${esc(s.sub)}</div>` : ''}${swipe ? `<div class="acc swipe" data-t="s${i}.swipe" style="margin-top:64px;font-size:42px;font-weight:700"><span>${esc(swipe)}</span>${arrow}</div>` : ''}`;
   } else if (s.kind === 'point') {
     const num = numeral ?? '';
-    body = `${num !== '' ? `<div class="acc d" style="font-size:120px;line-height:1;margin-bottom:28px">${esc(num)}</div>` : ''}<div class="d" data-t="s${i}.title" data-fit="84,52">${esc(s.title)}</div>${s.body ? `<div data-t="s${i}.body" data-fit="52,40" style="margin-top:32px;line-height:1.4">${esc(s.body)}</div>` : ''}`;
+    body = `${num !== '' ? `<div class="acc d" style="font-size:120px;line-height:1;margin-bottom:28px">${esc(num)}</div>` : ''}<div class="d" data-t="s${i}.title" data-fit="84,52">${rich(spec, s.title)}</div>${s.body ? `<div data-t="s${i}.body" data-fit="52,40" style="margin-top:32px;line-height:1.4">${esc(s.body)}</div>` : ''}`;
   } else if (s.kind === 'list') {
     body = `<div class="d" data-t="s${i}.title" data-fit="76,50" style="margin-bottom:48px">${esc(s.title)}</div>${(s.items || []).map((it, k) => `<div data-t="s${i}.item${k}" data-fit="54,40" style="display:flex;gap:26px;margin-bottom:32px;line-height:1.25"><span class="acc" style="font-weight:800">${k + 1}</span><span>${esc(it)}</span></div>`).join('')}`;
   } else if (s.kind === 'quote') {
     body = `<div class="acc d" style="font-size:150px;line-height:.6;margin-bottom:10px">“</div><div class="d" data-t="s${i}.quote" data-fit="76,50" style="font-weight:600">${esc(s.quote)}</div><div class="mut" data-t="s${i}.who" style="margin-top:40px;font-size:40px">${esc(s.who)}</div>`;
   } else {
-    body = `<div class="d" data-t="s${i}.title" data-fit="96,56">${esc(s.title)}</div>${s.sub ? `<div class="acc" data-t="s${i}.sub" data-fit="54,40" style="margin-top:40px;font-weight:700;line-height:1.3">${esc(s.sub)}</div>` : ''}`;
+    body = `<div class="d" data-t="s${i}.title" data-fit="96,56">${rich(spec, s.title)}</div>${s.sub ? `<div class="acc" data-t="s${i}.sub" data-fit="54,40" style="margin-top:40px;font-weight:700;line-height:1.3">${esc(s.sub)}</div>` : ''}`;
   }
-  return page(spec, base, W, H, `
-  <div class="bar" style="left:${pad}px;top:${pad}px;width:96px;height:8px"></div>
-  <div data-box style="position:absolute;left:${pad}px;right:${pad}px;top:${pad + 60}px;bottom:${pad + 80}px;display:flex;flex-direction:column;justify-content:${s.kind === 'point' || s.kind === 'list' ? 'flex-start' : 'center'}">${body}</div>
+  const b = spec.brand || {};
+  const top = b.logo && !plainStyle(spec) ? `<img src="${fileUrl(base, b.logo)}" alt="" style="${crop(b.logo_trim)}position:absolute;left:${pad}px;top:${Math.round(pad * .8)}px;height:52px;width:auto;max-width:50%;object-fit:contain;object-position:left">`
+    : `<div class="bar" style="left:${pad}px;top:${pad}px;width:96px;height:8px"></div>`;
+  return page(spec, base, W, H, `${top}
+  <div data-box style="position:absolute;left:${pad}px;right:${pad}px;top:${pad + (b.logo && !plainStyle(spec) ? 124 : 60)}px;bottom:${pad + 80}px;display:flex;flex-direction:column;justify-content:${s.kind === 'point' || s.kind === 'list' ? 'flex-start' : 'center'}">${body}</div>
   <div class="mut" style="position:absolute;left:${pad}px;right:${pad}px;bottom:${Math.round(pad * .75)}px;display:flex;justify-content:space-between;font-size:32px;font-weight:600">
     <span data-t="author">${esc(c.author || (spec.brand || {}).name || '')}</span><span>${i} / ${n}</span></div>`);
 }
@@ -290,14 +355,16 @@ async function renderOne(browser, specPath, outDir, overlay) {
   const layout = spec.layout, id = spec.id || path.basename(specPath, '.json');
   if (!SIZES[layout]) throw new Error(`${specPath}: layout must be one of ${Object.keys(SIZES).join(', ')}`);
   const [W, H] = SIZES[layout];
+  spec.brand = resolveBrand(spec, base);
   const scale = layout === 'banner' ? 2 : 1;
   const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: scale });
   const pg = await ctx.newPage();
   const b = spec.brand || {}, bg = b.bg || '#0f1424', fg = b.fg || onColor(bg);
-  const report = { id, layout, size: [W, H], title: spec.title ?? null, alt: spec.alt ?? null, files: [], checks: [], warnings: [] };
+  const report = { id, layout, size: [W, H], title: spec.title ?? null, alt: spec.alt ?? null, brand_kit: b.from_kit || null, files: [], checks: [], warnings: [] };
+  if (!b.from_kit) report.warnings.push('no brand kit: this image uses the colors and fonts typed into the spec. Set "brand" to the path of Design/System/tokens.json once the Brand Kit session has run');
   const fail = (what) => report.checks.push({ check: what, result: 'FAIL' });
   // a photo or logo path that does not resolve would render as an empty frame and still pass every other check
-  for (const [what, rel] of [['photo', layout === 'card' || layout === 'featured' ? spec.photo : null], ['logo', layout === 'banner' ? b.logo : null]]) {
+  for (const [what, rel] of [['photo', layout === 'card' || layout === 'featured' ? spec.photo : null], ['logo', b.logo], ['mark', b.mark]]) {
     if (rel && !fs.existsSync(path.resolve(base, rel))) fail(`${what} file found (${rel} is not at ${path.resolve(base, rel)}; paths are relative to the spec file)`);
   }
   const cr = contrast(fg, bg);

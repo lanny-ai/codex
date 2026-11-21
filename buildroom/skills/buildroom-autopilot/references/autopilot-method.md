@@ -12,7 +12,7 @@ Autopilot runs Build Room sessions back to back without interviewing the member.
 |---|---|---|
 | **Foundation** | drafted first, then reviewed by the member | Audience Insight (with web access), Ideal Client Avatar, Signature Offer, Positioning & Messaging |
 | **Run** | drafted straight through after the review | Offer Page Copy, Funnel Map, Lead Capture, Sales Conversations, Decision Machine, Lead Gen Machine |
-| **Needs you** | not run; listed with the reason and the sentence that starts it | Offer Deep Dive, LinkedIn Engine, Search & Answer Engine, Compass, Proof Engine, Funnel Scorecard, Weekly Ops Dashboard, Ad Studio, Video Director, Website Design Studio, Company Blueprint, SOP Creator, Hiring Ad + Interview Kit, Team Training Doc Builder, Webinar Builder, Event Launcher, AI Momentum Labs Book Builder, Speaking Engine, C-Suite Boardroom |
+| **Needs you** | not run; listed with the reason and the sentence that starts it | Offer Deep Dive, LinkedIn Engine, Search & Answer Engine, Compass, Proof Engine, Funnel Scorecard, Weekly Ops Dashboard, Ad Studio, Video Director, Brand Kit, Website Design Studio, Company Blueprint, SOP Creator, Hiring Ad + Interview Kit, Team Training Doc Builder, Webinar Builder, Event Launcher, AI Momentum Labs Book Builder, Speaking Engine, C-Suite Boardroom |
 | **On request** | tools a member reaches for when needed | Build Room OS Navigator, Discovery Engine, Copy Engine, Brainstorm Session, Brainstorm Capture, Triage, Finish It, Build It, Agent Forge, Second Brain, Source Watcher, Continuity System |
 
 A "needs you" tool is never run on a guess. Real numbers, a real client's permission, the member's own face, money on their accounts, and decisions about their own team are theirs. Offer Deep Dive, LinkedIn and Search were tried in a run and came back half blank, so they are the member's to start.
@@ -75,6 +75,7 @@ For each step `autopilot.py next` gives:
    - `--status drafted` when the session's main output is there and usable after an edit;
    - `--status partial` when a real part of it could not be drafted. Say what was and was not, in `--note`;
    - `--status blocked` when nothing honest could be produced. Say what is missing.
+   - `--note` is printed on the member's own pages. Write it to them ("you skipped this"), not about them.
    - List what the draft still needs in `--gaps`, each as a short plain line. Word the same gap the same way every time (`A booking link`), so the report can add them up.
 
 ## When something is not known
@@ -101,7 +102,7 @@ After the foundation and before anything else, the member sees the Foundation Re
 
 - Nothing in Phase 4 starts until `autopilot.py approve` has recorded the member's own words.
 - "Go ahead: yes" on the review, or "looks fine, keep going", is a go-ahead. Silence, or your own judgement that it is good, is not. "Looks right" on all three parts with no go-ahead means show them the page again.
-- A line they change becomes theirs: apply it in their words and tag it confirmed. If the change they ask for is already there, say so and change nothing.
+- A line they change becomes theirs: apply it in their words and tag it confirmed, on the page and in the draft document it came from, and record that step again with `--redo`. If the change they ask for is already there, say so and change nothing.
 - A part they say nothing about stays drafted. Their go-ahead covers it; do not ask again. In a part they marked "Change this", the lines they did not mention stay drafted too.
 - A part they mark "Looks right" changes its drafted lines to **reviewed**: a draft they approved as it stands. It is not their own words, so it never becomes confirmed, and later sessions still treat it as a draft that may be reworded.
 - A change that says what **not** to say is recorded with `autopilot.py decide --key never_claim` (or `retired`), so every later session carries it.
@@ -136,7 +137,9 @@ The protocol says only member-confirmed content goes into the file. An Autopilot
 
 ## The handover
 
-Two things, both made by script from `run.json`:
+First the drafts are checked. `drafts.py check --dir autopilot` reads every draft against the member's retired lines, their guarantee, the figures that are actually known, the client words they have permission to use, and what they refuse to claim. It is the last line of defence, not the first: a session still writes carefully. A `FIX` is corrected in the draft. A `LOOK` is a sentence near something the member refuses to claim; read it and reword it if it comes close. The Your Build page will not build while a `FIX` remains.
+
+Then two things, both made by script from `run.json`:
 
 - `autopilot.py report`: what was drafted and where it is saved, what was only partly drafted, what could not be drafted and why, what the member told you at the start, and every "needs you" tool with the sentence that starts it. It opens with **What to do first**: the gaps that come up in more than one draft, which are the few answers that improve the most.
 - `handover.py build`: the same, as the **Your Build** page, with a link to each document and a checklist the member can tick.

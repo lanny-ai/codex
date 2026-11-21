@@ -1,6 +1,6 @@
 # The content system
 
-Three posts a week a busy expert can keep up for a year, built from their own words, on two or three topics that point at the offer. The skill drafts; the member edits and posts.
+Three posts a week a busy expert can keep up for a year, built from their own words, on two or three topics that point at the offer. The skill drafts; the member edits and posts. A member with a full story bank may choose five or seven a week (`daily-post.md`); three stays the default, and a thin post is never used to fill a day.
 
 ## 1. Pillars (two or three, held for at least 90 days)
 

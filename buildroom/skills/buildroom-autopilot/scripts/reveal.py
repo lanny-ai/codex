@@ -52,7 +52,7 @@ REQUIRED = [("avatar", "profile"), ("offer", "promise")]
 POSITION_ANY = ("statement", "differentiator", "alternative", "value_prop")
 # A drafted line never carries money, a percentage, a multiple or guarantee language of its own.
 MONEY = re.compile(r"[$€£]\s?\d[\d,.]*|\d[\d,.]*\s?%|\b\d+(?:\.\d+)?x\b", re.I)
-PROMISE_WORDS = re.compile(r"\b(guarantee[ds]?|money[- ]back|refund(s|ed)?|doubl(e|ed|es|ing)|tripl(e|ed|es|ing))\b", re.I)
+PROMISE_WORDS = re.compile(r"\b(guarantee[ds]?|money[- ]back|refund(s|ed)?|doubl(e|ed|es|ing)(?![- ]?(check|book|click|sided))|tripl(e|ed|es|ing))\b", re.I)
 # A client quote names where it came from: a file, a page, a date or a kind of record.
 WHERE = re.compile(r"[/.\d]|review|email|e-mail|call|transcript|message|\bdm\b|post|page|interview|survey|letter|comment", re.I)
 # Facts, not judgement. These are confirmed or found, or they are left out. Never drafted.
@@ -96,6 +96,10 @@ def parse_retired(line):
         if not quoted:
             bare = re.sub(r"^(the )?(name|phrase|line|words?|claim|offer|tagline)\s+", "", entry.strip(" .—-"), flags=re.I).strip()
             quoted = [bare] if len(bare) >= 4 and not re.match(r"(none|n/?a|nothing)\b", bare, re.I) else []
+        else:
+            # "“A line”, and the name Something": what is named outside the quotation marks is retired too.
+            rest = re.sub(r"[\"“][^\"”]*[\"”]", " ", entry)
+            quoted += [m.strip(" .") for m in re.findall(r"\bthe (?:name|phrase|line|words?|claim|offer|tagline)\s+([^,;]{4,60}?)(?=$|,|\.|\band\b)", rest, flags=re.I) if m.strip(" .")]
         out += [x.strip() for x in quoted if not x.strip().lower().startswith("e.g")]
     return out
 
@@ -128,7 +132,16 @@ def squash(v):
     return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", str(v).lower())).strip()
 
 
-def problems(d, retired=(), old=()):
+def core_result(business_file):
+    """The member's own core result, from §1. A promise that restates it may carry its numbers."""
+    try:
+        m = re.search(r"^- \*\*Core result I deliver:\*\*[ \t]*(.+)$", Path(business_file).read_text(encoding="utf-8"), re.M)
+    except OSError:
+        return ""
+    return squash(m.group(1)) if m else ""
+
+
+def problems(d, retired=(), old=(), core=""):
     out = []
     # money and percentages the member has confirmed or that are in their files may be repeated in a drafted line
     figures = set()
@@ -178,7 +191,7 @@ def problems(d, retired=(), old=()):
                         out.append(f"{where}: a drafted line carries a figure nobody confirmed ({', '.join(new)}). Take it out, or confirm it")
                     if PROMISE_WORDS.search(v):
                         out.append(f"{where}: a drafted line reads as a guarantee or a promise of an outcome. That is the member's to write")
-                    if (part, key) == ("offer", "promise") and re.search(r"\d", v):
+                    if (part, key) == ("offer", "promise") and re.search(r"\d", v) and not (core and (squash(v) in core or core in squash(v))):
                         out.append(f"{where}: a drafted promise may only restate the member's confirmed core result. No numbers and no timeframe")
                 for line in retired:
                     if squash(line) and squash(line) in squash(x.get("v", "")):
@@ -502,8 +515,8 @@ def main():
     led = opt.get("--ledger")
     if not led and len(a) > 1 and (Path(a[1]).resolve().parent.parent / "discovery" / "ledger.json").is_file():
         led = str(Path(a[1]).resolve().parent.parent / "discovery" / "ledger.json")
-    retired = list(retired_lines(bf) if bf else ()) + run_retired(a[1])
-    probs = problems(d, retired, old_sources(led) if led else ())
+    retired = list(dict.fromkeys(list(retired_lines(bf) if bf else ()) + run_retired(a[1])))
+    probs = problems(d, retired, old_sources(led) if led else (), core_result(bf) if bf else "")
     if a[0] == "check" or probs:
         for p in probs:
             print("FIX  " + p)
