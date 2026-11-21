@@ -15,7 +15,7 @@ cd BuildRoom_OS
 claude
 ```
 
-The forty-two skills are picked up automatically from `.claude/skills/`. Say:
+The forty-three skills are picked up automatically from `.claude/skills/`. Say:
 
 > I'm new to the Build Room — set me up.
 
@@ -63,7 +63,7 @@ The skills read and write `BUILDROOM_BUSINESS_FILE.md` in this folder automatica
 | `tools/Rent_Calculator.html` | Open in a browser: what your undocumented processes cost you. Copies a §9 block into your file. |
 | `tools/Business_File_Viewer.html` | Open in a browser: paste your Business File, see every section's status, your progress, the one session to run next, and your Build Plan. |
 | `tools/Brainstorm_Board.html` | Open in a browser: frame, diverge, cluster, dot-vote, decide, then "Copy for Claude." |
-| `skills/` | The forty-two skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
+| `skills/` | The forty-three skills, readable. `.claude/skills/` and `.codex/skills/` are identical copies the tools discover on their own. |
 | `CLAUDE.md`, `AGENTS.md` | Tell Claude Code and Codex what this folder is. Don't delete them. |
 
 ## Updating to a new release

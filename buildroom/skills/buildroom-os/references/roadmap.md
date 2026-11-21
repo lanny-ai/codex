@@ -55,12 +55,13 @@ Run once §2 exists and the member has a website or meets customers in person; t
 |---|---|---|---|---|
 | 1 | Search & Answer Engine (eligibility and profile → question map → one answer page a week through the gate → review loop → listings and one mention a month → YouTube brief → monthly citation check) | `buildroom-search-answer-engine` | §21, one §14 channel row, §18 review count, §13 rows | §1 §2 (best with §3 §4 §14 §18) |
 
-### Design — Website Design Studio
-Run before the first page goes live (Lead Capture or Offer Page Copy), or any time the member's pages look generic or don't match. Re-run to change the look on purpose; every skill that designs reads §22.
+### Design — Brand Kit and Website Design Studio
+Run **Brand Kit** before anything public is made (a post image, a page, a slide, an ad): about fifteen minutes when the member already has a logo and colours, one session when they have none. Run **Website Design Studio** before the first page goes live, or any time the member's pages look generic. Every skill that designs reads §22.
 
 | # | Session | Skill | Builds (file §) | Requires |
 |---|---|---|---|---|
-| 1 | Website Design Studio (taste vault of screenshots in the Obsidian vault → the "what you keep choosing" read → three very different directions of a landing page, side by side, at most three rounds → the tweak bar → Kie.ai images where the member's photos run out → the lock: colours, fonts, sizes, do and don't → the go-live check) | `buildroom-website-design-studio` | §22, the §18 brand kit pointer, §13 rows | §1 §2 (best with §3 §4 §5 or §7 §18) |
+| 1 | Brand Kit (takes in the member's own logo, colours, brand guide and fonts exactly as they are, checks them and says what is missing; or, when there is no brand, a short brief → three real directions shown in use on the member's own words → their choice → a logo set in type and drawn as vector shapes; then the lock: logo files, palette, typefaces, the brand sheet, and the Design System every skill reads) | `buildroom-brand-kit` | §22, the §18 brand kit pointer, §13 rows | §1 (best with §2 §3 §4) |
+| 2 | Website Design Studio (starts from the brand kit when there is one; taste vault of screenshots in the Obsidian vault → the "what you keep choosing" read → three very different directions of a landing page, side by side, at most three rounds → the tweak bar → Kie.ai images where the member's photos run out → the lock: colours, fonts, sizes, do and don't → the go-live check) | `buildroom-website-design-studio` | §22, the §18 brand kit pointer, §13 rows | §1 §2 (best with §3 §4 §5 or §7 §18) |
 
 ### Book — AI Momentum Labs Book Builder
 Run once the member knows their reader (§2) and, ideally, has an offer for the book to lead to (§3). A book is many sessions; `book.json` holds the state.
@@ -175,6 +176,7 @@ When routing, give the member the exact words to start the session:
 - Speaking Engine → "Get me speaking gigs" · "Find me places to speak" · "Help me pick a talk topic" · "Make my speaker one-sheet" · "Write my speaker pitch" · "Who should I pitch today" · "Is this speaking offer legit" · "How did my talk go" · "How is my speaking going"
 - Autopilot (after onboarding and, ideally, Deep Discovery) → "Run autopilot" · "Run the whole build" · "Build everything for me"
 - Company Blueprint → "Build my company blueprint" · "Map my business" · "Make my org chart" · "Write a position contract" · "What should I measure" · "Set my KPIs" · "What should I hand off first" · "How dependent is my business on me" · "Review my numbers"
+- Brand Kit → "Set up my brand kit" · "Here is my brand kit" · "Here is my logo" · "Use my brand colours" · "I don't have a brand" · "Make me a brand kit" · "Make me a logo" · "My posts look like AI made them" · "Show me my brand sheet"
 - Website Design Studio → "Make my website look like me" · "Design my landing page" · "My pages look like AI made them" · "Set up my taste vault" · "Tweak my page" · "Is my page ready to go live" · "Change my brand colours"
 - Webinar Builder → "Build my webinar" · "Write my webinar title and registration page" · "Make my webinar slides" · "Is my webinar ready" · "Rehearse my webinar" · "How did my webinar go" · "Why didn't my webinar sell" · "Make my webinar evergreen"
 - Event Launcher → "Plan my launch" · "Help me run a challenge" · "I want to do a 3-day bootcamp" · "Write my launch emails" · "Run sheet for day 2" · "Plan the close" · "Launch partners" · "Is my launch ready" · "How did my launch do"

@@ -148,6 +148,8 @@ def cmd_lock(a):
     if prev.exists():
         old = dslib.read_json(prev)
         tokens["version"] = int(old.get("version", 1)) + 1
+        if old.get("brand"):                      # the member's logo, palette names and font files (Brand Kit) outlive a re-lock
+            tokens["brand"] = old["brand"]
     slides = slides_json(tokens, pair)
     files = {"tokens.css": tokens_css(tokens), "design-system.md": system_md(tokens, slides),
              "fonts.md": fonts_md(tokens, pair)}          # everything is built before anything is written

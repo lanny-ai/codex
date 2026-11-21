@@ -36,6 +36,8 @@ Read these before any member-facing work, in this order:
 
 **Requires §2 (Ideal Client Avatar) and §3 (Signature Offer). Substantially better with §4 (Positioning) and a live destination in §5 or §7.** An ad is a promise to a specific person about a specific offer, and it must land on a page that keeps the promise.
 
+**Brand kit (§22):** when `Design/System/tokens.json` carries a `brand` block (written by the **Brand Kit** session), the ad brand kit is the member's own: the logo is `brand.logo` (the version made for the ground it sits on; never recoloured or redrawn), the font files are `brand.font_files`, and the colours are the kit's. If §22 is empty, offer **Brand Kit** once before the first ad ("say: set up my brand kit"). Ads are flat: no glows, gradients or decorative shapes added to make them "pop".
+
 **Design System (§22):** if §22 is `complete` or `provisional` (say so when it is provisional), read `Design/System/tokens.json` and `design-system.md` before designing anything (§22's Files line says where they are; if you can't open them, ask the member to attach `design-system.md` or `tokens.css`): the brand kit's colours, fonts and photo rules come from §22, and the do/don't list goes in every brief. Don't invent a palette or fonts. If §22 is empty, carry on as before and offer **Website Design Studio** once ("make my website look like me").
 
 - §2 or §3 missing: follow the protocol's two-path fallback. Recommend the ICA session first; or run the provisional interview (who, what situation sends them looking, what offer, at what price) and mark §18 `provisional`.

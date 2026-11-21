@@ -522,8 +522,8 @@ def main():
           not any("LinkedIn and search work" in rd(p) for p in ("connector/guide.html", "connector/start.html", "rollout/MEMBER-README.md", "rollout/releases/README.md", "README.md",
                                                                 "skills/buildroom-os/references/roadmap.md")))
     check("wired: the roadmap names it and its phrases", "buildroom-autopilot" in rd("skills/buildroom-os/references/roadmap.md") and '"Run autopilot"' in rd("skills/buildroom-os/references/roadmap.md"))
-    check("wired: the protocol counts forty-two sessions", "42 standalone sessions" in proto)
-    check("wired: there are forty-two skills", len(on_disk) == 42, len(on_disk))
+    check("wired: the protocol counts forty-three sessions", "43 standalone sessions" in proto)
+    check("wired: there are forty-three skills", len(on_disk) == 43, len(on_disk))
     check("wired: the member README and the repo README list it", "buildroom-autopilot" in rd("rollout/MEMBER-README.md") and "buildroom-autopilot" in rd("README.md"))
 
     print(f"\n{sum(RESULTS)}/{len(RESULTS)} checks passed")

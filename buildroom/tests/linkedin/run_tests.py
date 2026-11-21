@@ -642,7 +642,36 @@ def main():
             check("renderer: the plain style is still there, and the marks are dropped, not printed", pr2.get("result") == "PASS"
                   and not any("headline emphasis" in c["check"] for c in pr2.get("checks", [])), pr2)
             rsrc = (S / "render_linkedin.mjs").read_text()
-            check("renderer: decoration carries no words and uses only the brand's own colours", "It is drawn behind the text and carries no words" in rsrc and "color-mix(in srgb,${accent}" in rsrc)
+            check("renderer: no decoration is drawn: no glow, gradient, pill, badge or ring", not re.search(r"radial-gradient|linear-gradient|background-clip:text|\\.pill|\\.badge|function decor", rsrc)
+                  and "they are what makes an image look machine-made" in rsrc)
+            # the brand comes from the member's locked kit
+            kd = work / "Design/System"; kd.mkdir(parents=True, exist_ok=True)
+            (work / "Design/Brand/logo").mkdir(parents=True, exist_ok=True)
+            for nm, fill in (("wordmark", "#16211c"), ("wordmark-on-dark", "#ffffff"), ("mark", "#b3261e"), ("mark-on-dark", "#e0483f")):
+                (work / f"Design/Brand/logo/{nm}.svg").write_text(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {"100 100" if "mark" == nm[:4] and "word" not in nm else "400 100"}"><rect width="100%" height="100%" fill="{fill}"/></svg>')
+            (kd / "tokens.json").write_text(json.dumps({"schema": "buildroom-design/1", "name": "Test brand", "version": 1, "radius_px": 2,
+                "color": {"bg": "#ffffff", "surface": "#f4f5f3", "ink": "#16211c", "muted": "#56605b", "accent": "#b3261e", "accent_ink": "#ffffff", "line": "#d5d9d6"},
+                "font": {"head": {"family": "Georgia", "weight": 700}, "body": {"family": "Arial"}},
+                "brand": {"name": "Test Co", "source": "created", "palette": [], "font_files": {"head": [], "body": []},
+                          "reverse": {"bg": "#16211c", "surface": "#232d28", "ink": "#ffffff", "muted": "#b0b6b3", "accent": "#e0483f", "accent_ink": "#16211c", "line": "#3c4641"},
+                          "logo": {"kind": "wordmark", "on_light": "../Brand/logo/wordmark.svg", "on_dark": "../Brand/logo/wordmark-on-dark.svg",
+                                   "mark_on_light": "../Brand/logo/mark.svg", "mark_on_dark": "../Brand/logo/mark-on-dark.svg"}}}))
+            for nm, extra in (("kitcard", {}), ("kitrev", {"ground": "reverse"}), ("kitgone", {"brand": "../Design/System/nope.json"})):
+                (work / f"specs/{nm}.json").write_text(json.dumps({"id": nm, "layout": "card", "brand": "../Design/System/tokens.json", "alt": "A card",
+                    "copy": {"headline": "Production is *not* profit.", "author": "Test Person"}, **extra}))
+            ok, out = run(["node", S / "render_linkedin.mjs", "specs/kitcard.json", "specs/kitrev.json", "--out", "renders"], work, ok_codes=(0, 1))
+            kc, kr = rep("kitcard"), rep("kitrev")
+            fonts_only = lambda r: all("brand fonts loaded" in c["check"] for c in r.get("checks", []) if c["result"] == "FAIL")  # noqa: E731
+            check("renderer: a spec that names the brand kit takes its colours and logo from it", str(kc.get("brand_kit", "")).endswith("tokens.json")
+                  and fonts_only(kc) and not any("no brand kit" in x for x in kc.get("warnings", [])) and (work / "renders/kitcard.png").exists(), kc)
+            check("renderer: the reverse ground uses the kit's reverse colours and passes contrast", fonts_only(kr)
+                  and any(c["check"].startswith("text contrast") and c["result"] == "pass" and c["detail"] > 10 for c in kr.get("checks", [])), kr)
+            check("renderer: a spec with a typed-in brand is told there is no brand kit", any("no brand kit" in x for x in sr.get("warnings", [])), sr.get("warnings"))
+            ok, out = run(["node", S / "render_linkedin.mjs", "specs/kitgone.json", "--out", "renders"], work, ok_codes=(1, 2))
+            check("renderer: a missing brand kit is refused with the reason", "brand kit not found" in out, out[-300:])
+            ks = (SK / "SKILL.md").read_text() + (SK / "references/daily-post.md").read_text()
+            check("skill: every image takes its look from the brand kit, and decoration is ruled out", "Design/System/tokens.json" in ks
+                  and "set up my brand kit" in ks and "machine-made" in ks and "soft glow" not in ks and "in a pill" not in ks)
 
     # ---- the Prospector: searches, fit, opening lines, the conversation one question at a time ----
     import subprocess as _sp, tempfile as _tf

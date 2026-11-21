@@ -4,7 +4,7 @@ _One file. Every Build Room session reads it before asking you anything, and upd
 
 **Owner:** [your name]
 **Business:** [business name]
-**File version:** 1.12
+**File version:** 1.13
 **Last updated:** [YYYY-MM-DD] by [session name]
 
 > **How to use this file:** Leave it in your Build Room folder. Each session reads it, skips every question it already answers, saves its changes here and tells you what changed. You can edit anything by hand at any time — your edits win.
@@ -384,8 +384,9 @@ _Built by: Search & Answer Engine · Requires: §1, §2; best with §3, §4, §1
 ## 22. Design System
 
 **Status:** not started · **Updated:** — · **By:** —
-_Built by: Website Design Studio · Requires: §1, §2; best with §3, §4, §5 or §7, §18_
+_Built by: Brand Kit (logo, colours, typefaces) · Website Design Studio (pages) · Requires: §1; best with §2, §3, §4, §5 or §7, §18_
 
+- **Brand kit** (yours or made here · logo files · brand sheet · locked):
 - **Taste vault** (location · references · collections · "what I keep choosing"):
 - **Directions tried** (names · chosen · why):
 - **Locked system** (palette · fonts · type scale · corners · spacing · motion):

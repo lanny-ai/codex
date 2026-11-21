@@ -43,6 +43,7 @@ TOOLS = [
     ("ops-dashboard", "Weekly Ops Dashboard", "What numbers should I be watching every week?", "needs_you", "it needs your real numbers"),
     ("ad-studio", "Ad Studio", "Make me ads", "needs_you", "it spends money on your accounts"),
     ("video-director", "Video Director", "Make me a video", "needs_you", "it uses your face and footage, and paid generation"),
+    ("brand-kit", "Brand Kit", "Set up my brand kit", "needs_you", "it starts from the logo and colors you already use, or from your own answers if you have none, so nothing you publish looks machine-made"),
     ("website-design-studio", "Website Design Studio", "Make my website look like me", "needs_you", "it starts from screenshots that you choose"),
     ("company-blueprint", "Company Blueprint", "Build my company blueprint", "needs_you", "it maps who does what in your business, which only you know"),
     ("sop-creator", "SOP Creator", "Help me document my processes", "needs_you", "it documents how you actually do the work"),
@@ -83,7 +84,7 @@ SCOPE = {
     "leadgen": "One module only: the one that matches where the member most wants clients from. Record this step as partial and name the module.",
 }
 # The sessions most members reach for first after a run.
-NEXT_UP = ("proof-engine", "offer-deep-dive", "compass", "linkedin", "search-answer-engine", "funnel-scorecard")
+NEXT_UP = ("brand-kit", "proof-engine", "offer-deep-dive", "compass", "linkedin", "search-answer-engine", "funnel-scorecard")
 STATUSES = ("drafted", "partial", "blocked", "skipped")
 DONE_OK = ("drafted", "partial")
 # The three a run cannot go on without. Audience Insight is helpful, not required.
