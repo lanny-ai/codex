@@ -216,13 +216,13 @@ def main():
     W = {"sentence": "I keep the books for owner-dentists, closed by the 10th of every month.", "paragraph": "Monthly bookkeeping for dental practices, and nothing else.", "bio": "I have kept books for eleven years."}
     wf.write_text(json.dumps(W))
     page = led.parent / "one.html"
-    code, out = op("build", led, page, "--words", wf, "--next", "Help me build my ideal client avatar")
+    code, out = op("build", led, page, "--words", wf, "--next", "Help me describe my best customer")
     ph = page.read_text() if page.exists() else ""
     check("onepage: one self-contained page in the member's own words", code == 0 and ph.startswith("<!doctype html>") and "in your own words." in ph and "Owner-dentists &lt;with&gt; one or two locations" in ph
           and not re.search(r'(src|href)="https?:', ph) and "@import" not in ph and "url(" not in ph, out)
     check("onepage: what a page or a guess said is never shown as theirs", "$9,999" not in ph and "fear of audits" not in ph)
     check("onepage: the three ways to say it are marked as drafted, each with a copy button", ph.count("Drafted for you") == 3 and ph.count('data-copy="w-') == 3 and "They are drafts" in ph)
-    check("onepage: plain labels, what is open, one next step, and no promise", "What a client receives" in ph and "What comes next" in ph and "Help me build my ideal client avatar" in ph
+    check("onepage: plain labels, what is open, one next step, and no promise", "What a client receives" in ph and "What comes next" in ph and "Help me describe my best customer" in ph and "What they get" in ph
           and "out of 100" not in ph and "Still open" not in ph and "The next session works out:" in ph and "\u2014" not in ph and "\u2013" not in ph)
     def wbad(change, expect):
         wf.write_text(json.dumps({**W, **change}))
@@ -254,7 +254,7 @@ def main():
     osk = (SCRIPT.parent.parent.parent / "buildroom-os/SKILL.md").read_text()
     check("skill: a new member's first session reads their site first and ends with the page", "## The first session: a new member's first fifteen minutes" in QREF and "Here is what I learned about your business" in QREF
           and "Never guess what a page does not say." in QREF and "Then ask once about the lines they did not mention" in QREF and "A new member is not asked about a Business File." in QREF
-          and "A member with nothing online is not asked about tools." in QREF and "Do not emit the empty template." in QREF and "no Compass, no second phrase" in QREF and "onepage.py build" in QREF
+          and "A member with nothing online is not asked about tools." in QREF and "Do not emit the empty template." in QREF and "No Compass, no second phrase" in QREF and "onepage.py build" in QREF
           and "follow the section \"The first session\"" in osk and "onepage.py" in QSK)
     osrc = OP.read_text()
     check("onepage: standard library only, no network", not any(x in osrc for x in ("requests", "urllib", "socket", "http.client", "subprocess")))

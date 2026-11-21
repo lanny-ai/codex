@@ -1,7 +1,7 @@
 ---
 name: buildroom-ideal-client-avatar
 description: |
-  Builds the Ideal Client Avatar: pains, dream state, buying journey, the client's own words, objections (§2). Use for "help me build my ideal client avatar," "who is my ideal client," "help me niche down," "buyer persona," or "I don't know who I'm selling to."
+  Builds the Ideal Client Avatar: pains, dream state, buying journey, the client's own words, objections (§2). Use for "help me build my ideal client avatar," "help me describe my best customer," "who is my ideal client," "help me niche down," "buyer persona," or "I don't know who I'm selling to."
 ---
 
 # Build Room — Ideal Client Avatar Machine

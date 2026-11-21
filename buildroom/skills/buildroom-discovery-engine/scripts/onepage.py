@@ -34,7 +34,7 @@ CLAIM_WORD = re.compile(r"\b(certified|licen[cs]ed|insured|bonded|accredited|awa
                         r"renowned|proven|world[- ]class|experienced|qualified|specialists?|professional|years of experience|results)\b", re.I)
 LIMITS = {"sentence": 220, "paragraph": 700, "bio": 600}
 LABELS = {"sentence": ("In one sentence", "For when someone asks what you do."),
-          "paragraph": ("In one paragraph", "For a flyer, a card, an About section or a note to a new client."),
+          "paragraph": ("In one paragraph", "For a flyer, a card or a note to a new client."),
           "bio": ("A short bio", "For a profile or anywhere someone asks about you.")}
 HEAD = ("1.what_i_do", "1.who_i_serve", "1.core_result")
 # The ledger's labels are written for the session. These are written for the member.
@@ -171,7 +171,7 @@ def build(d, words=None, next_phrase="", why=""):
     o = [f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{E(name)} on one page</title><style>{CSS}</style></head><body>']
     o.append(f'<header class="cover"><div class="wrap"><div class="eyebrow">Build Room OS · Your business on one page</div><h1>{E(name)},<br><em>in your own words.</em></h1>'
              f'<p>The boxes are what you said or confirmed, in your words. Anything written for you is marked as a draft.{" As of " + E(str(d["date"])) + "." if d.get("date") else ""}</p></div></header><div class="edge"></div><main class="wrap">')
-    head = [(dz.FIELD[k][2].replace(" I deliver", ""), dz.best(own(d, k))["value"]) for k in HEAD if own(d, k)]
+    head = [({"1.what_i_do": "What I do", "1.who_i_serve": "Who it is for", "1.core_result": "What they get"}[k], dz.best(own(d, k))["value"]) for k in HEAD if own(d, k)]
     if head:
         o.append('<div class="trio">' + "".join(f'<div class="big"><div class="k">{E(l)}</div><p>{E(str(v))}</p></div>' for l, v in head) + '</div>')
     if words:
@@ -199,7 +199,7 @@ def build(d, words=None, next_phrase="", why=""):
             body = f"<p>{E(vals[0])}</p>" if len(vals) == 1 else "<ul>" + "".join(f"<li>{E(v)}</li>" for v in vals) + "</ul>"
             cards.append(f'<div class="card"><div class="k">{E(label(key))}</div>{body}</div>')
         if cards:
-            o.append(f'<section><h2>{E(title)}</h2><div class="grid">{"".join(cards)}</div></section>')
+            o.append(f'<section><h2>{E({"Your offer": "What you sell", "Your client": "Who you sell to"}.get(title, title))}</h2><div class="grid">{"".join(cards)}</div></section>')
     # Not a list of homework and not a grade: the few things the next session works out, leaving out anything they chose to skip.
     skipped = set(d.get("skipped") or [])
     coming = [label(k) for k in ("2.profile", "2.pains", "2.dream", "2.objections") if k not in shown and k not in skipped][:4]

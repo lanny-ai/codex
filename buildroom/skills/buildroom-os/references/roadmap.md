@@ -155,7 +155,7 @@ Capture turns a raw brainstorm (board export, transcript, notes) into outcome re
 When routing, give the member the exact words to start the session:
 
 - Build Room OS (this navigator, and the five-minute onboarding other sessions send a member back to) → "Where do I start?"
-- Ideal Client Avatar → "Help me build my ideal client avatar"
+- Ideal Client Avatar → "Help me build my ideal client avatar" · "Help me describe my best customer"
 - Signature Offer → "Help me build my signature offer"
 - Positioning & Messaging → "Help me position my business"
 - Offer Page Copy → "Write my offer page"
