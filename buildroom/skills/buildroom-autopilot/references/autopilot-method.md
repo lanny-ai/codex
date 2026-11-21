@@ -75,6 +75,7 @@ For each step `autopilot.py next` gives:
    - `--status drafted` when the session's main output is there and usable after an edit;
    - `--status partial` when a real part of it could not be drafted. Say what was and was not, in `--note`;
    - `--status blocked` when nothing honest could be produced. Say what is missing.
+   - `--note` is printed on the member's own pages. Write it to them ("you skipped this"), not about them.
    - List what the draft still needs in `--gaps`, each as a short plain line. Word the same gap the same way every time (`A booking link`), so the report can add them up.
 
 ## When something is not known

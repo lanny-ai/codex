@@ -177,6 +177,10 @@ def parse_retired(line):
         if not quoted:
             bare = re.sub(r"^(the )?(name|phrase|line|words?|claim|offer|tagline)\s+", "", entry.strip(" .—-"), flags=re.I).strip()
             quoted = [bare] if len(bare) >= 4 and not re.match(r"(none|n/?a|nothing)\b", bare, re.I) else []
+        else:
+            # "“A line”, and the name Something": what is named outside the quotation marks is retired too.
+            rest = re.sub(r"[\"“][^\"”]*[\"”]", " ", entry)
+            quoted += [m.strip(" .") for m in re.findall(r"\bthe (?:name|phrase|line|words?|claim|offer|tagline)\s+([^,;]{4,60}?)(?=$|,|\.|\band\b)", rest, flags=re.I) if m.strip(" .")]
         out += [x.strip() for x in quoted if not x.strip().lower().startswith("e.g")]
     return out
 
@@ -352,6 +356,10 @@ def gap_list(d, cap):
         elif key in stale:
             b = stale[key]
             rows.append((1, -weight, key, f"{label}: an older source says “{b['value']}” ({src_text(b)}). Is that still true today?"))
+        elif key in EASY and cr.get(key, 0) < 1 and bf.get(key) and all(kind(f) == "web" for f in bf[key] if not f.get("stale")) and any(not f.get("stale") for f in bf[key]):
+            # Found only on a public page: nothing from a page alone goes into the file, so one line to confirm it.
+            b = best([f for f in bf[key] if not f.get("stale")])
+            rows.append((3, -weight, key, f"{label}: your page says “{b['value']}” ({src_text(b)}). Is that right today?"))
         elif cr.get(key, 0) < CONF["likely"]:
             if answered_none(bf.get(key, [])):
                 continue

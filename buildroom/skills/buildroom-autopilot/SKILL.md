@@ -19,7 +19,7 @@ Read these before any member-facing work:
 3. **`references/business-file-protocol.md`**: the Business File contract. It applies to every session you run, with the one exception the method states.
 4. **`references/business-file-template.md`**: the blank file.
 
-Three helpers, all standard library only:
+The helpers, all standard library only:
 - **`scripts/autopilot.py`** keeps the plan, the member's decisions, the order, the review gate and the final report.
 - **`scripts/reveal.py`** checks the foundation and builds the review page.
 - **`scripts/drafts.py`** reads every finished draft and refuses what must not be in it.
@@ -49,8 +49,8 @@ Three helpers, all standard library only:
 
 This is the last chance to ask before the run, so ask what unblocks the most. One at a time, **only** the ones the Business File and the ledger do not already answer as the member's own word. A question the member skipped in Deep Discovery (the ledger's `skipped` list), or answered there with "none", is not asked again. Eleven at most, in this order:
 
-1. The price they charge today.
-2. Whether they offer a guarantee, and its exact wording if so. Ask this even when a file mentions one, unless the member has confirmed it.
+1. The price they charge today. Always confirm it here, even when their files agree on it. Other facts found in their current files are not asked again.
+2. Whether they offer a guarantee, and its exact wording if so. Ask this even when a file mentions one, unless the member has confirmed it: a wrong word in a guarantee costs money. Record only the wording itself, not the "yes" in front of it.
 3. What a client actually receives.
 4. A typical client result: their honest middle case. "I don't have one yet" is a fine answer.
 5. Anything they refuse to claim or promise.

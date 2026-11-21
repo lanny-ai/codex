@@ -101,6 +101,8 @@ LEANS_ON = {
     "leadgen": ("preferred_source", "where you most want new clients to come from"),
 }
 NONE = re.compile(r"\s*((none|no|nothing|n/?a|not yet)( yet| really)?[\s.!]*$|i don'?t (know|have)\b|don'?t (know|have)\b|skip\b)", re.I)
+# "I do not have one yet", "No, I don't have one", "Not yet, but I want one": the member has none, however they put it.
+HAS_NONE = re.compile(r"\s*(none|no|nothing|not yet|nope)\b|.{0,25}\b(do not|don'?t|haven'?t|have not) (have|got)\b", re.I)
 # Decisions that add up instead of replacing: a second answer never erases the first.
 ADDS = ("never_claim", "retired")
 DECISIONS = {
@@ -204,7 +206,8 @@ def cmd_plan(a):
                if r == "none" else "answer the questions Discovery still has (only if `discover.py ready` names some), run the one session it names by hand, ")
             + "or go ahead anyway. If they choose to go ahead, "
             "record their words with --thin-ok. Words that are not a clear choice to go ahead (\"I don't know\", \"skip that\") are not one.", 5)
-    if thin_ok and NONE.match(thin_ok):
+    if thin_ok and (NONE.match(thin_ok) or not re.search(r"\b(yes|yep|yeah|go|ahead|anyway|run it|proceed|do it|start|continue)\b", thin_ok, re.I)
+                    or re.search(r"\b(ask me|not sure|maybe|what does)\b", thin_ok, re.I)):
         die(f"“{thin_ok}” is not a choice to go ahead. Do not start a run on it.", 5)
     steps = []
     for slug, _n, _p, mode, _w in TOOLS:
@@ -264,7 +267,7 @@ def thin_steps(run):
     out = []
     for s in pending(run, "auto"):
         need = LEANS_ON.get(s["slug"])
-        if need and (need[0] not in dec or NONE.match(dec[need[0]]) or re.match(r"\s*(none|no|nothing)\b", dec[need[0]], re.I)):
+        if need and (need[0] not in dec or NONE.match(dec[need[0]]) or HAS_NONE.match(dec[need[0]])):
             out.append((s["slug"], need[1]))
     return out
 

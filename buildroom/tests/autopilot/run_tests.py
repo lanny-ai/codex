@@ -265,7 +265,15 @@ def main():
     rv = lambda v: {"v": v, "basis": "reviewed"}  # noqa: E731
     bad(lambda g: g["offer"].update(urgency=rv("We double enrollment for every studio.")), "reads as a guarantee", "an approved draft is still checked for promises")
     bad(lambda g: g["positioning"].update(value_prop=rv("Fuller classes for $9,999.")), "a figure nobody confirmed", "an approved draft is still checked for new figures")
-    (fj.parent / "run.json").write_text(json.dumps({"decisions": [{"key": "retired", "value": "the name Studio Growth Sprint"}]}))
+    cbf = tmp / "BF_core.md"
+    cbf.write_text(tpl.replace("- **Core result I deliver:**", "- **Core result I deliver:** Books closed by the 10th of every month"))
+    g = copy.deepcopy(GOOD)
+    g["offer"]["promise"] = rv("Books closed by the 10th of every month")
+    write(g)
+    check("reveal: a promise that is the member's own core result keeps its number; another drafted promise may not carry one",
+          run(RV, "check", fj, "--business-file", cbf)[0] == 0 and "No numbers and no timeframe" in run(RV, "check", fj)[1])
+    write(GOOD)
+    (fj.parent / "run.json").write_text(json.dumps({"decisions": [{"key": "retired", "value": "“Featured in Ceramics Monthly”, and the name Studio Growth Sprint."}]}))
     bad(lambda g: g["offer"].update(pitch=d("Formerly the Studio Growth Sprint, now 12 weeks.")), "carries a retired line", "a line retired at the start of the run is refused before it reaches the Business File")
     (fj.parent / "run.json").unlink()
     oled = tmp / "old_ledger.json"
@@ -288,6 +296,7 @@ def main():
     ap2 = lambda *a: run(AP, *a[:1], "--dir", R2, *a[1:])  # noqa: E731
     code, out = ap2("plan", "--readiness", "40", "--no-web", "--thin-ok", "I don't know, skip that one.")
     check("plan: words that are not a choice to go ahead do not start a thin run", code == 5 and "not a choice to go ahead" in out and not (R2 / "run.json").exists())
+    check("plan: nor do 'maybe' or 'OK, ask me the questions'", all(ap2("plan", "--readiness", "40", "--no-web", "--thin-ok", w)[0] == 5 for w in ("maybe", "OK, ask me the questions.", "hmm, not sure", "Leave those out.")))
     check("plan: a clear choice does", ap2("plan", "--readiness", "40", "--no-web", "--thin-ok", "No, go ahead anyway.")[0] == 0)
     ap2("decide", "--key", "never_claim", "--value", "Doubling enrollment or revenue.")
     code, out = ap2("decide", "--key", "never_claim", "--value", "Do not say I work with all creative businesses.")
@@ -313,6 +322,10 @@ def main():
           and "Lead Gen Machine (leadgen): needs where you most want new clients" in out and "Decision Machine (decision-machine): needs the tools" in out and "Sales Conversations" not in out)
     code, out = ap2("leave-out", "lead-gen-machine", "--words", "leave it")
     check("leave-out: an unknown step is called unknown, with the real names", code != 0 and "Unknown step" in out and "leadgen" in out)
+    import importlib.util as _il
+    _sp = _il.spec_from_file_location("ap_mod", AP); _am = _il.module_from_spec(_sp); _sp.loader.exec_module(_am)
+    check("approve: 'I do not have one yet' and 'Not yet, but I want one' both mean none; a real answer does not",
+          all(_am.HAS_NONE.match(x) for x in ("I do not have one yet.", "No, I don't have one", "Not yet, but I want one", "none yet")) and not _am.HAS_NONE.match("A five-page pricing guide"))
     check("leave-out: needs the member's words, and only drops a waiting run step", ap2("leave-out", "lead-capture")[0] != 0 and ap2("leave-out", "signature-offer", "--words", "skip it")[0] != 0)
     check("leave-out: records the member's choice", ap2("leave-out", "lead-capture", "--words", "Leave that one out")[0] == 0)
     out = ap2("report")[1]
@@ -407,14 +420,28 @@ def main():
     check("drafts: an offered guarantee the member does not have, and a promise to double, are refused", code == 1 and out.count("offers a guarantee or refund, and the member has none") == 2 and "reads as a promise of an outcome" in out, out)
     code, out = drafts(HEAD + "“We went from 22 to 41 students in a term”", "Client words: “We went from 22 to 41 students in a term”")
     check("drafts: a client's words without permission are refused in public copy and flagged in the member's notes", code == 1 and out.count("FIX") == 1 and "04_Offer_Page_Copy.md: uses a client's words without permission" in out
-          and "LOOK  drafts/01_Ideal_Client_Avatar.md: quotes a client without permission" in out, out)
+          and "LOOK  drafts/01_Ideal_Client_Avatar.md: quotes 1 line(s) from clients or prospects" in out, out)
     code, out = drafts(HEAD + "x", "“We went from 22 to 41 students in a term” (not for public quoting)")
     check("drafts: marked not for public quoting in the member's notes, it is left alone", code == 0 and "LOOK" not in out, out)
     code, out = drafts(HEAD + "Enrollment that keeps growing, term after term.\nMore revenue from the classes you already run, and fuller enrollment.")
-    check("drafts: a sentence near what the member refuses to claim is listed to be read, not refused", code == 0 and out.count("LOOK") == 2 and "Doubling enrollment or revenue" in out, out)
+    check("drafts: a sentence near what the member refuses to claim is listed to be read, not refused", code == 0 and out.count("LOOK") == 1 and "Doubling enrollment or revenue" in out, out)
     code, out = drafts(HEAD + "If you are not happy, I will refund you in full.\nI have helped over 50 studios.\n“He was the reason our classes filled,” said one owner.\nI dropped the money-back guarantee years ago.")
     check("drafts: a refund offer is caught even when the sentence holds a 'not'; an invented count and an invented quote are refused; a dropped guarantee is not an offer",
           code == 1 and out.count("FIX") == 3 and "offers a guarantee or refund" in out and "50 studio" in out and "no real source" in out and "dropped" not in out.split("FIX")[1], out)
+    code, out = drafts(HEAD + "One Ohio studio took its class from 22 to 41 students.\nDouble-check your class calendar before you post.\nThe program used to be $3,000.")
+    check("drafts: a retold result without permission and an old price are refused; 'double-check' is not a promise",
+          code == 1 and "retells a client's result" in out and "$3,000" in out and "Double-check" not in out.replace("retells", ""), out)
+    run(AP, "decide", "--dir", CA, "--key", "never_claim", "--value", "Do not say I work with all creative businesses")
+    code, out = drafts(HEAD + "We love creative work of every kind.")
+    check("drafts: a never-claim rule is matched on its distinctive word, not on 'business' or 'serve'", code == 0 and out.count("LOOK") == 1, out)
+    code, out = drafts(HEAD + "We are doubling down on enrollment and revenue for every studio.")
+    check("drafts: public copy that says outright what the member refuses to claim is refused", code == 1 and ("says what the member refuses to claim" in out or "promise of an outcome" in out), out)
+    code, out = drafts(HEAD + "Most studios cut overhead by 12 percent.\nI have a waitlist now, about 30 percent over.")
+    check("drafts: a percentage written in words is a figure: an invented one is refused, a known one passes", code == 1 and "12 percent" in out and "30 percent" not in out, out)
+    run(AP, "decide", "--dir", CA, "--key", "never_claim", "--value", "Any tax savings figure")
+    code, out = drafts(HEAD + "Owners save thousands on their tax bill.")
+    check("drafts: a short word in a never-claim rule counts", "read this against what the member refuses to claim" in out or "says what the member refuses to claim" in out, out)
+    code, out = drafts(HEAD + "Classes that fill.", "Client words: “i'm so tired of posting and praying”")
     code, out = drafts(HEAD + "Most studio owners see fuller classes within a term.\nOwners who do this are more likely to stay open.")
     check("drafts: a general claim about what clients get is listed to be read", code == 0 and out.count("a general claim about what clients get") == 2, out)
     code, out = drafts("Classes that fill.")

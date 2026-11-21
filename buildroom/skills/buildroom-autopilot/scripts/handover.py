@@ -35,7 +35,7 @@ FOR = {
     "positioning-messaging": "Where you stand, and why someone picks you.",
     "offer-deep-dive": "Your offer pressure-tested: value, guarantee and the numbers behind it.",
     "offer-page-copy": "The page that does the selling when you are not in the room.",
-    "funnel-map": "The path from stranger to client, with the emails written.",
+    "funnel-map": "The path from stranger to client, and the emails where there is something to send.",
     "lead-capture": "The opt-in page, the free resource and its delivery.",
     "sales-script": "What to ask on the call, and what to say when they hesitate.",
     "decision-machine": "The follow-up for every yes and every no.",
@@ -194,7 +194,7 @@ def build(run, folder, page_dir, business):
             slug = s["slug"]
             part = s.get("status") == "partial"
             o.append(f'<div class="card"><h3>{E(TOOL[slug][1])}' + (' <span style="font-weight:600;color:var(--amber);font-size:16px">· Partly drafted</span>' if part else "")
-                     + f'</h3><p class="for">{E(FOR.get(slug, ""))}</p>')
+                     + '</h3>' + ("" if part else f'<p class="for">{E(FOR.get(slug, ""))}</p>'))
             if s.get("outputs"):
                 o.append('<div class="k">Saved as</div><ul class="files">' + "".join(file_item(x, folder, page_dir) for x in s["outputs"]) + '</ul>')
             if s.get("gaps"):

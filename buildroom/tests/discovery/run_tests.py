@@ -201,6 +201,9 @@ def main():
     write(thin, skipped=["2.pains", "2.profile"], extra_round=True)
     c, out = run("ready", led)
     check("ready: after the one extra round it offers no more questions", c == 2 and "The one extra round of questions has been asked. Do not offer more questions." in out and "What do you charge" not in out, out)
+    write(thin + [F(30, "1.booking", "Book a 20-minute fit call", "web", "https://example.com/", "likely")])
+    out = run("gaps", led)[1]
+    check("gaps: an easy fact found only on a public page is put to the member in one line", "your page says “Book a 20-minute fit call”" in out and "Is that right today?" in out, out)
     # ---- Quick Start: the short interview for a member with little written down -----------------
     write(thin + [none], skipped=["2.dream"])
     c, out = run("interview", led)
@@ -225,6 +228,8 @@ def main():
           and len(QSK.split("---")[1]) < 700 and "One pass only" in QREF and "Do not improve an answer." in QREF)
     check("retired: entries split on semicolons, notes in brackets ignored, an unquoted entry counts whole",
           dm.parse_retired(' “Featured in Ceramics Monthly” (you said "Do not use it"); the name Studio Growth Sprint; none') == ["Featured in Ceramics Monthly", "Studio Growth Sprint"])
+    check("retired: a name given outside the quotation marks in the same entry is retired too",
+          dm.parse_retired('"Featured in Ceramics Monthly", and the name Studio Growth Sprint.') == ["Featured in Ceramics Monthly", "Studio Growth Sprint"])
     write([dict(f, source={"kind": "hypothesis", "ref": "reasoned"}, confidence="inferred") for f in full])
     c, out = run("ready", led)
     check("ready: guesses alone never reach ready", c == 2 and int(out.split("Readiness: ")[1].split()[0]) < 70, out)
