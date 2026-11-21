@@ -97,6 +97,10 @@ If the run is cut short, the state is already saved. Tell the member how far it 
 4. Update the Business File as the method says: one §8 row for the run that names every draft. The sections the Phase 4 sessions own are left as they are.
 5. Close with the three things from the top of the report's "What to do first", in the member's terms. Then the one session to run themselves next: usually **Proof Engine** ("Capture this win") when they have clients, and the questions still open when they do not.
 
+### Optional: GoHighLevel values
+
+Only when the member asks ("Prepare my GoHighLevel values"), and only after the handover. Follow `references/ghl-values.md`: `scripts/ghl_values.py` lists the snapshot's custom values, checks the ones you fill from the approved drafts, and writes a review sheet and a values file. A fact is never drafted, an unknown is left out, and nothing is sent to GoHighLevel.
+
 ## Voice & Style Rules
 
 - Plain and calm. The work is the impressive part; do not describe it as impressive.

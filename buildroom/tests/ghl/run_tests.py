@@ -50,6 +50,58 @@ def main():
     check("spec: Build Room OS refuses to push without the must-haves or a matching version", "Refuses to push if a \"must have\" value is missing" in spec and "stops if it is missing or does not match" in spec)
     check("spec: no long dashes", "—" not in spec and "–" not in spec)
     check("spec: no key, link or account detail of any member", not re.search(r"pit-[a-z0-9]|eyJ[A-Za-z0-9]|locationId=|@gmail|@yahoo", spec))
+    # ---- the values file: from a finished Autopilot run to a file ready to load ------------------
+    import subprocess, tempfile
+    SKA = D.parent.parent / "skills/buildroom-autopilot"
+    GV, AP = SKA / "scripts/ghl_values.py", SKA / "scripts/autopilot.py"
+    run = lambda *a: (lambda p: (p.returncode, p.stdout + p.stderr))(subprocess.run([sys.executable, *map(str, a)], capture_output=True, text=True))  # noqa: E731
+    check("values: the skill carries the same list the snapshot is built from", (SKA / "references/ghl-placeholders.json").read_text() == (D / "placeholders.json").read_text())
+    code, out = run(GV, "template")
+    check("values: the worksheet lists every value with its limit and whether it is a fact", code == 0 and all(k + ":" in out for k in keys) and "FACT: member or files only" in out and f"{len(ps)} custom values" in out)
+    with tempfile.TemporaryDirectory() as t:
+        t = Path(t)
+        A = t / "autopilot"
+        (A / "drafts").mkdir(parents=True)
+        tpl = (D.parent.parent / "templates/BUILDROOM_BUSINESS_FILE.md").read_text()
+        (t / "BUILDROOM_BUSINESS_FILE.md").write_text(tpl.replace("- **Current price / price range:**", "- **Current price / price range:** $4,800")
+            .replace("separated by semicolons):", "separated by semicolons): “Featured in Ceramics Monthly”"))
+        run(AP, "plan", "--dir", A, "--readiness", "80", "--no-web")
+        run(AP, "decide", "--dir", A, "--key", "guarantee", "--value", "none")
+        vf = t / "values.json"
+        c, d_, f_ = (lambda v: {"v": v, "basis": "confirmed"}), (lambda v: {"v": v, "basis": "drafted"}), (lambda v: {"v": v, "basis": "files"})
+        good = {"br_business_name": c("Kiln & Co"), "br_owner_name": c("Marcus Bell"), "br_owner_first_name": c("Marcus"), "br_optin_headline": d_("Classes that fill"),
+                "br_offer_price": c("$4,800")} if "br_offer_price" in keys else {"br_business_name": c("Kiln & Co"), "br_optin_headline": d_("Classes that fill")}
+        def chk(v):
+            vf.write_text(json.dumps(v))
+            return run(GV, "check", "--dir", A, vf)
+        code, out = chk(good)
+        check("values: honest values pass, and the must-haves still missing are listed", code == 0 and "0 to fix" in out and "Must-have values still missing" in out and "br_magnet_url" in out, out[-400:])
+        fact_key = next(p["key"] for p in ps if p["fact"] and p["type"] == "text" and p["key"] not in good)
+        check("values: a fact is never drafted", "this is a fact" in chk({**good, fact_key: d_("Something plausible")})[1])
+        check("values: an unknown key, an empty value and a leftover blank are refused", all(x in chk({**good, "br_made_up": d_("x"), "br_optin_subheadline": d_(" "), "br_optin_hook": d_("Book here: [needs you: a booking link]")})[1]
+              for x in ("not a value the snapshot has", "Leave a value out", "still carries a tag or a blank")))
+        check("values: a value longer than its page element is refused", "the page element holds 120" in chk({**good, "br_optin_headline": d_("x" * 121)})[1])
+        check("values: a link must be a full https link", "full https:// link" in chk({**good, "br_magnet_url": c("mysite.com/guide")})[1])
+        out = chk({**good, "br_optin_hook": d_("As featured in Ceramics Monthly. Most studios add $12,000. Results guaranteed.")})[1]
+        check("values: a retired line, a figure nobody confirmed and a guarantee the member does not have are refused", "retired" in out and "$12,000" in out and "offers a guarantee" in out, out)
+        vf.write_text(json.dumps({**good, "br_optin_hook": d_("We double your enrollment.")}))
+        code, out = run(GV, "export", "--dir", A, vf, t / "out")
+        check("export: nothing is written while something must be fixed", code != 0 and not (t / "out").exists(), out)
+        vf.write_text(json.dumps(good))
+        code, out = run(GV, "export", "--dir", A, vf, t / "out")
+        cv = json.loads((t / "out/custom_values.json").read_text())
+        sheet = (t / "out/GHL_Values_Review.md").read_text()
+        check("export: writes the values, a csv with merge tags, and a review sheet", code == 0 and cv["values"]["br_business_name"] == "Kiln & Co" and cv["snapshot_version"] == j["version"]
+              and "{{ custom_values.br_optin_headline }}" in (t / "out/custom_values.csv").read_text())
+        check("export: a file with a must-have missing says it is not complete", cv["complete"] is False and "must-have values are still missing" in sheet and "## Still needed from you" in sheet)
+        check("export: the sheet tags every line and says nothing was sent", "drafted for you" in sheet and "· yours ·" in sheet and "Nothing has been sent to GoHighLevel" in sheet and "## Left empty" in sheet
+              and "—" not in sheet and "–" not in sheet)
+    gsrc = GV.read_text()
+    check("values: standard library only, and it connects to nothing", not any(x in gsrc for x in ("requests", "urllib", "socket", "http.client", "subprocess")))
+    gref = (SKA / "references/ghl-values.md").read_text()
+    check("skill: only on request, after the handover, and nothing is sent", "Prepare my GoHighLevel values" in (SKA / "SKILL.md").read_text() and "It does not connect to GoHighLevel" in gref
+          and "A fact is never drafted." in gref and "Never fill a must-have to make the file complete." in gref and "—" not in gref and "–" not in gref)
+    check("spec: says which steps are built and which are not", "are not built yet" in spec and "ghl_values.py" in spec)
     print(f"\n{sum(RESULTS)}/{len(RESULTS)} checks passed")
     sys.exit(0 if all(RESULTS) else 1)
 
