@@ -128,7 +128,7 @@ def main():
         for bad in ("../skills", "buildroom-os/../x", "nope", "", None):
             check(f"start_session refuses skill {bad!r}", text(call(url, key, "buildroom_start_session", {"skill": bad})[1])[1])
         t, _ = text(call(url, key, "buildroom_whats_new")[1])
-        check("whats_new: the newest release first", t.startswith("| `BuildRoom_OS_2026-11-15.zip`"), t[:60])
+        check("whats_new: the newest release first", t.startswith("| `BuildRoom_OS_2026-11-19.zip`") and "Autopilot" in t and "Research my business first" in t, t[:60])
         check("unknown tool: JSON-RPC -32602", call(url, key, "buildroom_delete_everything")[1]["error"]["code"] == -32602)
 
         # ---- transport edge cases ---------------------------------------------------------
@@ -260,6 +260,9 @@ def main():
                   and "claude mcp add --transport http buildroom" in sp and 'codex mcp add buildroom --url' in sp and "Streamable HTTP" in sp)
             check("start: explains the Business File and links back to the guide and the join page",
                   "BUILDROOM_BUSINESS_FILE.md" in sp and 'href="/guide"' in sp and 'href="/join"' in sp)
+            check("start: tells existing members to run Autopilot, with research as an optional first step",
+                  'id="autopilot"' in sp and ">Run autopilot<" in sp and ">Research my business first<" in sp and "Optional, about 15 minutes." in sp
+                  and "Nothing is published, sent or paid for." in sp and "does not run in a regular chat" in sp and 'href="#autopilot"' in sp)
             check("start: no video block until a video is uploaded", "<video" not in sp)
             check("start: self-contained, no room code or key, no long dashes",
                   not _re.search(r'(src|href)="(https?:)?//', sp) and not _re.search(r"BUILD-\d|ROOM-\d|br_[A-Za-z0-9]", sp)
