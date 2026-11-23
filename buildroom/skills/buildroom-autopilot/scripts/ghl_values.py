@@ -23,7 +23,8 @@ _spec = importlib.util.spec_from_file_location("autopilot_drafts", HERE / "draft
 drafts = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(drafts)
 BASIS = ("confirmed", "files", "drafted", "reviewed")
-LEFTOVER = re.compile(r"\[needs you|\[draft\]|\[reviewed draft\]|\[file:|\[hypothesis\]|\{\{|\}\}|\bTBD\b|lorem ipsum|YOUR[- ]", re.I)
+# "YOUR NAME", "YOUR-LINK": a blank left in capitals. The ordinary word "your" is not one, so that part is case-sensitive.
+LEFTOVER = re.compile(r"\[needs you|\[draft\]|\[reviewed draft\]|\[file:|\[hypothesis\]|\{\{|\}\}|\bTBD\b|lorem ipsum|(?-i:\bYOUR[- ][A-Z])", re.I)
 
 
 def spec():
