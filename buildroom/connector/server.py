@@ -21,6 +21,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import join  # noqa: E402  (sign-up and approvals, same folder)
+import billing  # noqa: E402  (access that follows payment, same folder)
 import usage  # noqa: E402  (the host dashboard's numbers, same folder)
 SERVER_NAME = "buildroom"
 SERVER_VERSION = "0.1.0-pilot"
@@ -54,15 +55,28 @@ class AllowlistSource:
 
     name = "allowlist"
 
-    def __init__(self, path, store=None):
+    def __init__(self, path, store=None, payments=None):
         self.path = Path(path)
         self.store = store  # sign-up members (join.py), kept on the host's disk
+        self.payments = payments  # billing.Billing: what Stripe says, applied in enforce mode
         self._cache, self._mtime = {}, None
 
     def listed_emails(self):
         """Emails on the host's own list (not sign-ups)."""
         self._load()
         return {e.get("email", "") for e in self._cache.values()}
+
+    def all_members(self):
+        """Every member by email: the host's list, then sign-ups."""
+        self._load()
+        out = {e.get("email", ""): e for e in self._cache.values()}
+        for e in (self.store.members() if self.store else []):
+            out.setdefault(e.get("email", ""), e)
+        return out
+
+    def grace_days(self):
+        self._load()
+        return getattr(self, "_grace", GRACE_DAYS_DEFAULT)
 
     def _load(self):
         env = os.environ.get("BUILDROOM_MEMBERS_JSON")
@@ -98,14 +112,17 @@ class AllowlistSource:
                 break
         if not member:
             return False, None, "unknown"
+        by_payment = False
+        if self.payments:
+            member, by_payment = self.payments.overlay(member)
         today = today or date.today()
         if member.get("status") != "active":
-            return False, member, "not-current"
+            return False, member, "payment" if by_payment else "not-current"
         until = member.get("current_until")
         if until:
             grace = getattr(self, "_grace", GRACE_DAYS_DEFAULT)
             if today > date.fromisoformat(until) + timedelta(days=grace):
-                return False, member, "expired"
+                return False, member, "payment" if by_payment else "expired"
         return True, member, "ok"
 
 
@@ -117,9 +134,9 @@ class NotBuiltYet:
         raise RuntimeError(f"The {self.name} membership source is not built yet; use allowlist for the pilot.")
 
 
-def make_source(kind, members_path, store=None):
+def make_source(kind, members_path, store=None, payments=None):
     if kind == "allowlist":
-        return AllowlistSource(members_path, store)
+        return AllowlistSource(members_path, store, payments)
     if kind in ("gohighlevel", "mightynetworks"):
         return NotBuiltYet(kind)
     raise SystemExit(f"Unknown BUILDROOM_MEMBER_SOURCE: {kind}")
@@ -209,7 +226,14 @@ REFUSALS = {
     "unknown": "This Build Room access key is not recognised. Check the connector link or key you were given, or ask the Build Room team for a new one.",
     "not-current": "Your Build Room membership is not current, so new sessions are paused. Your Business File and everything you made stay on your computer. Contact the Build Room team to reactivate.",
     "expired": "Your Build Room access has expired, so new sessions are paused. Your Business File and everything you made stay on your computer. Contact the Build Room team to renew.",
+    "payment": "Your Build Room payment has not gone through, so new sessions are paused. Your Business File and everything you made stay on your computer. Update your card or contact the Build Room team, and access comes back as soon as a payment succeeds.",
 }
+
+
+def refusal(reason):
+    text = REFUSALS[reason]
+    link = os.environ.get("BUILDROOM_BILLING_URL", "").strip()
+    return text + (f" Update your card here: {link}" if reason == "payment" and link else "")
 
 
 def text_result(text, is_error=False):
@@ -302,7 +326,7 @@ class App:
             allowed, member, reason = self.source.check(key)
             if not allowed:
                 self.log(member, name, reason)
-                return ok(text_result(REFUSALS[reason], True))
+                return ok(text_result(refusal(reason), True))
             result = self.call_tool(member, name, params.get("arguments"))
             self.log(member, name, "ok", (params.get("arguments") or {}).get("skill"))
             return ok(result)
@@ -432,6 +456,11 @@ def make_handler(app):
             if route == "/admin/api":
                 status, obj = app.join.admin("GET", route, self._admin_key(), {})
                 return self._send(status, obj, {"Cache-Control": "no-store"})
+            if route == "/admin/billing":
+                if not app.join.admin_ok(self._admin_key()):
+                    return self._send(401, {"error": "Admin key required."})
+                src = app.source
+                return self._send(200, app.billing.view(src.grace_days(), src.all_members()), {"Cache-Control": "no-store"})
             if route == "/admin/dashboard":
                 try:
                     return self._page((HERE / "dashboard.html").read_text(encoding="utf-8"))
@@ -531,6 +560,22 @@ def make_handler(app):
             tmp.replace(f)
             return self._send(200, {"ok": True, "name": name, "bytes": n})
 
+        def _stripe(self):
+            """A payment event from Stripe. Signed with STRIPE_WEBHOOK_SECRET; anything unsigned is refused."""
+            secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
+            if not secret:
+                return self._send(503, {"error": "Payments are not set up on this connector."})
+            raw = self._read_body(MAX_BODY)
+            if not billing.verify(raw, self.headers.get("Stripe-Signature", ""), secret):
+                return self._send(400, {"error": "Bad signature."})
+            try:
+                event = json.loads(raw)
+            except ValueError:
+                return self._send(400, {"error": "Bad body."})
+            if not isinstance(event, dict):
+                return self._send(400, {"error": "Bad body."})
+            return self._send(200, {"received": True, **app.billing.handle(event)})
+
         def do_DELETE(self):
             self._send(405, extra={"Allow": "POST"})
 
@@ -544,6 +589,14 @@ def make_handler(app):
                 body = self._json_body()
                 status, obj = app.join.admin("POST", route, self._admin_key(), body if isinstance(body, dict) else {})
                 return self._send(status, obj, {"Cache-Control": "no-store"})
+            if route == "/admin/billing":
+                if not app.join.admin_ok(self._admin_key()):
+                    return self._send(401, {"error": "Admin key required."})
+                body = self._json_body()
+                done = app.billing.admin(body if isinstance(body, dict) else {})
+                return self._send(200 if done else 400, {"ok": True} if done else {"error": "Nothing to change."})
+            if route == "/webhooks/stripe":
+                return self._stripe()
             if not self._is_mcp_path():
                 return self._send(404, {"error": "not found"})
             key = self._key()
@@ -572,9 +625,13 @@ def make_handler(app):
 
 def build_app(members, skills, releases, log):
     store = join.Store(os.environ.get("BUILDROOM_DATA_DIR"))
-    source = make_source(os.environ.get("BUILDROOM_MEMBER_SOURCE", "allowlist"), members, store)
+    holder = {}
+    payments = billing.Billing(os.environ.get("BUILDROOM_DATA_DIR"), lambda: set(holder["source"].all_members()))
+    source = make_source(os.environ.get("BUILDROOM_MEMBER_SOURCE", "allowlist"), members, store, payments)
+    holder["source"] = source
     app = App(source, Content(skills, releases), log)
     app.join = join.Join(store, source.listed_emails)
+    app.billing = payments
     return app
 
 

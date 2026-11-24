@@ -462,15 +462,197 @@ def main():
                 else:
                     os.environ[k] = v
 
+        # ---- payments (billing.py and /webhooks/stripe) ---------------------------------
+        import os, time
+        import billing
+        pkeep = {k: os.environ.get(k) for k in ("BUILDROOM_DATA_DIR", "BUILDROOM_ADMIN_KEY_SHA256", "STRIPE_WEBHOOK_SECRET", "BUILDROOM_BILLING_MODE",
+                                                 "BUILDROOM_STRIPE_PRODUCTS", "BUILDROOM_CHARGE_MATCH", "BUILDROOM_BILLING_URL", "STRIPE_API_KEY", "BUILDROOM_MEMBERS_JSON")}
+        try:
+            for k in pkeep:
+                os.environ.pop(k, None)
+            secret, akey = "whsec_test_123", "admin-pay-key"
+            pdata = tmp / "paydata"
+            pmf = tmp / "pay-members.json"
+            today = date.today()
+            keys = {}
+            for who, until in (("sub@example.com", None), ("keap@example.com", None), ("comp@example.com", None), ("year@example.com", None)):
+                keys[who] = next(w for w in members_cli(pmf, "add", who, *(["--until", until] if until else [])).stdout.split() if w.startswith("br_"))
+            os.environ.update({"BUILDROOM_DATA_DIR": str(pdata), "BUILDROOM_ADMIN_KEY_SHA256": server.key_hash(akey),
+                               "BUILDROOM_STRIPE_PRODUCTS": "prod_BR,prod_BR2", "BUILDROOM_BILLING_URL": "https://pay.example.test/card"})
+            papp = server.build_app(pmf, ROOT / "skills", ROOT / "rollout/releases/README.md", tmp / "pay-usage.jsonl")
+            hp = ThreadingHTTPServer(("127.0.0.1", 0), server.make_handler(papp))
+            threading.Thread(target=hp.serve_forever, daemon=True).start()
+            bp = f"http://127.0.0.1:{hp.server_port}"
+            seq = [0]
+
+            def ev(typ, obj, created=None, eid=None):
+                seq[0] += 1
+                return {"id": eid or f"evt_{seq[0]}", "type": typ, "created": created or int(time.time()) + seq[0], "data": {"object": obj}}
+
+            def hook(event, sig_secret=secret, t=None, raw=None):
+                body = raw if raw is not None else json.dumps(event).encode()
+                req = urllib.request.Request(bp + "/webhooks/stripe", data=body, method="POST",
+                                             headers={"Content-Type": "application/json", "Stripe-Signature": billing.sign(body, sig_secret, t)})
+                try:
+                    with urllib.request.urlopen(req, timeout=10) as r:
+                        return r.status, json.loads(r.read())
+                except urllib.error.HTTPError as e:
+                    return e.code, json.loads(e.read() or b"{}")
+
+            def ts(d):
+                return int(time.mktime(d.timetuple())) + 43200
+
+            def inv(email, product="prod_BR", end=None, cust="cus_sub"):
+                return {"object": "invoice", "customer": cust, "customer_email": email,
+                        "lines": {"data": [{"pricing": {"price_details": {"product": product}}, "period": {"end": ts(end or today + timedelta(days=30))}}]}}
+
+            def sub(status, cust="cus_sub", product="prod_BR"):
+                return {"object": "subscription", "customer": cust, "status": status, "items": {"data": [{"price": {"product": product}}]}}
+
+            def charge(email, amount=29700, desc="Purchase of The Build Room via Keap. Invoice ID 1. Order ID 1.", cust="cus_keap", refunded=False, created=None):
+                return {"object": "charge", "id": "ch_" + str(seq[0]), "customer": cust, "amount": amount, "description": desc, "refunded": refunded,
+                        "billing_details": {"email": email}, "created": created or int(time.time())}
+
+            def allowed(who):
+                r = call(bp + "/mcp", keys[who], "buildroom_status")[1]
+                t, err = text(r)
+                return not err, t
+
+            # signatures
+            body = b'{"id":"evt_x"}'
+            check("payments: a correctly signed event verifies", billing.verify(body, billing.sign(body, secret), secret))
+            check("payments: a wrong secret, an old timestamp or a missing header is refused",
+                  not billing.verify(body, billing.sign(body, "whsec_other"), secret) and not billing.verify(body, billing.sign(body, secret, time.time() - 3600), secret)
+                  and not billing.verify(body, "", secret) and not billing.verify(body, "t=1,v1=abc", secret))
+            check("payments: the webhook is closed until a signing secret is set", hook(ev("invoice.paid", inv("sub@example.com")))[0] == 503)
+            os.environ["STRIPE_WEBHOOK_SECRET"] = secret
+            check("payments: an unsigned or wrongly signed event is refused", hook(ev("invoice.paid", inv("sub@example.com")), sig_secret="whsec_wrong")[0] == 400)
+
+            # observe mode (the default): recorded, nobody's access changes
+            s, r = hook(ev("customer.subscription.deleted", sub("canceled")))
+            s2, r2 = hook(ev("invoice.paid", inv("sub@example.com"), created=int(time.time()) - 100))
+            check("payments: a signed event is accepted", s == 200 and r.get("received") and s2 == 200, (s, r, s2, r2))
+            hook(ev("customer.subscription.deleted", sub("canceled")))
+            check("payments, watching only: a cancellation is recorded but access is unchanged", allowed("sub@example.com")[0])
+            st, bv = (lambda r: (r.status, json.loads(r.read())))(urllib.request.urlopen(urllib.request.Request(bp + "/admin/billing", headers={"Authorization": "Bearer " + akey})))
+            subrow = next((m for m in bv["members"] if m["email"] == "sub@example.com"), {})
+            check("payments, watching only: the host sees what payments would do", st == 200 and bv["mode"] == "observe" and subrow.get("payments_say") == "stopped" and subrow.get("list_says") == "active", subrow)
+            try:
+                urllib.request.urlopen(bp + "/admin/billing")
+                check("payments: the host view needs the admin key", False)
+            except urllib.error.HTTPError as e:
+                check("payments: the host view needs the admin key", e.code == 401)
+
+            # enforce
+            os.environ["BUILDROOM_BILLING_MODE"] = "enforce"
+            ok_, msg = allowed("sub@example.com")
+            check("payments, on: a cancelled subscription stops access, with the card link", not ok_ and "payment has not gone through" in msg and "https://pay.example.test/card" in msg, msg)
+            check("payments, on: the refusal still says the Business File stays with the member", "Business File" in msg)
+            hook(ev("invoice.paid", inv("sub@example.com", end=today + timedelta(days=30))))
+            check("payments, on: a new paid invoice brings access back", allowed("sub@example.com")[0])
+            rec = json.loads((pdata / "billing.json").read_text())["members"]["sub@example.com"]
+            check("payments: the paid-through date is the end of the paid period", rec["paid_through"] == (today + timedelta(days=30)).isoformat(), rec)
+            hook(ev("customer.subscription.updated", sub("canceled"), created=int(time.time()) - 5000))
+            check("payments: an older event arriving late does not undo a newer payment", allowed("sub@example.com")[0])
+            dup = ev("customer.subscription.updated", sub("unpaid"))
+            hook(dup)
+            check("payments, on: a subscription that runs out of retries (unpaid) stops access", not allowed("sub@example.com")[0])
+            hook(ev("invoice.paid", inv("sub@example.com")))
+            check("payments: a repeated event is handled once", hook(dup)[1].get("outcome") == "duplicate" and allowed("sub@example.com")[0])
+            hook(ev("invoice.payment_failed", inv("sub@example.com")))
+            check("payments, on: a failed payment alone does not stop access (retries come first)", allowed("sub@example.com")[0])
+            hook(ev("customer.subscription.updated", sub("past_due")))
+            check("payments, on: past due alone does not stop access either", allowed("sub@example.com")[0])
+            hook(ev("invoice.paid", inv("sub@example.com", product="prod_OTHER")))
+            hook(ev("customer.subscription.deleted", sub("canceled", product="prod_OTHER")))
+            check("payments: other products never touch Build Room access", allowed("sub@example.com")[0])
+
+            # Keap charges (plain charges named for the product)
+            hook(ev("charge.succeeded", charge("Keap@Example.com", created=ts(today - timedelta(days=50)))))
+            ok_, msg = allowed("keap@example.com")
+            check("payments, Keap: a monthly charge 50 days ago has run past its month and grace", not ok_ and "payment" in msg, msg)
+            hook(ev("charge.succeeded", charge("keap@example.com")))
+            check("payments, Keap: this month's charge brings access back", allowed("keap@example.com")[0])
+            krec = json.loads((pdata / "billing.json").read_text())["members"]["keap@example.com"]
+            check("payments, Keap: a monthly charge buys about a month", krec["paid_through"] == (today + timedelta(days=31)).isoformat(), krec)
+            hook(ev("charge.failed", charge("keap@example.com")))
+            check("payments, Keap: a declined charge alone does not stop access", allowed("keap@example.com")[0])
+            hook(ev("charge.succeeded", charge("year@example.com", amount=300000, cust="cus_year")))
+            yrec = json.loads((pdata / "billing.json").read_text())["members"]["year@example.com"]
+            check("payments: a $3,000 one-off payment buys a year", yrec["paid_through"] == (today + timedelta(days=365)).isoformat(), yrec)
+            hook(ev("charge.succeeded", charge("keap@example.com", desc="Purchase of The Build Lab 1/2 Off via Keap. Invoice ID 9.", created=ts(today + timedelta(days=200)))))
+            krec2 = json.loads((pdata / "billing.json").read_text())["members"]["keap@example.com"]
+            check("payments: a Build Lab charge is not a Build Room payment", krec2["paid_through"] == krec["paid_through"])
+            hook(ev("charge.refunded", charge("keap@example.com", refunded=True)))
+            check("payments, on: a full refund stops access", not allowed("keap@example.com")[0])
+            hook(ev("charge.dispute.created", {"object": "dispute", "charge": charge("year@example.com", amount=300000, cust="cus_year")}))
+            check("payments, on: a dispute stops access", not allowed("year@example.com")[0])
+
+            # people the list does not know, links, and Manual
+            hook(ev("invoice.paid", inv("stranger@example.com", cust="cus_stranger")))
+            bv = json.loads(urllib.request.urlopen(urllib.request.Request(bp + "/admin/billing", headers={"Authorization": "Bearer " + akey})).read())
+            check("payments: a payment from someone not on the list waits for the host, and gives no access",
+                  any(r["customer"] == "cus_stranger" for r in bv["review"]) and "stranger@example.com" not in [m["email"] for m in bv["members"]])
+            check("payments: the host can link a Stripe customer to a member", post(bp + "/admin/billing", {"action": "link", "customer": "cus_comp", "email": "comp@example.com"}, akey)[0] == 200)
+            hook(ev("customer.subscription.deleted", sub("canceled", cust="cus_comp")))
+            check("payments: a linked customer's cancellation reaches the right member", not allowed("comp@example.com")[0])
+            post(bp + "/admin/billing", {"action": "manual", "email": "comp@example.com", "on": True}, akey)
+            check("payments: a member marked Manual is not changed by payments", allowed("comp@example.com")[0])
+            post(bp + "/admin/billing", {"action": "manual", "email": "comp@example.com", "on": False}, akey)
+            check("payments: switching Manual off follows payments again", not allowed("comp@example.com")[0])
+            check("payments: host actions need the admin key", post(bp + "/admin/billing", {"action": "manual", "email": "comp@example.com", "on": True}, "nope")[0] == 401)
+            check("payments: an unknown host action is refused", post(bp + "/admin/billing", {"action": "delete", "email": "comp@example.com"}, akey)[0] == 400)
+            os.environ["BUILDROOM_BILLING_MODE"] = "off"
+            check("payments, off: events are acknowledged and ignored", hook(ev("charge.refunded", charge("sub@example.com", refunded=True)))[1].get("outcome") == "off"
+                  and allowed("keap@example.com")[0])
+            stored = (pdata / "billing.json").read_text()
+            check("payments: billing.json holds no access key", not any(k in stored for k in keys.values()) and "br_" not in stored)
+            ah = urllib.request.urlopen(bp + "/admin").read().decode()
+            check("payments: the approvals page has a Payments section", 'id="pay"' in ah and "/admin/billing" in ah)
+            hp.shutdown()
+
+            # the one-off sync against Stripe, with Stripe's answers faked
+            import io, contextlib
+            now_ts = int(time.time())
+            fake = {"invoices": [{"id": "in_1", "created": now_ts - 86400, "customer": "cus_s", "customer_email": "sub@example.com",
+                                  "lines": {"data": [{"price": {"product": "prod_BR"}, "period": {"end": ts(today + timedelta(days=20))}}]}}],
+                    "subscriptions": [],
+                    "charges": [{"id": "ch_k", "status": "succeeded", "created": now_ts - 86400 * 60, "customer": "cus_k", "amount": 29700,
+                                 "description": "Purchase of The Build Room via Keap. Invoice ID 2.", "billing_details": {"email": "keap@example.com"}, "refunded": False}]}
+            real_get = billing.stripe_get
+            billing.stripe_get = lambda path, params=None: {"data": fake.get(path.split("/")[0], []), "has_more": False}
+            os.environ["STRIPE_API_KEY"] = "rk_test_fake"
+            sdir = tmp / "syncdata"
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                rc = billing.main(["sync", "--members", str(pmf), "--data-dir", str(sdir)])
+            o = out.getvalue()
+            check("sync: a dry run lists what payments say and writes nothing",
+                  rc == 0 and "sub@example.com" in o and "allowed" in o and "Dry run" in o and not (sdir / "billing.json").exists(), o[-600:])
+            check("sync: an old monthly Keap charge shows as stopped, and members with no payment are listed for Manual",
+                  any(l.startswith("keap@example.com") and "stopped" in l for l in o.splitlines()) and "comp@example.com" in o.split("no Build Room payment")[1])
+            with contextlib.redirect_stdout(io.StringIO()):
+                rc = billing.main(["sync", "--members", str(pmf), "--data-dir", str(sdir), "--apply"])
+            check("sync: --apply writes billing.json", rc == 0 and "sub@example.com" in (sdir / "billing.json").read_text())
+            billing.stripe_get = real_get
+        finally:
+            for k, v in pkeep.items():
+                if v is None:
+                    os.environ.pop(k, None)
+                else:
+                    os.environ[k] = v
+
         src = (CON / "server.py").read_text()
         check("usage: standard library only", all(l.split()[1].split(".")[0] in {"json", "datetime", "pathlib"}
               for l in (CON / "usage.py").read_text().splitlines() if l.startswith(("import ", "from "))))
         check("server: no third-party imports (runs on any Python host)",
-              all(m.strip().split(".")[0] in {"argparse", "hashlib", "hmac", "json", "os", "re", "secrets", "sys", "threading", "datetime", "http", "pathlib", "join", "usage"}
+              all(m.strip().split(".")[0] in {"argparse", "hashlib", "hmac", "json", "os", "re", "secrets", "sys", "threading", "datetime", "http", "pathlib", "join", "usage", "billing"}
                   for l in src.splitlines() if l.startswith(("import ", "from "))
                   for m in (l.split()[1:2] if l.startswith("from ") else l.split("#")[0][7:].split(","))))
         check("server: the request log is silenced (paths can carry keys)", "def log_message" in src)
         check("server: membership source is swappable (allowlist now, GoHighLevel later)", "BUILDROOM_MEMBER_SOURCE" in src and "gohighlevel" in src)
+        df = (CON / "Dockerfile").read_text()
+        check("Dockerfile ships every Python file the server imports", all(f"buildroom/connector/{m}.py" in df for m in ("server", "join", "usage", "billing", "members")))
         gi = (CON / ".gitignore").read_text()
         check(".gitignore keeps members.json and usage.jsonl out of git", "members.json" in gi and "usage.jsonl" in gi)
         check("no em dashes in the connector", not any("—" in p.read_text() for p in CON.glob("*") if p.is_file()))

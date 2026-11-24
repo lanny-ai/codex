@@ -74,6 +74,29 @@ Project **buildroom-connector**, service **connector**, in the lanny-ai workspac
 - `/admin` takes the admin key (only its sha256 is stored, in `BUILDROOM_ADMIN_KEY_SHA256`). It lists requests and sign-ups, and can approve, decline, or stop someone's access.
 - Sign-ups and requests live in `signups.json` in `BUILDROOM_DATA_DIR`, a Railway volume mounted at `/data` (with `RAILWAY_RUN_UID=0` so the service can write to it). It holds emails and names of people who signed up, and key fingerprints, never keys.
 
+## Access that follows payment: /webhooks/stripe
+
+Every Build Room payment passes through the one Stripe account, whichever tool took it: Stripe subscriptions (made in Stripe or by GoHighLevel) arrive as invoices, and Keap's own recurring charges arrive as charges named "Purchase of The Build Room via Keap". Stripe sends those events to `/webhooks/stripe`, and `billing.py` keeps what they say in `billing.json` on the data volume.
+
+| Payment event (Build Room only) | Effect |
+|---|---|
+| Invoice paid | Active; paid through the end of the paid period |
+| Build Room charge succeeded (Keap) | Active; paid through 31 days on, or 365 days for a charge of $997 or more |
+| Invoice or charge failed, subscription past due | No change. Stripe and Keap retry; access ends `grace_days` after the paid-through date if none succeeds |
+| Subscription cancelled, or unpaid after its retries | Lapsed at once |
+| Full refund or dispute of a Build Room charge | Lapsed at once |
+
+- **Modes** (`BUILDROOM_BILLING_MODE`): `observe` (default) records everything and changes no one's access; `enforce` lets payments decide; `off` ignores events. Start in `observe`, check `/admin` for a week, then switch.
+- **Which payments count:** `BUILDROOM_STRIPE_PRODUCTS` (Build Room product IDs, comma-separated) and `BUILDROOM_CHARGE_MATCH` (default `The Build Room`, matched against a charge's description; "The Build Lab" does not match).
+- **Who is who:** the payment's email, or a Stripe customer already linked to a member. A payment that matches no member gives no access and waits under "Needs a look" on `/admin`, with a button to link that Stripe customer to a member.
+- **Manual:** a member marked Manual on `/admin` (comped, staff, bundles) is never changed by payments.
+- **Signed events only:** `STRIPE_WEBHOOK_SECRET` is the endpoint's signing secret. Without it the webhook answers 503; a wrong signature, or one over five minutes old, is refused. Each event is handled once, and an older event arriving late never undoes a newer one.
+- **Optional `STRIPE_API_KEY`** (a restricted, read-only key): looks up a customer's email or a disputed charge when the event does not carry it, and powers the one-off sync.
+- **`BUILDROOM_BILLING_URL`:** a card-update link added to the message a member sees when payment stopped their access.
+- **One-off sync before switching on:** `python3 billing.py sync --members members.json --data-dir /data` prints, for each member, what payments say, and lists members with no Build Room payment at all (mark comped ones Manual). It writes nothing without `--apply`.
+
+Stripe endpoint settings: URL `https://connector-production-caa1d67a.up.railway.app/webhooks/stripe`; events `invoice.paid`, `invoice.payment_failed`, `customer.subscription.updated`, `customer.subscription.deleted`, `charge.succeeded`, `charge.failed`, `charge.refunded`, `charge.dispute.created`.
+
 ## How members connect
 
 **Claude desktop or claude.ai** (paid plans): Customize (or Settings), Connectors, Add custom connector, paste their link, choose "No sign in" if asked, then Add or Connect. A member who opens the link in a web browser instead sees a page explaining these steps; the page never shows the key and is the same for any link. The link:
@@ -92,7 +115,7 @@ claude mcp add --transport http buildroom https://YOUR-HOST/mcp --header "Author
 
 ## Checked
 
-- `python3 buildroom/tests/connector/run_tests.py`: 52 checks (protocol, every membership rule, key rotation, path safety, logs carry no keys).
+- `python3 buildroom/tests/connector/run_tests.py`: 188 checks (protocol, every membership rule, key rotation, path safety, logs carry no keys, every payment rule above).
 - The official MCP Python client connects with the key in the header and with the key in the link, lists the tools, starts a session, loads a reference, and is refused a path outside a session.
 - Claude Code's `claude mcp add` and `claude mcp list` report it connected with a good key and refuse a wrong one.
 - Live on Railway (2026-11-10): the same checks pass against the Railway address, and the owner connected it in Claude desktop as a custom connector.
@@ -100,5 +123,5 @@ claude mcp add --transport http buildroom https://YOUR-HOST/mcp --header "Author
 ## Before full launch (not in the pilot)
 
 1. **Sign-in instead of keys.** The link with a key in it is a pilot shortcut: anyone holding the link gets in until the key is replaced. Full launch adds a proper sign-in (OAuth with the member's email), which Claude's connectors support.
-2. **GoHighLevel as the membership source**, once the member data is cleaned up: one tag or field meaning "current Build Room member", ideally set by payments.
+2. **GoHighLevel as the membership source**, once the member data is cleaned up: one tag or field meaning "current Build Room member". Payments now set access directly through Stripe (above), so this is about one shared member list, not about payment.
 3. **The local kit**: the scripts members run on their own computer, shipped rarely, with the safe `update.sh` / `update.ps1`.
