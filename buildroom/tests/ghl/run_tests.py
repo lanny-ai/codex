@@ -112,6 +112,7 @@ def main():
           not gv_mod.LEFTOVER.search("Know what your practice really made. Your scorecard is here.") and gv_mod.LEFTOVER.search("Call YOUR NAME today")
           and gv_mod.LEFTOVER.search("see YOUR-LINK") and gv_mod.LEFTOVER.search("{{contact.name}}") and gv_mod.LEFTOVER.search("tbd"))
     push_tests()
+    stats_tests()
     print(f"\n{sum(RESULTS)}/{len(RESULTS)} checks passed")
     sys.exit(0 if all(RESULTS) else 1)
 
@@ -258,6 +259,106 @@ def push_tests():
     spec = (ROOT / "rollout/ghl-snapshot/SNAPSHOT-SPEC.md").read_text()
     check("spec: the push is recorded as built and proven, and the snapshot as not built", "ghl_push.py" in spec and "proven against a live test sub-account" in spec and "are not built yet" in spec)
 
+
+
+
+def stats_tests():
+    """Funnel numbers read from a member's own sub-account, against a stand-in server on this computer."""
+    import http.server, os, subprocess, tempfile, threading, urllib.parse
+    ST = ROOT / "skills/buildroom-funnel-scorecard/scripts/ghl_stats.py"
+    cfg = {"leads": 40, "forms": 22, "cals": ["c1", "c2"], "events": {"c1": ["showed"] * 6 + ["noshow"] * 2 + ["confirmed"], "c2": ["showed", "cancelled", "invalid"]},
+           "won": 3, "deny": set(), "calls": []}
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def log_message(self, *a):
+            pass
+
+        def _send(self, code, obj):
+            b = json.dumps(obj).encode()
+            self.send_response(code); self.send_header("Content-Type", "application/json"); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+
+        def _go(self, method):
+            body = self.rfile.read(int(self.headers.get("Content-Length") or 0)) if method == "POST" else b""
+            u = urllib.parse.urlparse(self.path)
+            q = urllib.parse.parse_qs(u.query)
+            cfg["calls"].append((method, u.path, body.decode()))
+            if self.headers.get("Authorization") != "Bearer pit-test-token":
+                return self._send(401, {"message": "Invalid Private Integration token"})
+            for part in cfg["deny"]:
+                if part in u.path:
+                    return self._send(401, {"message": "The token is not authorized for this scope."})
+            if u.path == "/contacts/search":
+                return self._send(200, {"contacts": [{"id": "x", "firstName": "Priya", "email": "priya@client.example"}], "total": cfg["leads"]})
+            if u.path == "/forms/submissions":
+                return self._send(200, {"submissions": [{"name": "Priya Raman"}], "meta": {"total": cfg["forms"]}})
+            if u.path == "/calendars/":
+                return self._send(200, {"calendars": [{"id": c, "name": "Fit call"} for c in cfg["cals"]]})
+            if u.path == "/calendars/events":
+                return self._send(200, {"events": [{"appointmentStatus": st, "title": "Call with Priya Raman", "contactId": "x"} for st in cfg["events"].get(q["calendarId"][0], [])]})
+            if u.path == "/opportunities/search":
+                return self._send(200, {"opportunities": [{"name": "Priya Raman deal", "monetaryValue": 6000}], "meta": {"total": cfg["won"]}})
+            self._send(404, {"message": "no"})
+
+        def do_GET(self): self._go("GET")
+        def do_POST(self): self._go("POST")
+        def do_PUT(self): self._go("PUT")
+        def do_DELETE(self): self._go("DELETE")
+
+    srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), H)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{srv.server_address[1]}"
+    with tempfile.TemporaryDirectory() as td:
+        w = Path(td)
+        (w / ".env").write_text(f"GHL_TOKEN=pit-test-token\nGHL_LOCATION_ID=LOC1234567890\nGHL_API_BASE={base}\n")
+
+        def run(*a, **env):
+            e = {k: v for k, v in os.environ.items() if not k.startswith("GHL_")}
+            r = subprocess.run([sys.executable, "-B", str(ST), *a], capture_output=True, text=True, cwd=w, env={**e, "PYTHONDONTWRITEBYTECODE": "1", **env})
+            return r.returncode, r.stdout + r.stderr
+        before = sorted(p.name for p in w.iterdir())
+        code, out = run()
+        d = json.loads(out) if code == 0 else {}
+        check("stats: contacts added, form entries, appointments by how they ended, and deals won are counted", code == 0 and d["counts"] == {
+            "leads": 40, "form_entries": 22, "appointments": {"booked": 11, "showed": 7, "no_show": 2, "cancelled": 1}, "deals_won": 3}, out)
+        check("stats: the numbers come out under the names a member may share, with rates worked out from the counts", d.get("numbers") == {
+            "leads_month": 40, "calls_booked_month": 11, "clients_won_month": 3, "booking_rate_pct": 27.5, "show_rate_pct": 77.8, "close_rate_pct": 42.9}, d.get("numbers"))
+        sys.path.insert(0, str(ROOT / "connector"))
+        import usage as U
+        fields, why = U.clean_report({"skill": "buildroom-funnel-scorecard", "event": "finished", "numbers": d.get("numbers", {})}, {"buildroom-funnel-scorecard"})
+        check("stats: that object is accepted as it is by the connector's report check", fields is not None and why is None, why)
+        check("stats: no contact's name, email or words reach the output, though the account sent them", not any(x in out for x in ("Priya", "client.example", "Raman", "6000", "Fit call")))
+        check("stats: it only reads, it writes no file, and the token is never printed", all(c[0] in ("GET", "POST") and (c[0] == "GET" or c[1] == "/contacts/search") for c in cfg["calls"])
+              and sorted(p.name for p in w.iterdir()) == before and "pit-test-token" not in out and '"pageLimit": 1' in cfg["calls"][0][2])
+        cfg["deny"] = {"/opportunities", "/calendars/events"}
+        code, out = run()
+        d = json.loads(out)
+        check("stats: what the token may not read is reported with the permission to add, and never guessed", code == 0 and "deals_won" not in d["counts"] and "appointments" not in d["counts"]
+              and {m["what"] for m in d["not_read"]} == {"appointments", "deals_won"} and "View Opportunities" in out and "View Calendar Events" in out
+              and d["numbers"] == {"leads_month": 40}, out)
+        cfg["deny"] = set()
+        cfg["leads"], cfg["won"], cfg["events"] = 3, 1, {"c1": ["showed", "showed", "noshow"], "c2": []}
+        d = json.loads(run()[1])
+        check("stats: a rate with fewer than five cases behind it is left out and said so", "booking_rate_pct" not in d["numbers"] and "show_rate_pct" not in d["numbers"]
+              and "close_rate_pct" not in d["numbers"] and len(d["rates_left_out"]) == 3 and "too few to call a rate" in d["rates_left_out"][0], d)
+        cfg["cals"] = []
+        d = json.loads(run()[1])
+        check("stats: an account with no calendar does not report zero calls booked", "calls_booked_month" not in d["numbers"] and any(m["what"] == "appointments" and "no calendar" in m["why"] for m in d["not_read"]), d)
+        cfg["cals"] = ["c1"]
+        d = json.loads(run("--days", "7")[1])
+        check("stats: a window other than 30 days is for the member's eyes only and yields nothing to share", d["numbers"] == {} and d["counts"]["leads"] == 3 and "not shared" in d["note"], d)
+        code, out = run(GHL_TOKEN="pit-wrong")
+        check("stats: a rejected token is explained in plain words", code != 0 and "did not accept the token" in out and "pit-wrong" not in out, out)
+        (w / ".env").unlink()
+        code, out = run()
+        check("stats: with no connection it says what is needed, and never to paste a token into the chat", code != 0 and "never ask them to paste a token into the chat" in out, out)
+    srv.shutdown()
+    src = ST.read_text()
+    check("stats: standard library only, GoHighLevel's API and nowhere else, and it cannot change or delete anything", "requests" not in src and "subprocess" not in src
+          and set(re.findall(r"https://([\w.]+)", src)) == {"services.leadconnectorhq.com"} and '"PUT"' not in src and '"DELETE"' not in src and "--token" not in src)
+    sk = (ROOT / "skills/buildroom-funnel-scorecard/SKILL.md").read_text()
+    check("skill: the scorecard reads the member's own account when it is connected, shows them the numbers, and guesses nothing", "ghl_stats.py" in sk
+          and "never a contact's name, email, phone or words" in sk and "Never fill it with a guess" in sk and "after the member has seen it" in sk
+          and "Never ask the member to paste a token into the chat" in sk)
 
 if __name__ == "__main__":
     main()
