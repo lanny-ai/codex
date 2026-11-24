@@ -6,7 +6,7 @@ Usage:  python3 buildroom/tests/connector/run_tests.py
 import sys
 sys.dont_write_bytecode = True  # noqa: E402
 import json, shutil, subprocess, tempfile, threading, urllib.error, urllib.request  # noqa: E402
-from datetime import date, timedelta  # noqa: E402
+from datetime import date, datetime, timedelta, timezone  # noqa: E402
 from http.server import ThreadingHTTPServer  # noqa: E402
 from pathlib import Path  # noqa: E402
 
@@ -88,7 +88,8 @@ def main():
         check("notification: 202 with no body", s == 202 and r is None, s)
         s, r, _ = post(url, {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}, key)
         names = [t["name"] for t in r["result"]["tools"]]
-        check("tools/list: the five Build Room tools", names == ["buildroom_status", "buildroom_list_sessions", "buildroom_start_session", "buildroom_get_file", "buildroom_whats_new"], names)
+        check("tools/list: the eight Build Room tools", names == ["buildroom_status", "buildroom_list_sessions", "buildroom_start_session", "buildroom_get_file", "buildroom_whats_new",
+                                                                  "buildroom_report", "buildroom_sharing", "buildroom_benchmarks"], names)
         check("ping answers", post(url, {"jsonrpc": "2.0", "id": 3, "method": "ping"}, key)[1]["result"] == {})
         check("unknown method: JSON-RPC -32601", post(url, {"jsonrpc": "2.0", "id": 4, "method": "nope"}, key)[1]["error"]["code"] == -32601)
 
@@ -131,6 +132,82 @@ def main():
         check("whats_new: the newest release first", t.startswith("| `BuildRoom_OS_2026-11-21.zip`") and "Autopilot" in t and "Interview me about my business" in t and "BuildRoom_OS_2026-11-19.zip" in t, t[:60])
         check("unknown tool: JSON-RPC -32602", call(url, key, "buildroom_delete_everything")[1]["error"]["code"] == -32602)
 
+        # ---- the flywheel: how sessions end, what the checks catch, and results a member chose to share ----
+        import usage as U
+        R = lambda **a: text(call(url, key, "buildroom_report", a)[1])  # noqa: E731
+        t, bad = R(skill="buildroom-brand-kit", event="finished", step="phase-4", fix=3, look=5, kinds={"colors": 2, "logo": 1})
+        last = json.loads(log.read_text().strip().splitlines()[-1])
+        check("report: how a session ended is recorded as labels and counts", not bad and "Recorded" in t and last["tool"] == "buildroom_report" and last["outcome"] == "ok"
+              and last["event"] == "finished" and last["step"] == "phase-4" and last["fix"] == 3 and last["kinds"] == {"colors": 2, "logo": 1} and "numbers" not in last, last)
+        n_before = len(log.read_text().splitlines())
+        for name, a in (("free text in a new field", dict(skill="buildroom-brand-kit", event="finished", note="Dana said her price is $1,450")),
+                        ("a sentence as the step", dict(skill="buildroom-brand-kit", event="stopped", step="she wants to think about it")),
+                        ("a sentence as a kind", dict(skill="buildroom-brand-kit", event="finished", kinds={"Dana Whitfield's logo": 1})),
+                        ("text where a count belongs", dict(skill="buildroom-brand-kit", event="finished", fix="three")),
+                        ("an unknown session", dict(skill="buildroom-nope", event="finished")),
+                        ("an unknown ending", dict(skill="buildroom-brand-kit", event="won a client"))):
+            t, bad = R(**a)
+            check(f"report refuses {name}, and stores none of it", bad and "Not recorded" in t)
+        tail = "\n".join(log.read_text().splitlines()[n_before:])
+        check("report: a refused report leaves no trace of what it carried", "Dana" not in tail and "1,450" not in tail and "think about it" not in tail and '"outcome": "refused"' in tail, tail[:300])
+        t, bad = R(skill="buildroom-linkedin", event="finished", numbers={"linkedin_calls_booked_week": 2})
+        check("report: results are refused until the member has switched sharing on, and the session is told exactly what to say", bad and "has not switched sharing on" in t
+              and "only numbers from a fixed list" in t and "Never their words" in t and "five or more members" in t, t)
+        t, _ = text(call(url, key, "buildroom_sharing", {"share": "status"})[1])
+        check("sharing: off until the member says yes", "Sharing results is OFF" in t)
+        check("sharing: a made-up setting is refused", text(call(url, key, "buildroom_sharing", {"share": "always"})[1])[1])
+        t, _ = text(call(url, key, "buildroom_sharing", {"share": "on"})[1])
+        t2, bad2 = R(skill="buildroom-linkedin", event="finished", numbers={"linkedin_calls_booked_week": 2, "optin_rate_pct": 31.26})
+        last = json.loads(log.read_text().strip().splitlines()[-1])
+        check("sharing: once on, a result from the list is recorded as a number", "Sharing results is ON" in t and not bad2 and last["numbers"] == {"linkedin_calls_booked_week": 2.0, "optin_rate_pct": 31.3}, last)
+        check("report: a result that is not on the list is refused, and so is one out of range", R(skill="buildroom-linkedin", event="finished", numbers={"revenue_dollars": 90000})[1]
+              and R(skill="buildroom-linkedin", event="finished", numbers={"optin_rate_pct": 140})[1] and R(skill="buildroom-linkedin", event="finished", numbers={"clients_won_month": "many"})[1])
+        t, _ = text(call(url, key, "buildroom_sharing", {"share": "off"})[1])
+        check("sharing: switching it off works, and results are refused again", "Sharing results is OFF" in t and R(skill="buildroom-linkedin", event="finished", numbers={"clients_won_month": 1})[1])
+        t, bad = text(call(url, key, "buildroom_benchmarks")[1])
+        check("benchmarks: with too few members there is nothing to show, and the session is told not to fill the gap", not bad and "nothing to show yet" in t and "at least 5 members" in t
+              and "do not fill the gap" in t, t)
+        # combined figures, worked out from records
+        now = datetime.now(timezone.utc)
+        mk = lambda who, days, **nums: {"at": (now - timedelta(days=days)).isoformat(), "member": who, "tool": "buildroom_report", "skill": "buildroom-linkedin", "outcome": "ok", "event": "finished", "numbers": nums}  # noqa: E731
+        recs = [mk(f"m{i}@example.com", 3, calls_booked_month=v, close_rate_pct=20 + i) for i, v in enumerate((2, 4, 6, 8, 30))]
+        recs += [mk("m0@example.com", 1, calls_booked_month=3), mk("old@example.com", 200, calls_booked_month=99), mk("off@example.com", 2, calls_booked_month=50),
+                 mk("solo@example.com", 2, show_rate_pct=80)]
+        on = {f"m{i}@example.com": {"on": True} for i in range(5)}
+        on.update({"old@example.com": {"on": True}, "off@example.com": {"on": False}, "solo@example.com": {"on": True}})
+        bm = {b["metric"]: b for b in U.benchmarks(recs, on, now)}
+        check("benchmarks: the middle member's figure, from each member's latest number only", bm["calls_booked_month"]["members"] == 5 and bm["calls_booked_month"]["middle"] == 6
+              and bm["calls_booked_month"]["from"] == 4 and bm["calls_booked_month"]["to"] == 8, bm.get("calls_booked_month"))
+        check("benchmarks: a result with fewer than five members behind it is never shown to members", "show_rate_pct" not in bm and "close_rate_pct" in bm)
+        check("benchmarks: a member who switched sharing off, and a number too old to count, are left out", 50 not in U.shared_results(recs, on, now)["calls_booked_month"]
+              and 99 not in U.shared_results(recs, on, now)["calls_booked_month"])
+        on4 = dict(on); on4["m4@example.com"] = {"on": False}
+        check("benchmarks: when a member switches off and the group falls under five, the figure disappears", "calls_booked_month" not in {b["metric"] for b in U.benchmarks(recs, on4, now)})
+        sk = [{"skill": "buildroom-linkedin"}, {"skill": "buildroom-brand-kit"}]
+        ev = lambda tool, skill, days=1, **x: {"at": (now - timedelta(days=days)).isoformat(), "member": "a@example.com", "tool": tool, "skill": skill, "outcome": "ok", **x}  # noqa: E731
+        ins = U.insights([ev("buildroom_start_session", "buildroom-brand-kit") for _ in range(4)]
+                         + [ev("buildroom_report", "buildroom-brand-kit", event="stopped", step="phase-2", fix=4, kinds={"logo": 3, "colors": 1}),
+                            ev("buildroom_report", "buildroom-brand-kit", event="stopped", step="phase-2", fix=2, kinds={"logo": 2}),
+                            ev("buildroom_report", "buildroom-brand-kit", event="finished", step="phase-4", fix=0)] + recs, on, sk, now)
+        bk = next(x for x in ins["tools"] if x["skill"] == "buildroom-brand-kit")
+        check("insights: the host sees where sessions stop and what the checks keep catching", bk["starts"] == 4 and bk["finished"] == 1 and bk["stopped"] == 2 and bk["stopped_at"][0] == ("phase-2", 2)
+              and bk["finish_rate"] == 0.25 and bk["fixes_per_report"] == 2.0 and ins["caught"][0] == {"skill": "buildroom-brand-kit", "kind": "logo", "count": 5}, (bk, ins["caught"][:2]))
+        solo = next(x for x in ins["shared"] if x["metric"] == "show_rate_pct")
+        check("insights: the host sees every shared result with how many members are behind it, marked when members cannot see it", solo["members"] == 1 and solo["shown_to_members"] is False
+              and next(x for x in ins["shared"] if x["metric"] == "calls_booked_month")["shown_to_members"] is True and ins["sharing_on"] == 7)
+        check("the list of results holds numbers only: rates, counts, nothing about money or people", all(isinstance(v[0], int) and isinstance(v[1], int) for v in U.METRICS.values())
+              and not any(w in k for k in U.METRICS for w in ("revenue", "dollar", "price", "name", "email")))
+        inst = server.INSTRUCTIONS
+        check("instructions: the first 512 characters still stand on their own, and reporting is labels and numbers only", "buildroom_start_session" in inst[:512]
+              and "buildroom_report once" in inst and "never a word the member wrote" in inst and "only if the member has said yes" in inst)
+        t, _ = text(call(url, key, "buildroom_start_session", {"skill": "buildroom-os"})[1])
+        check("start_session: every session is told to report how it ended", "call buildroom_report once (labels and numbers only)" in t)
+        sp = (ROOT / "connector/start.html").read_text()
+        dh = (ROOT / "connector/dashboard.html").read_text()
+        check("start page: members are told what is recorded, what never is, and how to switch sharing off", "What Build Room OS records, and what it never does" in sp
+              and "Stop sharing my results" in sp and "five or more members" in sp and "not a forecast" in sp and "\u2014" not in sp)
+        check("dashboard: where sessions stop, what the checks catch, and shared results", all(x in dh for x in ("Where sessions stop", "What the checks keep catching", "Results members chose to share", "not a forecast")))
+
         # ---- transport edge cases ---------------------------------------------------------
         import http.client
         def chunked(path, obj, chunks=3):
@@ -153,7 +230,7 @@ def main():
         s, r = chunked("/mcp", {"jsonrpc": "2.0", "id": 9, "method": "initialize", "params": {"protocolVersion": "2025-03-26"}})
         check("chunked request body (no Content-Length) is read: initialize 200", s == 200 and r["result"]["protocolVersion"] == "2025-03-26", (s, r))
         s, r = chunked("/mcp", {"jsonrpc": "2.0", "id": 10, "method": "tools/list"}, chunks=7)
-        check("chunked tools/list in seven pieces: 200 with the tools", s == 200 and len(r["result"]["tools"]) == 5, s)
+        check("chunked tools/list in seven pieces: 200 with the tools", s == 200 and len(r["result"]["tools"]) == 8, s)
         s, r, h = post(url, {"jsonrpc": "2.0", "id": 11, "method": "tools/list"}, key)
         check("responses ask proxies not to compress or re-chunk them (no-transform, identity)",
               "no-transform" in h.get("Cache-Control", "") and h.get("Content-Encoding") == "identity"
@@ -463,7 +540,7 @@ def main():
                     os.environ[k] = v
 
         src = (CON / "server.py").read_text()
-        check("usage: standard library only", all(l.split()[1].split(".")[0] in {"json", "datetime", "pathlib"}
+        check("usage: standard library only", all(l.split()[1].split(".")[0] in {"json", "re", "datetime", "pathlib"}
               for l in (CON / "usage.py").read_text().splitlines() if l.startswith(("import ", "from "))))
         check("server: no third-party imports (runs on any Python host)",
               all(m.strip().split(".")[0] in {"argparse", "hashlib", "hmac", "json", "os", "re", "secrets", "sys", "threading", "datetime", "http", "pathlib", "join", "usage"}

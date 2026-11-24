@@ -81,3 +81,7 @@ Walk the fixes one at a time and record the member's answer. Approved fixes beco
 ## When the Session Is Complete
 
 The member has: a stage table over their real failure points (or the exact pipeline to create), the top three leaks with fixes they approved or declined, feedback recorded for the next run, the routine created or deliberately deferred, and a Business File with §6 carrying the scorecard, §13 rows for every approved fix, and a Session Log entry.
+
+## Sharing results (only when the Build Room connector is on)
+
+After the scorecard has real numbers, and only if the tool `buildroom_report` is available: ask the member once whether they want to share their numbers with Build Room. Say exactly what is shared: a few numbers from a fixed list, visible to their host, and to other members only as a combined figure from five or more members. Never their words, clients or Business File. Record their answer with `buildroom_sharing`. If they said yes, send this period's real numbers in `buildroom_report` under `numbers`, using only these names: leads_month, calls_booked_month, clients_won_month, optin_rate_pct, booking_rate_pct, show_rate_pct, close_rate_pct. Never send an estimate, a sample figure or a partial period, and never ask twice after a no. If they ask what others see, `buildroom_benchmarks` answers; quote it as what members reported, never as what they will get.

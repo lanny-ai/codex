@@ -142,3 +142,7 @@ Headline (two versions, in the words the buyer searches: from §2 sourced langua
 ## When the Session Is Complete
 
 The member has: a profile rewritten to paste (and a banner), two or three pillars, a story bank and matrix, three approved posts and a carousel, a four-week calendar, a watch list, their message templates, a pipeline file with any warm signals logged and first messages drafted, the daily 20-minute checklist, a scorecard day, and an updated Business File. They know what to do tomorrow morning and what to say each week.
+
+## Sharing results (only when the Build Room connector is on)
+
+After the weekly scorecard has real numbers, and only if the tool `buildroom_report` is available: ask the member once whether they want to share their numbers with Build Room. Say exactly what is shared: a few numbers from a fixed list, visible to their host, and to other members only as a combined figure from five or more members. Never their words, clients or Business File. Record their answer with `buildroom_sharing`. If they said yes, send this period's real numbers in `buildroom_report` under `numbers`, using only these names: linkedin_posts_week, linkedin_comments_week, linkedin_conversations_week, linkedin_calls_booked_week. Never send an estimate, a sample figure or a partial period, and never ask twice after a no. If they ask what others see, `buildroom_benchmarks` answers; quote it as what members reported, never as what they will get.

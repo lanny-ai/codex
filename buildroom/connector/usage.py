@@ -1,17 +1,200 @@
-"""Usage summary for the host dashboard.
+"""Usage summary for the host dashboard, and the signals that let Build Room OS get better with use.
 
 The connector writes one line per tool call: when, which member, which tool, which session, and whether it
 worked. Nothing a member typed and nothing from their Business File is ever recorded. This module turns
 those lines into what the host needs: who is active, who connected but never started, who has gone quiet,
 and which sessions are used.
+
+Three further signals, all of them numbers or short fixed labels, never text a member wrote:
+  1. how a session ended (finished, or stopped at which step);
+  2. how many things its checks asked to fix, by kind;
+  3. results a member chose to share (calls booked, opt-in rate and the like), only from the list in METRICS,
+     and only after that member switched sharing on.
+A report that carries anything else is refused whole, so nothing free-form can ride along.
 """
 import json
+import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ACTIVE_DAYS, QUIET_DAYS = 7, 21
 START = "buildroom_start_session"
+REPORT = "buildroom_report"
 MAX_LOG_BYTES = 25_000_000
+MIN_GROUP = 5            # a combined figure is shown to members only when at least this many members are behind it
+FRESH_DAYS = 90          # a shared result older than this no longer counts
+SLUG = re.compile(r"[a-z0-9][a-z0-9-]{0,39}")
+# The only results a member can share: name -> (lowest, highest, what it is). Whole numbers or one decimal; no text.
+METRICS = {
+    "linkedin_posts_week": (0, 30, "LinkedIn posts published in a week"),
+    "linkedin_comments_week": (0, 500, "comments left on other people's LinkedIn posts in a week"),
+    "linkedin_conversations_week": (0, 300, "LinkedIn conversations started in a week"),
+    "linkedin_calls_booked_week": (0, 100, "calls booked from LinkedIn in a week"),
+    "leads_month": (0, 100000, "new leads in a month"),
+    "calls_booked_month": (0, 2000, "sales calls booked in a month"),
+    "clients_won_month": (0, 500, "new clients in a month"),
+    "optin_rate_pct": (0, 100, "share of page visitors who opted in, in percent"),
+    "booking_rate_pct": (0, 100, "share of leads who booked a call, in percent"),
+    "show_rate_pct": (0, 100, "share of booked calls that happened, in percent"),
+    "close_rate_pct": (0, 100, "share of calls that became clients, in percent"),
+    "speaking_pitches_month": (0, 500, "speaking pitches sent in a month"),
+    "speaking_bookings_month": (0, 100, "speaking engagements booked in a month"),
+    "reviews_new_month": (0, 1000, "new public reviews in a month"),
+    "answer_pages_month": (0, 100, "answer pages published in a month"),
+}
+
+
+def clean_report(args, skills):
+    """(record fields, None) for a well-formed session report, or (None, why it is refused).
+    Everything is a fixed label or a number. Any unknown field, any free text, refuses the whole report."""
+    if not isinstance(args, dict):
+        return None, "the report must be an object"
+    extra = set(args) - {"skill", "event", "step", "fix", "look", "kinds", "numbers"}
+    if extra:
+        return None, "unknown field(s): " + ", ".join(sorted(map(str, extra))[:5]) + ". A report carries labels and numbers only"
+    if args.get("skill") not in skills:
+        return None, "skill must be a session name from buildroom_list_sessions"
+    if args.get("event") not in ("finished", "stopped"):
+        return None, 'event must be "finished" or "stopped"'
+    out = {"skill": args["skill"], "event": args["event"]}
+    step = args.get("step")
+    if step is not None:
+        if not isinstance(step, str) or not SLUG.fullmatch(step):
+            return None, 'step is a short label such as "phase-2": lower-case letters, digits and hyphens, at most 40'
+        out["step"] = step
+    for k in ("fix", "look"):
+        v = args.get(k)
+        if v is not None:
+            if isinstance(v, bool) or not isinstance(v, int) or not 0 <= v <= 9999:
+                return None, f"{k} is a whole number from 0 to 9999"
+            out[k] = v
+    kinds = args.get("kinds")
+    if kinds is not None:
+        if not isinstance(kinds, dict) or len(kinds) > 30:
+            return None, "kinds is an object of at most 30 short labels, each with a count"
+        for k, v in kinds.items():
+            if not isinstance(k, str) or not SLUG.fullmatch(k) or isinstance(v, bool) or not isinstance(v, int) or not 0 <= v <= 9999:
+                return None, 'each kind is a short label (the word before the colon of a FIX line, such as "colors") with a whole-number count'
+        out["kinds"] = dict(kinds)
+    nums = args.get("numbers")
+    if nums is not None:
+        if not isinstance(nums, dict) or not nums:
+            return None, "numbers is an object of results the member chose to share"
+        for k, v in nums.items():
+            if k not in METRICS:
+                return None, f"{k!r} is not a result that can be shared. The list: " + ", ".join(METRICS)
+            lo, hi, _ = METRICS[k]
+            if isinstance(v, bool) or not isinstance(v, (int, float)) or not lo <= v <= hi:
+                return None, f"{k} must be a number from {lo} to {hi}"
+        out["numbers"] = {k: round(float(v), 1) for k, v in nums.items()}
+    return out, None
+
+
+def sharing_path(data_dir):
+    return Path(data_dir) / "sharing.json" if data_dir else None
+
+
+def sharing_read(data_dir):
+    p = sharing_path(data_dir)
+    try:
+        d = json.loads(p.read_text(encoding="utf-8")) if p and p.is_file() else {}
+        return d if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def sharing_set(data_dir, email, on, now=None):
+    p = sharing_path(data_dir)
+    if not p:
+        return False
+    d = sharing_read(data_dir)
+    d[email] = {"on": bool(on), "at": (now or datetime.now(timezone.utc)).isoformat(timespec="seconds")}
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        tmp = p.with_suffix(".tmp")
+        tmp.write_text(json.dumps(d), encoding="utf-8")
+        tmp.replace(p)
+        return True
+    except OSError:
+        return False
+
+
+def _middle(values):
+    v = sorted(values)
+    n = len(v)
+    med = v[n // 2] if n % 2 else (v[n // 2 - 1] + v[n // 2]) / 2
+    return round(med, 1), round(v[n // 4], 1), round(v[(3 * n) // 4 if n > 1 else 0], 1)
+
+
+def shared_results(records, sharing, now=None):
+    """{metric: [each sharing member's latest value]} from reports in the last FRESH_DAYS. A member who has since
+    switched sharing off is left out, including what they shared before."""
+    now = now or datetime.now(timezone.utc)
+    latest = {}
+    for r in records:
+        at = _when(r.get("at"))
+        if r.get("tool") != REPORT or r.get("outcome") != "ok" or not isinstance(r.get("numbers"), dict) or not at or (now - at).days > FRESH_DAYS:
+            continue
+        if not (sharing.get(r["member"]) or {}).get("on"):
+            continue
+        for k, v in r["numbers"].items():
+            if k in METRICS and isinstance(v, (int, float)) and (k not in latest.setdefault(r["member"], {}) or latest[r["member"]][k][0] < at):
+                latest[r["member"]][k] = (at, v)
+    out = {}
+    for vals in latest.values():
+        for k, (_at, v) in vals.items():
+            out.setdefault(k, []).append(v)
+    return out
+
+
+def benchmarks(records, sharing, now=None):
+    """What members may see: one combined line per result, and only where MIN_GROUP or more members are behind it."""
+    rows = []
+    for k, vals in sorted(shared_results(records, sharing, now).items()):
+        if len(vals) >= MIN_GROUP:
+            med, lo, hi = _middle(vals)
+            rows.append({"metric": k, "what": METRICS[k][2], "members": len(vals), "middle": med, "from": lo, "to": hi})
+    return rows
+
+
+def insights(records, sharing, skills, now=None):
+    """For the host: how sessions end, what the checks keep catching, and the results members shared."""
+    now = now or datetime.now(timezone.utc)
+    per = {s["skill"]: {"skill": s["skill"], "starts": 0, "finished": 0, "stopped": 0, "steps": {}, "fix": 0, "look": 0, "reports": 0} for s in skills}
+    kinds = {}
+    for r in records:
+        at = _when(r.get("at"))
+        if r.get("outcome") != "ok" or r.get("skill") not in per or not at or (now - at).days > FRESH_DAYS:
+            continue
+        p = per[r["skill"]]
+        if r.get("tool") == START:
+            p["starts"] += 1
+        elif r.get("tool") == REPORT:
+            p["reports"] += 1
+            p[r.get("event") if r.get("event") in ("finished", "stopped") else "stopped"] += 1
+            if r.get("event") == "stopped" and r.get("step"):
+                p["steps"][r["step"]] = p["steps"].get(r["step"], 0) + 1
+            p["fix"] += r.get("fix") or 0
+            p["look"] += r.get("look") or 0
+            for k, v in (r.get("kinds") or {}).items():
+                e = kinds.setdefault((r["skill"], k), 0)
+                kinds[(r["skill"], k)] = e + v
+    tools = []
+    for p in per.values():
+        if not (p["starts"] or p["reports"]):
+            continue
+        tools.append({"skill": p["skill"], "starts": p["starts"], "finished": p["finished"], "stopped": p["stopped"],
+                      "finish_rate": round(p["finished"] / p["starts"], 2) if p["starts"] and p["reports"] else None,
+                      "stopped_at": sorted(p["steps"].items(), key=lambda kv: -kv[1])[:3],
+                      "fixes_per_report": round(p["fix"] / p["reports"], 1) if p["reports"] else None})
+    tools.sort(key=lambda t: (-(t["stopped"]), -(t["starts"]), t["skill"]))
+    caught = [{"skill": s, "kind": k, "count": n} for (s, k), n in sorted(kinds.items(), key=lambda kv: -kv[1])[:12]]
+    shared = []
+    for k, vals in sorted(shared_results(records, sharing, now).items()):
+        med, lo, hi = _middle(vals)
+        shared.append({"metric": k, "what": METRICS[k][2], "members": len(vals), "middle": med, "from": lo, "to": hi, "shown_to_members": len(vals) >= MIN_GROUP})
+    return {"window_days": FRESH_DAYS, "tools": tools, "caught": caught, "shared": shared,
+            "sharing_on": sum(1 for v in sharing.values() if (v or {}).get("on")), "min_group": MIN_GROUP}
 
 
 def log_path(data_dir):
@@ -191,6 +374,17 @@ def digest(summary, pending=0):
         out += ["A note you could send: " + NOTES[state], ""]
     if first_timers:
         out += ["WORTH A CONGRATULATIONS: ran their first session this week"] + [f"- {who(r)}" for r in first_timers[:25]] + [""]
-    out += ["Everything above counts sessions started, not results. Nothing a member typed is recorded.", "Full dashboard: https://guide.aimomentumlabs.com/admin/dashboard"]
+    ins = summary.get("insights") or {}
+    stuck = [t for t in ins.get("tools", []) if t["stopped"]][:3]
+    if stuck:
+        out += [f"WHERE SESSIONS STOP (last {ins['window_days']} days)"]
+        out += [f"- {t['skill'].replace('buildroom-', '')}: stopped {t['stopped']} time(s)" + (", most often at " + t["stopped_at"][0][0] if t["stopped_at"] else "") for t in stuck] + [""]
+    if ins.get("caught"):
+        out += ["WHAT THE CHECKS KEEP CATCHING"] + [f"- {c['skill'].replace('buildroom-', '')}: {c['kind']} ({c['count']})" for c in ins["caught"][:5]] + [""]
+    if ins.get("shared"):
+        out += [f"RESULTS MEMBERS CHOSE TO SHARE ({ins['sharing_on']} sharing)"]
+        out += [f"- {x['what']}: middle {x['middle']:g}, from {x['members']} member(s)" for x in ins["shared"][:8]] + [""]
+    out += ["Everything above counts sessions started, not results, apart from the results members chose to share. Nothing a member typed is recorded.",
+            "Full dashboard: https://guide.aimomentumlabs.com/admin/dashboard"]
     subject = f"Build Room OS weekly: {len(this_week)} active, {c.get('connected_not_started', 0) + c.get('gone_quiet', 0)} to check in on"
     return {"subject": subject, "text": "\n".join(out)}

@@ -153,3 +153,7 @@ Follow `from-stage-to-clients.md`, `fees-and-terms.md` and `confidence-and-deliv
 ## Success Criteria
 
 The member has: a confirmed speaking profile drafted mostly from their own file; one talk a host can book; a bio and a one-page speaker sheet with nothing on it they can't stand behind; five or more real, vetted stages with their sources; at least three pitches sent by their own hand; a dated plan; and a scorecard that counts what actually happens.
+
+## Sharing results (only when the Build Room connector is on)
+
+After the monthly review has real numbers, and only if the tool `buildroom_report` is available: ask the member once whether they want to share their numbers with Build Room. Say exactly what is shared: a few numbers from a fixed list, visible to their host, and to other members only as a combined figure from five or more members. Never their words, clients or Business File. Record their answer with `buildroom_sharing`. If they said yes, send this period's real numbers in `buildroom_report` under `numbers`, using only these names: speaking_pitches_month, speaking_bookings_month. Never send an estimate, a sample figure or a partial period, and never ask twice after a no. If they ask what others see, `buildroom_benchmarks` answers; quote it as what members reported, never as what they will get.

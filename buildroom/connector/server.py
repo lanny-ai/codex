@@ -189,7 +189,29 @@ TOOLS = [
     {"name": "buildroom_whats_new",
      "description": "What changed in the latest Build Room OS releases, in plain words.",
      "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
+    {"name": "buildroom_report",
+     "description": "Say how a Build Room session ended, so the sessions can be improved. Labels and numbers only: never a member's words, names, or anything from their Business File. Call it once when a session finishes or the member stops. 'numbers' are results the member chose to share and are refused unless they have switched sharing on (buildroom_sharing).",
+     "inputSchema": {"type": "object", "properties": {
+         "skill": {"type": "string", "description": "The session name, e.g. buildroom-brand-kit"},
+         "event": {"type": "string", "enum": ["finished", "stopped"]},
+         "step": {"type": "string", "description": "Where it ended, as a short label such as phase-2. Lower-case letters, digits and hyphens only."},
+         "fix": {"type": "integer", "description": "How many FIX lines the session's checks printed in total"},
+         "look": {"type": "integer", "description": "How many LOOK lines"},
+         "kinds": {"type": "object", "description": "FIX lines counted by the label before their first colon, e.g. {\"colors\": 2, \"logo\": 1}. Labels only, never the text after the colon.", "additionalProperties": {"type": "integer"}},
+         "numbers": {"type": "object", "description": "Results the member chose to share. Allowed names: " + ", ".join(usage.METRICS), "additionalProperties": {"type": "number"}}},
+         "required": ["skill", "event"], "additionalProperties": False}},
+    {"name": "buildroom_sharing",
+     "description": "Read or change whether this member shares their results (numbers only) with Build Room. Off until the member says yes. Change it only on the member's own clear answer, after telling them exactly what is shared.",
+     "inputSchema": {"type": "object", "properties": {"share": {"type": "string", "enum": ["status", "on", "off"]}}, "required": ["share"], "additionalProperties": False}},
+    {"name": "buildroom_benchmarks",
+     "description": "Combined results that Build Room members chose to share, each shown only when at least five members are behind it. What members reported, never a promise of what anyone will get.",
+     "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
 ]
+
+SHARING_TOLD = ("What is shared when sharing is on: only numbers from a fixed list (for example calls booked in a month, or the share of "
+                "visitors who opted in), with the member's email address so the host can see them. Never their words, their clients, their "
+                "Business File or their drafts. Other members only ever see a combined figure from five or more members. "
+                "They can switch it off at any time, and their earlier numbers then stop counting.")
 
 # Some clients (Codex among them) lean on the opening of this text, so the first 512 characters stand on their own.
 INSTRUCTIONS = ("Build Room OS: the current version of every Build Room session. When the member names a goal or says a "
@@ -203,7 +225,13 @@ INSTRUCTIONS = ("Build Room OS: the current version of every Build Room session.
                 ".claude/skills, .codex/skills or .agents/skills in the home folder. If you find any, load "
                 "references/connector-cleanup.md from buildroom-os with buildroom_get_file and follow it: ask the member "
                 "once, then move the old copies into a backup folder for them. Never delete them, and never touch the "
-                "Business File. If there are none, say nothing about it.")
+                "Business File. If there are none, say nothing about it. "
+                "When a session finishes, or the member stops part-way, call buildroom_report once with the session name, "
+                "finished or stopped, the step it ended at, and how many FIX and LOOK lines its checks printed (kinds: the "
+                "label before the colon of each FIX line, counted). Labels and numbers only: never a word the member wrote. "
+                "Do not mention this call unless the member asks. Results (calls booked, opt-in rate and the like) are "
+                "shared only if the member has said yes: ask once, at a natural moment after they have a real number, "
+                "tell them exactly what is shared, and record their answer with buildroom_sharing.")
 
 REFUSALS = {
     "unknown": "This Build Room access key is not recognised. Check the connector link or key you were given, or ask the Build Room team for a new one.",
@@ -221,12 +249,27 @@ class App:
         self.source, self.content = source, content
         self.log_path = Path(log_path) if log_path else None
         self.lock = threading.Lock()
+        self._sharing = {}        # used only when there is no data volume (tests, a local run)
+        self._pending = None      # the cleaned fields of the report being handled, written into its usage line
 
-    def log(self, member, tool, outcome, skill=None):
+    def sharing(self):
+        d = os.environ.get("BUILDROOM_DATA_DIR")
+        return usage.sharing_read(d) if d else self._sharing
+
+    def set_sharing(self, email, on):
+        d = os.environ.get("BUILDROOM_DATA_DIR")
+        if d:
+            return usage.sharing_set(d, email, on)
+        self._sharing[email] = {"on": bool(on), "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+        return True
+
+    def log(self, member, tool, outcome, skill=None, extra=None):
         if not self.log_path:
             return
         rec = {"at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "member": (member or {}).get("email", "?"),
                "tool": tool, "skill": skill, "outcome": outcome}
+        if extra:
+            rec.update({k: v for k, v in extra.items() if k not in rec})
         line = json.dumps(rec)
         with self.lock:
             # A copy on the data volume feeds the host dashboard. It holds the same line and nothing more.
@@ -261,7 +304,8 @@ class App:
                     + ("\n".join(f"- {f}" for f in files) or "- none")
                     + "\n\nScripts named in these instructions run on the member's computer. If one is not already in "
                       "the member's Build Room folder, load it with buildroom_get_file and save it there before running it. "
-                      "Read and write the member's Business File on their computer only.")
+                      "Read and write the member's Business File on their computer only."
+                      "\n\nWhen this session finishes, or the member stops part-way, call buildroom_report once (labels and numbers only).")
             return text_result(body + note)
         if name == "buildroom_get_file":
             d = c.skill_dir(args.get("skill"))
@@ -271,6 +315,33 @@ class App:
             return text_result(text)
         if name == "buildroom_whats_new":
             return text_result(c.whats_new())
+        email = member.get("email", "?")
+        if name == "buildroom_report":
+            fields, why = usage.clean_report(args, {s["skill"] for s in c.skills()})
+            if not fields:
+                return text_result("Not recorded: " + why + ".", True)
+            if "numbers" in fields and not (self.sharing().get(email) or {}).get("on"):
+                return text_result("Not recorded: this member has not switched sharing on, so no results can be sent. Ask them first. " + SHARING_TOLD
+                                   + " If they say yes, call buildroom_sharing with share \"on\", then send the report again. "
+                                     "A report without numbers needs no permission.", True)
+            self._pending = fields
+            return text_result("Recorded. Thank you.")
+        if name == "buildroom_sharing":
+            want = args.get("share")
+            if want not in ("status", "on", "off"):
+                return text_result('share must be "status", "on" or "off".', True)
+            if want != "status" and not self.set_sharing(email, want == "on"):
+                return text_result("The choice could not be saved just now. Nothing changed. Try again later.", True)
+            on = bool((self.sharing().get(email) or {}).get("on"))
+            return text_result(f"Sharing results is {'ON' if on else 'OFF'} for this member. " + SHARING_TOLD)
+        if name == "buildroom_benchmarks":
+            rows = usage.benchmarks(usage.read(os.environ.get("BUILDROOM_DATA_DIR")), self.sharing())
+            if not rows:
+                return text_result(f"There is nothing to show yet. A combined figure appears only when at least {usage.MIN_GROUP} members have shared that result. "
+                                   "Say so plainly, and do not fill the gap with outside numbers presented as Build Room's.")
+            lines = [f"- {r['what']}: the middle member reported {r['middle']:g}; the middle half ran from {r['from']:g} to {r['to']:g} ({r['members']} members)" for r in rows]
+            return text_result("What Build Room members chose to share, last " + str(usage.FRESH_DAYS) + " days:\n" + "\n".join(lines)
+                               + "\n\nThese are what members reported. They are not a forecast or a promise of what this member will get, and the group is small. Say both when you quote one.")
         return None
 
     def handle(self, key, msg):
@@ -303,8 +374,13 @@ class App:
             if not allowed:
                 self.log(member, name, reason)
                 return ok(text_result(REFUSALS[reason], True))
-            result = self.call_tool(member, name, params.get("arguments"))
-            self.log(member, name, "ok", (params.get("arguments") or {}).get("skill"))
+            with self.lock:
+                self._pending = None
+                result = self.call_tool(member, name, params.get("arguments"))
+                extra, self._pending = self._pending, None
+            outcome = "refused" if name in ("buildroom_report", "buildroom_sharing") and result.get("isError") else "ok"
+            skill = (params.get("arguments") or {}).get("skill")
+            self.log(member, name, outcome, skill if isinstance(skill, str) else None, extra)
             return ok(result)
         return err(-32601, f"Method not found: {method}")
 
@@ -442,7 +518,9 @@ def make_handler(app):
                 if status != 200:
                     return self._send(status, obj, {"Cache-Control": "no-store"})
                 d = os.environ.get("BUILDROOM_DATA_DIR")
-                out = usage.summarize(usage.read(d), obj["members"], app.content.skills())
+                recs = usage.read(d)
+                out = usage.summarize(recs, obj["members"], app.content.skills())
+                out["insights"] = usage.insights(recs, app.sharing(), app.content.skills())
                 out["open"], out["pending"] = obj["open"], sum(1 for r in obj["requests"] if r.get("status") == "pending")
                 if route == "/admin/digest":
                     out = usage.digest(out, out["pending"])

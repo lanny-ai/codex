@@ -87,7 +87,16 @@ td small{display:block;color:var(--mute);font-size:13.5px;word-break:break-all}
     <div class="card"><h2>Tools</h2><p class="sub">Sessions started per tool, most used first. Tools nobody has started are at the bottom.</p>
       <div class="scroll"><table><thead><tr><th>Tool</th><th class="n">Sessions</th><th class="n">Last 30 days</th><th class="n">Members</th><th>Last used</th></tr></thead><tbody id="trows"></tbody></table></div></div>
 
-    <p class="sub">What is recorded: the time, the member, the tool and whether it worked. Nothing a member types and nothing from their Business File is ever stored here.</p>
+    <div class="card"><h2>Where sessions stop</h2><p class="sub" id="isub"></p>
+      <div class="scroll"><table><thead><tr><th>Tool</th><th class="n">Started</th><th class="n">Finished</th><th class="n">Stopped</th><th>Most often stopped at</th><th class="n">Fixes per session</th></tr></thead><tbody id="irows"></tbody></table></div></div>
+
+    <div class="card"><h2>What the checks keep catching</h2><p class="sub">The kinds of problem a tool's own checks ask sessions to fix most often. A kind near the top means the instructions before that check need work.</p>
+      <div class="scroll"><table><thead><tr><th>Tool</th><th>Kind</th><th class="n">Times</th></tr></thead><tbody id="crows"></tbody></table></div></div>
+
+    <div class="card"><h2>Results members chose to share</h2><p class="sub" id="ssub"></p>
+      <div class="scroll"><table><thead><tr><th>Result</th><th class="n">Members</th><th class="n">Middle</th><th class="n">Middle half</th><th>Shown to members</th></tr></thead><tbody id="srows"></tbody></table></div></div>
+
+    <p class="sub">What is recorded: the time, the member, the tool and whether it worked; how a session ended and how many things its checks flagged; and, only for members who switched sharing on, results from a fixed list of numbers. Nothing a member types and nothing from their Business File is ever stored here.</p>
   </div>
 </main>
 
@@ -150,8 +159,20 @@ function render() {
   const present = Object.keys(STATES).filter(s => c[s]);
   $("filters").innerHTML = [["all", "All"]].concat(present.map(s => [s, STATES[s] + " (" + c[s] + ")"])).map(([k, l]) => `<button class="ghost" type="button" data-f="${k}" aria-pressed="${k === FILTER}">${esc(l)}</button>`).join(" ");
   members();
+  insights(d);
 
   $("trows").innerHTML = d.tools.map(x => `<tr><td><b>${esc(toolName(x.skill))}</b></td><td class="n">${x.starts}</td><td class="n">${x.starts_30}</td><td class="n">${x.members}</td><td>${x.last ? esc(day(x.last)) : '<span class="pill s-stopped">Never</span>'}</td></tr>`).join("");
+}
+
+function insights(d) {
+  const i = d.insights || {tools: [], caught: [], shared: [], window_days: 90, sharing_on: 0, min_group: 5};
+  $("isub").textContent = "Last " + i.window_days + " days. A session reports how it ended; older sessions and sessions run from the zip do not, so the finished and stopped counts start low.";
+  $("irows").innerHTML = i.tools.map(x => `<tr><td><b>${esc(toolName(x.skill))}</b></td><td class="n">${x.starts}</td><td class="n">${x.finished}</td><td class="n">${x.stopped}</td><td>${x.stopped_at.length ? x.stopped_at.map(s => esc(s[0]) + " (" + s[1] + ")").join(", ") : ""}</td><td class="n">${x.fixes_per_report == null ? "" : x.fixes_per_report}</td></tr>`).join("")
+    || `<tr><td colspan="6">No session has reported how it ended yet.</td></tr>`;
+  $("crows").innerHTML = i.caught.map(x => `<tr><td><b>${esc(toolName(x.skill))}</b></td><td>${esc(x.kind)}</td><td class="n">${x.count}</td></tr>`).join("") || `<tr><td colspan="3">Nothing reported yet.</td></tr>`;
+  $("ssub").textContent = i.sharing_on + " member" + (i.sharing_on === 1 ? " has" : "s have") + " switched sharing on. Members only ever see a combined figure, and only when at least " + i.min_group + " members are behind it. These are what members reported, not a forecast.";
+  $("srows").innerHTML = i.shared.map(x => `<tr><td><b>${esc(x.what)}</b></td><td class="n">${x.members}</td><td class="n">${x.middle}</td><td class="n">${x.from} to ${x.to}</td><td>${x.shown_to_members ? "Yes" : "Not yet"}</td></tr>`).join("")
+    || `<tr><td colspan="5">No results shared yet.</td></tr>`;
 }
 
 function members() {
