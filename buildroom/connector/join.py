@@ -254,6 +254,7 @@ ADMIN_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta
 <div class="card" id="login"><label for="k">Admin key</label><input id="k" type="password" autocomplete="off"><button id="go" type="button">Open</button></div>
 <div class="card" id="reqs" hidden><h2 style="margin-top:0">Waiting for approval</h2><div id="pending"></div><h2>Decided</h2><div id="done"></div></div>
 <div class="card" id="mems" hidden><h2 style="margin-top:0">Signed up</h2><div id="members"></div></div>
+<div class="card" id="pay" hidden><h2 style="margin-top:0">Payments</h2><p class="small" id="paymode"></p><div id="paymembers"></div><h2>Needs a look</h2><div id="payreview"></div></div>
 <div class="card" id="sent" hidden><h2 style="margin-top:0">Link to send</h2><div class="link" id="sendlink"></div></div>
 <script>
 const $=id=>document.getElementById(id);let KEY='';try{KEY=sessionStorage.getItem('brk')||''}catch(e){}
@@ -267,7 +268,17 @@ $('state').textContent='Sign-up is '+(j.open?'open':'closed')+(j.until?' (until 
 const p=j.requests.filter(r=>r.status==='pending'),d=j.requests.filter(r=>r.status!=='pending');
 $('pending').innerHTML=p.length?'<table>'+p.map(r=>row(r,b(r.email,'approve','Approve')+b(r.email,'link','Approve and get link')+b(r.email,'decline','Decline'))).join('')+'</table>':'<p class="small">No one waiting.</p>';
 $('done').innerHTML=d.length?'<table>'+d.map(r=>row(r,r.status==='declined'?b(r.email,'approve','Approve instead'):'')).join('')+'</table>':'<p class="small">None yet.</p>';
+loadPay();
 $('members').innerHTML=j.members.length?'<table>'+j.members.map(m=>row(m,m.status==='active'?b(m.email,'lapse','Stop access'):'')).join('')+'</table>':'<p class="small">No one yet.</p>';}
+const MODES={observe:'Watching only: payments are recorded here, and no one\'s access changes because of them.',enforce:'On: payments decide access, except for members marked Manual.',off:'Off: payment events are ignored.'};
+function pb(o,label){return '<button class="ghost" data-pay=\''+esc(JSON.stringify(o))+'\'>'+label+'</button>';}
+async function loadPay(){const r=await fetch('/admin/billing',{headers:{'Authorization':'Bearer '+KEY}});if(r.status!==200)return;const j=await r.json();$('pay').hidden=false;
+$('paymode').textContent=MODES[j.mode]||j.mode;
+$('paymembers').innerHTML=j.members.length?'<table>'+j.members.map(m=>'<tr><td><b>'+esc(m.email)+'</b><br><span class="small">'+(m.manual?'Manual: payments ignored':'Payments say: '+esc(m.payments_say))+'</span></td><td class="small">paid through '+esc(m.paid_through||'-')+(m.reason?'<br>'+esc(m.reason):'')+(m.failed_at?'<br>last failed '+esc(m.failed_at.slice(0,10)):'')+'</td><td>'+pb({action:'manual',email:m.email,on:!m.manual},m.manual?'Follow payments':'Mark Manual')+'</td></tr>').join('')+'</table>':'<p class="small">No payments recorded yet.</p>';
+$('payreview').innerHTML=j.review.length?'<table>'+j.review.map(r=>'<tr><td><b>'+esc(r.email||'no email')+'</b><br><span class="small">'+esc(r.note)+'</span></td><td class="small">'+esc((r.at||'').slice(0,16).replace('T',' '))+'<br>'+esc(r.type)+'</td><td>'+(r.customer?pb({action:'link',customer:r.customer},'Link to member'):'')+pb({action:'dismiss',event:r.event},'Dismiss')+'</td></tr>').join('')+'</table>':'<p class="small">Nothing to look at.</p>';}
+document.addEventListener('click',async e=>{const t=e.target;if(!t.dataset||!t.dataset.pay)return;const o=JSON.parse(t.dataset.pay);
+if(o.action==='link'){const em=prompt('Member email for this Stripe customer:');if(!em)return;o.email=em;}
+await fetch('/admin/billing',{method:'POST',headers:{'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},body:JSON.stringify(o)});loadPay();});
 document.addEventListener('click',async e=>{const t=e.target;if(!t.dataset||!t.dataset.d)return;if(t.dataset.d!=='approve'&&!confirm(t.textContent+' for '+t.dataset.e+'?'))return;
 const [s,j]=await api('POST',{email:t.dataset.e,decision:t.dataset.d});if(j.key){$('sendlink').textContent=location.origin+'/mcp/'+j.key;$('sent').hidden=false;}load();});
 $('go').addEventListener('click',()=>{KEY=$('k').value.trim();load();});if(KEY)load();
