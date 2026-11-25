@@ -84,7 +84,7 @@ The member has: a stage table over their real failure points (or the exact pipel
 
 ## Numbers straight from GoHighLevel (only when the member has connected their account)
 
-If the member's working folder has a `.env` with `GHL_TOKEN` and `GHL_LOCATION_ID` (the same connection the GoHighLevel push uses), do not ask them to look numbers up by hand. Run `python3 <skill>/scripts/ghl_stats.py` in that folder. It reads the last 30 days from their own sub-account: contacts added, form entries, appointments booked and how they ended, and deals marked won. It reads totals and statuses only, never a contact's name, email, phone or words. It changes nothing and sends nothing.
+If the member's working folder has a `.env` with `GHL_TOKEN` and `GHL_LOCATION_ID` (the same connection the GoHighLevel push uses), do not ask them to look numbers up by hand. Run `python3 <skill>/scripts/ghl_stats.py` in that folder. It reads the last 30 days from their own sub-account: contacts added, form entries, appointments booked and how they ended, and deals marked won. It reads totals and statuses only, never a contact's name, email, phone or words. It changes nothing and sends nothing. If the `.env` has no GoHighLevel connection and the member wants one, the Key Ring adds it without a key ever entering the chat: load `references/key-ring.md` from `buildroom-os` and run its `scripts/key_ring.py add gohighlevel`.
 
 - Show the member the counts and say where they came from. Use them in the scorecard as measured numbers.
 - `not_read` lists what the token is not allowed to read, with the permission to add (View Calendar Events for bookings, View Opportunities for deals won). Say so plainly and ask the member for that number instead. Never fill it with a guess.

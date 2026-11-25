@@ -1,7 +1,7 @@
 ---
 name: buildroom-os
 description: |
-  Build Room navigator: shows progress from the Business File and names the one next session to run. Use when a member asks "where do I start," "what should I work on next," "show my progress," "am I on track," "I'm new here," "set me up," or "what is the Build Room."
+  Build Room navigator: shows progress from the Business File and names the one next session to run. Use when a member asks "where do I start," "what should I work on next," "show my progress," "am I on track," "I'm new here," "set me up," or "what is the Build Room." Also the Key Ring: "add my GoHighLevel key," "add an API key," "show my keys," "are my keys still working," "remove my key."
 ---
 
 # Build Room OS
@@ -16,6 +16,7 @@ Read these reference files before any member-facing work:
 2. **`references/business-file-protocol.md`** — the Business File contract. You follow its intake and session-end rules like every Build Room skill.
 3. **`references/business-file-template.md`** — the blank file, for members who arrive without one.
 4. **`references/connector-cleanup.md`** — when the member is on the connector and old zip copies of the tools are still on their computer: ask once, then move them aside with `scripts/retire_local_copies.py`. Read it only in that case.
+5. **`references/key-ring.md`** — when the member wants to add, see, check or remove an API key ("add my GoHighLevel key", "show my keys"), or another session sends them here for one: `scripts/key_ring.py` opens a page on their own computer where they paste it, so a key never enters the chat. Read it only in that case.
 
 ## Prerequisites
 
@@ -53,6 +54,10 @@ The first session ends with one next step, the Ideal Client Avatar session (it's
 ### Case 4 — Asked about something not yet in the program
 
 Check `references/roadmap.md`. If it's a roadmap theme without a shipped skill, say so plainly, offer to note it in their Session Log, and route to the most valuable session available now. Never improvise a missing session — a half-built session poisons the file for the real one.
+
+### Case 5 — Keys ("add my GoHighLevel key", "show my keys", "are my keys still working?")
+
+Follow `references/key-ring.md`. This is the one thing this skill does itself instead of routing: it is a two-minute errand, not a build session. Never ask for a key in the chat, never print one, and when the key is saved, return the member to whatever they were doing.
 
 ### Always, before ending
 

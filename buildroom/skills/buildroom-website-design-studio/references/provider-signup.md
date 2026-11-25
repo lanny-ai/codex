@@ -23,7 +23,7 @@ Not routed: **fal.ai** (founder decision, 2026-10-14). Never used: **Sora** (dis
 
 ## Keys
 
-1. "Create an API key in your account settings and paste it into the `.env` file in this folder, on its own line, like `KIE_API_KEY=...`. Don't paste it here."
+1. Where commands can run, use the Key Ring: load `references/key-ring.md` from `buildroom-os` and run its `scripts/key_ring.py add kie` (or `higgsfield`, `heygen`, `submagic`) from the member's folder. A page opens on their own computer with a box to paste the key into; it is saved for every folder on that computer and written into this folder's `.env`. Where the Key Ring is not available: "Create an API key in your account settings and paste it into the `.env` file in this folder, on its own line, like `KIE_API_KEY=...`. Don't paste it here."
 2. Never print, echo, log or repeat a key. The scripts read `.env` themselves and redact keys from anything they print.
 3. Run the script's `--probe` once after adding a key. It makes one harmless call and says whether the key works.
 
