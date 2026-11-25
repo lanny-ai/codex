@@ -267,7 +267,7 @@ $('state').textContent='Sign-up is '+(j.open?'open':'closed')+(j.until?' (until 
 const p=j.requests.filter(r=>r.status==='pending'),d=j.requests.filter(r=>r.status!=='pending');
 $('pending').innerHTML=p.length?'<table>'+p.map(r=>row(r,b(r.email,'approve','Approve')+b(r.email,'link','Approve and get link')+b(r.email,'decline','Decline'))).join('')+'</table>':'<p class="small">No one waiting.</p>';
 $('done').innerHTML=d.length?'<table>'+d.map(r=>row(r,r.status==='declined'?b(r.email,'approve','Approve instead'):r.status==='approved'?b(r.email,'link','New link (stops the old one)'):'')).join('')+'</table>':'<p class="small">None yet.</p>';
-$('members').innerHTML=j.members.length?'<table>'+j.members.map(m=>row(m,m.status==='active'?b(m.email,'lapse','Stop access'):'')).join('')+'</table>':'<p class="small">No one yet.</p>';}
+$('members').innerHTML=j.members.length?'<table>'+j.members.map(m=>row(m,m.status==='active'?b(m.email,'lapse','Stop access')+b(m.email,'link','New link (stops the old one)'):b(m.email,'link','Give access back (new link)'))).join('')+'</table>':'<p class="small">No one yet.</p>';}
 document.addEventListener('click',async e=>{const t=e.target;if(!t.dataset||!t.dataset.d)return;if(t.dataset.d!=='approve'&&!confirm(t.textContent+' for '+t.dataset.e+'?'))return;
 const [s,j]=await api('POST',{email:t.dataset.e,decision:t.dataset.d});if(j.key){$('sendlink').textContent=location.origin+'/mcp/'+j.key;$('sent').hidden=false;}load();});
 $('go').addEventListener('click',()=>{KEY=$('k').value.trim();load();});if(KEY)load();
