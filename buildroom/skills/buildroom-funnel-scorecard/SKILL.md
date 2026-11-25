@@ -81,3 +81,17 @@ Walk the fixes one at a time and record the member's answer. Approved fixes beco
 ## When the Session Is Complete
 
 The member has: a stage table over their real failure points (or the exact pipeline to create), the top three leaks with fixes they approved or declined, feedback recorded for the next run, the routine created or deliberately deferred, and a Business File with §6 carrying the scorecard, §13 rows for every approved fix, and a Session Log entry.
+
+## Numbers straight from GoHighLevel (only when the member has connected their account)
+
+If the member's working folder has a `.env` with `GHL_TOKEN` and `GHL_LOCATION_ID` (the same connection the GoHighLevel push uses), do not ask them to look numbers up by hand. Run `python3 <skill>/scripts/ghl_stats.py` in that folder. It reads the last 30 days from their own sub-account: contacts added, form entries, appointments booked and how they ended, and deals marked won. It reads totals and statuses only, never a contact's name, email, phone or words. It changes nothing and sends nothing.
+
+- Show the member the counts and say where they came from. Use them in the scorecard as measured numbers.
+- `not_read` lists what the token is not allowed to read, with the permission to add (View Calendar Events for bookings, View Opportunities for deals won). Say so plainly and ask the member for that number instead. Never fill it with a guess.
+- `rates_left_out` lists rates it would not work out because fewer than five cases stand behind them. Do not work them out yourself.
+- Visitors to a page, and so the opt-in rate, are not available this way. Ask the member, or leave it blank.
+- Never ask the member to paste a token into the chat. If there is no connection, carry on with the numbers they give you.
+
+## Sharing results (only when the Build Room connector is on)
+
+After the scorecard has real numbers, and only if the tool `buildroom_report` is available: ask the member once whether they want to share their numbers with Build Room. Say exactly what is shared: a few numbers from a fixed list, visible to their host, and to other members only as a combined figure from five or more members. Never their words, clients or Business File. Record their answer with `buildroom_sharing`. If they said yes, send this period's real numbers in `buildroom_report` under `numbers`, using only these names: leads_month, calls_booked_month, clients_won_month, optin_rate_pct, booking_rate_pct, show_rate_pct, close_rate_pct. When `ghl_stats.py` ran, its `numbers` object is already in this shape: send it as it is, after the member has seen it. Never send an estimate, a sample figure or a partial period, and never ask twice after a no. If they ask what others see, `buildroom_benchmarks` answers; quote it as what members reported, never as what they will get.
