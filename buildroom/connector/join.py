@@ -252,9 +252,9 @@ ADMIN_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta
 <title>Build Room OS: approvals</title>""" + STYLE + """</head><body><main style="max-width:900px">
 <h1>Build Room OS approvals</h1><p class="lede" id="state">Enter your admin key.</p><p class="small"><a href="/admin/dashboard">Host dashboard: who is using it, and who needs a nudge</a></p>
 <div class="card" id="login"><label for="k">Admin key</label><input id="k" type="password" autocomplete="off"><button id="go" type="button">Open</button></div>
+<div class="card" id="sent" hidden><h2 style="margin-top:0">Link to send to <span id="sendwho"></span></h2><div class="link" id="sendlink"></div><button class="ghost" id="sendcopy" type="button">Copy link</button><p class="small">This link is shown once. If you leave or refresh this page before copying it, make a new one.</p></div>
 <div class="card" id="reqs" hidden><h2 style="margin-top:0">Waiting for approval</h2><div id="pending"></div><h2>Decided</h2><div id="done"></div></div>
 <div class="card" id="mems" hidden><h2 style="margin-top:0">Signed up</h2><div id="members"></div></div>
-<div class="card" id="sent" hidden><h2 style="margin-top:0">Link to send</h2><div class="link" id="sendlink"></div></div>
 <script>
 const $=id=>document.getElementById(id);let KEY='';try{KEY=sessionStorage.getItem('brk')||''}catch(e){}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -269,6 +269,7 @@ $('pending').innerHTML=p.length?'<table>'+p.map(r=>row(r,b(r.email,'approve','Ap
 $('done').innerHTML=d.length?'<table>'+d.map(r=>row(r,r.status==='declined'?b(r.email,'approve','Approve instead'):r.status==='approved'?b(r.email,'link','New link (stops the old one)'):'')).join('')+'</table>':'<p class="small">None yet.</p>';
 $('members').innerHTML=j.members.length?'<table>'+j.members.map(m=>row(m,m.status==='active'?b(m.email,'lapse','Stop access')+b(m.email,'link','New link (stops the old one)'):b(m.email,'link','Give access back (new link)'))).join('')+'</table>':'<p class="small">No one yet.</p>';}
 document.addEventListener('click',async e=>{const t=e.target;if(!t.dataset||!t.dataset.d)return;if(t.dataset.d!=='approve'&&!confirm(t.textContent+' for '+t.dataset.e+'?'))return;
-const [s,j]=await api('POST',{email:t.dataset.e,decision:t.dataset.d});if(j.key){$('sendlink').textContent=location.origin+'/mcp/'+j.key;$('sent').hidden=false;}load();});
+const [s,j]=await api('POST',{email:t.dataset.e,decision:t.dataset.d});if(j.key){$('sendlink').textContent=location.origin+'/mcp/'+j.key;$('sendwho').textContent=t.dataset.e;$('sent').hidden=false;$('sent').scrollIntoView({behavior:'smooth',block:'center'});}else if(s!==200){alert(j.error||'That did not work. Try again.');}load();});
+$('sendcopy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('sendlink').textContent);$('sendcopy').textContent='Copied';}catch(e){$('sendcopy').textContent='Select the link and copy it';}});
 $('go').addEventListener('click',()=>{KEY=$('k').value.trim();load();});if(KEY)load();
 </script></main></body></html>"""

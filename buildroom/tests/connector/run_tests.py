@@ -514,6 +514,8 @@ def main():
             check("join after decline: told to contact the team, no key", jn({"name": "Nope", "email": "nope@example.com", "code": "ROOM-1111"})[1]["state"] == "declined")
             check("the owner page offers a new link for someone already approved", "New link (stops the old one)" in (ROOT / "connector/join.py").read_text())
             check("the owner page can give access back to someone whose access was stopped", "Give access back (new link)" in (ROOT / "connector/join.py").read_text())
+            _pg = (ROOT / "connector/join.py").read_text()
+            check("the link to send shows above the lists and scrolls into view", _pg.index('id="sent"') < _pg.index('id="reqs"') and "scrollIntoView" in _pg and 'id="sendcopy"' in _pg)
             s, r, _ = adm("POST", {"email": "nope@example.com", "decision": "link"})
             check("admin: approve and get link gives a working link to send", r.get("key") and not text(call(b3 + "/mcp", r["key"], "buildroom_status")[1])[1])
             adm("POST", {"email": "payer@example.com", "decision": "lapse"})
