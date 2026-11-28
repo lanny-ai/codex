@@ -516,6 +516,7 @@ def main():
             check("the owner page can give access back to someone whose access was stopped", "Give access back (new link)" in (ROOT / "connector/join.py").read_text())
             _pg = (ROOT / "connector/join.py").read_text()
             check("the link to send shows above the lists and scrolls into view", _pg.index('id="sent"') < _pg.index('id="reqs"') and "scrollIntoView" in _pg and 'id="sendcopy"' in _pg)
+            check("the owner page writes the member's email for the owner to send, and says nothing is emailed by itself", "mailto:" in _pg and 'id="sendmail"' in _pg and "Nothing is emailed for you" in _pg)
             s, r, _ = adm("POST", {"email": "nope@example.com", "decision": "link"})
             check("admin: approve and get link gives a working link to send", r.get("key") and not text(call(b3 + "/mcp", r["key"], "buildroom_status")[1])[1])
             adm("POST", {"email": "payer@example.com", "decision": "lapse"})

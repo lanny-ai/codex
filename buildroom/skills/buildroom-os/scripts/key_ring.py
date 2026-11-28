@@ -8,6 +8,9 @@
   key_ring.py check [PROVIDER...]                      ask each provider again whether its key still works
   key_ring.py remove PROVIDER --yes [--folder .]       take a key off the ring (and out of this folder's .env)
   key_ring.py catalog                                  the providers it knows: what each is for and where the key comes from
+  key_ring.py connect gohighlevel [--to claude|codex|both] [--folder .]
+                                                       give Claude Code or Codex the provider's own live tools (its MCP server),
+                                                       using the key on the ring. `disconnect` takes them away again
   key_ring.py stop                                     close the page
 
 How it works. There is one key ring per computer: a private file in the member's home folder (~/.buildroom/keys.json).
@@ -122,6 +125,11 @@ PROVIDERS = {
              "extract": r"/location/([A-Za-z0-9]{6,40})"},
         ],
         "check": check_gohighlevel,
+        # GoHighLevel's own MCP server. The handshake and tool list were checked against a real account; the headers are theirs.
+        "mcp": {"name": "gohighlevel", "url": "https://services.leadconnectorhq.com/mcp/",
+                "headers": lambda v: {"Authorization": "Bearer " + v["GHL_TOKEN"], "locationId": v["GHL_LOCATION_ID"]},
+                "gives": "read contacts, calendars, deals and payments, and draft blog posts, emails and social posts in the member's account",
+                "caution": "What it can do is set by the permissions on the member's integration. With Conversations left off it cannot send a message to anyone."},
     },
     "kie": {
         "name": "Kie.ai",
@@ -562,6 +570,86 @@ def wait(timeout):
         time.sleep(0.4)
 
 
+# ---------------------------------------------------------------- the provider's own tools, for Claude Code and Codex
+def codex_config():
+    return Path(os.environ.get("CODEX_HOME") or (Path.home() / ".codex")) / "config.toml"
+
+
+def codex_block(name):
+    return f"# >>> Build Room Key Ring: {name} (managed; use key_ring.py disconnect to remove)", f"# <<< Build Room Key Ring: {name}"
+
+
+def codex_strip(text, name):
+    start, end = codex_block(name)
+    return re.sub(r"\n*" + re.escape(start) + r".*?" + re.escape(end) + r"\n?", "\n", text, flags=re.S)
+
+
+def connect_codex(m, headers, remove=False):
+    """Codex reads MCP servers from its own config file. Ours sits between two marker lines so it can be replaced or removed cleanly."""
+    cfg = codex_config()
+    text = cfg.read_text(encoding="utf-8", errors="replace") if cfg.is_file() else ""
+    had = codex_block(m["name"])[0] in text
+    text = codex_strip(text, m["name"])
+    if re.search(r"^\s*\[mcp_servers\." + re.escape(m["name"]) + r"\]", text, re.M):
+        return {"client": "codex", "ok": False, "detail": f"Codex already has a server named {m['name']} that the Key Ring did not add. It was left alone; remove it from {cfg} first."}
+    if remove:
+        if had:
+            private_write(cfg, text.strip("\n") + "\n")
+        return {"client": "codex", "ok": True, "detail": "Removed from Codex." if had else "Codex did not have it."}
+    q = lambda x: '"' + x.replace("\\", "\\\\").replace('"', '\\"') + '"'
+    start, end = codex_block(m["name"])
+    block = [start, f"[mcp_servers.{m['name']}]", "url = " + q(m["url"]),
+             "http_headers = { " + ", ".join(f"{q(k)} = {q(v)}" for k, v in headers.items()) + " }", end]
+    private_write(cfg, (text.strip("\n") + "\n\n" if text.strip() else "") + "\n".join(block) + "\n")
+    return {"client": "codex", "ok": True, "config": str(cfg), "detail": "Added to Codex for this computer. Start a new Codex session to see the tools. "
+            "This route has not been confirmed in Codex itself: if the tools do not appear, say so."}
+
+
+def connect_claude(m, headers, folder, remove=False):
+    """Claude Code keeps it for this folder only (its 'local' scope: stored in the member's own settings, never in the project)."""
+    import shutil
+    exe = shutil.which("claude")
+    if not exe:
+        return {"client": "claude", "ok": False, "detail": "The claude command was not found on this computer, so Claude Code was not changed."}
+    run = lambda *a: subprocess.run([exe, "mcp", *a], cwd=str(folder), capture_output=True, text=True, timeout=60, stdin=subprocess.DEVNULL)
+    try:
+        gone = run("remove", m["name"], "--scope", "local")
+        if remove:
+            return {"client": "claude", "ok": True, "detail": "Removed from Claude Code for this folder." if gone.returncode == 0 else "Claude Code did not have it for this folder."}
+        args = ["add", "--transport", "http", "--scope", "local", m["name"], m["url"]]
+        for k, v in headers.items():
+            args += ["--header", f"{k}: {v}"]
+        r = run(*args)
+    except (OSError, subprocess.SubprocessError) as e:
+        return {"client": "claude", "ok": False, "detail": f"Claude Code could not be changed ({type(e).__name__})."}
+    if r.returncode != 0:
+        msg = (r.stderr or r.stdout).strip()[:300]
+        for v in headers.values():
+            msg = msg.replace(v, "***")
+        return {"client": "claude", "ok": False, "detail": "Claude Code refused: " + msg}
+    return {"client": "claude", "ok": True, "detail": "Added to Claude Code for this folder. Start a new Claude Code session here to see the tools."}
+
+
+def connect(slug, to, folder, remove=False):
+    m = PROVIDERS[slug].get("mcp")
+    if not m:
+        sys.exit(f"{PROVIDERS[slug]['name']} has no live tools the Key Ring can connect. Only these do: " + ", ".join(s for s, p in sorted(PROVIDERS.items()) if p.get("mcp")))
+    headers = {}
+    if not remove:
+        k = load_ring()["keys"].get(slug)
+        if not k:
+            return print(json.dumps({"event": "missing", "provider": slug, "note": f"Not on the key ring yet. Run: key_ring.py add {slug}"}))
+        headers = m["headers"](k["values"])
+    out = []
+    if to in ("claude", "both"):
+        out.append(connect_claude(m, headers, folder, remove))
+    if to in ("codex", "both"):
+        out.append(connect_codex(m, headers, remove))
+    print(json.dumps({"event": "disconnected" if remove else "connected", "provider": slug, "server": m["name"], "results": out,
+                      **({} if remove else {"gives": m["gives"], "caution": m["caution"],
+                                            "note": "The key now also sits in that tool's own settings file on this computer. If the key is changed later, run connect again."})}, indent=1))
+
+
 def listing(folder):
     ring, here = load_ring(), env_names(folder)
     out = []
@@ -580,13 +668,15 @@ def listing(folder):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    for name in ("add", "wait", "list", "link", "check", "remove", "catalog", "stop", "serve"):
+    for name in ("add", "wait", "list", "link", "check", "remove", "catalog", "stop", "serve", "connect", "disconnect"):
         p = sub.add_parser(name)
-        if name in ("add", "remove", "serve"):
+        if name in ("add", "remove", "serve", "connect", "disconnect"):
             p.add_argument("provider")
+        if name in ("connect", "disconnect"):
+            p.add_argument("--to", choices=("claude", "codex", "both"), default="both")
         if name in ("link", "check"):
             p.add_argument("providers", nargs="*" if name == "check" else "+")
-        if name in ("add", "list", "link", "remove", "serve"):
+        if name in ("add", "list", "link", "remove", "serve", "connect", "disconnect"):
             p.add_argument("--folder", default=".")
         if name in ("add", "wait"):
             p.add_argument("--timeout", type=int, default=100)
@@ -605,6 +695,8 @@ def main():
                                                 "env_names": [n for f in p["fields"] for n in (f["env"], *f.get("also", ()))], "checked_on_save": bool(p["check"])} for s, p in sorted(PROVIDERS.items())],
                                  "disclosure": DISCLOSURE,
                                  "note": "When you offer an affiliate sign-up link, put the disclosure sentence right next to it, word for word, and offer the plain route too."}, indent=1))
+    if a.cmd in ("connect", "disconnect"):
+        return connect(provider(a.provider), a.to, folder, remove=a.cmd == "disconnect")
     if a.cmd == "list":
         return print(json.dumps(listing(folder), indent=1))
     if a.cmd == "stop":

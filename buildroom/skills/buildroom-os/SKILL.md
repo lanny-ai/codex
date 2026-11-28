@@ -1,7 +1,7 @@
 ---
 name: buildroom-os
 description: |
-  Build Room navigator: shows progress from the Business File and names the one next session to run. Use when a member asks "where do I start," "what should I work on next," "show my progress," "am I on track," "I'm new here," "set me up," or "what is the Build Room." Also the Key Ring: "add my GoHighLevel key," "add an API key," "show my keys," "are my keys still working," "remove my key."
+  Build Room navigator: shows progress from the Business File and names the one next session to run. Use when a member asks "where do I start," "what should I work on next," "show my progress," "am I on track," "I'm new here," "set me up," or "what is the Build Room." Also the Key Ring: "add my GoHighLevel key," "add an API key," "show my keys," "are my keys still working," "remove my key," "connect GoHighLevel to Claude," "connect GoHighLevel to Codex."
 ---
 
 # Build Room OS
