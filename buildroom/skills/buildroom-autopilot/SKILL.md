@@ -98,11 +98,17 @@ If the run is cut short, the state is already saved. Tell the member how far it 
 4. Update the Business File as the method says: one §8 row for the run that names every draft. The sections the Phase 4 sessions own are left as they are.
 5. Close with the three things from the top of the report's "What to do first", in the member's terms. Then the one session to run themselves next: **Ideal Client Avatar** by hand when most of the foundation came back partial; otherwise usually **Proof Engine** ("Capture this win") when they have clients, and the questions still open when they do not.
 
-### Optional: GoHighLevel values
+6. **GoHighLevel, offered once.** Where commands can run, run `scripts/ghl_push.py ready` in the working folder. It says in one line whether the folder is connected to an account that answers.
+   - **Connected:** do not wait to be asked. Prepare the values as `references/ghl-values.md` says, run `ghl_push.py plan`, and put the plan in the close: the account's name, how many values would be added or changed, and what is still missing. Then ask one question: "Push these into your GoHighLevel account now?" On a yes, `push --yes` and read out the report. On anything else, leave it: the plan is saved and "Push my build to GoHighLevel" picks it up later.
+   - **No key:** one sentence, no more: "If you use GoHighLevel, say **Add my GoHighLevel key** and next time I can load this build into your account for you." If the key is already on this computer's key ring (`key_ring.py list` from `buildroom-os`), run `key_ring.py link gohighlevel` and carry on as connected.
+   - **Key refused:** say so in one sentence and offer "Change my GoHighLevel key".
+   Nothing is written to the account before the member's yes to a plan they have seen.
 
-Only when the member asks ("Prepare my GoHighLevel values"), and only after the handover. Follow `references/ghl-values.md`: `scripts/ghl_values.py` lists the snapshot's custom values, checks the ones you fill from the approved drafts, and writes a review sheet and a values file. A fact is never drafted, an unknown is left out, and nothing is sent to GoHighLevel.
+### GoHighLevel values
 
-**Pushing them into the account** is a second, separate step, only when the member asks ("Push my build to GoHighLevel") and only into their own sub-account: `scripts/ghl_push.py plan` shows what would change, the member says go, and `push --yes` writes the custom values and reads them back. It publishes nothing, sends nothing and switches nothing on. The member saves their own token in `.env`; never ask for it in the chat. This is the one place Autopilot touches an account, and it does so only on the member's explicit go-ahead after they have seen the plan.
+After the handover: as step 6 above when the folder is connected, or whenever the member asks ("Prepare my GoHighLevel values"). Follow `references/ghl-values.md`: `scripts/ghl_values.py` lists the snapshot's custom values, checks the ones you fill from the approved drafts, and writes a review sheet and a values file. A fact is never drafted, an unknown is left out, and nothing is sent to GoHighLevel.
+
+**Pushing them into the account** is a second, separate step, on the member's yes to the plan (step 6) or when they ask ("Push my build to GoHighLevel"), and only into their own sub-account: `scripts/ghl_push.py plan` shows what would change, the member says go, and `push --yes` writes the custom values and reads them back. It publishes nothing, sends nothing and switches nothing on. The member saves their own token through the Key Ring (`references/key-ring.md` in `buildroom-os`); never ask for it in the chat. This is the one place Autopilot touches an account, and it does so only on the member's explicit go-ahead after they have seen the plan.
 
 ## Voice & Style Rules
 
