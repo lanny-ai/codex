@@ -3,6 +3,8 @@
 
   ghl_push.py plan autopilot/ghl          what would change in the account. Reads the account; changes nothing.
   ghl_push.py push autopilot/ghl --yes    creates or updates each value, waits, reads the account back and reports.
+  ghl_push.py ready                       one line of JSON: is this folder connected to a GoHighLevel account that answers?
+                                          Reads the account's name only; changes nothing. Autopilot runs it at the end of a build.
 
 The folder is the one `ghl_values.py export` wrote: it holds custom_values.json. Run `plan` first, show the member,
 and run `push` only on their go-ahead.
@@ -191,6 +193,22 @@ def setup(a):
     return sp, known, d, token, loc, base, have, name
 
 
+def cmd_ready(a):
+    """Is there a working connection? Never an error: the answer is the output."""
+    env = read_env(a.env)
+    token = os.environ.get("GHL_TOKEN") or env.get("GHL_TOKEN")
+    loc = os.environ.get("GHL_LOCATION_ID") or env.get("GHL_LOCATION_ID")
+    if not token or not loc:
+        return print(json.dumps({"connected": False, "why": "no_key", "next": "Offer the Key Ring once: \"Add my GoHighLevel key\". Never ask for a token in the chat."}))
+    base = (os.environ.get("GHL_API_BASE") or env.get("GHL_API_BASE") or API).rstrip("/")
+    try:
+        info = call(base, token, "GET", f"/locations/{loc}", tries=2)
+    except Refused as e:
+        return print(json.dumps({"connected": False, "why": "not_accepted", "detail": plain(str(e)), "next": "Tell the member the saved key did not work and offer: \"Change my GoHighLevel key\"."}))
+    print(json.dumps({"connected": True, "account": (info.get("location") or info).get("name") or "unnamed account",
+                      "next": "Prepare the values, run plan, show it, and push only on the member's yes."}))
+
+
 def cmd_plan(a):
     sp, known, d, _t, _l, _b, have, name = setup(a)
     create, update, same = make_plan(d, known, have)
@@ -257,9 +275,10 @@ def cmd_push(a):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    for name, fn in (("plan", cmd_plan), ("push", cmd_push)):
+    for name, fn in (("plan", cmd_plan), ("push", cmd_push), ("ready", cmd_ready)):
         p = sub.add_parser(name)
-        p.add_argument("folder")
+        if name != "ready":
+            p.add_argument("folder")
         p.add_argument("--env", default=".env")
         if name == "push":
             p.add_argument("--yes", action="store_true", help="the member has seen the plan and said go")

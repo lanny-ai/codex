@@ -237,6 +237,48 @@ def main():
     rc, out, _ = run(ring, b, "wait", "--timeout", "1")
     check("a closed page with nothing saved says so", json.loads(out)["event"] == "closed")
 
+    # ---- the provider's own tools, for Claude Code and Codex
+    fake, chome, log = tmp / "bin", tmp / "codex-home", tmp / "claude-calls.txt"
+    fake.mkdir(); chome.mkdir()
+    (fake / "claude").write_text(f"#!/bin/sh\necho \"$@\" >> {log}\nexit 0\n")
+    (fake / "claude").chmod(0o755)
+    (chome / "config.toml").write_text('model = "x"\n\n[mcp_servers.other]\nurl = "https://example.com/mcp"\n')
+
+    def tool(*args, path=True):
+        env = dict(os.environ, BUILDROOM_KEYRING_DIR=str(ring), CODEX_HOME=str(chome), PATH=(str(fake) + os.pathsep if path else "") + "/usr/bin:/bin")
+        p = subprocess.run([sys.executable, str(SCRIPT), *map(str, args)], capture_output=True, text=True, env=env, cwd=str(b), timeout=60)
+        SEEN.append(p.stdout + p.stderr)
+        return p.returncode, p.stdout, p.stderr
+    rc, out, _ = tool("connect", "kie")
+    check("a provider with no live tools cannot be connected", rc != 0)
+    rc, out, _ = tool("connect", "ghl")
+    res = {r["client"]: r for r in json.loads(out)["results"]}
+    calls = log.read_text() if log.exists() else ""
+    check("connect adds GoHighLevel's tools to Claude Code for this folder only", res["claude"]["ok"] and "add --transport http --scope local gohighlevel https://services.leadconnectorhq.com/mcp/" in calls
+          and "locationId: " + LOC in calls, calls[:200])
+    cfg = (chome / "config.toml").read_text()
+    try:
+        import tomllib
+        parsed = tomllib.loads(cfg)["mcp_servers"]
+    except ImportError:
+        parsed = None
+    check("connect adds it to Codex's config and keeps what was there", res["codex"]["ok"] and "[mcp_servers.other]" in cfg and "[mcp_servers.gohighlevel]" in cfg
+          and (parsed is None or (parsed["gohighlevel"]["http_headers"]["locationId"] == LOC and parsed["other"]["url"] == "https://example.com/mcp")), cfg[:300])
+    check("connect says the Codex route is not yet confirmed", "not been confirmed" in res["codex"]["detail"])
+    if os.name != "nt":
+        check("Codex's config becomes a private file once it holds a key", stat.S_IMODE((chome / "config.toml").stat().st_mode) == 0o600)
+    tool("connect", "ghl", "--to", "codex")
+    check("connecting twice does not double the entry", (chome / "config.toml").read_text().count("[mcp_servers.gohighlevel]") == 1)
+    rc, out, _ = tool("connect", "ghl", "--to", "claude", path=False)
+    check("no claude command is reported, not an error", rc == 0 and json.loads(out)["results"][0]["ok"] is False and "not found" in json.loads(out)["results"][0]["detail"])
+    rc, out, _ = tool("disconnect", "ghl")
+    check("disconnect removes it from both and leaves the member's own servers", "gohighlevel" not in (chome / "config.toml").read_text() and "[mcp_servers.other]" in (chome / "config.toml").read_text()
+          and "remove gohighlevel --scope local" in log.read_text())
+    (chome / "config.toml").write_text('[mcp_servers.gohighlevel]\nurl = "https://mine.example/mcp"\n')
+    rc, out, _ = tool("connect", "ghl", "--to", "codex")
+    check("a server of the same name the member added themselves is left alone", json.loads(out)["results"][0]["ok"] is False and "mine.example" in (chome / "config.toml").read_text())
+    SEEN.append(log.read_text().replace(json.loads((ring / "keys.json").read_text())["keys"]["gohighlevel"]["values"]["GHL_TOKEN"], ""))
+
     # ---- removing
     rc, _, err = run(ring, b, "remove", "kie")
     check("remove asks first", rc != 0 and "--yes" in err and "kie" in json.loads((ring / "keys.json").read_text())["keys"])
@@ -256,7 +298,7 @@ def main():
     everything = "\n".join(SEEN)
     check("no command and no page answer ever carried a key", not any(s in everything for s in SECRETS), str([s[:8] for s in SECRETS if s in everything]))
     src = SCRIPT.read_text(encoding="utf-8")
-    std = {"argparse", "http", "json", "os", "re", "secrets", "subprocess", "sys", "tempfile", "threading", "time", "urllib", "webbrowser", "datetime", "pathlib"}
+    std = {"shutil", "argparse", "http", "json", "os", "re", "secrets", "subprocess", "sys", "tempfile", "threading", "time", "urllib", "webbrowser", "datetime", "pathlib"}
     used = {n.name.split(".")[0] for node in ast.walk(ast.parse(src)) if isinstance(node, ast.Import) for n in node.names} | \
            {node.module.split(".")[0] for node in ast.walk(ast.parse(src)) if isinstance(node, ast.ImportFrom)}
     check("standard library only", used <= std, str(used - std))

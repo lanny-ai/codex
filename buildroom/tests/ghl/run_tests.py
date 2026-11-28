@@ -187,6 +187,14 @@ def push_tests():
             r = subprocess.run([sys.executable, "-B", str(PUSH), *a, "--pause", "0"] if a[0] == "push" else [sys.executable, "-B", str(PUSH), *a],
                                capture_output=True, text=True, cwd=w, env={**e, "PYTHONDONTWRITEBYTECODE": "1", **env})
             return r.returncode, r.stdout + r.stderr
+        code, out = run("ready")
+        check("ready: a working connection is reported with the account name, and nothing is written", code == 0 and json.loads(out)["connected"] is True
+              and json.loads(out)["account"] == "Test Account" and "pit-test-token" not in out and all(c[0] == "GET" for c in state["calls"]), out)
+        code, out = run("ready", env_file=False)
+        check("ready: no key is an answer, not an error, and points to the Key Ring", code == 0 and json.loads(out)["connected"] is False and json.loads(out)["why"] == "no_key" and "Key Ring" in out, out)
+        code, out = run("ready", GHL_TOKEN="pit-wrong")
+        check("ready: a key the account refuses is reported plainly", code == 0 and json.loads(out)["why"] == "not_accepted" and "pit-wrong" not in out, out)
+        state["calls"].clear()
         write()
         code, out = run("plan", "ghl")
         check("push plan: reads the account, shows what would be added, and changes nothing", code == 0 and "Would create 4, update 0" in out and "Nothing was changed" in out

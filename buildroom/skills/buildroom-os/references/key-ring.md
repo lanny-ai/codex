@@ -38,12 +38,29 @@ The page checks the key with the provider before it saves. A refused key is not 
 | "Change my GoHighLevel key" | `key_ring.py add gohighlevel --replace` |
 | "Remove my Kie key" | Ask first. Then `key_ring.py remove kie --yes`. Tell them this takes it off the computer's ring and this folder only; to make the key useless everywhere they delete it in their account with the provider. |
 | "What keys can I add?" | `key_ring.py catalog` |
+| "Connect GoHighLevel to Claude" (or "to Codex") | `key_ring.py connect gohighlevel --to claude` (or `codex`, or `both`). See below. |
+| "Disconnect GoHighLevel" | `key_ring.py disconnect gohighlevel` |
 
 Providers it knows: `gohighlevel` (also `ghl`), `kie`, `higgsfield`, `heygen`, `submagic`. GoHighLevel, Kie.ai and HeyGen keys are checked on save; GoHighLevel's check was run against a real account. The Kie.ai and HeyGen checks have not been confirmed against the live services, so they count only a clear yes or a clear no, and a member whose good key is refused can press "Save it anyway". Higgsfield and SubMagic keys are saved without a check.
 
 ## GoHighLevel, specifically
 
 The page walks the member through making a private integration in their own sub-account, with read permissions plus Edit Custom Values, and tells them to leave everything under Conversations off: Build Room never sends messages as the member. It saves the token as `GHL_TOKEN` (and as `GHL_API_KEY`, the name the Funnel Map and Decision Machine pushes read) and the location as `GHL_LOCATION_ID`. If a tool later reports that the token is not allowed to do something, the member adds that one permission to the same integration; the token does not change and nothing needs adding again.
+
+## GoHighLevel's live tools in Claude Code and Codex
+
+The key alone lets Build Room's scripts push a build and read funnel numbers. `connect` goes one step further: it registers GoHighLevel's own MCP server with the member's AI tool, so a session can look things up in the account directly (contacts, calendars, deals, payments) and draft blog posts, emails and social posts there.
+
+1. The key must be on the ring first (`add gohighlevel`).
+2. Run `key_ring.py connect gohighlevel --to claude` from the working folder (or `--to codex`, or `--to both`). It never prints the key.
+3. Tell the member to start a new session: the tools appear only in a session started after connecting.
+
+What to say plainly:
+
+- **Claude Code** gets it for this folder only. This was run for real: Claude Code reported the server as connected.
+- **Codex** gets it for the whole computer, written into Codex's own config file between two marker lines. The file format follows Codex's documentation, but it has not been confirmed in Codex itself. If the tools do not appear, say so and do not guess at a fix.
+- The key is now also stored in that tool's settings file on the computer. If the member changes the key, run `connect` again.
+- What the tools can do is set by the permissions on the member's integration. With everything under Conversations left off, nothing can send a message to anyone. Before a session creates or changes anything in the account through these tools, it says what it is about to do and waits for the member's yes.
 
 ## Any other key, by hand
 
